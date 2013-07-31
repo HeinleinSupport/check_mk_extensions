@@ -1,0 +1,136 @@
+#!/usr/bin/python
+# -*- encoding: utf-8; py-indent-offset: 4 -*-
+
+#
+# (c) 2013 Heinlein Support GmbH
+#          Robert Sander <r.sander@heinlein-support.de>
+#
+
+snmp_scan_functions['infortrend_chassis'] = lambda oid: oid(".1.3.6.1.4.1.1714.1.9.1.13") != None
+
+snmp_info['infortrend_chassis'] = ( ".1.3.6.1.4.1.1714.1.9.1", [ "8", "13", "6", "9", "10" ] )
+
+def inventory_infortrend_chassis(info):
+    # Debug: lets see how the data we get looks like
+    inventory = []
+    for name, status, type, value, unit in info:
+        inventory.append( (name, status) )
+    return inventory
+
+def check_infortrend_chassis(item, params, info):
+    status_info = {
+        "1": { 'bits': { 0: ( "Power supply functioning normally", "Power supply malfunctioning" ),
+                         6: ( "Power supply is ON", "Power supply is OFF" ),
+                         7: ( "Power supply IS present", "Power supply is NOT present" ),
+                         },
+               },
+        "2": { 'bits': { 0: ( "Fan functioning normally", "Fan malfunctioning" ),
+                         6: ( "Fan is ON", "Fan is OFF" ),
+                         7: ( "Fan IS present", "Fan is NOT present" ),
+                         },
+               },
+        "3": { 'bits': { 0: ( "Temp. sensor functioning normally", "Temp. sensor malfunctioning" ),
+                         6: ( "Temp. Sensor is Activated", "Temp. Sensor is NOT Activated" ),
+                         7: ( "Temperature sensor IS present", "Temperature sensor is NOT present" ),
+                         },
+               'adtl_info': { 0: "Temp. within safe range",
+                              2: "Cold Temp. Warning",
+                              3: "Hot Temp. Warning",
+                              4: "Cold Temp. Limit Exceeded",
+                              5: "Hot Temp. Limit Exceeded",
+                              },
+               'adtl_func': lambda status: status >> 1 & 7,
+               },
+        "4": { 'bits': { 0: ( "Unit functioning normally", "Unit malfunctioning" ),
+                         1: ( "AC Power present", "AC Power NOT present" ),
+                         6: ( "UPS is ON", "UPS is OFF" ),
+                         7: ( "UPS IS present", "UPS is NOT present" ),
+                         },
+               'adtl_info': { 0: "battery fully charged",
+                              1: "battery not fully charged",
+                              2: "battery charge critically low",
+                              3: "battery completely drained",
+                              },
+               'adtl_func': lambda status: status >> 2 & 3,
+               },
+        "5": { 'bits': { 0: ( "Voltage sensor functioning normally", "Voltage sensor malfunctioning" ),
+                         6: ( "Voltage Sensor is Activated", "Voltage Sensor is NOT Activated" ),
+                         7: ( "Voltage sensor IS present", "Voltage sensor is NOT present" ),
+                         },
+               'adtl_info': { 0: "Voltage within acceptable range",
+                              2: "Low Voltage Warning",
+                              3: "High Voltage Warning",
+                              4: "Low Voltage Limit Exceeded",
+                              5: "High Voltage Limit Exceeded",
+                              },
+               'adtl_func': lambda status: status >> 1 & 7,
+               },
+        "6": { 'bits': { 0: ( "Current sensor functioning normally", "Current sensor malfunctioning" ),
+                         6: ( "Current Sensor is Activated", "Current Sensor is NOT Activated" ),
+                         7: ( "Current sensor IS present", "Current sensor is NOT present" ),
+                         },
+               'adtl_info': { 0: "Current within acceptable range",
+                              3: "Over Current Warning",
+                              5: "Over Current Limit Exceeded",
+                              },
+               'adtl_func': lambda status: status >> 1 & 7,
+               },
+        "9": { 'bits': { 0: ( "Door OK", "Door, door lock, or door sensor malfunctioning" ),
+                         1: ( "Door is shut", "Door is open" ),
+                         6: ( "Door lock engaged", "Door lock NOT engaged" ),
+                         7: ( "Door IS present", "Door is NOT present" ),
+                         },
+               },
+        "10": { 'bits': { 0: ("Speaker functioning normally", "Speaker malfunctioning" ),
+                          6: ("Speaker is ON", "Speaker is OFF" ),
+                          7: ("Speaker IS present", "Speaker is NOT present" ),
+                          },
+                },
+        "11": { 'bits': { 0: ( "Battery functioning normally", "Battery malfunctioning" ),
+                          1: ( "Battery charging OFF (or trickle)", "Battery charging ON" ),
+                          6: ( "Battery-backup is enabled", "Battery-backup is disabled" ),
+                          7: ( "Battery IS present", "Battery is NOT present" ),
+                          },
+                'adtl_info': { 0: "battery fully charged",
+                               1: "battery not fully charged",
+                               2: "battery charge critically low",
+                               3: "battery completely drained",
+                               },
+                'adtl_func': lambda status: status >> 2 & 3,
+                },
+        "17": { 'bits': { 0: ( "Slot sense circuitry functioning normally", "Slot sense circuitry malfunctioning" ),
+                          1: ( "Device in slot has not been marked 'needing replacement' or a replacement drive has been inserted", "Device in slot has been marked BAD and is awaiting replacement" ),
+                          2: ( "Slot is activated so that drive can be accessed", "Slot NOT activated" ),
+                          6: ( "Slot is NOT ready for insertion/removal", "Slot is ready for insertion/removal" ),
+                          7: ( "Device inserted in slot", "Slot is empty" ),
+                          },
+                },
+        }
+    
+    for name, status, type, value, unit in info:
+        status = int(status)
+        if name == item:
+            if status == 0:
+                return (0, status_info[type]['bits'][0][0])
+            if status == 255:
+                return (3, "Status unknown")
+            output = []
+            for bit in status_info[type]['bits'].keys():
+                bit_set = ( status & 1 << bit ) >> bit
+                if bit_set:
+                    output.append("<b>%s</b>" % status_info[type]['bits'][bit][bit_set])
+                else:
+                    output.append(status_info[type]['bits'][bit][bit_set])
+            if status_info[type].has_key('adtl_info'):
+                adtl_status = status_info[type]['adtl_func'](status)
+                if adtl_status > 0:
+                    output.append("<b>%s</b>" % status_info[type]['adtl_info'][adtl_status])
+                else:
+                    output.append(status_info[type]['adtl_info'][adtl_status])
+            if status == 64:
+                return (1, "%d %s" % ( status, ", ".join(output)))
+            else:
+                return (2, "%d %s" % ( status, ", ".join(output)))
+    return (3, "not yet implemented")
+
+check_info["infortrend_chassis"] = (check_infortrend_chassis, "IFT %s", 0, inventory_infortrend_chassis)
