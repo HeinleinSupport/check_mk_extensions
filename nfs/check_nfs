@@ -1,0 +1,39 @@
+#!/usr/bin/python 
+# -*- encoding: utf-8; py-indent-offset: 4 -*- 
+ 
+# 
+# (c) 2013 Heinlein Support GmbH 
+#          Robert Sander <r.sander@heinlein-support.de> 
+# 
+ 
+def check_nfs_arguments(params):
+    sharename, settings = params
+    
+    if 'hostname' in settings:
+        args = "%s" % quote_shell_string(settings['hostname'])
+    else: 
+        args = "$HOSTADDRESS$"
+
+    args += " %s" % quote_shell_string(sharename)
+ 
+    if 'warning' in settings: 
+        args += " %d%%" % settings['warning']
+    else:
+        args += " 20%"
+ 
+    if 'critical' in settings:
+        args += " %d%%" % settings['critical']
+    else:
+        args += " 10%"
+
+    return args 
+ 
+def check_nfs_description(params): 
+    return "NFS %s" % params[0] 
+ 
+active_check_info['nfs'] = { 
+    "command_line": "$USER2$/check_nfs $ARG1$", 
+    "argument_function": check_nfs_arguments, 
+    "service_description": check_nfs_description, 
+    "has_perfdata": True, 
+    } 
