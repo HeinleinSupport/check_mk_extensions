@@ -1,0 +1,18 @@
+#!/usr/bin/python
+# -*- encoding: utf-8; py-indent-offset: 4 -*-
+
+#
+# (c) 2013 Heinlein Support GmbH
+#          Robert Sander <r.sander@heinlein-support.de>
+#
+
+def check_webinject_arguments(params):
+    return quote_shell_string(params[0])
+
+active_check_info['webinject'] = {
+    "command_line"        : 'PERL_LWP_SSL_VERIFY_HOSTNAME=0 /usr/local/bin/webinject.pl -c $USER4$/etc/webinject/config.xml -o $USER4$/etc/webinject/tmp/ $USER4$/etc/webinject/$ARG1$.xml',
+    "argument_function"   : check_webinject_arguments,
+    "service_description" : lambda params: "WebInject" if params[0] == '$HOSTNAME$' else "WebInject %s" % params[0] ,
+    "has_perfdata"        : True,
+}
+
