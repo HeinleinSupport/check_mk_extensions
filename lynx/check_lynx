@@ -1,0 +1,37 @@
+#!/usr/bin/python
+# -*- encoding: utf-8; py-indent-offset: 4 -*-
+
+#
+# (c) 2013 Heinlein Support GmbH
+#          Robert Sander <r.sander@heinlein-support.de>
+#
+
+def check_lynx_arguments(settings):
+    if 'filename' in settings:
+        args = "%s" % quote_shell_string(settings['filename'])
+    else:
+        args = "$HOSTNAME$"
+
+    if 'url' in settings:
+        args += " %s" % quote_shell_string(settings['url'])
+
+    if 'pattern' in settings:
+	args += " %s" % quote_shell_string(settings['pattern'])
+
+    return args
+
+def check_lynx_description(settings):
+    if 'description' in settings:
+	description = settings['description']
+    else:	
+        description = "lynxcheck"
+
+    return description
+
+active_check_info['lynx'] = {
+    "command_line"        : '/usr/local/bin/check_lynx.sh $USER4$/etc/lynx-check $ARG1$',
+    "argument_function"   : check_lynx_arguments,
+    "service_description" : check_lynx_description ,
+    "has_perfdata"        : True,
+}
+
