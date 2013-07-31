@@ -1,0 +1,54 @@
+#!/usr/bin/python 
+# -*- encoding: utf-8; py-indent-offset: 4 -*- 
+ 
+# 
+# (c) 2013 Heinlein Support GmbH 
+#          Robert Sander <r.sander@heinlein-support.de> 
+# 
+ 
+def check_disk_smb_arguments(params):
+    sharename, settings = params
+    
+    if 'hostname' in settings:
+        args = " -H %s" % quote_shell_string(settings['hostname'])
+    else: 
+        args = " -H $HOSTADDRESS$"
+
+    args += " -s %s" % quote_shell_string(sharename)
+
+    if 'workgroup' in settings:
+        args += " -W %s" % quote_shell_string(settings['workgroup'])
+    else:
+        args += " -W $USER7$"
+
+    if 'user' in settings:
+        args += " -u %s" % quote_shell_string(settings['user'])
+    else:
+        args += " -u guest"
+
+    if 'password' in settings:
+        args += " -p %s" % quote_shell_string(settings['password'])
+    else:
+        args += " -p $USER6$"
+ 
+    if 'warning' in settings: 
+        args += " -w %d" % settings['warning']
+    else:
+        args += " -w 85"
+ 
+    if 'critical' in settings:
+        args += " -c %d" % settings['critical']
+    else:
+        args += " -c 95"
+
+    return args 
+ 
+def check_disk_smb_description(params): 
+    return "SMB %s" % params[0] 
+ 
+active_check_info['disk_smb'] = { 
+    "command_line": "$USER2$/check_disk_smb $ARG1$", 
+    "argument_function": check_disk_smb_arguments, 
+    "service_description": check_disk_smb_description, 
+    "has_perfdata": False,
+    } 
