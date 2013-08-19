@@ -33,11 +33,15 @@ def check_vgs(item, params, info):
         warn, crit = vgs_default_values
     for line in info:
         if item == vgs_name(line):
-            percfull = 100.0 - int(line[6]) * 100.0 / int(line[5])
             pvs = int(line[1])
             lvs = int(line[2])
             sns = int(line[3])
-            perfdata = [ ( "perc_full", percfull, warn, crit, 0.0, 100.0),
+            total = int(line[5])
+            free = int(line[6])
+            percfull = 100.0 - free * 100.0 / total
+            perfdata = [
+                         ( "free", free, total * ( 1.0 - warn / 100.0 ), total * ( 1.0 - crit / 100.0 ), 0.0, total ),
+                         ( "perc_full", percfull, warn, crit, 0.0, 100.0),
                          ( "pvs", pvs, "", "", 0, 10),
                          ( "lvs", lvs, "", "", 0, 10),
                          ( "snapshots", sns, "", "", 0, 30),
