@@ -37,7 +37,6 @@ def check_atmedia_encryptor_status(item, params, info):
 
     return (3, "%s not found in SNMP data" % item)
 
-
 check_info["atmedia_encryptor_status"] = {
     'check_function':          check_atmedia_encryptor_status,
     'inventory_function':      inventory_atmedia_encryptor_status,
