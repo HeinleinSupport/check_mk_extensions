@@ -52,11 +52,11 @@ def check_raritan_pdu_outlets(item, _no_params, info):
         currentwarn = int(currentwarn) / 1000.0
         currentcrit = int(currentcrit) / 1000.0
 
-        infotext = "Status: %s, Current: %0.3fA, Voltage: %0.3fV, Active Power: %0.3fW, Apparant Power: %0.3fVA, Power Factor: %d%%" % ( state_info[status], current, voltage, activepower, apparentpower, powerfactor )
+        infotext = "Status: %s, Current: %0.3fA, Voltage: %0.1fV, Active Power: %dW, Apparant Power: %dVA, Power Factor: %d%%" % ( state_info[status], current, voltage, activepower, apparentpower, powerfactor )
         perfdata = [ ("current", "%fA" % current, currentwarn, currentcrit, 0 ),
                      ("voltage", "%fV" % voltage),
-                     ("activepower", "%fW" % activepower),
-                     ("apparentpower", "%fVA" % apparentpower),
+                     ("activepower", "%dW" % activepower),
+                     ("apparentpower", "%dVA" % apparentpower),
                      ("powerfactor", "%d%%" % powerfactor, None, None, 0, 100) ]
 
         rc = 0
