@@ -37,8 +37,8 @@ register_rule(group,
                                 default_value = 143,
                                 ),
                         ),
-                    ( "ip_version",
-                      Alternative(
+                      ( "ip_version",
+                        Alternative(
                             title = _("IP-Version"),
                             elements = [
                                 FixedValue(
@@ -53,13 +53,101 @@ register_rule(group,
                                     ),
                                 ],
                             )),
-                    ( "timeout",
-                      Integer(
+                      ( "send",
+                        TextAscii(
+                            title = _("String to send to the server"),
+                            ),
+                        ),
+                      ( "expect",
+                        TextAscii(
+                            title = _("String to expect in server response"),
+                            ),
+                        ),
+                      ( "quit",
+                        TextAscii(
+                            title = _("String to send server to initiate a clean close of the connection"),
+                            ),
+                        ),
+                      ( "refuse",
+                        DropdownChoice(
+                            title = _("Accept TCP refusals with states ok, warn, crit"),
+                            choices = [ ('crit', _("CRITICAL")),
+                                        ('warn', _("WARNING")),
+                                        ('ok',   _("OK")),
+                                        ]
+                            default_value = 'crit',
+                            )
+                        ),
+                      ( "mismatch",
+                        DropdownChoice(
+                            title = _("Accept expected string mismatches with states ok, warn, crit"),
+                            choices = [ ('crit', _("CRITICAL")),
+                                        ('warn', _("WARNING")),
+                                        ('ok',   _("OK")),
+                                        ]
+                            default_value = 'warn',
+                            )
+                        ),
+                      ( "jail",
+                        FixedValue(
+                            title = _("Hide output from TCP socket"),
+                            totext = "",
+                            ),
+                        ),
+                      ( "maxbytes",
+                        Integer(
+                            title = _("Close connection once more than this number of bytes are received"),
+                            ),
+                        ),
+                      ( "delay",
+                        Integer(
+                            title = _("Seconds to wait between sending string and polling for response"),
+                            ),
+                        ),
+                      ( "ssl",
+                        FixedValue (
+                            title = _("Use SSL for the connection"),
+                            totext = "",
+                            ),
+                        ),
+                      ( "certificate_age",
+                        Tuple (
+                            title = _("Minimum number of days a certificate has to be valid."),
+                            elements = [
+                                Integer(
+                                    title = _("Warning"),
+                                    default_value = 60,
+                                    unit = _("days"),
+                                    ),
+                                Integer(
+                                    title = _("Critical"),
+                                    default_value = 90,
+                                    unit = _("days"),
+                                    ),
+                                ],
+                            ),
+                        ),
+                      ( "warning",
+                        Integer(
+                            title = _("Response time to result in warning status"),
+                            unit = _("sec"),
+                            default_value = 10,
+                            )
+                        ),
+                      ( "timeout",
+                        Integer(
+                            title = _("Response time to result in critical status"),
+                            unit = _("sec"),
+                            default_value = 15,
+                            )
+                        ),
+                      ( "timeout",
+                        Integer(
                             title = _("Seconds before connection times out"),
                             unit = _("sec"),
                             default_value = 10,
                             )
-                      ),
+                        ),
                       ]
                   ),
               match = 'all'
