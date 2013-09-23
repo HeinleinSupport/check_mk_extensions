@@ -17,8 +17,12 @@
 # to the Free Software Foundation, Inc., 51 Franklin St,  Fifth Floor,
 # Boston, MA 02110-1301 USA.
 
+from pprint import pprint
+
 def check_imap_arguments(params):
-    args = "-T"
+    args = ""
+
+    pprint(params)
 
     if 'hostname' in params:
         args += " -H %s" % quote_shell_string(params['hostname'])
@@ -33,7 +37,8 @@ def check_imap_arguments(params):
     return args
 
 def check_imap_description(params):
-    return "UPS %s" % params['imapname']
+    pprint(params)
+    return params[1]
 
 active_check_info['imap'] = {
     "command_line": "$USER1$/check_imap $ARG1$",
