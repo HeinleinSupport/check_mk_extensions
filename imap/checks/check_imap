@@ -24,21 +24,67 @@ def check_imap_arguments(params):
 
     pprint(params)
 
-    if 'hostname' in params:
-        args += " -H %s" % quote_shell_string(params['hostname'])
+    service_desc, options = params
+
+    if 'hostname' in options:
+        args += " -H %s" % quote_shell_string(options['hostname'])
     else:
         args += " -H $HOSTADDRESS$"
 
-    args += " -u %s" % quote_shell_string(params['imapname'])
+    if 'ssl' in options:
+        args += " -S"
+        if 'port' in options and options['port'] != 993:
+            args += " -p %d" % options['port']
+    else:
+        if 'port' in options and options['port'] != 143:
+            args += " -p %d" % options['port']
 
-    if 'port' in params and params['port'] != 3493:
-        args += " -p %d" % params['port']
+    if "ip_version" in options:
+        if options['ip_version'] == 'ipv4':
+            args += ' -4'
+        else:
+            args += ' -6'
+
+    if 'send' in options:
+        args += ' -s "%s"' % options['send']
+
+    if 'expect' in options:
+        args += ' -e "%s"' % options['expect']
+
+    if 'quit' in options:
+        args += ' -q "%s"' % options['quit']
+
+    if 'refuse' in options:
+        args += ' -r %s' % options['refuse']
+
+    if 'mismatch' in options:
+        args += ' -M %s' % options['mismatch']
+
+    if 'jail' in options:
+        args += ' -j'
+
+    if 'maxbytes' in options:
+        args += ' -m %d' % options['maxbytes']
+
+    if 'delay' in options:
+        args += ' -d %s' % options['delay']
+
+    if 'certificate' in options:
+        args += ' -D %d,%d' % ( options['certificate'][0], options['certificate'][1] )
+
+    if 'warning' in options:
+        args += ' -w %d' % options['warning']
+
+    if 'critical' in options:
+        args += ' -c %d' % options['critical']
+
+    if 'timeout' in options:
+        args += ' -t %d' % options['timeout']
 
     return args
 
 def check_imap_description(params):
-    pprint(params)
-    return params[1]
+    return params[0]
 
 active_check_info['imap'] = {
     "command_line": "$USER1$/check_imap $ARG1$",

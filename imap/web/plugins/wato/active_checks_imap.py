@@ -119,7 +119,7 @@ register_rule(group,
                                     totext = "",
                                     ),
                                 ),
-                              ( "certificate_age",
+                              ( "certificate",
                                 Tuple (
                                     title = _("Minimum number of days a certificate has to be valid."),
                                     elements = [
