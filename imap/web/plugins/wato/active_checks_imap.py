@@ -74,7 +74,7 @@ register_rule(group,
                             choices = [ ('crit', _("CRITICAL")),
                                         ('warn', _("WARNING")),
                                         ('ok',   _("OK")),
-                                        ]
+                                        ],
                             default_value = 'crit',
                             )
                         ),
@@ -84,7 +84,7 @@ register_rule(group,
                             choices = [ ('crit', _("CRITICAL")),
                                         ('warn', _("WARNING")),
                                         ('ok',   _("OK")),
-                                        ]
+                                        ],
                             default_value = 'warn',
                             )
                         ),
