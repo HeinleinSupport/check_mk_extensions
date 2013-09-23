@@ -33,8 +33,10 @@ def check_imap_arguments(params):
 
     if 'ssl' in options:
         args += " -S"
-        if 'port' in options and options['port'] != 993:
+        if 'port' in options:
             args += " -p %d" % options['port']
+        else:
+            args += " -p 993"
     else:
         if 'port' in options and options['port'] != 143:
             args += " -p %d" % options['port']
