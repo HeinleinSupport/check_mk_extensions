@@ -22,8 +22,6 @@ from pprint import pprint
 def check_imap_arguments(params):
     args = ""
 
-    pprint(params)
-
     service_desc, options = params
 
     if 'hostname' in options:
