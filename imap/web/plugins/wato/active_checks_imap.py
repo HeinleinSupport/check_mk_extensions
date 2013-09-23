@@ -30,6 +30,7 @@ register_rule(group,
                           default_value = "IMAP",
                           ),
                       Dictionary(
+                          title = _("Optional Values"),
                           elements = [
                               ( "hostname",
                                 TextAscii(title = _("DNS Hostname or IP address"),
