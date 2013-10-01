@@ -1,0 +1,64 @@
+#!/bin/bash
+# -*- encoding: utf-8
+
+# (c) 2013 Heinlein Support GmbH
+#          Robert Sander <r.sander@heinlein-support.de>
+
+# This is free software;  you can redistribute it and/or modify it
+# under the  terms of the  GNU General Public License  as published by
+# the Free Software Foundation in version 2.  check_mk is  distributed
+# in the hope that it will be useful, but WITHOUT ANY WARRANTY;  with-
+# out even the implied warranty of  MERCHANTABILITY  or  FITNESS FOR A
+# PARTICULAR PURPOSE. See the  GNU General Public License for more de-
+# ails.  You should have  received  a copy of the  GNU  General Public
+# License along with GNU Make; see the file  COPYING.  If  not,  write
+# to the Free Software Foundation, Inc., 51 Franklin St,  Fifth Floor,
+# Boston, MA 02110-1301 USA.
+
+#!/bin/bash
+
+CONFIG=/etc/check_mk/postfix_mailq_details
+
+QPATH=/var/spool/postfix
+BIN_FIND=$(which find)
+BIN_WC=$(which wc)
+BIN_DU=$(which du)
+
+# Age in Minutes
+AGE1="+5"
+AGE2="-5"
+
+QUEUES1="active incoming"
+QUEUES2="deferred"
+
+if [ -r $CONFIG ]; then
+    . $CONFIG
+fi
+
+QUEUES="$QUEUES1 $QUEUES2"
+
+echo '<<<postfix_mailq_details>>>'
+
+for queue in $QUEUES; do
+    echo $queue total all $( $BIN_FIND $QPATH/$queue -type f 2> /dev/null | $BIN_WC -l ) $( $BIN_DU -sb $QPATH/$queue )
+done
+
+for queue in $QUEUES1; do
+    length=$( $BIN_FIND $QPATH/$queue -type f -cmin $AGE1 2> /dev/null | $BIN_WC -l )
+    if [ $length -gt 0 ]; then
+        size=$( $BIN_FIND $QPATH/$queue -type f -cmin $AGE1 -print0 2> /dev/null | xargs -0 du -cb 2> /dev/null | grep total | cut -f 1 | paste -sd+ - | bc )
+    else
+        size=0
+    fi
+    echo $queue age $AGE1 $length $size
+done
+
+for queue in $QUEUES2; do
+    length=$( $BIN_FIND $QPATH/$queue -type f -cmin $AGE2 2> /dev/null | $BIN_WC -l )
+    if [ $length -gt 0 ]; then
+        size=$( $BIN_FIND $QPATH/$queue -type f -cmin $AGE2 -print0 2> /dev/null | xargs -0 du -cb 2> /dev/null | grep total | cut -f 1 | paste -sd+ - | bc )
+    else
+        size=0
+    fi
+    echo $queue age $AGE2 $length $size
+done
