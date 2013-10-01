@@ -20,6 +20,11 @@
 CONFIG=/etc/check_mk/postfix_mailq_details
 
 QPATH=/var/spool/postfix
+
+if [ ! -d $QPATH ]; then
+    exit
+fi
+
 BIN_FIND=$(which find)
 BIN_WC=$(which wc)
 BIN_DU=$(which du)
