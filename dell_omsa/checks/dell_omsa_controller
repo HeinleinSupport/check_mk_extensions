@@ -1,0 +1,51 @@
+#!/usr/bin/python
+# -*- encoding: utf-8; py-indent-offset: 4 -*-
+
+def inventory_dell_omsa_controller(info):
+    inventory = []
+    for line in info:
+        inventory.append(( line[0], None ))
+    return inventory
+
+def check_dell_omsa_controller(item, params, info):
+    ctrl_state = {
+        0: 'Unknown',
+        1: 'Ready',
+        2: 'Failed',
+        3: 'Online',
+        4: 'Offline',
+        6: 'Degraded',
+        }
+    for line in info:
+        if line[0] != item:
+            continue
+        state = int(line[2])
+        cstate = int(line[4])
+        try:
+            info_text = "%s %s %s: %s %s" % (line[1], line[3], line[5], ctrl_state[state], ctrl_state[cstate])
+        except KeyError:
+            info_text = "%d %d" % (state, cstate)
+        if state in [1, 3] and cstate in [1, 3]:
+            return (0, info_text)
+        if state in [6] or cstate in [6]:
+            return (1, info_text)
+        if state in [2, 4] or cstate in [2, 4]:
+            return (2, info_text)
+        return (3, info_text)
+    return (3, "Temperature sensor %s not found" % item)
+
+check_info["dell_omsa_controller"] = {
+    'check_function'        : check_dell_omsa_controller,
+    'inventory_function'    : inventory_dell_omsa_controller,
+    'service_description'   : 'OMSA Controller%s',
+    'has_perfdata'          : False,
+    'snmp_info'             : ('.1.3.6.1.4.1.674.10893.1.20.130.1.1', ['1',  # controllerNumber
+                                                                       '2',  # controllerName
+                                                                       '5',  # controllerState
+                                                                       '8',  # controllerFWVersion
+                                                                       '38', # controllerComponentStatus
+                                                                       '41', # controllerDriverVersion
+                                                                       ] ),
+    'snmp_scan_function'    : lambda oid: oid(".1.3.6.1.4.1.674.10893.1.20.130.1.1.1.1") != None,
+}
+

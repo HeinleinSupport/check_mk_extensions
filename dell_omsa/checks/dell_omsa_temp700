@@ -1,0 +1,42 @@
+#!/usr/bin/python
+# -*- encoding: utf-8; py-indent-offset: 4 -*-
+
+def inventory_dell_omsa_temp700(info):
+    inventory = []
+    for line in info:
+        inventory.append(( line[0], {'critup': int(line[4])/10.0, 'warnup': int(line[5])/10.0, 'warnlow': int(line[6])/10.0, 'critlow': int(line[7])/10.0}))
+    return inventory
+
+def check_dell_omsa_temp700(item, params, info):
+    for line in info:
+        if line[0] != item:
+            continue
+        temp = int(line[3])/10.0
+        state = int(line[2])
+        perfdata = [ ( "Temperature", temp, params['warnup'], params['critup'] ) ]
+        if state == 3:
+            return (0, "%s %0.1f°C" % (line[1], temp), perfdata)
+        if state in [4, 7]:
+            return (1, "%s %0.1f°C" % (line[1], temp), perfdata)
+        if state in [5, 6, 8, 9]:
+            return (2, "%s %0.1f°C" % (line[1], temp), perfdata)
+        return (3, "%s %0.1f°C State: %d" % (line[1], temp, state), perfdata)
+    return (3, "Temperature sensor %s not found" % item)
+
+check_info["dell_omsa_temp700"] = {
+    'check_function'        : check_dell_omsa_temp700,
+    'inventory_function'    : inventory_dell_omsa_temp700,
+    'service_description'   : 'OMSA Temp%s',
+    'has_perfdata'          : True,
+    'snmp_info'             : ('.1.3.6.1.4.1.674.10892.1.700.20.1', ['2.1',  # temperatureProbeIndex
+                                                                     '8.1',  # temperatureProbeLocationName
+                                                                     '5.1',  # temperatureProbeStatus
+                                                                     '6.1',  # temperatureProbeReading
+                                                                     '10.1', # temperatureProbeUpperCriticalThreshold
+                                                                     '11.1', # temperatureProbeUpperNonCriticalThreshold
+                                                                     '12.1', # temperatureProbeLowerNonCriticalThreshold
+                                                                     '13.1', # temperatureProbeLowerCriticalThreshold
+                                                            ] ),
+    'snmp_scan_function'    : lambda oid: oid(".1.3.6.1.4.1.674.10892.1.700.20.1.1.1.1") != None,
+}
+

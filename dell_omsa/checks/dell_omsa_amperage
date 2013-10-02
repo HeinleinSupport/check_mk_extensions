@@ -1,0 +1,115 @@
+#!/usr/bin/python
+# -*- encoding: utf-8; py-indent-offset: 4 -*-
+
+def string2int(str):
+    try:
+        res = int(str)
+    except ValueError:
+        res = 0
+    return res
+
+def inventory_dell_omsa_amperage(info):
+    inventory = []
+    for line in info:
+        inventory.append(( line[0], None ))
+    return inventory
+
+def check_dell_omsa_amperage(item, params, info):
+    amperage_state = {
+        1 : 'Other',
+        2 : 'Unknown',
+        3 : 'OK',
+        4 : 'NonCritical',
+        5 : 'Critical',
+        6 : 'NonRecoverable',
+        }
+    amperage_type = {
+        1  : 'Other',
+        2  : 'Unknown',
+        3  : '1.5 amperage probe',
+        4  : '3.3 amperage probe',
+        5  : '5 amperage probe',
+        6  : '-5 amperage probe',
+        7  : '12 amperage probe',
+        8  : '-12 amperage probe',
+        9  : 'I/O probe',
+        10 : 'Core probe',
+        11 : 'FLEA (standby) probe',
+        12 : 'Battery probe',
+        13 : 'SCSI Termination probe',
+        14 : '2.5 amperage probe',
+        15 : 'GTL (ground termination logic) probe',
+        16 : 'amperage probe with discrete reading',
+        23 : 'Power Supply probe with reading in Amps',
+        24 : 'Power Supply probe with reading in Watts',
+        25 : 'System probe with reading in Amps',
+        26 : 'System probe with reading in Watts',
+        }
+    amperage_discrete = {
+        1 : 'Good',
+        2 : 'Bad',
+        }
+    amperage_unit = {
+        16 : '',
+        23 : 'A',
+        24 : 'W',
+        25 : 'A',
+        26 : 'W',
+        }
+    amperage_factor = {
+        16 : 1.0,
+        23 : 0.1,
+        24 : 1.0,
+        25 : 0.1,
+        26 : 1.0,
+        }
+    for line in info:
+        if line[0] != item:
+            continue
+        state = string2int(line[1])
+        try:
+            info_text = "%s (%s): State %s" % (line[5],
+                                               amperage_type[int(line[2])],
+                                               amperage_state[state],
+                                               )
+        except KeyError:
+            info_text = "%s %s %d" % (line[5], line[2], state)
+        type = string2int(line[2])
+        perfdata = []
+        if type == 16:
+            info_text += " %s" % amperage_discrete[int(line[3])]
+        elif type in amperage_unit.keys():
+            value = string2int(line[4]) * amperage_factor[type]
+            info_text += " %0.1f%s" % (value, amperage_unit[type])
+            perfdata = [ ( amperage_unit[type],
+                           value,
+                           string2int(line[7]) * amperage_factor[type],
+                           string2int(line[6]) * amperage_factor[type]
+                           ),
+                         ]
+        if state in [3]:
+            return (0, info_text, perfdata)
+        if state in [4]:
+            return (1, info_text, perfdata)
+        if state in [5, 6]:
+            return (2, info_text, perfdata)
+        return (3, info_text, perfdata)
+    return (3, "Amperage %s not found" % item, [])
+
+check_info["dell_omsa_amperage"] = {
+    'check_function'        : check_dell_omsa_amperage,
+    'inventory_function'    : inventory_dell_omsa_amperage,
+    'service_description'   : 'OMSA Amperage %s',
+    'has_perfdata'          : True,
+    'snmp_info'             : ('.1.3.6.1.4.1.674.10892.1.600.30.1', ['2.1',  # amperageProbeIndex
+                                                                     '5.1',  # amperageProbeStatus
+                                                                     '7.1',  # amperageProbeType
+                                                                     '16.1', # amperageProbeDiscreteReading
+                                                                     '6.1',  # amperageProbeReading
+                                                                     '8.1',  # amperageProbeLocationName
+                                                                     '10.1', # amperageProbeUpperCriticalThreshold
+                                                                     '11.1', # amperageProbeUpperNonCriticalThreshold
+                                                                     ] ),
+    'snmp_scan_function'    : lambda oid: oid(".1.3.6.1.4.1.674.10892.1.600.30.1.2.1.1") != None,
+}
+

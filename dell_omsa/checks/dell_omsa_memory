@@ -1,0 +1,73 @@
+#!/usr/bin/python
+# -*- encoding: utf-8; py-indent-offset: 4 -*-
+
+def inventory_dell_omsa_memory(info):
+    inventory = []
+    for line in info:
+        inventory.append(( line[0], None ))
+    return inventory
+
+def failure_mode2str(fm):
+    failure_mode = {
+        1  : 'ECC single bit correction warning rate exceeded',
+        2  : 'ECC single bit correction failure rate exceeded',
+        4  : 'ECC multibit fault encountered',
+        8  : 'ECC single bit correction logging disabled',
+        16 : 'device disabled because of spare activation',
+        }
+    res = []
+    for bit, text in failure_mode.iteritems():
+        if fm & bit:
+            res.append(text)
+    return ", ".join(res)
+    
+
+def check_dell_omsa_memory(item, params, info):
+    memory_state = {
+        1 : 'Other',
+        2 : 'Unknown',
+        3 : 'OK',
+        4 : 'NonCritical',
+        5 : 'Critical',
+        6 : 'NonRecoverable',
+        }
+    for line in info:
+        if line[0] != item:
+            continue
+        state = int(line[1])
+        fm = int(line[4])
+        if fm > 0:
+            failure = ", Failure: " + failure_mode2str(fm)
+        else:
+            failure = ""
+        try:
+            info_text = "%s: State %s, Capacity %dGB%s" % (line[2],
+                                                           memory_state[state],
+                                                           int(line[3]) / 1048576,
+                                                           failure
+                                                           )
+        except KeyError:
+            info_text = "%s %d" % (line[2], state)
+        if state in [3]:
+            return (0, info_text)
+        if state in [4]:
+            return (1, info_text)
+        if state in [5, 6]:
+            return (2, info_text)
+        return (3, info_text)
+    return (3, "Memory %s not found" % item)
+
+check_info["dell_omsa_memory"] = {
+    'check_function'        : check_dell_omsa_memory,
+    'inventory_function'    : inventory_dell_omsa_memory,
+    'service_description'   : 'OMSA Memory%s',
+    'has_perfdata'          : False,
+    'snmp_info'             : ('.1.3.6.1.4.1.674.10892.1.1100.50.1', ['2.1',  # memoryDeviceIndex
+                                                                      '5.1',  # memoryDeviceStatus
+                                                                      '8.1',  # memoryDeviceLocationName
+                                                                      '14.1', # memoryDeviceSize
+                                                                      '20.1', # memoryDeviceFailureModes
+                                                                      ] ),
+    'snmp_scan_function'    : lambda oid: oid(".1.3.6.1.4.1.674.10892.1.1100.50.1.2.1.1") != None,
+}
+

@@ -1,0 +1,73 @@
+#!/usr/bin/python
+# -*- encoding: utf-8; py-indent-offset: 4 -*-
+
+def inventory_dell_omsa_battery(info):
+    inventory = []
+    for line in info:
+        inventory.append(( line[0], None ))
+    return inventory
+
+def check_dell_omsa_battery(item, params, info):
+    bat_state = {
+        0  : 'Unknown',
+        1  : 'Ready',
+        2  : 'Failed',
+        3  : 'Online',
+        6  : 'Degraded',
+        7  : 'Reconditioning',
+        9  : 'High',
+        10 : 'Power Low',
+        12 : 'Charging',
+        21 : 'Missing',
+        36 : 'Learning',
+        }
+    bat_learn_state = {
+        1  : 'Failed',
+        2  : 'Active',
+        4  : 'Timed out',
+        8  : 'Requested',
+        16 : 'Idle',
+        32 : 'Due',
+        }
+    bat_pred_cap = {
+        1 : 'Failed',  # The battery cannot be charged and needs to be replaced
+        2 : 'Ready',   # The battery can be charged to full capacity
+        4 : 'Unknown', # The battery is completing a Learn cycle. The charge capacity of the
+                       # battery cannot be determined until the Learn cycle is complete
+        }
+    for line in info:
+        if line[0] != item:
+            continue
+        state = int(line[2])
+        pc = int(line[3])
+        lstate = int(line[4])
+        try:
+            info_text = "%s: State %s, Predicted Capacity %s, Learn State %s" % (line[1],
+                                                                                 bat_state[state],
+                                                                                 bat_pred_cap[pc],
+                                                                                 bat_learn_state[lstate])
+        except KeyError:
+            info_text = "%s %d %d %d" % (line[1], state, pc, lstate)
+        if state in [1, 3] and lstate in [16] and pc in [2]:
+            return (0, info_text)
+        if state in [6, 7, 12, 36] or lstate in [2, 8]:
+            return (1, info_text)
+        if state in [2, 9, 10, 21] or lstate in [1, 4, 32] or pc in [1]:
+            return (2, info_text)
+        return (3, info_text)
+    return (3, "Battery %s not found" % item)
+
+check_info["dell_omsa_battery"] = {
+    'check_function'        : check_dell_omsa_battery,
+    'inventory_function'    : inventory_dell_omsa_battery,
+    'service_description'   : 'OMSA Battery%s',
+    'has_perfdata'          : False,
+    'snmp_info'             : ('.1.3.6.1.4.1.674.10893.1.20.130.15.1', ['1',  # batteryNumber
+                                                                        '2',  # batteryName
+                                                                        '6',  # batteryComponentState
+                                                                        '10', # batteryPredictedCapacity
+                                                                        '12', # batteryLearnState
+                                                                        ] ),
+    'snmp_scan_function'    : lambda oid: oid(".1.3.6.1.4.1.674.10893.1.20.130.15.1.1.1") != None,
+}
+

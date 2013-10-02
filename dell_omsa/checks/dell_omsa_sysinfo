@@ -1,0 +1,36 @@
+#!/usr/bin/python
+# -*- encoding: utf-8; py-indent-offset: 4 -*-
+
+def inventory_dell_omsa_sysinfo(info):
+    return [ ( None, None ) ]
+
+def check_dell_omsa_sysinfo(_no_item, params, info):
+    return 0, "Version %s on %s %s, ServiceTag %s, BIOS: %s, %s %s, OS: %s %s" % (info[0][0],
+                                                                                  info[0][1],
+                                                                                  info[0][3],
+                                                                                  info[0][2],
+                                                                                  info[0][4],
+                                                                                  info[1][7],
+                                                                                  info[1][8],
+                                                                                  info[0][5],
+                                                                                  info[0][6],
+                                                                                  )
+
+check_info["dell_omsa_sysinfo"] = {
+    'check_function'        : check_dell_omsa_sysinfo,
+    'inventory_function'    : inventory_dell_omsa_sysinfo,
+    'service_description'   : 'OMSA SysInfo',
+    'has_perfdata'          : False,
+    'snmp_info'             : ('.1.3.6.1.4.1.674.10892.1', ['100.10.0',       # OMSA GlobalVersion
+                                                            '300.10.1.9.1',   # chassisModelName
+                                                            '300.10.1.11.1',  # chassisServiceTagName
+                                                            '300.10.1.48.1',  # chassisSystemRevisionName
+                                                            '300.50.1.8.1.1', # systemBIOSVersionName
+                                                            '400.10.1.6.1',   # operatingSystemOperatingSystemName
+                                                            '400.10.1.7.1',   # operatingSystemOperatingSystemVersionName
+                                                            '300.60.1.8.1',   # firmwareTypeName
+                                                            '300.60.1.11.1',  # firmwareVersionName
+                                                            ] ),
+    'snmp_scan_function'    : lambda oid: oid(".1.3.6.1.4.1.674.10892.1.300.10.1.9.1") != None,
+}
+
