@@ -1,0 +1,9 @@
+#!/bin/bash
+
+if [ -x /usr/bin/lsb_release ]; then
+
+    echo '<<<lsbrelease>>>'
+    /usr/bin/lsb_release -a
+
+fi
+

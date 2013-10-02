@@ -1,0 +1,52 @@
+#!/usr/bin/python
+# -*- encoding: utf-8; py-indent-offset: 4 -*-
+
+# (c) 2013 Heinlein Support GmbH
+#          Robert Sander <r.sander@heinlein-support.de>
+
+# This is free software;  you can redistribute it and/or modify it
+# under the  terms of the  GNU General Public License  as published by
+# the Free Software Foundation in version 2.  This file is distributed
+# in the hope that it will be useful, but WITHOUT ANY WARRANTY;  with-
+# out even the implied warranty of  MERCHANTABILITY  or  FITNESS FOR A
+# PARTICULAR PURPOSE. See the  GNU General Public License for more de-
+# ails.  You should have  received  a copy of the  GNU  General Public
+# License along with GNU Make; see the file  COPYING.  If  not,  write
+# to the Free Software Foundation, Inc., 51 Franklin St,  Fifth Floor,
+# Boston, MA 02110-1301 USA.
+
+lsbrelease_default_values = { 'Debian': '6.0.7', 'openSUSE': '12.2' }
+
+def versiontuple(v):
+    return tuple(map(int, (v.split("."))))
+
+def inventory_lsbrelease(checkname, info):
+    inventory = []
+    if len(info) > 0:
+        inventory.append( ( None, "lsbrelease_default_values" ) )
+    return inventory
+
+def check_lsbrelease(item, params, info):
+    lsbinfo = {}
+    for line in info:
+        key, value = (" ".join(line)).split(': ')
+        lsbinfo[key] = value
+    for distribution, version in params.iteritems():
+        if lsbinfo['Description'].startswith(distribution):
+            current_version = versiontuple(lsbinfo['Release'])
+            test_version = versiontuple(version)
+            if current_version[0] < test_version[0]:
+                return (2, lsbinfo['Description'])
+            if current_version < test_version:
+                return (1, lsbinfo['Description'])
+            return (0, lsbinfo['Description'])
+    return (3, "Unknown Distribution: %s" % lsbinfo['Description'])
+
+check_info['lsbrelease'] = {
+    'check_function':      check_lsbrelease,
+    'service_description': "Distribution Release",
+    'has_perfdata':        False,
+    'inventory_function':  inventory_lsbrelease,
+    'group':               'lsbrelease',
+}
+
