@@ -1,0 +1,26 @@
+#!/bin/bash
+
+CONFIG=/etc/check_mk/mailman_queues
+
+QPATH=/var/lib/mailman/qfiles
+
+if [ ! -d $QPATH ]; then
+    exit
+fi
+
+BIN_FIND=$(which find)
+BIN_WC=$(which wc)
+BIN_DU=$(which du)
+
+QUEUES="bounces in out shunt"
+
+if [ -r $CONFIG ]; then
+    . $CONFIG
+fi
+
+echo '<<<mailman_queues>>>'
+
+for queue in $QUEUES; do
+    echo $queue total all $( $BIN_FIND $QPATH/$queue -type f 2> /dev/null | $BIN_WC -l ) $( $BIN_DU -sb $QPATH/$queue )
+done
+
