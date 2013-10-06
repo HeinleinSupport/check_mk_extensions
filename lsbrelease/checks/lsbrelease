@@ -17,7 +17,7 @@
 
 lsbrelease_default_values = { 'Debian': '6.0.7',
                               'openSUSE': '12.2',
-                              'SUSE Linux Enterprise Server': '11',
+                              'SUSE Linux Enterprise Server': '11.3',
                             }
 
 def versiontuple(v):

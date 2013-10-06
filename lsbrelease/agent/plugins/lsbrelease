@@ -3,7 +3,22 @@
 if [ -x /usr/bin/lsb_release ]; then
 
     echo '<<<lsbrelease>>>'
-    /usr/bin/lsb_release -a
+
+    if [ -r /etc/SuSE-release ]; then
+        version=$(grep ^VERSION /etc/SuSE-release | cut -f 3 -d " ")
+        patchlevel=$(grep ^PATCHLEVEL /etc/SuSE-release | cut -f 3 -d " ")
+        if [ -n "$patchlevel" ]; then
+            version="$version.$patchlevel"
+        fi
+        if [ -n "$version" ]; then
+            /usr/bin/lsb_release -a |grep -v ^Release
+            echo -e "Release:\t$version"
+        else
+            /usr/bin/lsb_release -a
+        fi
+    else
+        /usr/bin/lsb_release -a
+    fi
 
 fi
 
