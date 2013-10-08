@@ -1,0 +1,99 @@
+#!/bin/bash
+
+# check_mk check f. HP Smart Array Controller
+#
+# 01/2011 Matthias Henze
+# Lizenz: GPL v2
+
+#
+# https://github.com/gebi/checkmk-agent-hp
+#
+
+# sample output - requires hpacucli
+#
+#
+# hpacucli controller all show 
+#
+#Smart Array P410 in Slot 4                (sn: PACCR9SY0AXY  )
+#
+#
+# hpacucli controller slot=4 array all show 
+#
+#Smart Array P410 in Slot 4
+#
+#   array A (SATA, Unused Space: 0 MB)
+#
+#
+# hpacucli controller slot=4 array A physicaldrive all show
+#
+#Smart Array P410 in Slot 4
+#
+#   array A
+#
+#      physicaldrive 1I:1:1 (port 1I:box 1:bay 1, SATA, 500 GB, OK)
+#      physicaldrive 1I:1:2 (port 1I:box 1:bay 2, SATA, 500 GB, OK)
+#      physicaldrive 1I:1:3 (port 1I:box 1:bay 3, SATA, 500 GB, OK)
+#      physicaldrive 1I:1:4 (port 1I:box 1:bay 4, SATA, 500 GB, OK, spare)
+#
+
+function is_integer() {
+    [ "$1" -eq "$1" ] > /dev/null 2>&1
+    return $?
+}
+
+if [ -e  /proc/driver/cciss ] ; then
+
+  echo '<<<hpsa_controller>>>'
+  cc=-1
+  CMD="hpacucli controller all show"
+  while read -a cont; do
+    if is_integer ${cont[5]}; then
+      cc=$(($cc+1))
+      read -a cstat <<< $(hpacucli controller slot=${cont[5]} show | grep "Controller Status")
+      if [ "${cstat[2]}" = "OK" ]; then
+        echo "${cont[5]} OK ${cont[2]}"
+      else
+        echo "${cont[5]} CRIT ${cont[2]}"
+      fi
+      controllers[$cc]=${cont[5]}
+    fi
+  done < <( $CMD )
+
+  echo '<<<hpsa_array>>>'
+  for c in $(seq 0 $cc)
+  do
+    ac=-1
+    CMD="hpacucli controller slot=${controllers[$c]} array all show"
+    while read -a cary; do
+      if [ "X${cary[0]}X" = "XarrayX" ]; then
+        ac=$(($ac+1))
+        # collect lines
+        read -d + -a x <<< $(hpacucli controller slot=${controllers[$c]} array ${cary[1]} show | sed 's/(Embedded)//')
+        # collect words
+        read -a ary <<< ${x[*]}
+        echo "${controllers[$c]}:${cary[1]} ${ary[16]} ${ary[10]} ${ary[13]} ${ary[14]}"
+        arrays[$ac]=${cary[1]}
+      fi
+    done < <( $CMD )
+  done
+
+  echo '<<<hpsa_drive>>>'
+  for c in $(seq 0 $cc)
+  do
+    for a in $(seq 0 $ac)
+    do
+      CMD="hpacucli controller slot=${controllers[$c]} array ${arrays[$a]} physicaldrive all show"
+      while read -a pdrv; do
+        if [ "X${pdrv[0]}X" = "XphysicaldriveX" ]; then
+          echo -n "${controllers[$c]}:${arrays[$a]}:${pdrv[1]} ${pdrv[9]/[),]/} ${pdrv[6]/,/} ${pdrv[7]} ${pdrv[8]/,/} "
+          if [ ${pdrv[10]} ]; then 
+            echo ${pdrv[10]/)/}
+          else
+            echo "assigned"
+          fi
+        fi
+      done < <( $CMD )
+    done
+  done
+fi
+
