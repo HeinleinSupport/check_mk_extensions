@@ -15,9 +15,7 @@
 # to the Free Software Foundation, Inc., 51 Franklin St,  Fifth Floor,
 # Boston, MA 02110-1301 USA.
 
-postconf_default_values = {
-    'soft_bounce': 'no',
-    }
+postconf_default_values = { 'soft_bounce': 'no' }
 
 def postconf_name(line):
     return line[0]
@@ -27,12 +25,12 @@ def inventory_postconf(checkname, info):
     for line in info:
         for key, value in postconf_default_values.iteritems():
             if postconf_name(line) == key:
-                inventory.append( ( postconf_name(line), "postconf_default_values" ) )
+                inventory.append( ( postconf_name(line), {} ) )
     return inventory
 
 def check_postconf(item, params, info):
     for line in info:
-        if item == postconf_name(line):
+        if item == postconf_name(line) and item in params:
             value = " ".join(line[2:])
             infotext = "%s" % value
             rc = 0
@@ -48,3 +46,7 @@ check_info['postconf'] = {
     'inventory_function':  inventory_postconf,
     'group':               'postconf',
 }
+
+check_default_levels['postconf'] = 'postconf_default_values'
+
+factory_settings['postconf_default_values'] = postconf_default_values
