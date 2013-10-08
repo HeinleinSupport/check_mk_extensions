@@ -1,13 +1,6 @@
 #!/usr/bin/python
 # -*- encoding: utf-8; py-indent-offset: 4 -*-
 
-def string2int(str):
-    try:
-        res = int(str)
-    except ValueError:
-        res = 0
-    return res
-
 def sensorstate2str(sensor):
     sensor_state = {
         1  : 'Presence detected',

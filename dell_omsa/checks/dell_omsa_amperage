@@ -1,13 +1,6 @@
 #!/usr/bin/python
 # -*- encoding: utf-8; py-indent-offset: 4 -*-
 
-def string2int(str):
-    try:
-        res = int(str)
-    except ValueError:
-        res = 0
-    return res
-
 def inventory_dell_omsa_amperage(info):
     inventory = []
     for line in info:
@@ -66,7 +59,7 @@ def check_dell_omsa_amperage(item, params, info):
     for line in info:
         if line[0] != item:
             continue
-        state = string2int(line[1])
+        state = saveint(line[1])
         try:
             info_text = "%s (%s): State %s" % (line[5],
                                                amperage_type[int(line[2])],
@@ -74,17 +67,17 @@ def check_dell_omsa_amperage(item, params, info):
                                                )
         except KeyError:
             info_text = "%s %s %d" % (line[5], line[2], state)
-        type = string2int(line[2])
+        type = saveint(line[2])
         perfdata = []
         if type == 16:
             info_text += " %s" % amperage_discrete[int(line[3])]
         elif type in amperage_unit.keys():
-            value = string2int(line[4]) * amperage_factor[type]
+            value = saveint(line[4]) * amperage_factor[type]
             info_text += " %0.1f%s" % (value, amperage_unit[type])
             perfdata = [ ( amperage_unit[type],
                            value,
-                           string2int(line[7]) * amperage_factor[type],
-                           string2int(line[6]) * amperage_factor[type]
+                           saveint(line[7]) * amperage_factor[type],
+                           saveint(line[6]) * amperage_factor[type]
                            ),
                          ]
         if state in [3]:

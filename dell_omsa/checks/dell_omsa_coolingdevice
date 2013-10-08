@@ -1,13 +1,6 @@
 #!/usr/bin/python
 # -*- encoding: utf-8; py-indent-offset: 4 -*-
 
-def string2int(str):
-    try:
-        res = int(str)
-    except ValueError:
-        res = 0
-    return res
-
 def inventory_dell_omsa_coolingdevice(info):
     inventory = []
     for line in info:
@@ -58,8 +51,8 @@ def check_dell_omsa_coolingdevice(item, params, info):
             info_text = "%s %s %d" % (line[5], line[2], state)
         subtype = int(line[3])
         if subtype in [3, 5]:
-            perfdata = [ ( "RPM", string2int(line[4]), string2int(line[8]), string2int(line[9]) ) ]
-            info_text += " %dRPM" % string2int(line[4])
+            perfdata = [ ( "RPM", saveint(line[4]), saveint(line[8]), saveint(line[9]) ) ]
+            info_text += " %dRPM" % saveint(line[4])
         else:
             perfdata = []
         if state in [3]:
