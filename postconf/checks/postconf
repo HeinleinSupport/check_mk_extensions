@@ -15,33 +15,43 @@
 # to the Free Software Foundation, Inc., 51 Franklin St,  Fifth Floor,
 # Boston, MA 02110-1301 USA.
 
-postconf_default_values = { 'soft_bounce': 'no' }
+postconf_default_values = [ ( 'soft_bounce', 'no' ) ]
 
 def postconf_name(line):
     return line[0]
 
 def inventory_postconf(checkname, info):
     inventory = []
-    for line in info:
-        for key, value in postconf_default_values.iteritems():
-            if postconf_name(line) == key:
-                inventory.append( ( postconf_name(line), {} ) )
+    if len(info) > 0:
+        inventory = [ ( None, None ) ]
     return inventory
 
-def check_postconf(item, params, info):
+def check_postconf(_no_item, params, info):
+    postconf = {}
+    for param in params:
+        postconf[param[0]] = param[1]
+
+    infotext = []
+    rc = 0
+    
     for line in info:
-        if item == postconf_name(line) and item in params:
-            value = " ".join(line[2:])
-            infotext = "%s" % value
-            rc = 0
-            if value != params[item]:
+        key = line[0]
+        value = " ".join(line[2:])
+
+        if key in postconf:
+            if value != postconf[key]:
+                infotext.append("%s=%s (!!) %s expected" % (key, value, postconf[key]))
                 rc = 2
-            return (rc, infotext)
-    return (3, "Config item %s not found" % item)
+            else:
+                infotext.append("%s=%s" % (key, value))
+    if not infotext:
+        return (3, "No Postfix Configuration found" % _no_item)
+    else:
+        return (rc, ", ".join(infotext))
 
 check_info['postconf'] = {
     'check_function':      check_postconf,
-    'service_description': "Postfix Config %s",
+    'service_description': "Postfix Config",
     'has_perfdata':        False,
     'inventory_function':  inventory_postconf,
     'group':               'postconf',
