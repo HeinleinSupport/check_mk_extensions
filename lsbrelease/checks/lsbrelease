@@ -15,10 +15,10 @@
 # to the Free Software Foundation, Inc., 51 Franklin St,  Fifth Floor,
 # Boston, MA 02110-1301 USA.
 
-lsbrelease_default_values = { 'Debian': '6.0.7',
-                              'openSUSE': '12.2',
-                              'SUSE Linux Enterprise Server': '11.3',
-                            }
+lsbrelease_default_values = [ ( 'Debian', '6.0.7' ),
+                              ( 'openSUSE', '12.2'),
+                              ( 'SUSE Linux Enterprise Server', '11.3' ),
+                            ]
 
 def versiontuple(v):
     return tuple(map(int, (v.split("."))))
@@ -34,14 +34,14 @@ def check_lsbrelease(item, params, info):
     for line in info:
         key, value = (" ".join(line)).split(': ')
         lsbinfo[key] = value
-    for distribution, version in params.iteritems():
+    for distribution, version in params:
         if lsbinfo['Description'].startswith(distribution):
             current_version = versiontuple(lsbinfo['Release'])
             test_version = versiontuple(version)
             if current_version[0] < test_version[0]:
-                return (2, lsbinfo['Description'])
+                return (2, lsbinfo['Description'] + ", expected at least version %d" % test_version[0])
             if current_version < test_version:
-                return (1, lsbinfo['Description'])
+                return (1, lsbinfo['Description'] + ", expected version %s" % version)
             return (0, lsbinfo['Description'])
     return (3, "Unknown Distribution: %s" % lsbinfo['Description'])
 
@@ -53,3 +53,6 @@ check_info['lsbrelease'] = {
     'group':               'lsbrelease',
 }
 
+check_default_levels['lsbrelease'] = 'lsbrelease_default_values'
+
+factory_settings['lsbrelease_default_values'] = lsbrelease_default_values
