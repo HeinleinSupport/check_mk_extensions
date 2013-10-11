@@ -26,7 +26,7 @@ def versiontuple(v):
 def inventory_lsbrelease(checkname, info):
     inventory = []
     if len(info) > 0:
-        inventory.append( ( None, "lsbrelease_default_values" ) )
+        inventory.append( ( None, [] ) )
     return inventory
 
 def check_lsbrelease(item, params, info):
