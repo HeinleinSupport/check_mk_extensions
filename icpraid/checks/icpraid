@@ -1,0 +1,144 @@
+#!/usr/bin/python
+# -*- encoding: utf-8; py-indent-offset: 4 -*-
+
+# (c) 2013 Heinlein Support GmbH
+#          Robert Sander <r.sander@heinlein-support.de>
+
+# This is free software;  you can redistribute it and/or modify it
+# under the  terms of the  GNU General Public License  as published by
+# the Free Software Foundation in version 2.  This file is distributed
+# in the hope that it will be useful, but WITHOUT ANY WARRANTY;  with-
+# out even the implied warranty of  MERCHANTABILITY  or  FITNESS FOR A
+# PARTICULAR PURPOSE. See the  GNU General Public License for more de-
+# ails.  You should have  received  a copy of the  GNU  General Public
+# License along with GNU Make; see the file  COPYING.  If  not,  write
+# to the Free Software Foundation, Inc., 51 Franklin St,  Fifth Floor,
+# Boston, MA 02110-1301 USA.
+
+def versiontuple(v):
+    return tuple(map(int, (v.split("."))))
+
+def icpraid_info2data(info):
+    ctid = -1
+    data = {}
+    inController = False
+    inLogicalDevice = False
+    inChannel = False
+    inPhysicalDevice = False
+    for line in info:
+        completeLine = ' '.join(line)
+        if completeLine == 'Controller information':
+            inController = True
+            ctid += 1
+            data[ctid] = { 'info': {}, 'ld': {}, 'ch': {} }
+            continue
+        if ' '.join(line[:-1]) == 'Logical device number':
+            inController = False
+            inLogicalDevice = True
+            ldid = int(line[-1])
+            data[ctid]['ld'][ldid] = {}
+            continue
+        if completeLine[:9] == 'Channel #':
+            inLogicalDevice = False
+            inPhysicalDevice = False
+            inChannel = True
+            chid = int(completeLine[9:-1])
+            data[ctid]['ch'][chid] = {'info': {}, 'pd': {}}
+            continue
+        if completeLine[:8] == 'Device #':
+            inChannel = False
+            inPhysicalDevice = True
+            pdid = int(completeLine[8:])
+            data[ctid]['ch'][chid]['pd'][pdid] = {}
+            continue
+        if ':' in line:
+            idx = line.index(':')
+            if idx:
+                key = ' '.join(line[:idx])
+                value = ' '.join(line[idx+1:])
+                if inController:
+                    data[ctid]['info'][key] = value
+                if inLogicalDevice:
+                    data[ctid]['ld'][ldid][key] = value
+                if inChannel:
+                    data[ctid]['ch'][chid]['info'][key] = value
+                if inPhysicalDevice:
+                    data[ctid]['ch'][chid]['pd'][pdid][key] = value
+    return data
+
+def inventory_icpraid(checkname, info):
+    inventory = []
+    data = icpraid_info2data(info)
+    for ctid in data.keys():
+        inventory.append( ('Controller %d' % ctid, None ) )
+        for ldid in data[ctid]['ld'].keys():
+            inventory.append( ('LD %d:%d' % (ctid, ldid), None ) )
+        for chid in data[ctid]['ch'].keys():
+            for pdid in data[ctid]['ch'][chid]['pd'].keys():
+                inventory.append( ('PD: %d:%d:%d' % (ctid, chid, pdid), None ) )
+    return inventory
+
+def check_icpraid(item, _no_params, info):
+    data = icpraid_info2data(info)
+    if item[:10] == 'Controller':
+        ctid = int(item[11:])
+        if ctid in data:
+            infotext = []
+            rc = 0
+            for key, value in data[ctid]['info'].iteritems():
+                it = key + ": " + value
+                if key == 'Defunct disk drive count':
+                    if int(value) > 0:
+                        rc = 1
+                        it += ' (!)'
+                if key == 'Controller Status':
+                    if value != 'Optimal':
+                        rc = 2
+                        it += ' (!!)'
+                if key == 'Status':
+                    # ignore Battery Status for now
+                    continue
+                infotext.append(it)
+            return (rc, ", ".join(infotext))
+    if item[:2] == 'LD':
+        ctid, ldid = map(int, item[3:].split(':'))
+        if ctid in data:
+            if ldid in data[ctid]['ld']:
+                infotext = []
+                rc = 0
+                for key, value in data[ctid]['ld'][ldid].iteritems():
+                    it = key + ": " + value
+                    if key == 'Status of logical device':
+                        if value != 'Optimal':
+                            rc = 2
+                            it += ' (!!)'
+                    infotext.append(it)
+                return(rc, ", ".join(infotext))
+    if item[:2] == 'PD':
+        ctid, chid, pdid = map(int, item[3:].split(':'))
+        if ctid in data:
+            if chid in data[ctid]['ch']:
+                if pdid in data[ctid]['ch'][chid]['pd']:
+                    infotext = []
+                    rc = 0
+                    for key, value in data[ctid]['ch'][chid]['pd'][pdid].iteritems():
+                        it = key + ": " + value
+                        if key == 'State':
+                            if value != 'Online':
+                                rc = 2
+                                it += ' (!!)'
+                        if key == 'Temperature status':
+                            if value != 'Normal':
+                                rc = 2
+                                it += ' (!!)'
+                        infotext.append(it)
+                    return(rc, ', '.join(infotext))
+    return (3, "Unknown Element: %s" % item)
+
+check_info['icpraid'] = {
+    'check_function':      check_icpraid,
+    'service_description': "ICP RAID %s",
+    'has_perfdata':        False,
+    'inventory_function':  inventory_icpraid,
+    'group':               'icpraid',
+}
