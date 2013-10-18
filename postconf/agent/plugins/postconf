@@ -3,7 +3,7 @@
 if [ -x /usr/sbin/postconf ]; then
 
     echo '<<<postconf>>>'
-    postconf -n
+    postconf
 
 fi
 
