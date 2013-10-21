@@ -1,0 +1,57 @@
+#!/usr/bin/python
+# -*- encoding: utf-8; py-indent-offset: 4 -*-
+
+# (c) 2013 Heinlein Support GmbH
+#          Robert Sander <r.sander@heinlein-support.de>
+
+# This is free software;  you can redistribute it and/or modify it
+# under the  terms of the  GNU General Public License  as published by
+# the Free Software Foundation in version 2.  This file is distributed
+# in the hope that it will be useful, but WITHOUT ANY WARRANTY;  with-
+# out even the implied warranty of  MERCHANTABILITY  or  FITNESS FOR A
+# PARTICULAR PURPOSE. See the  GNU General Public License for more de-
+# ails.  You should have  received  a copy of the  GNU  General Public
+# License along with GNU Make; see the file  COPYING.  If  not,  write
+# to the Free Software Foundation, Inc., 51 Franklin St,  Fifth Floor,
+# Boston, MA 02110-1301 USA.
+
+sslcertificates_default_values = ( 90, 60 )
+
+def sslcertificates_name(line):
+    return line[0]
+
+def inventory_sslcertificates(checkname, info):
+    inventory = []
+    for line in info:
+        inventory.append( ( sslcertificates_name(line), "sslcertificates_default_values" ) )
+    return inventory
+
+def check_sslcertificates(item, params, info):
+    warn, crit = params
+    for line in info:
+        if item == sslcertificates_name(line):
+            import time
+            
+            endtime = int(line[1])
+            now = int(time.time())
+            daysremaining = ( endtime - now ) / 60 / 60 / 24
+            rc = 0
+
+            if daysremaining < 0:
+                infotext = "Subject: %s, expired %d days ago on %s" % ( " ".join(line[2:]), abs(daysremaining), time.strftime("%c", time.gmtime(endtime)))
+            else:
+                infotext = "Subject: %s, expires in %d days on %s" % ( " ".join(line[2:]), daysremaining, time.strftime("%c", time.gmtime(endtime)))
+            if daysremaining < crit:
+                rc = 2
+            elif daysremaining < warn:
+                rc = 1
+            return (rc, infotext)
+    return (3, "Queue %s not found" % item)
+
+check_info['sslcertificates'] = {
+    'check_function':      check_sslcertificates,
+    'service_description': "SSL Certificate in %s",
+    'has_perfdata':        False,
+    'inventory_function':  inventory_sslcertificates,
+    'group':               'sslcertificates',
+}
