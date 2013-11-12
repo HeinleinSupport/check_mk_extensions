@@ -41,7 +41,7 @@ function is_integer() {
     return $?
 }
 
-if [ -e  /proc/driver/cciss ] ; then
+if [ -e  /proc/driver/cciss -o  -e /sys/bus/cciss ] ; then
 
   echo '<<<hpsa_controller>>>'
   cc=-1
