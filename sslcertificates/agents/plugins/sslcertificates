@@ -16,7 +16,13 @@
 # to the Free Software Foundation, Inc., 51 Franklin St,  Fifth Floor,
 # Boston, MA 02110-1301 USA.
 
-CERT_DIRS="/etc/apache2/ssl"
+OPENSSL=`which openssl`
+
+if [ ! -x "$OPENSSL" ]; then
+  exit
+fi
+
+CERT_DIRS="/etc/ssl/certs"
 
 CONFIG_FILE="/etc/check_mk/sslcertificates"
 
@@ -29,11 +35,11 @@ fi
 echo '<<<sslcertificates>>>'
 
 for dir in $CERT_DIRS; do
-	for certfile in $(grep -x -l -e '-----BEGIN CERTIFICATE-----' $dir/*); do
+	for certfile in $(grep -x -l -e '-----BEGIN CERTIFICATE-----' $dir/* 2> /dev/null); do
 
-		cert_enddate="$(openssl x509 -noout -enddate -in $certfile | cut -d "=" -f 2 )"
+		cert_enddate="$($OPENSSL x509 -noout -enddate -in $certfile | cut -d "=" -f 2 )"
 		cert_enddate_epoch=$(date --date "$cert_enddate" '+%s')
-		cert_subject="$(openssl x509 -noout -subject -in $certfile | cut -d "=" -f 2-)"
+		cert_subject="$($OPENSSL x509 -noout -subject -in $certfile | cut -d "=" -f 2-)"
 
 		echo $certfile $cert_enddate_epoch $cert_subject
 	done
