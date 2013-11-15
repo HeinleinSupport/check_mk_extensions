@@ -40,7 +40,7 @@ def check_dell_omsa_battery(item, params, info):
             continue
         state = int(line[2])
         pc = int(line[3])
-        lstate = int(line[4])
+        lstate = int(line[4]) if line[4] else 16
         try:
             info_text = "%s: State %s, Predicted Capacity %s, Learn State %s" % (line[1],
                                                                                  bat_state[state],
