@@ -69,8 +69,8 @@ def check_imap_arguments(params):
     if 'delay' in options:
         args += ' -d %s' % options['delay']
 
-    if 'certificate' in options:
-        args += ' -D %d,%d' % ( options['certificate'][0], options['certificate'][1] )
+    if 'certificate_age' in options:
+        args += ' -D %d,%d' % ( options['certificate_age'][0], options['certificate_age'][1] )
 
     if 'warning' in options:
         args += ' -w %d' % options['warning']
