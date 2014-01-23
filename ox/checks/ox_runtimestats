@@ -1,0 +1,49 @@
+#!/usr/bin/python
+# -*- encoding: utf-8; py-indent-offset: 4 -*-
+
+# (c) 2014 Heinlein Support GmbH
+#          Robert Sander <r.sander@heinlein-support.de>
+
+# This is free software;  you can redistribute it and/or modify it
+# under the  terms of the  GNU General Public License  as published by
+# the Free Software Foundation in version 2.  This file is distributed
+# in the hope that it will be useful, but WITHOUT ANY WARRANTY;  with-
+# out even the implied warranty of  MERCHANTABILITY  or  FITNESS FOR A
+# PARTICULAR PURPOSE. See the  GNU General Public License for more de-
+# ails.  You should have  received  a copy of the  GNU  General Public
+# License along with GNU Make; see the file  COPYING.  If  not,  write
+# to the Free Software Foundation, Inc., 51 Franklin St,  Fifth Floor,
+# Boston, MA 02110-1301 USA.
+
+from pprint import pprint
+
+ox_attributes = {
+    'com.openexchange.pooling:name=Overview,NumConnections': 'DB Connections',
+    'com.openexchange.monitoring:name=GeneralMonitor,NumberOfOpenAJPSockets': 'Open AJP Sockets',
+    'com.openexchange.monitoring:name=GeneralMonitor,NumberOfIMAPConnections': 'IMAP Connections',
+    'java.lang:type=OperatingSystem,OpenFileDescriptorCount': 'Open Files',
+}
+
+def inventory_ox_attributes(checkname, info):
+	inventory = []
+	for line in info:
+	    if line[0] in ox_attributes:
+		inventory.append((ox_attributes[line[0]], []))
+	return inventory
+
+def check_ox_attributes(item, params, info):
+    for line in info:
+	if line[0] in ox_attributes:
+	    if ox_attributes[line[0]] == item:
+		number = saveint(line[2])
+		return (0, "%d %s" % (number, item), [ (item, number) ])
+    return (3, "Not found")
+
+check_info['ox_runtimestats.attributes'] = {
+    'check_function':          check_ox_attributes,
+    'inventory_function':      inventory_ox_attributes,
+    'service_description':     'OX %s',
+    'has_perfdata':            True,
+    'group':                   'open_xchange',
+    }
+		
