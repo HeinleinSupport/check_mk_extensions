@@ -22,20 +22,45 @@ ox_attributes = {
     'com.openexchange.monitoring:name=GeneralMonitor,NumberOfOpenAJPSockets': 'Open AJP Sockets',
     'com.openexchange.monitoring:name=GeneralMonitor,NumberOfIMAPConnections': 'IMAP Connections',
     'java.lang:type=OperatingSystem,OpenFileDescriptorCount': 'Open Files',
+    'com.openexchange.monitoring:name=GeneralMonitor,NumberOfAJAXConnections': 'AJAX Connections',
+    'com.openexchange.monitoring:name=GeneralMonitor,NumberOfWebDAVUserConnections': 'WebDAV User Connections',
+    'com.openexchange.monitoring:name=GeneralMonitor,NumberOfOutlookConnections': 'Outlook Connections',
+    'com.openexchange.monitoring:name=GeneralMonitor,NumberOfSyncMLConnections': 'SyncML Connections',
+    'com.openexchange.monitoring:name=MailInterfaceMonitor,NumTimeoutConnections': 'Mail Timeout Connections',
+    'com.openexchange.monitoring:name=MailInterfaceMonitor,NumFailedLogins': 'Mail Failed Logins',
+    'com.openexchange.monitoring:name=MailInterfaceMonitor,NumBrokenConnections': 'Mail Broken Connections',
+    'com.openexchange.pooling:name=ConfigDB Read,NumBrokenConnections': 'ConfigDB Broken Read Connections',
+    'com.openexchange.pooling:name=ConfigDB Write,NumBrokenConnections': 'ConfigDB Broken Write Connections',
+    'com.openexchange.pooling:name=ConfigDB Read,NumActive': 'ConfigDB Read Active',
+    'com.openexchange.pooling:name=ConfigDB Read,NumIdle': 'ConfigDB Read Idle',
+    'com.openexchange.pooling:name=ConfigDB Read,NumWaiting': 'ConfigDB Read Waiting',
+    'com.openexchange.pooling:name=ConfigDB Read,PoolSize': 'ConfigDB Read PoolSize',
+    'com.openexchange.pooling:name=ConfigDB Read,MinUseTime': 'ConfigDB Read MinUseTime',
+    'com.openexchange.pooling:name=ConfigDB Read,AvgUseTime': 'ConfigDB Read AvgUseTime',
+    'com.openexchange.pooling:name=ConfigDB Read,MaxUseTime': 'ConfigDB Read MaxUseTime',
+    'com.openexchange.pooling:name=ConfigDB Write,NumActive': 'ConfigDB Write Active',
+    'com.openexchange.pooling:name=ConfigDB Write,NumIdle': 'ConfigDB Write Idle',
+    'com.openexchange.pooling:name=ConfigDB Write,NumWaiting': 'ConfigDB Write Waiting',
+    'com.openexchange.pooling:name=ConfigDB Write,PoolSize': 'ConfigDB Write PoolSize',
+    'com.openexchange.pooling:name=ConfigDB Write,MinUseTime': 'ConfigDB Write MinUseTime',
+    'com.openexchange.pooling:name=ConfigDB Write,AvgUseTime': 'ConfigDB Write AvgUseTime',
+    'com.openexchange.pooling:name=ConfigDB Write,MaxUseTime': 'ConfigDB Write MaxUseTime',
 }
 
 def inventory_ox_attributes(checkname, info):
 	inventory = []
 	for line in info:
+	    line = ' '.join(line).split(' = ')
 	    if line[0] in ox_attributes:
 		inventory.append((ox_attributes[line[0]], []))
 	return inventory
 
 def check_ox_attributes(item, params, info):
     for line in info:
+	line = ' '.join(line).split(' = ')
 	if line[0] in ox_attributes:
 	    if ox_attributes[line[0]] == item:
-		number = saveint(line[2])
+		number = saveint(line[1])
 		return (0, "%d %s" % (number, item), [ (item, number) ])
     return (3, "Not found")
 
