@@ -1,0 +1,11 @@
+#!/bin/sh
+
+runtimestats=/opt/open-xchange/sbin/showruntimestats
+
+if [ -x $runtimestats ]; then
+
+  echo '<<<ox_runtimestats>>>'
+
+  $runtimestats -a
+
+fi
