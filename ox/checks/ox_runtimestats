@@ -45,6 +45,30 @@ ox_attributes = {
     'com.openexchange.pooling:name=ConfigDB Write,MinUseTime': 'ConfigDB Write MinUseTime',
     'com.openexchange.pooling:name=ConfigDB Write,AvgUseTime': 'ConfigDB Write AvgUseTime',
     'com.openexchange.pooling:name=ConfigDB Write,MaxUseTime': 'ConfigDB Write MaxUseTime',
+    'com.openexchange.pooling:name=Overview,MasterConnectionsFetched': 'Master Connections',
+    'com.openexchange.pooling:name=Overview,SlaveConnectionsFetched': 'Slave Connections',
+    'com.openexchange.pooling:name=Overview,MasterInsteadOfSlave': 'Fallback Connections',
+    'org.glassfish.grizzly:pp=/gmbal-root/HttpServer[HttpServer]/NetworkListener[NetworkListener[http-listener]],type=HttpCodecFilter,name=HttpCodecFilter,total-bytes-written': 'Grizzly HttpCodecFilter Bytes written',
+    'org.glassfish.grizzly:pp=/gmbal-root/HttpServer[HttpServer]/NetworkListener[NetworkListener[http-listener]],type=HttpCodecFilter,name=HttpCodecFilter,total-bytes-received': 'Grizzly HttpCodecFilter Bytes read',
+    'org.glassfish.grizzly:pp=/gmbal-root/HttpServer[HttpServer]/NetworkListener[NetworkListener[http-listener]],type=HttpCodecFilter,name=HttpCodecFilter,http-codec-error-count': 'Grizzly HttpCodecFilter error count',
+    'org.glassfish.grizzly:pp=/gmbal-root/HttpServer[HttpServer]/NetworkListener[NetworkListener[http-listener]],type=HttpServerFilter,name=HttpServerFilter,current-suspended-request-count': 'Grizzly HttpServerFilter Requests suspended',
+    'org.glassfish.grizzly:pp=/gmbal-root/HttpServer[HttpServer]/NetworkListener[NetworkListener[http-listener]],type=HttpServerFilter,name=HttpServerFilter,requests-cancelled-count': 'Grizzly HttpServerFilter Requests cancelled',
+    'org.glassfish.grizzly:pp=/gmbal-root/HttpServer[HttpServer]/NetworkListener[NetworkListener[http-listener]],type=HttpServerFilter,name=HttpServerFilter,requests-completed-count': 'Grizzly HttpServerFilter Requests completed',
+    'org.glassfish.grizzly:pp=/gmbal-root/HttpServer[HttpServer]/NetworkListener[NetworkListener[http-listener]],type=HttpServerFilter,name=HttpServerFilter,requests-received-count': 'Grizzly HttpServerFilter Requests received',
+    'org.glassfish.grizzly:pp=/gmbal-root/HttpServer[HttpServer]/NetworkListener[NetworkListener[http-listener]],type=HttpServerFilter,name=HttpServerFilter,requests-timed-out-count': 'Grizzly HttpServerFilter Requests timed out',
+    'org.glassfish.grizzly:pp=/gmbal-root/HttpServer[HttpServer]/NetworkListener[NetworkListener[http-listener]],type=KeepAlive,name=Keep-Alive,hits-count': 'Grizzly KeepAlive hits',
+    'org.glassfish.grizzly:pp=/gmbal-root/HttpServer[HttpServer]/NetworkListener[NetworkListener[http-listener]],type=KeepAlive,name=Keep-Alive,idle-timeout-seconds': 'Grizzly KeepAlive idle timeout',
+    'org.glassfish.grizzly:pp=/gmbal-root/HttpServer[HttpServer]/NetworkListener[NetworkListener[http-listener]],type=KeepAlive,name=Keep-Alive,live-connections-count': 'Grizzly KeepAlive live connections',
+    'org.glassfish.grizzly:pp=/gmbal-root/HttpServer[HttpServer]/NetworkListener[NetworkListener[http-listener]],type=KeepAlive,name=Keep-Alive,max-requests-count': 'Grizzly KeepAlive max requests',
+    'org.glassfish.grizzly:pp=/gmbal-root/HttpServer[HttpServer]/NetworkListener[NetworkListener[http-listener]],type=KeepAlive,name=Keep-Alive,refuses-count': 'Grizzly KeepAlive refuses',
+    'org.glassfish.grizzly:pp=/gmbal-root/HttpServer[HttpServer]/NetworkListener[NetworkListener[http-listener]],type=KeepAlive,name=Keep-Alive,timeouts-count': 'Grizzly KeepAlive timeouts',
+    'org.glassfish.grizzly:pp=/gmbal-root/HttpServer[HttpServer]/NetworkListener[NetworkListener[http-listener]],type=TCPNIOTransport,name=Transport,bytes-read': 'Grizzly TCPNIO bytes read',
+    'org.glassfish.grizzly:pp=/gmbal-root/HttpServer[HttpServer]/NetworkListener[NetworkListener[http-listener]],type=TCPNIOTransport,name=Transport,bytes-written': 'Grizzly TCPNIO bytes written',
+    'org.glassfish.grizzly:pp=/gmbal-root/HttpServer[HttpServer]/NetworkListener[NetworkListener[http-listener]],type=TCPNIOTransport,name=Transport,last-error': 'Grizzly TCPNIO last error',
+    'org.glassfish.grizzly:pp=/gmbal-root/HttpServer[HttpServer]/NetworkListener[NetworkListener[http-listener]],type=TCPNIOTransport,name=Transport,open-connections-count': 'Grizzly TCPNIO Connections open',
+    'org.glassfish.grizzly:pp=/gmbal-root/HttpServer[HttpServer]/NetworkListener[NetworkListener[http-listener]],type=TCPNIOTransport,name=Transport,total-connections-count': 'Grizzly TCPNIO Connections total',
+
+
 }
 
 def inventory_ox_attributes(checkname, info):
