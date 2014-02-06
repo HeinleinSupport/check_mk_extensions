@@ -88,9 +88,9 @@ def check_kemplb_virtual_server(item, _no_params, info):
             infotext = "%d://%s:%d %d" % ( vSprotocol, line[0], vSport, vSstate )
 
         rc = 0
-        if vSstate in [2, 3]:
+        if vSstate in [3]:
             rc = 2
-        if vSstate in [4, 5]:
+        if vSstate in [2, 5]:
             rc = 1
 
         return (rc, infotext, perfdata)

@@ -134,9 +134,13 @@ def check_kemplb_rsvs(item, _no_params, info):
         except KeyError:
             text = "%s:%s %s %s %s" % ( line[3], line[4], line[5], line[6], line[1] )
 
-        if state != 1:
+        if state == 2:
             rc = 1
             text += " (!)"
+
+        if state == 3:
+            rc = 2
+            text += " (!!)"
 
         infotext.append(text)
 
