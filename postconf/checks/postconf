@@ -28,6 +28,13 @@ def inventory_postconf(checkname, info):
 
 def check_postconf(_no_item, params, info):
     postconf = {}
+
+    if not params:
+        return (3, "No parameters specified")
+
+    if type(params) != type([]):
+        return (3, "Parameters not in list form")
+
     for param in params:
         postconf[param[0]] = param[1]
 
