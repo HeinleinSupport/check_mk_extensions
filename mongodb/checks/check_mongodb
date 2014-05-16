@@ -62,7 +62,7 @@ def check_mongodb_description(params):
 
     action, settings, maxlag, mappedmem, ssl, replicaset, perfdata = params
 
-    description += " %s" % action
+    description += " %s port %s" % (action, settings['port'])
 
     return description
 
