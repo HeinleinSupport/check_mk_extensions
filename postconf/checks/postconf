@@ -47,12 +47,12 @@ def check_postconf(_no_item, params, info):
 
         if key in postconf:
             if value != postconf[key]:
-                infotext.append("%s=%s (!!) %s expected" % (key, value, postconf[key]))
-                rc = 2
+                infotext.append("%s=%s (!) %s expected" % (key, value, postconf[key]))
+                rc = 1
             else:
                 infotext.append("%s=%s" % (key, value))
     if not infotext:
-        return (3, "No Postfix Configuration found" % _no_item)
+        return (3, "No Postfix Configuration item found")
     else:
         return (rc, ", ".join(infotext))
 
