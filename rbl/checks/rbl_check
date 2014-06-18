@@ -15,22 +15,25 @@
 # to the Free Software Foundation, Inc., 51 Franklin St,  Fifth Floor,
 # Boston, MA 02110-1301 USA.
 
-def inventory_rbl_check(info):
-	if len(info) >= 1:
-		return [(None, None)]
+def inventory_rbl_check(checkname, info):
+    inventory = set()
+    for line in info:
+	inventory.add((line[0], None))
+    return list(inventory)
 
 def check_rbl_check(item, params, info):
-	res = []
-	for line in info:
-		if line[2] == 'found':
-			res.append('%s found in %s' % (line[0], line[1]))
-	if res:
-		return(2, ",".join(res))
-	return(0, "")
+    res = []
+    for line in info:
+	if line[0] == item:
+	    if line[2] == 'found':
+		res.append('found in %s' % line[1])
+    if res:
+	return(2, ", ".join(res))
+    return(0, "not found in any RBL")
 
 check_info["rbl_check"] = {
-	'check_function': check_rbl_check,
-	'inventory_function': inventory_rbl_check,
-	'service_description': 'RBL Check',
-	'has_perfdata': False,
+    'check_function': check_rbl_check,
+    'inventory_function': inventory_rbl_check,
+    'service_description': 'RBL Check %s',
+    'has_perfdata': False,
 }
