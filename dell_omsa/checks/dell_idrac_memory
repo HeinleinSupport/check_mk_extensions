@@ -1,0 +1,54 @@
+#!/usr/bin/python
+# -*- encoding: utf-8; py-indent-offset: 4 -*-
+
+def inventory_dell_idrac_memory(info):
+    return [ (x[0], None) for x in info ]
+
+def check_dell_idrac_memory(item, _no_params, info):
+   failure_mode = {
+         0  : 'No failure',
+         1  : 'ECC single bit correction warning rate exceeded',
+         2  : 'ECC single bit correction failure rate exceeded',
+         4  : 'ECC multibit fault encountered',
+         8  : 'ECC single bit correction logging disabled',
+         16 : 'device disabled because of spare activation',
+    }
+
+   for location, status, size, failuremode in info:
+       if location == item:
+           status = saveint(status)
+           failuremode = saveint(failuremode)
+           state = 0
+           msg = ""
+           if status != 3:
+               state = 2
+               msg = "Modul State is %s(!!), " % status
+           label = ""
+           if failuremode in [ 2, 4 ]:
+               state = 2
+               label = "(!!)"
+           elif failuremode in [ 1, 8, 16 ]:
+               state = 1
+               label = "(!)"
+
+           size = get_bytes_human_readable(int(size)*1024)
+           return state, msg + "Failuremode: %s%s, Size: %s" % \
+           (failure_mode[failuremode], label, size)
+
+   return 3, "Module not found in SNMP tree"
+
+check_info["dell_idrac_memory"] = {
+    "check_function"        : check_dell_idrac_memory,
+    "inventory_function"    : inventory_dell_idrac_memory,
+    "service_description"   : "iDRAC Memory %s",
+    "has_perfdata"          : False,
+    # There is no other way to find out that openmanage is present.
+    "snmp_scan_function"    : lambda oid: oid('.1.3.6.1.4.1.674.10892.5.4.1100.50.1.2.1.1'),
+    "snmp_info"             : ( ".1.3.6.1.4.1.674.10892.5.4.1100.50.1", [
+        "8.1", # LocationName
+        "5.1", # Status
+        "14.1", # Size
+        "20.1", # FailureMode
+        ]),
+}
+
