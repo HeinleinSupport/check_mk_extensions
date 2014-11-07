@@ -17,4 +17,6 @@
 if [ -x /usr/bin/ceph ]; then
   echo '<<<ceph>>>'
   /usr/bin/ceph -s
+  echo '<<<cephpools>>>'
+  /usr/bin/ceph df
 fi

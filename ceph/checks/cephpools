@@ -1,0 +1,56 @@
+#!/usr/bin/python
+# -*- encoding: utf-8; py-indent-offset: 4 -*-
+
+# (c) 2014 Heinlein Support GmbH
+#          Robert Sander <r.sander@heinlein-support.de>
+
+# This is free software;  you can redistribute it and/or modify it
+# under the  terms of the  GNU General Public License  as published by
+# the Free Software Foundation in version 2.  This file is distributed
+# in the hope that it will be useful, but WITHOUT ANY WARRANTY;  with-
+# out even the implied warranty of  MERCHANTABILITY  or  FITNESS FOR A
+# PARTICULAR PURPOSE. See the  GNU General Public License for more de-
+# ails.  You should have  received  a copy of the  GNU  General Public
+# License along with GNU Make; see the file  COPYING.  If  not,  write
+# to the Free Software Foundation, Inc., 51 Franklin St,  Fifth Floor,
+# Boston, MA 02110-1301 USA.
+
+def inventory_cephpools(info):
+    inventory = []
+    pool = False
+    for line in info:
+        if line[0] == 'POOLS:':
+            pool = True
+            continue
+        if pool:
+            if line[0] == 'NAME':
+                continue
+            inventory.append(( line[0], [] ))
+    return inventory
+
+def check_cephpools(item, params, info):
+    for line in info:
+        if item == line[0]:
+            rc = 0
+            if line[2][:-1] == 'G':
+                used = saveint(line[2][:-1]) * 1000 * 1024 * 1024
+            else:
+                used = saveint(line[2])
+            size = saveint(line[4][:-1]) * 1000 * 1024 * 1024
+            warn = 0.8 * size
+            crit = 0.9 * size
+            if used > crit:
+                rc = 2
+            elif used > warn:
+                rc = 1
+            return (rc, "Size: %s; Used: %s" % (line[4], line[2]), [("Used", "%dB" % used, warn, crit, 0, size)])
+ 
+    return (3, 'Pool %s not found' % item, [])
+
+check_info["cephpools"] = {
+    'check_function'        : check_cephpools,
+    'inventory_function'    : inventory_cephpools,
+    'service_description'   : 'Ceph Pool %s',
+    'has_perfdata'          : True,
+}
+
