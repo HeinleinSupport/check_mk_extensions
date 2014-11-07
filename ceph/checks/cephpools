@@ -32,7 +32,7 @@ def check_cephpools(item, params, info):
     for line in info:
         if item == line[0]:
             rc = 0
-            if line[2][:-1] == 'G':
+            if line[2][-1] == 'G':
                 used = saveint(line[2][:-1]) * 1000 * 1024 * 1024
             else:
                 used = saveint(line[2])
