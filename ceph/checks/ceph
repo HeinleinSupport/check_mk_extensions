@@ -34,8 +34,8 @@ def check_ceph(item, params, info):
                 rc = 2
         if len(line) > 7 and line[2] == 'used,':
             text.append(' '.join(line))
-            used = saveint(line[0]) * 1000 * 1024 * 1024
-            size = saveint(line[6]) * 1000 * 1024 * 1024
+            used = saveint(line[0]) * 1073741824
+            size = saveint(line[6]) * 1073741824
             warn = 0.8 * size
             crit = 0.9 * size
             perfdata.append(("Used", "%dB" % used, warn, crit, 0, size))

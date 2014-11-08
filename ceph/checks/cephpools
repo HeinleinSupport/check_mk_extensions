@@ -33,10 +33,10 @@ def check_cephpools(item, params, info):
         if item == line[0]:
             rc = 0
             if line[2][-1] == 'G':
-                used = saveint(line[2][:-1]) * 1000 * 1024 * 1024
+                used = saveint(line[2][:-1]) * 1073741824
             else:
                 used = saveint(line[2])
-            size = saveint(line[4][:-1]) * 1000 * 1024 * 1024
+            size = saveint(line[4][:-1]) * 1073741824
             warn = 0.8 * size
             crit = 0.9 * size
             if used > crit:
