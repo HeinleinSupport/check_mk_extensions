@@ -25,9 +25,11 @@ def check_ceph(item, params, info):
     rc = 0
     perfdata = []
     text = []
-    factor = { 'TB': 1099511627776,
+    factor = { 'PB': 1125899906842624,
+               'TB': 1099511627776,
                'GB': 1073741824,
                'MB': 1048576,
+               'KB': 1024,
              }
     for line in info:
         if line[0] == 'cluster':
