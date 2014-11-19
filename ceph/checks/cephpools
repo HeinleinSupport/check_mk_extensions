@@ -29,14 +29,18 @@ def inventory_cephpools(info):
     return inventory
 
 def check_cephpools(item, params, info):
+    factor = { 'T': 1099511627776,
+               'G': 1073741824,
+               'M': 1048576,
+             }
     for line in info:
         if item == line[0]:
             rc = 0
-            if line[2][-1] == 'G':
-                used = saveint(line[2][:-1]) * 1073741824
+            if line[2][-1] in ['T', 'G', 'M']:
+                used = saveint(line[2][:-1]) * factor[line[2][-1]]
             else:
                 used = saveint(line[2])
-            size = saveint(line[4][:-1]) * 1073741824
+            size = saveint(line[4][:-1]) * factor[line[4][-1]]
             warn = 0.8 * size
             crit = 0.9 * size
             if used > crit:

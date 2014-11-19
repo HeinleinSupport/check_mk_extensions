@@ -25,6 +25,10 @@ def check_ceph(item, params, info):
     rc = 0
     perfdata = []
     text = []
+    factor = { 'TB': 1099511627776,
+               'GB': 1073741824,
+               'MB': 1048576,
+             }
     for line in info:
         if line[0] == 'cluster':
             text.append('Cluster %s' % line[1])
@@ -34,8 +38,8 @@ def check_ceph(item, params, info):
                 rc = 2
         if len(line) > 7 and line[2] == 'used,':
             text.append(' '.join(line))
-            used = saveint(line[0]) * 1073741824
-            size = saveint(line[6]) * 1073741824
+            used = saveint(line[0]) * factor[line[1]]
+            size = saveint(line[6]) * factor[line[7]]
             warn = 0.8 * size
             crit = 0.9 * size
             perfdata.append(("Used", "%dB" % used, warn, crit, 0, size))
