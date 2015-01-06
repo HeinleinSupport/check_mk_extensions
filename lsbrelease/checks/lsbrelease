@@ -36,8 +36,8 @@ def check_lsbrelease(item, params, info):
         lsbinfo[key] = value
     infotext = lsbinfo['Description']
     for distribution, version in params:
-        if lsbinfo['Description'].startswith(distribution):
-            if distribution.startswith('Ubuntu'):
+        if lsbinfo['Description'].lower().startswith(distribution.lower()):
+            if distribution.lower().startswith('ubuntu'):
                 current_version = versiontuple(lsbinfo['Description'].split()[1])
             else:
                 current_version = versiontuple(lsbinfo['Release'])
