@@ -1,6 +1,8 @@
 #!/bin/bash
 
-if [ -x /usr/bin/lsb_release ]; then
+lsbrelease=$(which lsb_release)
+
+if [ -x "$lsbrelease" ]; then
 
     echo '<<<lsbrelease>>>'
 
@@ -11,13 +13,13 @@ if [ -x /usr/bin/lsb_release ]; then
             version="$version.$patchlevel"
         fi
         if [ -n "$version" ]; then
-            /usr/bin/lsb_release -a |grep -v ^Release
+            $lsbrelease -a |grep -v ^Release
             echo -e "Release:\t$version"
         else
-            /usr/bin/lsb_release -a
+            $lsbrelease -a
         fi
     else
-        /usr/bin/lsb_release -a
+        $lsbrelease -a
     fi
 
 fi
