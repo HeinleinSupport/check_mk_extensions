@@ -35,7 +35,7 @@ fi
 echo '<<<sslcertificates>>>'
 
 for dir in $CERT_DIRS; do
-	for certfile in $(grep -x -l -e '-----BEGIN CERTIFICATE-----' $dir/* 2> /dev/null); do
+	for certfile in $(grep -l -- '-----BEGIN CERTIFICATE-----' $dir/* 2> /dev/null); do
 
 		cert_enddate="$($OPENSSL x509 -noout -enddate -in $certfile | cut -d "=" -f 2 )"
 		cert_enddate_epoch=$(date --date "$cert_enddate" '+%s')
