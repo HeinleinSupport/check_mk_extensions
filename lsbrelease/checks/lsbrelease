@@ -34,19 +34,22 @@ def check_lsbrelease(item, params, info):
     for line in info:
         key, value = (" ".join(line)).split(': ')
         lsbinfo[key] = value
+    infotext = lsbinfo['Description']
     for distribution, version in params:
-        if lsbinfo['Description'].startswith(distribution):
-            if distribution.startswith('Ubuntu'):
+        if lsbinfo['Description'].lower().startswith(distribution.lower()):
+            if distribution.lower().startswith('ubuntu'):
                 current_version = versiontuple(lsbinfo['Description'].split()[1])
             else:
                 current_version = versiontuple(lsbinfo['Release'])
+                if lsbinfo['Release'] not in infotext:
+                    infotext += ", Release " + lsbinfo['Release']
             test_version = versiontuple(version)
             if current_version[0] < test_version[0]:
-                return (2, lsbinfo['Description'] + ", expected at least version %d" % test_version[0])
+                return (2, infotext + ", expected at least version %d" % test_version[0])
             if current_version < test_version:
-                return (1, lsbinfo['Description'] + ", expected version %s" % version)
-            return (0, lsbinfo['Description'])
-    return (3, "Unknown Distribution: %s" % lsbinfo['Description'])
+                return (1, infotext + ", expected version %s" % version)
+            return (0, infotext)
+    return (3, "Unknown Distribution: %s" % infotext)
 
 check_info['lsbrelease'] = {
     'check_function':      check_lsbrelease,

@@ -1,9 +1,7 @@
 #!/bin/bash
 
-#
-# (c) 2013 Heinlein Support GmbH
+# (c) 2014 Heinlein Support GmbH
 #          Robert Sander <r.sander@heinlein-support.de>
-#
 
 # This is free software;  you can redistribute it and/or modify it
 # under the  terms of the  GNU General Public License  as published by
@@ -16,32 +14,9 @@
 # to the Free Software Foundation, Inc., 51 Franklin St,  Fifth Floor,
 # Boston, MA 02110-1301 USA.
 
-OPENSSL=`which openssl`
-
-if [ ! -x "$OPENSSL" ]; then
-  exit
+if [ -x /usr/bin/ceph ]; then
+  echo '<<<ceph>>>'
+  /usr/bin/ceph -s
+  echo '<<<cephpools>>>'
+  /usr/bin/ceph df
 fi
-
-CERT_DIRS="/etc/ssl/certs"
-
-CONFIG_FILE="/etc/check_mk/sslcertificates"
-
-if [ -r $CONFIG_FILE ]; then
-
-  . $CONFIG_FILE
-
-fi
-
-echo '<<<sslcertificates>>>'
-
-for dir in $CERT_DIRS; do
-	for certfile in $(grep -l -- '-----BEGIN CERTIFICATE-----' $dir/* 2> /dev/null); do
-
-		cert_enddate="$($OPENSSL x509 -noout -enddate -in $certfile | cut -d "=" -f 2 )"
-		cert_enddate_epoch=$(date --date "$cert_enddate" '+%s')
-		cert_subject="$($OPENSSL x509 -noout -subject -in $certfile | cut -d "=" -f 2-)"
-
-		echo $certfile $cert_enddate_epoch $cert_subject
-	done
-
-done
