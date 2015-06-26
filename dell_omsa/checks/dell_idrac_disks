@@ -27,28 +27,15 @@ def check_dell_idrac_disks(item, _no_params, info):
     }
 
     pdisk_state = {
-         0  : 'Unknown',
-         1  : 'Ready',
-         2  : 'Failed',
+         1  : 'Unknown',
+         2  : 'Ready',
          3  : 'Online',
-         4  : 'Offline',
-         6  : 'Degraded',
-         7  : 'Recovering',
-         11 : 'Removed',
-         15 : 'Resynching',
-         22 : 'Replacing',
-         23 : 'Spinning Down',
-         24 : 'Rebuilding',
-         25 : 'No Media',
-         26 : 'Formatting',
-         28 : 'Diagnostics',
-         34 : 'Predictive failure',
-         35 : 'Initializing',
-         39 : 'Foreign',
-         40 : 'Clear',
-         41 : 'Unsupported',
-         53 : 'Incompatible',
-         56 : 'Read Only',
+         4  : 'Foreign',
+         5  : 'Offline',
+         6  : 'Blocked',
+         7  : 'Failed',
+         8  : 'Non-raid',
+         9  : 'Removed',
     }
 
     for name, dstate, pid, eid, cid, tid, sizeMB, btype, sstate, mt, ditem  in info:
@@ -61,10 +48,10 @@ def check_dell_idrac_disks(item, _no_params, info):
             size = saveint(sizeMB)*1024*1024
             msg = ["%s (%s, %s)" % ( name, pid, get_bytes_human_readable(size) ) ]
             label = ""
-            if dstate in [ 40, 35, 34, 26, 7, 4, 1 ]:
+            if dstate in [ 4, 1 ]:
                 state = 1
                 label = "(!)"
-            elif dstate not in [ 3 ]:
+            elif dstate not in [ 3, 2 ]:
                 state = 2
                 label = "(!!)"
             msg.append("state %s%s" % ( pdisk_state.get(dstate, 'ukn (%s)' % dstate ), label ))
@@ -72,7 +59,7 @@ def check_dell_idrac_disks(item, _no_params, info):
 
             # handle global hot spares as OK
             if sstate == 3 and dstate == 1:
-	        state = 0
+                state = 0
                 label = ""
             if sstate != 5:
                 msg.append("Spare State: %s" % spare_state.get(sstate, 'ukn (%s)' %sstate ))
