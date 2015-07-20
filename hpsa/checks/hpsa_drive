@@ -26,6 +26,7 @@ def check_hpsa_drive(item, params, info):
                 rc = 0
             else:
                 rc = 2
+                infotext = " ".join(line)
             return (rc, infotext)
     return (3, "Unknown Drive: %s" % item)
 
