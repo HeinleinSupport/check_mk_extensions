@@ -30,6 +30,7 @@ def check_hpsa_array(item, params, info):
                     rc = 0
                 else:
                     rc = 2
+                    infotext = " ".join(line)
             else:
                 rc = 3
                 infotext = "Unknown output from agent plugin: " + infotext
