@@ -15,10 +15,15 @@
 # to the Free Software Foundation, Inc., 51 Franklin St,  Fifth Floor,
 # Boston, MA 02110-1301 USA.
 
+factory_settings["entropy_avail_default_levels"] = {
+    "percentage" : ( 0.0, 0.0 ),
+    "absolute" : (200, 100),
+}
+
 def inventory_entropy_avail(checkname, info):
     inventory = []
     if len(info) > 0:
-        inventory.append( ( None, [] ) )
+        inventory.append( ( None, {} ) )
     return inventory
 
 def check_entropy_avail(item, params, info):
@@ -26,14 +31,21 @@ def check_entropy_avail(item, params, info):
     for line in info:
         entropy_info[line[0]] = saveint(line[1])
 
-    warn = entropy_info['poolsize'] / 2
-    crit = entropy_info['poolsize'] / 4
+
+    warn_perc = entropy_info['poolsize'] / 100 * params['percentage'][0]
+    crit_perc = entropy_info['poolsize'] / 100 * params['percentage'][1]
+    warn_abs  = params['absolute'][0]
+    crit_abs  = params['absolute'][1]
+    
+    warn = warn_perc if warn_perc > warn_abs else warn_abs
+    crit = crit_perc if crit_perc > crit_abs else crit_abs
 
     if 'entropy_avail' in entropy_info:
         info_text = "%d Bits entropy available. Pool size: %d Bits" % (entropy_info['entropy_avail'],
                                                                        entropy_info['poolsize'])
         perf_data = [ ( "entropy",
                         "%db" % entropy_info['entropy_avail'], warn, crit, 0, entropy_info['poolsize'] ) ]
+        
         if entropy_info['entropy_avail'] < crit:
             return (2, info_text, perf_data)
         if entropy_info['entropy_avail'] < warn:
@@ -47,4 +59,5 @@ check_info['entropy_avail'] = {
     'has_perfdata':        True,
     'inventory_function':  inventory_entropy_avail,
     'group':               'entropy_avail',
+    'default_levels_variable'  : "entropy_avail_default_levels",
 }
