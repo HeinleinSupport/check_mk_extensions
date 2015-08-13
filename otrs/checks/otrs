@@ -1,0 +1,56 @@
+#!/usr/bin/python
+# -*- encoding: utf-8; py-indent-offset: 4 -*-
+
+# (c) 2015 Heinlein Support GmbH
+#          Robert Sander <r.sander@heinlein-support.de>
+
+# This is free software;  you can redistribute it and/or modify it
+# under the  terms of the  GNU General Public License  as published by
+# the Free Software Foundation in version 2.  This file is distributed
+# in the hope that it will be useful, but WITHOUT ANY WARRANTY;  with-
+# out even the implied warranty of  MERCHANTABILITY  or  FITNESS FOR A
+# PARTICULAR PURPOSE. See the  GNU General Public License for more de-
+# ails.  You should have  received  a copy of the  GNU  General Public
+# License along with GNU Make; see the file  COPYING.  If  not,  write
+# to the Free Software Foundation, Inc., 51 Franklin St,  Fifth Floor,
+# Boston, MA 02110-1301 USA.
+
+factory_settings['otrs_default_levels'] = ( 50, 100 )
+
+def otrs_name(line):
+    return line[0]
+
+def inventory_otrs(checkname, info):
+    inventory = []
+    for line in info:
+        inventory.append( ( otrs_name(line), None ) )
+    return inventory
+
+def check_otrs(item, params, info):
+    warn, crit = params
+
+    for line in info:
+        if item == otrs_name(line):
+            typeid = saveint(line[1])
+            total = saveint(line[2])
+            state = " ".join(line[3:])
+            perfdata = [
+                         ( "tickets", total, warn, crit ),
+                       ]
+            msgtext = "%d %s" % (total, state)
+            if total > crit:
+                return (2, msgtext, perfdata)
+            elif total > warn:
+                return (1, msgtext, perfdata)
+            return (0, msgtext, perfdata)
+    return (3, "Queue %s not found" % item, [])
+
+check_info['otrs'] = {
+    'check_function':      check_otrs,
+    'service_description': "OTRS %s",
+    'has_perfdata':        True,
+    'inventory_function':  inventory_otrs,
+    'group':               'otrs',
+    'default_levels_variable'  : "otrs_default_levels",
+}
+
