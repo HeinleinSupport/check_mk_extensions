@@ -20,7 +20,7 @@ factory_settings['otrs_default_levels'] = {
 	}
 
 def otrs_name(line):
-    return line[0]
+    return "%s %02d" % (line[0], saveint(line[1]))
 
 def inventory_otrs(checkname, info):
     inventory = []
