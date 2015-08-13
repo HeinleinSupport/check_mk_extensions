@@ -15,7 +15,9 @@
 # to the Free Software Foundation, Inc., 51 Franklin St,  Fifth Floor,
 # Boston, MA 02110-1301 USA.
 
-factory_settings['otrs_default_levels'] = ( 50, 100 )
+factory_settings['otrs_default_levels'] = {
+	'absolute': ( 50, 100 ),
+	}
 
 def otrs_name(line):
     return line[0]
@@ -27,7 +29,7 @@ def inventory_otrs(checkname, info):
     return inventory
 
 def check_otrs(item, params, info):
-    warn, crit = params
+    warn, crit = params['absolute']
 
     for line in info:
         if item == otrs_name(line):
