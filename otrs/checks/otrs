@@ -22,29 +22,43 @@ factory_settings['otrs_default_levels'] = {
 def otrs_name(line):
     return "%s %02d" % (line[0], saveint(line[1]))
 
+def otrs_data(info):
+    otrs = {}
+    for line in info:
+        if not otrs.has_key(line[0]):
+            otrs[line[0]] = {}
+        otrs[line[0]][saveint(line[1])] = {'total': saveint(line[2]), 'state': " ".join(line[3:])}
+    return otrs
+
 def inventory_otrs(checkname, info):
     inventory = []
-    for line in info:
-        inventory.append( ( otrs_name(line), None ) )
+    otrs = otrs_data(info)
+    for queue in otrs.keys():
+        inventory.append( ( queue, None ) )
     return inventory
 
 def check_otrs(item, params, info):
     warn, crit = params['absolute']
+    otrs = otrs_data(info)
 
-    for line in info:
-        if item == otrs_name(line):
-            typeid = saveint(line[1])
-            total = saveint(line[2])
-            state = " ".join(line[3:])
-            perfdata = [
-                         ( "tickets", total, warn, crit ),
-                       ]
-            msgtext = "%d %s" % (total, state)
-            if total > crit:
-                return (2, msgtext, perfdata)
-            elif total > warn:
-                return (1, msgtext, perfdata)
-            return (0, msgtext, perfdata)
+    for queue in otrs.keys():
+        if item == queue:
+            perfdata = []
+            msgtxt = []
+            rc = 0
+            for ticket_state in otrs[queue].keys():
+                total = otrs[queue][ticket_state]['total']
+                state = otrs[queue][ticket_state]['state']
+                perfdata.append((state, total, warn, crit))
+                if total > crit:
+                    rc = 2
+                    msgtxt.append("%d %s (!!)" % (total, state))
+                elif total > warn:
+                    rc = 1
+                    msgtxt.append("%d %s (!)" % (total, state))
+                else:
+                    msgtxt.append("%d %s" % (total, state))
+            return (rc, "; ".join(msgtxt), perfdata)
     return (3, "Queue %s not found" % item, [])
 
 check_info['otrs'] = {
