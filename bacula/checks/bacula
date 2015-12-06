@@ -1,0 +1,95 @@
+#!/usr/bin/env python
+#
+# Check_MK Bacula Plugin
+#
+# Copyright 2010, Stefan Schlesinger <sts@ono.at>
+#
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with this program.  If not, see <http://www.gnu.org/licenses/>.
+#
+
+
+def inventory_bacula(checkname, info):
+
+    items = {}
+
+    # return if agent data is empty
+    if len(info) < 1:
+	return []
+
+    # strip off 'bacula.' from the checkname
+    key = checkname.replace('bacula.','')
+
+    # return if checkname is in agent output
+    for i in info:
+	if i[0] == key:
+	    return[(None, "", None)]
+
+    return []
+
+
+def info_to_dict(info):
+    items = {}
+
+    for item in info:
+	index = item[0]
+	items[index] = item
+
+    return items
+
+def check_bacula_freshness(item, params, info):
+    items = info_to_dict(info)
+
+    if int(items['freshness'][1]) == 0:
+	return (0, "OK: All clients successfully backed up within the last %s." % items['freshness'][2])
+    else:
+	return (2, "CRITICAL: %s clients were not backed up within the last %s: %s" % (items['freshness'][1], items['freshness'][2], items['freshness'][3]))
+
+def check_bacula_fullbackups(item, params, info):
+    items = info_to_dict(info)
+
+    if int(items['fullbackups'][1]) == 0:
+        return (0, "OK: All clients have a full backup.")
+    else:
+        return (2, "CRITICAL: %s clients currently don't have a full-backup: %s" % ( items['fullbackups'][1], items['fullbackups'][2] )  )
+
+def check_bacula_fullbackupspool(item, params, info):
+    items = info_to_dict(info)
+
+    if int(items['fullbackupspool'][1]) == 0:
+        return (0, "OK: No full-backups using the wrong pool.")
+    else:
+        return (2, "CRITICAL: %s backups using the wrong pool: %s" % ( items['fullbackupspool'][1], items['fullbackupspool'][2] )  )
+
+def check_bacula_errorvols(item, params, info):
+    items = info_to_dict(info)
+
+    if int(items['errorvols'][1]) == 0:
+        return (0, "OK: No Volumes with state 'Error' found.")
+    else:
+        return (2, "CRITICAL: %s volumes with state 'Error' found: %s" % (items['errorvols'][1], items['errorvols'][2]))
+
+# declare the check to Check_MK. Dict format:
+#  ( check_function, "service name", perf_data_provided?(0:1), inventory_function)
+check_info['bacula.freshness'] = \
+      (check_bacula_freshness, "bacula.freshness", 0, inventory_bacula)
+
+check_info['bacula.fullbackups'] = \
+      (check_bacula_fullbackups, "bacula.fullbackups", 0, inventory_bacula)
+
+check_info['bacula.fullbackupspool'] = \
+      (check_bacula_fullbackupspool, "bacula.fullbackupspool", 0, inventory_bacula)
+
+check_info['bacula.errorvols'] = \
+      (check_bacula_errorvols, "bacula.errorvols", 0, inventory_bacula)
+

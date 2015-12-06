@@ -1,0 +1,84 @@
+#!/usr/bin/env python
+#
+# Check_MK APT-NG Plugin - Check for upgradeable packages.
+#
+# Copyright 2012, Stefan Schlesinger <sts@ono.at>
+# Copyright 2013, Karsten Schoeke <karsten.schoeke@geobasis-bb.de>
+#
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with this program.  If not, see <http://www.gnu.org/licenses/>.
+#
+#
+# Example Agent Output:
+
+#<<<apt>>>
+#6.0.3
+#x11-common Debian-Security:6.0/stable
+
+# Configure per repository severity
+#
+# 1 WARNING ; 2 CRITICAL 
+apt_repository_severity = {
+  'Debian-Security' : 2,
+  'debian-volatile' : 1,
+  'Unofficial'      : 1,
+  '__default__'     : 1,
+}
+
+def inventory_apt(checkname, info):
+    if len(info) > 0:
+        return [(None, None)]
+
+# the check function
+def check_apt(_no_item, _no_params, info):
+    apt_upgrades = {}
+    level        = 0
+    msg          = ""
+    updates      = 0
+    
+    # Parse the agent output
+    deb_release  = info[0][0]
+
+    if len(info) > 1:
+        packages  = info[1:]
+        
+        for package in packages:
+            name   = package[0]
+            updates += 1
+            source = package[1].split(' ')[0].split(':')[0]
+            if source in apt_repository_severity:
+                level  = max(level, apt_repository_severity[source])
+            else:
+                level  = max(level, apt_repository_severity['__default__'])
+            
+            if not source in apt_upgrades:
+                apt_upgrades[source] = []
+            
+    for source in apt_upgrades:
+            if level == 1:
+                msg = "%s updates (!)" % updates 
+            elif level >= 2:
+                msg = "%s critical updates (!!)" % updates 
+
+    if level > 0:
+        return (level, "%s" % msg)
+    else:
+        return (level, "Debian %s all packages are up to date" % deb_release)
+
+check_info["apt"] = {
+        "check_function"            : check_apt,
+        "service_description"       : "APT",
+        "has_perfdata"              : False,
+        "inventory_function"        : inventory_apt,
+        "group"                     : "apt",
+}
