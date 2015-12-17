@@ -28,8 +28,6 @@
 # 20: CurrentUpperWarning
 # 21: CurrentUpperCritical
 
-from pprint import pprint
-
 def inventory_raritan_pdu_outlets(info):
     # Ignore non-connected sensors
     return [ ( "%s %s" % (line[1], line[0]), None) for line in info ]

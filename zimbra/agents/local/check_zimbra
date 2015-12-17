@@ -1,0 +1,13 @@
+#!/bin/bash
+
+error=$(/etc/init.d/zimbra status|grep -v Running$ |grep -v ^Host)
+
+if [ -n "$error" ]; then
+
+  echo 2 Zimbra_Status - $(echo error | head -1)
+
+else
+
+  echo 0 Zimbra_Status - All Zimbra services running
+
+fi

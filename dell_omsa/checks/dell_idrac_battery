@@ -1,8 +1,6 @@
 #!/usr/bin/python
 # -*- encoding: utf-8; py-indent-offset: 4 -*-
 
-from pprint import pprint
-
 def inventory_dell_idrac_battery(info):
     inventory = []
     for line in info:

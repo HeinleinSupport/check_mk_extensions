@@ -30,7 +30,7 @@ def check_postconf(_no_item, params, info):
     postconf = {}
 
     if not params:
-        return (3, "No parameters specified")
+        return (0, "No Postfix configuration parameters to check.")
 
     if type(params) != type([]):
         return (3, "Parameters not in list form")

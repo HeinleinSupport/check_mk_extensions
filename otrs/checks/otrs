@@ -1,0 +1,72 @@
+#!/usr/bin/python
+# -*- encoding: utf-8; py-indent-offset: 4 -*-
+
+# (c) 2015 Heinlein Support GmbH
+#          Robert Sander <r.sander@heinlein-support.de>
+
+# This is free software;  you can redistribute it and/or modify it
+# under the  terms of the  GNU General Public License  as published by
+# the Free Software Foundation in version 2.  This file is distributed
+# in the hope that it will be useful, but WITHOUT ANY WARRANTY;  with-
+# out even the implied warranty of  MERCHANTABILITY  or  FITNESS FOR A
+# PARTICULAR PURPOSE. See the  GNU General Public License for more de-
+# ails.  You should have  received  a copy of the  GNU  General Public
+# License along with GNU Make; see the file  COPYING.  If  not,  write
+# to the Free Software Foundation, Inc., 51 Franklin St,  Fifth Floor,
+# Boston, MA 02110-1301 USA.
+
+factory_settings['otrs_default_levels'] = {
+	'absolute': ( 50, 100 ),
+	}
+
+def otrs_name(line):
+    return "%s %02d" % (line[0], saveint(line[1]))
+
+def otrs_data(info):
+    otrs = {}
+    for line in info:
+        if not otrs.has_key(line[0]):
+            otrs[line[0]] = {}
+        otrs[line[0]][saveint(line[1])] = {'total': saveint(line[2]), 'state': " ".join(line[3:])}
+    return otrs
+
+def inventory_otrs(checkname, info):
+    inventory = []
+    otrs = otrs_data(info)
+    for queue in otrs.keys():
+        inventory.append( ( queue, None ) )
+    return inventory
+
+def check_otrs(item, params, info):
+    warn, crit = params['absolute']
+    otrs = otrs_data(info)
+
+    for queue in otrs.keys():
+        if item == queue:
+            perfdata = []
+            msgtxt = []
+            rc = 0
+            for ticket_state in otrs[queue].keys():
+                total = otrs[queue][ticket_state]['total']
+                state = otrs[queue][ticket_state]['state']
+                perfdata.append((state, total, warn, crit))
+                if total > crit:
+                    rc = 2
+                    msgtxt.append("%d %s (!!)" % (total, state))
+                elif total > warn:
+                    rc = 1
+                    msgtxt.append("%d %s (!)" % (total, state))
+                else:
+                    msgtxt.append("%d %s" % (total, state))
+            return (rc, "; ".join(msgtxt), perfdata)
+    return (3, "Queue %s not found" % item, [])
+
+check_info['otrs'] = {
+    'check_function':      check_otrs,
+    'service_description': "OTRS %s",
+    'has_perfdata':        True,
+    'inventory_function':  inventory_otrs,
+    'group':               'otrs',
+    'default_levels_variable'  : "otrs_default_levels",
+}
+

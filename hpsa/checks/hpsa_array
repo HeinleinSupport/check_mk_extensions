@@ -21,11 +21,19 @@ def inventory_hpsa_array(checkname, info):
 def check_hpsa_array(item, params, info):
     for line in info:
         if item == line[0]:
-            infotext = " ".join(line[2:])
-            if line[1] == 'OK':
-                rc = 0
+            if len(line) > 2:
+                infotext = " ".join(line[2:])
             else:
-                rc = 2
+                infotext = " ".join(line)
+            if len(line) > 1:
+                if line[1] == 'OK':
+                    rc = 0
+                else:
+                    rc = 2
+                    infotext = " ".join(line)
+            else:
+                rc = 3
+                infotext = "Unknown output from agent plugin: " + infotext
             return (rc, infotext)
     return (3, "Unknown Array: %s" % item)
 

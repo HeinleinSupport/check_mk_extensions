@@ -1,0 +1,21 @@
+#!/usr/bin/env python
+# -*- encoding: utf-8; py-indent-offset: 4 -*-
+
+#
+# (C) 2015 Heinlein Support GmbH
+# Robert Sander <r.sander@heinlein-support.de>
+#
+
+def agent_pingdom_arguments(params, hostname, ipaddress):
+    if params.has_key('email') and params['email']:
+        return '-u "%s" -p "%s" -a "%s" -e "%s" agent' % ( params['username'],
+                                                           params['password'],
+                                                           params['api_key'],
+                                                           params['email'])
+    else:
+        return '-u "%s" -p "%s" -a "%s" agent' % ( params['username'],
+                                                   params['password'],
+                                                   params['api_key'] )
+
+special_agent_info['pingdom'] = agent_pingdom_arguments
+
