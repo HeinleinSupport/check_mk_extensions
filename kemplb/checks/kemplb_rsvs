@@ -111,10 +111,11 @@ def check_kemplb_rsvs(item, _no_params, info):
     infotext = []
     rc = 0
 
+    wrapped = False
+
     for line in info:
         if kemplb_rsvs_item(line) != item: continue
 
-        wrapped = False
 
         rSidx = line[0]
         state = saveint(line[1])
