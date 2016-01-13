@@ -1,0 +1,11 @@
+#!/usr/bin/python
+# -*- encoding: utf-8; py-indent-offset: 4 -*-
+
+def bake_entropy_avail(opsys, conf, conf_dir, plugins_dir):
+    if conf:
+        shutil.copy2(local_agents_dir + "/plugins/entropy_avail", plugins_dir + "/entropy_avail")
+
+bakery_info["entropy_avail"] = {
+    "bake_function" : bake_entropy_avail,
+    "os"            : [ "linux", ],
+}
