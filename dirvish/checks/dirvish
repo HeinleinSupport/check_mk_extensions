@@ -41,5 +41,12 @@ def check_dirvish(item, params, info):
 				return (2, "CRITICAL - Backup %s failed" % image)
 	return (3, "UNKNOWN - Backup %s not found" % item)
 
-check_info['dirvish'] = ( check_dirvish, "Backup status %s", 0, inventory_dirvish )
+check_info["dirvish"] = {
+    'check_function'        : check_dirvish,
+    'inventory_function'    : inventory_dirvish,
+    'service_description'   : 'Backup status %s',
+    'has_perfdata'          : False,
+}
+
+
 		

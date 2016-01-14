@@ -14,10 +14,17 @@
 # to the Free Software Foundation, Inc., 51 Franklin St,  Fifth Floor,
 # Boston, MA 02110-1301 USA.
 
+bank=/backup
+
+if [ -r $MK_CONFDIR/dirvish ]; then
+  . $MK_CONFDIR/dirvish
+fi
+
+if [ ! -d "$bank" ]; then
+  exit
+fi
 
 echo '<<<dirvish>>>'
-
-bank=/backup
 
 for summary in $bank/*/current/summary; do
 
