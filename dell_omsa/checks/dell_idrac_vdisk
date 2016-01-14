@@ -12,30 +12,18 @@ def check_dell_idrac_vdisk(item, params, info):
         4  : 'Degraded',
         }
     vdisk_layout = {
-        1  : 'Concatenated',
-        2  : 'RAID-0',
-        3  : 'RAID-1',
-        4  : 'UNSUPPORTED:raid-2',
-        5  : 'UNSUPPORTED:raid-3',
-        6  : 'UNSUPPORTED:raid-4',
-        7  : 'RAID-5',
-        8  : 'RAID-6',
-        9  : 'UNSUPPORTED:raid-7',
-        10 : 'RAID-10',
-        11 : 'UNSUPPORTED:raid-30',
-        12 : 'RAID-50',
-        13 : 'UNSUPPORTED:addSpares',
-        14 : 'UNSUPPORTED:deleteLogical',
-        15 : 'UNSUPPORTED:transformLogical',
-        18 : 'UNSUPPORTED:raid-0-plus-1',
-        19 : 'Concatenated RAID-1',
-        20 : 'UNSUPPORTED:concatRaid-5',
-        21 : 'UNSUPPORTED:noRaid',
-        22 : 'UNSUPPORTED:volume',
-        23 : 'UNSUPPORTED:raidMorph',
-        24 : 'RAID-60',
-        25 : 'CacheCade',
+        1 : 'Other',
+        2 : 'Raid-0',
+        3 : 'Raid-1',
+        4 : 'Raid-5',
+        5 : 'Raid-6',
+        6 : 'Raid-10',
+        7 : 'Raid-50',
+        8 : 'Raid-60',
+        9 : 'Concatenated Raid-1',
+        10 : 'Concatenated Raid-5',
         }
+
     for line in info:
         if line[0] != item:
             continue
