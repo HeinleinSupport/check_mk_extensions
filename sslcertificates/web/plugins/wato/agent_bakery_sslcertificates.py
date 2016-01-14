@@ -2,7 +2,7 @@
 # -*- encoding: utf-8; py-indent-offset: 4 -*-
 
 # group = "agents/" + _("Agent Plugins")
-group = "agents/" + _("Test Heinlein")
+group = "agents/" + _("Agent Plugins")
 
 register_rule(group,
     "agent_config:sslcertificates",
