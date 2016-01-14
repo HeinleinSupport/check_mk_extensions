@@ -17,7 +17,7 @@
 
 #!/bin/bash
 
-CONFIG=/etc/check_mk/postfix_mailq_details
+CONFIG=$MK_CONFDIR/postfix_mailq_details
 
 QPATH=/var/spool/postfix
 

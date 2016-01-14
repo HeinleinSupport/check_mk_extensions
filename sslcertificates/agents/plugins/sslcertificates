@@ -24,7 +24,7 @@ fi
 
 CERT_DIRS="/etc/ssl/certs"
 
-CONFIG_FILE="/etc/check_mk/sslcertificates"
+CONFIG_FILE="$MK_CONFDIR/sslcertificates"
 
 if [ -r $CONFIG_FILE ]; then
 

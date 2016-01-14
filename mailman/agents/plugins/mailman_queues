@@ -1,6 +1,6 @@
 #!/bin/bash
 
-CONFIG=/etc/check_mk/mailman_queues
+CONFIG=$MK_CONFDIR/mailman_queues
 
 QPATH=/var/lib/mailman/qfiles
 
