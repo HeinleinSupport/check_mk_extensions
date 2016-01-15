@@ -1,0 +1,20 @@
+#!/usr/bin/python
+# -*- encoding: utf-8; py-indent-offset: 4 -*-
+
+def bake_postfix_mailq_details(opsys, conf, conf_dir, plugins_dir):
+    shutil.copy2(local_agents_dir + "/plugins/postfix_mailq_details", plugins_dir + "/postfix_mailq_details")
+
+    f = file(conf_dir + "/postfix_mailq_details", "w")
+    f.write(agent_file_header)
+
+    prefixes = { '1': '+', '2': '-' }
+
+    for group, prefix in prefixes.iteritems():
+        if conf.has_key(group):
+            f.write('QUEUES%s=\"%s\"\n' % (group, conf[group]['QUEUES'] ))
+            f.write('AGE%s=%s%d\n' % (group, prefix, conf[group]['AGE'] / 60 ))
+
+bakery_info["postfix_mailq_details"] = {
+    "bake_function" : bake_postfix_mailq_details,
+    "os"            : [ "linux", ],
+}
