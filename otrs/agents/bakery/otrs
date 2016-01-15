@@ -1,0 +1,24 @@
+#!/usr/bin/python
+# -*- encoding: utf-8; py-indent-offset: 4 -*-
+
+def bake_otrs(opsys, conf, conf_dir, plugins_dir):
+    shutil.copy2(local_agents_dir + "/plugins/check_otrs.py", plugins_dir + "/check_otrs.py")
+
+    f = file(conf_dir + "/otrs.cfg", "w")
+    f.write(agent_file_header)
+
+    if conf.has_key('defaults'):
+        f.write('[DEFAULT]\n')
+        for key, value in conf['defaults'].iteritems():
+            f.write("%s = %s\n" % (key, value))
+    
+    if conf.has_key('queues'):
+        for queue in conf['queues']:
+            f.write("\n[%s]\n" % queue['name'])
+            f.write("id = %d\n" % queue['id'])
+            f.write("types = %s\n" % queue['types'])
+
+bakery_info["otrs"] = {
+    "bake_function" : bake_otrs,
+    "os"            : [ "linux", ],
+}
