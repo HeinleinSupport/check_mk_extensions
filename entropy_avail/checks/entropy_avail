@@ -31,16 +31,22 @@ def check_entropy_avail(item, params, info):
     for line in info:
         entropy_info[line[0]] = saveint(line[1])
 
+    if 'entropy_avail' in entropy_info and 'poolsize' in entropy_info:
+        warn_perc = 0
+        crit_perc = 0
+        warn_abs  = 0
+        crit_abs  = 0
 
-    warn_perc = entropy_info['poolsize'] / 100 * params['percentage'][0]
-    crit_perc = entropy_info['poolsize'] / 100 * params['percentage'][1]
-    warn_abs  = params['absolute'][0]
-    crit_abs  = params['absolute'][1]
-    
-    warn = warn_perc if warn_perc > warn_abs else warn_abs
-    crit = crit_perc if crit_perc > crit_abs else crit_abs
+        if isinstance(params, dict):
+            if params.has_key('percentage'):
+                warn_perc = entropy_info['poolsize'] / 100 * params['percentage'][0]
+                crit_perc = entropy_info['poolsize'] / 100 * params['percentage'][1]
+            if params.has_key('absolute'):
+                warn_abs  = params['absolute'][0]
+                crit_abs  = params['absolute'][1]
+        warn = warn_perc if warn_perc > warn_abs else warn_abs
+        crit = crit_perc if crit_perc > crit_abs else crit_abs
 
-    if 'entropy_avail' in entropy_info:
         info_text = "%d Bits entropy available. Pool size: %d Bits" % (entropy_info['entropy_avail'],
                                                                        entropy_info['poolsize'])
         perf_data = [ ( "entropy",
