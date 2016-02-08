@@ -1,0 +1,50 @@
+#!/usr/bin/python
+# -*- encoding: utf-8; py-indent-offset: 4 -*-
+
+# (c) 2016 Heinlein Support GmbH
+#          Robert Sander <r.sander@heinlein-support.de>
+
+# This is free software;  you can redistribute it and/or modify it
+# under the  terms of the  GNU General Public License  as published by
+# the Free Software Foundation in version 2.  This file is distributed
+# in the hope that it will be useful, but WITHOUT ANY WARRANTY;  with-
+# out even the implied warranty of  MERCHANTABILITY  or  FITNESS FOR A
+# PARTICULAR PURPOSE. See the  GNU General Public License for more de-
+# ails.  You should have  received  a copy of the  GNU  General Public
+# License along with GNU Make; see the file  COPYING.  If  not,  write
+# to the Free Software Foundation, Inc., 51 Franklin St,  Fifth Floor,
+# Boston, MA 02110-1301 USA.
+
+def parse_netifaces(info):
+    res = {}
+    for iface, family, addr in info:
+        if not res.has_key(iface):
+            res[iface] = {}
+        if not res[iface].has_key(family):
+            res[iface][family] = []
+        res[iface][family].append(addr)
+    return res
+
+def inventory_netifaces_rbl(info):
+    inventory = []
+    ifaces = parse_netifaces(info)
+    for iface in ifaces.keys():
+        for family in ifaces[iface].keys():
+            if family == 'AF_INET':
+                for addr in ifaces[iface][family]:
+                    if addr != '127.0.0.1':
+                        inventory.append( ( addr, None ) )
+    return inventory
+
+def check_netifaces_rbl(item, params, info):
+    ifaces = parse_netifaces(info)    
+
+check_info["netifaces.rbl"] = {
+    'check_function'        : check_netifaces_rbl,
+    'inventory_function'    : inventory_netifaces_rbl,
+    'service_description'   : 'RBL %s',
+    'has_perfdata'          : False,
+}
+
+
+		

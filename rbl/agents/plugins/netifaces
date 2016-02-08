@@ -1,0 +1,12 @@
+#!/usr/bin/python
+
+# Return network interface addresses
+
+import netifaces
+
+print '<<<netifaces>>>'
+
+for interface in netifaces.interfaces():
+	for family, addresses in netifaces.ifaddresses(interface).iteritems():
+		for address in addresses:
+			print interface, netifaces.address_families[family], address['addr']
