@@ -1,0 +1,10 @@
+#!/usr/bin/python
+# -*- encoding: utf-8; py-indent-offset: 4 -*-
+
+def bake_netifaces(opsys, conf, conf_dir, plugins_dir):
+    shutil.copy2(local_agents_dir + "/plugins/netifaces", plugins_dir + "/netifaces")
+
+bakery_info["netifaces"] = {
+    "bake_function" : bake_netifaces,
+    "os"            : [ "linux", ],
+}

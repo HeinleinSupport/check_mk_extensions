@@ -15,6 +15,8 @@
 # to the Free Software Foundation, Inc., 51 Franklin St,  Fifth Floor,
 # Boston, MA 02110-1301 USA.
 
+netifaces_rbl_default_values = [ "cbl.abuseat.org", "b.barracudacentral.org", "zen.spamhaus.org", "ix.dnsbl.manitu.net" ]
+
 def parse_netifaces(info):
     res = {}
     for iface, family, addr in info:
@@ -33,18 +35,42 @@ def inventory_netifaces_rbl(info):
             if family == 'AF_INET':
                 for addr in ifaces[iface][family]:
                     if addr != '127.0.0.1':
-                        inventory.append( ( addr, None ) )
+                        inventory.append( ( addr, netifaces_rbl_default_values ) )
     return inventory
 
-def check_netifaces_rbl(item, params, info):
-    ifaces = parse_netifaces(info)    
+def check_netifaces_rbl(item, rbls, info):
+    import socket
+    from pprint import pformat
+
+    for iface, families in parse_netifaces(info).iteritems():
+        for family, addresses in families.iteritems():
+            for address in addresses:
+                if item == address:
+                    msg = ["bound on %s" % iface]
+                    res = 0
+                    count = 0
+                    for rbl in rbls:
+                        try:
+                            ip = socket.gethostbyname("%s.%s." % (".".join(reversed(address.split('.'))), rbl))
+                            res = 1
+                            count += 1
+                            msg.append('found in %s: %s (!)' % (rbl, ip))
+                        except socket.gaierror:
+                            pass
+                    if count > 1:
+                        res = 2
+                        msg.append('found in more than 1 RBL (!!)')
+                    return (res, ", ".join(msg))
+    return (3, "%s not found" % item)
 
 check_info["netifaces.rbl"] = {
     'check_function'        : check_netifaces_rbl,
     'inventory_function'    : inventory_netifaces_rbl,
     'service_description'   : 'RBL %s',
     'has_perfdata'          : False,
+    'group'                 : 'netifaces_rbl',
 }
 
+check_default_levels['netifaces_rbl'] = 'netifaces_rbl_default_values'
 
-		
+factory_settings['netifaces_rbl_default_values'] = netifaces_rbl_default_values
