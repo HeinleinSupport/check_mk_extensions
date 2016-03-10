@@ -15,7 +15,18 @@
 # to the Free Software Foundation, Inc., 51 Franklin St,  Fifth Floor,
 # Boston, MA 02110-1301 USA.
 
+import ipaddr
+
 netifaces_rbl_default_values = [ "cbl.abuseat.org", "b.barracudacentral.org", "zen.spamhaus.org", "ix.dnsbl.manitu.net" ]
+
+netifaces_blacklist = [ ipaddr.IPNetwork('10.0.0.0/8'),
+                        ipaddr.IPNetwork('127.0.0.0/8'),
+                        ipaddr.IPNetwork('172.16.0.0/12'),
+                        ipaddr.IPNetwork('192.168.0.0/16'),
+                        ipaddr.IPNetwork('::1/128'),
+                        ipaddr.IPNetwork('fe80::/10'),
+                        ipaddr.IPNetwork('fc00::/7'),
+                      ]
 
 def parse_netifaces(info):
     res = {}
@@ -34,7 +45,7 @@ def inventory_netifaces_rbl(info):
         for family in ifaces[iface].keys():
             if family == 'AF_INET':
                 for addr in ifaces[iface][family]:
-                    if addr != '127.0.0.1':
+                    if not reduce( lambda result, network: result or ( ipaddr.IPAddress(addr) in network ), netifaces_blacklist, False):
                         inventory.append( ( addr, netifaces_rbl_default_values ) )
     return inventory
 
