@@ -1,0 +1,10 @@
+#!/bin/bash
+
+cat /proc/sys/fs/file-nr | while read allocated unused max; do
+
+  warn=$(( $max * 80 / 100 ))
+  crit=$(( $max * 90 / 100 ))
+
+  echo "P Filehandles count=$allocated;$warn;$crit;0;$max Filehandles allocated, max is $max"
+
+done
