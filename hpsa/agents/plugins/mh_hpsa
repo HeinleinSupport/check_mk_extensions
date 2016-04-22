@@ -36,20 +36,29 @@
 #      physicaldrive 1I:1:4 (port 1I:box 1:bay 4, SATA, 500 GB, OK, spare)
 #
 
+# Do not check FC LUNs, speeds up processing
+export INFOMGR_BYPASS_NONSA=1
+
+RAID_CHECK_TOOL=hpacucli
+if [ -x /usr/sbin/hpssacli ]; then
+	RAID_CHECK_TOOL=hpssacli
+fi
+
+
 function is_integer() {
     [ "$1" -eq "$1" ] > /dev/null 2>&1
     return $?
 }
 
-if [ -e  /proc/driver/cciss -o  -e /sys/bus/cciss ] ; then
+if [ -e  /proc/driver/cciss -o  -e /sys/bus/cciss -o -e /sys/bus/pci/drivers/hpsa ]; then
 
   echo '<<<hpsa_controller>>>'
   cc=-1
-  CMD="hpacucli controller all show"
+  CMD="$RAID_CHECK_TOOL controller all show"
   while read -a cont; do
     if is_integer ${cont[5]}; then
       cc=$(($cc+1))
-      read -a cstat <<< $(hpacucli controller slot=${cont[5]} show | grep "Controller Status")
+      read -a cstat <<< $($RAID_CHECK_TOOL controller slot=${cont[5]} show | grep "Controller Status")
       if [ "${cstat[2]}" = "OK" ]; then
         echo "${cont[5]} OK ${cont[2]}"
       else
@@ -63,12 +72,12 @@ if [ -e  /proc/driver/cciss -o  -e /sys/bus/cciss ] ; then
   for c in $(seq 0 $cc)
   do
     ac=-1
-    CMD="hpacucli controller slot=${controllers[$c]} array all show"
+    CMD="$RAID_CHECK_TOOL controller slot=${controllers[$c]} array all show"
     while read -a cary; do
       if [ "X${cary[0]}X" = "XarrayX" ]; then
         ac=$(($ac+1))
         # collect lines
-        read -d + -a x <<< $(hpacucli controller slot=${controllers[$c]} array ${cary[1]} show | sed 's/(Embedded)//')
+        read -d + -a x <<< $($RAID_CHECK_TOOL controller slot=${controllers[$c]} array ${cary[1]} show | sed 's/(Embedded)//')
         # collect words
         read -a ary <<< ${x[*]}
         echo "${controllers[$c]}:${cary[1]} ${ary[16]} ${ary[10]} ${ary[13]} ${ary[14]}"
@@ -82,11 +91,11 @@ if [ -e  /proc/driver/cciss -o  -e /sys/bus/cciss ] ; then
   do
     for a in $(seq 0 $ac)
     do
-      CMD="hpacucli controller slot=${controllers[$c]} array ${arrays[$a]} physicaldrive all show"
+      CMD="$RAID_CHECK_TOOL controller slot=${controllers[$c]} array ${arrays[$a]} physicaldrive all show"
       while read -a pdrv; do
         if [ "X${pdrv[0]}X" = "XphysicaldriveX" ]; then
           echo -n "${controllers[$c]}:${arrays[$a]}:${pdrv[1]} ${pdrv[9]/[),]/} ${pdrv[6]/,/} ${pdrv[7]} ${pdrv[8]/,/} "
-          if [ ${pdrv[10]} ]; then 
+          if [ ${pdrv[10]} ]; then
             echo ${pdrv[10]/)/}
           else
             echo "assigned"
@@ -96,4 +105,3 @@ if [ -e  /proc/driver/cciss -o  -e /sys/bus/cciss ] ; then
     done
   done
 fi
-
