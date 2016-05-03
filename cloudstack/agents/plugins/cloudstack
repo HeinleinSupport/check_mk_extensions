@@ -1,0 +1,94 @@
+#!/usr/bin/env python
+# -*- encoding: utf-8; py-indent-offset: 4 -*-
+
+#
+# (C) 2015 Heinlein Support GmbH
+# Robert Sander <r.sander@heinlein-support.de>
+#
+
+# This is free software;  you can redistribute it and/or modify it
+# under the  terms of the  GNU General Public License  as published by
+# the Free Software Foundation in version 2.  This file is distributed
+# in the hope that it will be useful, but WITHOUT ANY WARRANTY;  with-
+# out even the implied warranty of  MERCHANTABILITY  or  FITNESS FOR A
+# PARTICULAR PURPOSE. See the  GNU General Public License for more de-
+# ails.  You should have  received  a copy of the  GNU  General Public
+# License along with GNU Make; see the file  COPYING.  If  not,  write
+# to the Free Software Foundation, Inc., 51 Franklin St,  Fifth Floor,
+# Boston, MA 02110-1301 USA.
+
+from ConfigParser import SafeConfigParser
+import argparse
+import os
+from pprint import pprint
+
+# https://github.com/jasonhancock/cloudstack-python-client
+import CloudStack
+
+try:
+    checkmkconfdir = os.environ['MK_CONFDIR']
+except KeyError:
+    checkmkconfdir = '/etc/check_mk'
+
+if __name__ == "__main__":
+
+    #
+    # read cmdline arguments
+    #
+
+    parser = argparse.ArgumentParser()
+    parser.add_argument('-u', '--url', required=False, help='URL of CloudStack API')
+    parser.add_argument('-s', '--secretkey', required=False, help='CloudStack API secret')
+    parser.add_argument('-a', '--apikey', required=False, help='CloudStack API key')
+    parser.add_argument('--config',
+                        required=False,
+                        default=['%s/cloudstack.ini' % checkmkconfdir,
+                                 '/root/.cloudmonkey/config',],
+                        help='Path to configuration file')
+    parser.add_argument('-p', '--profile', required=False, default='local', help='CloudStack config profile section name')
+    args = parser.parse_args()
+
+    config = {'url': None, 'apikey': None, 'secretkey': None}
+
+    if args.config:
+        cfg = SafeConfigParser()
+        cfg.read(args.config)
+        if cfg.has_section(args.profile):
+            for key in config.keys():
+                if cfg.has_option(args.profile, key):
+                    config[key] = cfg.get(args.profile, key)
+    for key in config.keys():
+        if args.__dict__[key]:
+            config[key] = args.__dict__[key]
+
+    cloudstack = CloudStack.Client(config['url'],
+                                   config['apikey'],
+                                   config['secretkey'])
+
+    for host in cloudstack.listHosts(args={'type': 'Routing'}):
+        print '<<<<%s>>>>' % host['name']
+        print '<<<local>>>'
+        print 'P %s_CPU used=%s;90;95;0;100|allocated=%s CPU' % (host['hypervisor'].replace(' ', '_'),
+                                                                 host['cpuused'].replace(',', '.').replace('%', ''),
+                                                                 host['cpuallocated'].replace(',', '.').replace('%', ''))
+        print 'P %s_Memory used=%d;%d;%d;0;%d|allocated=%d Memory' % (host['hypervisor'].replace(' ', '_'),
+                                                                      host['memoryused'],
+                                                                      host['memorytotal'] * 0.9,
+                                                                      host['memorytotal'] * 0.95,
+                                                                      host['memorytotal'],
+                                                                      host['memoryallocated'])
+        print '<<<<>>>>'
+
+    print '<<<esx_vsphere_datastores:sep(9)>>>'
+    for storage in cloudstack.listStoragePools():
+        print '[%s/%s/%s]' % (storage['clustername'], storage['podname'], storage['name'])
+        if storage['state'] == 'Up':
+            print 'accessible\ttrue'
+        else:
+            print 'accessible\tfalse'
+        print 'capacity\t%d' % storage['disksizetotal']
+        print 'freeSpace\t%d' % (storage['disksizetotal'] - storage['disksizeused'])
+        print 'maintenanceMode\tnormal'
+        print 'type\tACS-Pool'
+        print 'uncommitted\t%d' % (storage['disksizeallocated'] - storage['disksizeused'])
+        print 'url\tds:///ACS/%s/%s/%s' % (storage['clustername'], storage['podname'], storage['name'])
