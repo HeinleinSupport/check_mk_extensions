@@ -1,0 +1,571 @@
+#!/usr/bin/python
+# -*- encoding: utf-8; py-indent-offset: 4 -*-
+
+# (c) 2016 Heinlein Support GmbH
+#          Robert Sander <r.sander@heinlein-support.de>
+
+#
+# This is free software;  you can redistribute it and/or modify it
+# under the  terms of the  GNU General Public License  as published by
+# the Free Software Foundation in version 2.  check_mk is  distributed
+# in the hope that it will be useful, but WITHOUT ANY WARRANTY;  with-
+# out even the implied warranty of  MERCHANTABILITY  or  FITNESS FOR A
+# PARTICULAR PURPOSE. See the  GNU General Public License for more de-
+# ails.  You should have  received  a copy of the  GNU  General Public
+# License along with GNU Make; see the file  COPYING.  If  not,  write
+# to the Free Software Foundation, Inc., 51 Franklin St,  Fifth Floor,
+# Boston, MA 02110-1301 USA.
+
+import pprint
+
+def inventory_huawei_info(info):
+    if opt_debug:
+        print info
+    if len(info):
+        return [(None, None)]
+
+def check_huawei_info(item, params, info):
+    deviceType = { 
+        0: 'V1500',
+        1: 'V1800',
+        2: 'S2100',
+        3: 'S2300',
+        4: 'S5100',
+        5: 'S5300',
+        6: 'S5500',
+        7: 'S5600',
+        8: 'VIS',
+        9: 'S2600',
+        10: 'S6800E',
+        11: 'V1500N',
+        12: 'S2300E',
+        13: 'COMMON (mixed)',
+        15: 'N8000',
+        16: 'S6900',
+        17: 'S3900',
+        18: 'S5500T',
+        19: 'S5600T',
+        20: 'S6800T',
+        21: 'S6900-M100',
+        22: 'S3900-M200',
+        23: 'S3900-M300',
+        24: 'S5900-M100',
+        25: 'S8100',
+        26: 'S5800T',
+        27: 'V1600N',
+        28: 'S5900-M200',
+        29: 'N8001',
+        30: 'S2600T',
+        31: 'S8000-I',
+        32: 'Dorado5100',
+        33: 'T3200',
+        34: 'T3500',
+        35: 'N8000-R710',
+        36: 'N8000-C2',
+        40: 'N8000-C2-SYMC',
+        42: 'S2900',
+        43: 'S2200T',
+        44: 'Dorado2100_G2',
+        56: 'OceanStor 18500F',
+        57: 'OceanStor 18500',
+        58: 'OceanStor 18800',
+        60: 'Dorado2100',
+        61: '6800 V3',
+        62: '6900 V3',
+        63: '5600 V3',
+        64: '5800 V3',
+        65: 'T3200',
+        66: 'WUSHAN_SQL',
+        67: 'WUSHAN_HD',
+        68: '5500 V3',
+        69: '2600 V3',
+        70: '5300 V3',
+        401: 'N5000',
+        800: 'VIS8200',
+        801: 'VIS8400',
+        802: 'VIS8600',
+        803: 'VIS8800',
+    }
+    status = {
+        0: 'Single controller is normal.',
+        1: 'Single controller is faulty.',
+        2: 'Dual controllers are normal.',
+        3: 'Single controller fault with two controllers equipment.'
+    }
+    if opt_debug:
+        print item
+        print params
+        print info
+    if len(info):
+        state = saveint(info[0][2])
+        msg = '%s, serial: %s, version: %s, state: %s' % (deviceType[saveint(info[0][1])],
+                                                          info[0][0],
+                                                          info[0][3],
+                                                          status[state])
+        res = 0
+        if state in [1, 3]:
+            msg += '(!!)'
+            res = 2
+        return (res, msg)
+
+check_info['huawei_info'] = {
+    'inventory_function'    : inventory_huawei_info,
+    'check_function'        : check_huawei_info,
+    'service_description'   : 'Huawei Device Info',
+    'has_perfdata'          : False,
+    'snmp_info'             : ( '.1.3.6.1.4.1.34774.4.1.1', [ '1.0', # deviceId
+                                                              '2.0', # deviceType
+                                                              '3.0', # status
+                                                              '6.0', # version
+                                                          ] ),
+    'snmp_scan_function'    : lambda oid: oid('.1.3.6.1.4.1.34774.4.1.1.1.0'),
+}
+
+def inventory_huawei_capacity(info):
+    if opt_debug:
+        print info
+    if len(info):
+        return [('Total Capacity', None)]
+
+def check_huawei_capacity(item, params, info):
+    if opt_debug:
+        print item
+        print params
+        print info
+    if item == 'Total Capacity':
+        used_mb = saveint(info[0][0])
+        size_mb = saveint(info[0][1])
+        avail_mb = size_mb - used_mb
+        return df_check_filesystem_list(item, params, [ (item, size_mb, avail_mb) ])
+
+check_info['huawei_capacity'] = {
+    'inventory_function'    : inventory_huawei_capacity,
+    'check_function'        : check_huawei_capacity,
+    'service_description'   : '%s',
+    'has_perfdata'          : True,
+    'snmp_info'             : ( '.1.3.6.1.4.1.34774.4.1.1', [ '4.0', # usedCapacity
+                                                              '5.0', # totalCapacity
+                                                           ] ),
+    'snmp_scan_function'    : lambda oid: oid('.1.3.6.1.4.1.34774.4.1.1.4.0'),
+    'group'                 : 'filesystem',
+    'default_levels_variable': 'filesystem_default_levels',
+    'includes':                [ 'df.include' ],
+}
+
+def inventory_huawei_fcports(info):
+    if opt_debug:
+        pprint.pprint(info)
+    for line in info:
+        if line[1] != '0':
+            yield (line[0], { 'status': line[1], 'configRate': line[2], 'mode': line[3], 'logicType': line[5], 'speedRate': line[6] } )
+
+def check_huawei_fcports(item, params, info):
+    states = {
+        '0': 'down',
+        '1': 'up',
+        '2': 'faulty',
+    }
+    rates = {
+        '-1': 'unknown',
+        '0': 'auto',
+        '1': '1 Gbit/s',
+        '2': '2 Gbit/s',
+        '4': '4 Gbit/s',
+        '8': '8 Gbit/s',
+        '16': '16 Gbit/s',
+    }
+    modes = {
+        '-1': 'unknown',
+        '1': 'fabric',
+        '2': 'public-loop',
+        '3': 'point-to-point',
+    }
+    types = {
+        '1': 'service',
+        '2': 'ibc',
+        '3': 'ibs',
+        '4': 'expansion',
+        '5': 'management',
+        '6': 'upsmanagement',
+        '8': 'maintenance',
+    }
+    if opt_debug:
+        print item
+        print params
+        print info    
+    for portID, status, configRate, mode, WWN, logicType, speedRate in info:
+        if portID == item:
+            res = 0
+            msg = 'WWN: %s; link is %s' % (WWN, states[status])
+            if status == '2':
+                res = 2
+                msg += '(!!)'
+            elif status != params['status']:
+                res = 1
+                msg += ', has changed from %s(!)' % states[params['status']]
+            msg += '; configured rate: %s' % rates[configRate]
+            if configRate != params['configRate']:
+                if res == 0:
+                    res = 1
+                msg += ', has changed from %s(!)' % rates[params['configRate']]
+            msg += '; speed: %s' % rates[speedRate]
+            if speedRate != params['speedRate']:
+                if res == 0:
+                    res = 1
+                msg += ', has changed from %s(!)' % rates[params['speedRate']]
+            msg += '; port mode: %s' % modes[mode]
+            if mode != params['mode']:
+                res = 2
+                msg += ', has changed from %s(!!)' % modes[params['mode']]
+            msg += '; logic type is %s' % types[logicType]
+            if logicType != params['logicType']:
+                res = 2
+                msg += ', has changed from %s(!!)' % types[params['logicType']]
+            return (res, msg)
+
+check_info['huawei_fcports'] = {
+    'inventory_function'    : inventory_huawei_fcports,
+    'check_function'        : check_huawei_fcports,
+    'service_description'   : 'FC Port %s',
+    'has_perfdata'          : False,
+    'snmp_info'             : ( '.1.3.6.1.4.1.34774.4.1.19.8.7', [ '1.3', # hwStorageFCPortID
+                                                                   '1.4', # hwStorageFCPortStatus
+                                                                   '1.5', # hwStorageFCPortConfigRate
+                                                                   '1.6', # hwStorageFCPortMode
+                                                                   '1.7', # hwStorageFCPortWWN
+                                                                   '1.8', # hwStorageFCPortLogicType
+                                                                   '1.9', # hwStorageFCPortSpeedRate
+                                                                 ] ),
+    'snmp_scan_function'    : lambda oid: oid('.1.3.6.1.2.1.1.2.0') == '.1.3.6.1.4.1.2011.2.91',
+}
+
+def inventory_huawei_sasports(info):
+    if opt_debug:
+        pprint.pprint(info)
+    for line in info:
+        if line[1] != '0':
+            yield (line[0], { 'status': line[1], 'configRate': line[2], 'logicType': line[4], 'speedRate': line[5] } )
+
+def check_huawei_sasports(item, params, info):
+    states = {
+        '0': 'down',
+        '1': 'up',
+        '2': 'faulty',
+    }
+    rates = {
+        '-1': 'unknown',
+        '0': 'auto',
+        '1': '1 Gbit/s',
+        '2': '2 Gbit/s',
+        '4': '4 Gbit/s',
+        '8': '8 Gbit/s',
+        '12': '12 Gbit/s',
+        '16': '16 Gbit/s',
+    }
+    types = {
+        '1': 'service',
+        '2': 'ibc',
+        '3': 'ibs',
+        '4': 'expansion',
+        '5': 'management',
+        '6': 'upsmanagement',
+        '8': 'maintenance',
+    }
+    if opt_debug:
+        print item
+        print params
+        print info    
+    for portID, status, configRate, WWN, logicType, speedRate in info:
+        if portID == item:
+            res = 0
+            msg = 'WWN: %s; link is %s' % (WWN, states[status])
+            if status == '2':
+                res = 2
+                msg += '(!!)'
+            elif status != params['status']:
+                res = 1
+                msg += ', has changed from %s(!)' % states[params['status']]
+            msg += '; configured rate: %s' % rates[configRate]
+            if configRate != params['configRate']:
+                if res == 0:
+                    res = 1
+                msg += ', has changed from %s(!)' % rates[params['configRate']]
+            msg += '; speed: %s' % rates[speedRate]
+            if speedRate != params['speedRate']:
+                if res == 0:
+                    res = 1
+                msg += ', has changed from %s(!)' % rates[params['speedRate']]
+            msg += '; logic type is %s' % types[logicType]
+            if logicType != params['logicType']:
+                res = 2
+                msg += ', has changed from %s(!!)' % types[params['logicType']]
+            return (res, msg)
+
+check_info['huawei_sasports'] = {
+    'inventory_function'    : inventory_huawei_sasports,
+    'check_function'        : check_huawei_sasports,
+    'service_description'   : 'SAS Port %s',
+    'has_perfdata'          : False,
+    'snmp_info'             : ( '.1.3.6.1.4.1.34774.4.1.19.8.8', [ '1.3', # hwStorageSASPortID
+                                                                   '1.4', # hwStorageSASPortStatus
+                                                                   '1.5', # hwStorageSASPortConfigRate
+                                                                   '1.6', # hwStorageSASPortWWN
+                                                                   '1.7', # hwStorageSASPortLogicType
+                                                                   '1.8', # hwStorageSASPortSpeedRate
+                                                                 ] ),
+    'snmp_scan_function'    : lambda oid: oid('.1.3.6.1.2.1.1.2.0') == '.1.3.6.1.4.1.2011.2.91',
+}
+
+def inventory_huawei_iscsiports(info):
+    if opt_debug:
+        pprint.pprint(info)
+    for line in info:
+        if line[1] != '0':
+            yield (line[0], { 'status': line[1], 'ip': line[2], 'netmask': line[3], 'bindMode': line[4], 'logicType': line[5] } )
+
+def check_huawei_iscsiports(item, params, info):
+    states = {
+        '0': 'down',
+        '1': 'up',
+        '2': 'faulty',
+    }
+    types = {
+        '1': 'service',
+        '2': 'ibc',
+        '3': 'ibs',
+        '4': 'expansion',
+        '5': 'management',
+        '6': 'upsmanagement',
+        '8': 'maintenance',
+    }
+    if opt_debug:
+        print item
+        print params
+        print info
+    for portID, status, ip, netmask, bindMode, logicType in info:
+        if portID == item:
+            res = 0
+            msg = "IP: %s" % ip
+            if ip != params['ip']:
+                res = 2
+                msg += '(!!)'
+            msg += '/%s' % netmask
+            if netmask != params['netmask']:
+                res = 2
+                msg += '(!!)'
+            msg += '; link is %s' % states[status]
+            if status != params['status']:
+                res = 2
+                msg += '(!!)'
+            msg += '; logic type is %s' % types[logicType]
+            if logicType != params['logicType']:
+                res = 2
+                msg += ', has changed from %s(!!)' % types[params['logicType']]
+            return (res, msg)
+
+check_info['huawei_iscsiports'] = {
+    'inventory_function'    : inventory_huawei_iscsiports,
+    'check_function'        : check_huawei_iscsiports,
+    'service_description'   : 'iSCSI Port %s',
+    'has_perfdata'          : False,
+    'snmp_info'             : ( '.1.3.6.1.4.1.34774.4.1.19.8.9', [ '1.3', # hwStorageISCSIPortID
+                                                                   '1.4', # hwStorageISCSIPortStatus
+                                                                   '1.5', # hwStorageISCSIPortIP
+                                                                   '1.6', # hwStorageISCSIPortNetMask
+                                                                   '1.7', # hwStorageISCSIPortBindMode
+                                                                   '1.8', # hwStorageSASPortLogicType
+                                                                 ] ),
+    'snmp_scan_function'    : lambda oid: oid('.1.3.6.1.2.1.1.2.0') == '.1.3.6.1.4.1.2011.2.91',
+}
+
+def inventory_huawei_frontports(info):
+    if opt_debug:
+        pprint.pprint(info)
+    for line in info:
+        if line[3] != '0':
+            yield line[0], {'status': line[3]}
+
+def check_huawei_frontports(item, params, info):
+    types = {
+        '0': 'SAS',
+        '1': 'FC',
+        '2': 'iSCSI',
+        '5': 'iSCSI',
+        '8': 'FCoE',
+    }
+    states = {
+        '0': 'link down',
+        '1': 'link up',
+        '2': 'not exist',
+        '3': 'link bad',
+        '4': 'hardware error',
+        '5': 'speed no match',
+        '6': 'enable',
+        '7': 'disable',
+        '8': 'mac error',
+        '9': 'lane no match',
+    }
+    if opt_debug:
+        print item
+        print params
+        print info
+    for portIndex, desc, type, status, address in info:
+        if portIndex == item:
+            res = 0
+            msg = "%s %s port; address: %s; state is %s" % (desc, types[type], address, states[status])
+            if status != params['status']:
+                res = 2
+                msg += '(!!)'
+            return (res, msg)
+
+check_info['huawei_frontports'] = {
+    'inventory_function'    : inventory_huawei_frontports,
+    'check_function'        : check_huawei_frontports,
+    'service_description'   : 'Front Port %s',
+    'has_perfdata'          : False,
+    'snmp_info'             : ( '.1.3.6.1.4.1.34774.4.1.19.8.11', [ '1.1', # hwStorageFrontEndHostPortIfIndex
+                                                                    '1.5', # hwStorageFrontEndHostPortDescription
+                                                                    '1.2', # hwStorageFrontEndHostPortType
+                                                                    '1.3', # hwStorageFrontEndHostPortStatus
+                                                                    '1.4', # hwStorageFrontEndHostPortPhysAddress
+                                                                 ] ),
+    'snmp_scan_function'    : lambda oid: oid('.1.3.6.1.2.1.1.2.0') == '.1.3.6.1.4.1.2011.2.91',
+}
+
+def inventory_huawei_controller(info):
+    if opt_debug:
+        pprint.pprint(info)
+    for line in info:
+        yield line[0], { 'runningStatus': line[3] }
+
+def check_huawei_controller(item, params, info):
+    healthStates = {
+        '1': 'normal',
+        '2': 'fault',
+        '3': 'preFail',
+        '4': 'partiallyBroken',
+        '5': 'degraded',
+        '6': 'badSectorsFound',
+        '7': 'bitErrorsFound',
+        '8': 'consistent',
+        '9': 'inconsistent',
+        '10': 'busy',
+        '11': 'noInput',
+        '12': 'lowBattery',
+        '13': 'singleLinkFault',
+    }
+    runningStates = {
+        '1': 'normal',
+        '2': 'running',
+        '3': 'notRunning',
+        '4': 'notExisted',
+        '5': 'sleepInHighTemperature',
+        '6': 'starting',
+        '7': 'powerFailureProtecting',
+        '8': 'spinDown',
+        '9': 'started',
+        '10': 'linkUp',
+        '11': 'linkDown',
+        '12': 'poweringOn',
+        '13': 'poweredOff',
+        '14': 'precopy',
+        '15': 'copyback',
+        '16': 'reconstruction',
+        '17': 'expansion',
+        '18': 'unformatted',
+        '19': 'formatting',
+        '20': 'unmapped',
+        '21': 'initialSynchronizing',
+        '22': 'consistent',
+        '23': 'synchronizing',
+        '24': 'synchronized',
+        '25': 'unsynchronized',
+        '26': 'splited',
+        '27': 'online',
+        '28': 'offline',
+        '29': 'locked',
+        '30': 'enabled',
+        '31': 'disabled',
+        '32': 'balancing',
+        '33': 'toBeRecoverd',
+        '34': 'interrupted',
+        '35': 'invalid',
+        '36': 'notStart',
+        '37': 'queuing',
+        '38': 'stopped',
+        '39': 'copying',
+        '40': 'completed',
+        '41': 'paused',
+        '42': 'reverseSynchronizing',
+        '43': 'activated',
+        '44': 'restore',
+        '45': 'inactive',
+        '46': 'idle',
+        '47': 'poweringOff',
+        '48': 'charging',
+        '49': 'chargingCompleted',
+        '50': 'discharging',
+        '51': 'upgrading',
+        '63': 'runningNormal',
+        '64': 'runningFail',
+    }
+    if opt_debug:
+        print item
+        print params
+        print info
+    for name, location, healthStatus, runningStatus, softVer, isMaster, BIOSVer in info:
+        if name == item:
+            res = 0
+            msg = 'Location: %s; software version %s; BIOS version %s; health is %s' % (location, softVer, BIOSVer, healthStates[healthStatus])
+            if healthStatus in ['2', '9']:
+                res = 2
+                msg += '(!!)'
+            elif healthStatus != '1':
+                res = 1
+                msg += '(!)'
+            msg += '; running status is %s' % runningStates[runningStatus]
+            if runningStatus != params['runningStatus']:
+                res = 2
+                msg += ', changed from %s(!!)' % runningStates[params['runningStatus']]
+            return (res, msg)
+
+check_info['huawei_controller'] = {
+    'inventory_function'    : inventory_huawei_controller,
+    'check_function'        : check_huawei_controller,
+    'service_description'   : 'Controller %s',
+    'has_perfdata'          : False,
+    'snmp_info'             : ( '.1.3.6.1.4.1.34774.4.1.19.8.12', ['1.2', # hwStorageControllerName
+                                                                   '1.3', # hwStorageControllerLocation
+                                                                   '1.4', # hwStorageControllerHealthStatus
+                                                                   '1.5', # hwStorageControllerRunningStatus
+                                                                   '1.6', # hwStorageControllerSoftVer
+                                                                   '1.8', # hwStorageControllerIsMaster
+                                                                   '1.13', # hwStorageControllerBIOSVer
+                                                                 ] ),
+    'snmp_scan_function'    : lambda oid: oid('.1.3.6.1.2.1.1.2.0') == '.1.3.6.1.4.1.2011.2.91',
+}
+
+def inventory_huawei(info):
+    if opt_debug:
+        pprint.pprint(info)
+
+def check_huawei(item, params, info):
+     if opt_debug:
+        print item
+        print params
+        print info    
+
+check_info['huawei'] = {
+    'inventory_function'    : inventory_huawei,
+    'check_function'        : check_huawei,
+    'service_description'   : '%s',
+    'has_perfdata'          : False,
+    'snmp_info'             : ( '.1.3.6.1.4.1.34774.4.1.19.8.9', [ '1.3', # hwStorageISCSIPortID
+                                                                   '1.4', # hwStorageISCSIPortStatus
+                                                                   '1.5', # hwStorageISCSIPortIP
+                                                                   '1.6', # hwStorageISCSIPortNetMask
+                                                                   '1.7', # hwStorageISCSIPortBindMode
+                                                                   '1.8', # hwStorageSASPortLogicType
+                                                                 ] ),
+    'snmp_scan_function'    : lambda oid: oid('.1.3.6.1.2.1.1.2.0') == '.1.3.6.1.4.1.2011.2.91',
+}
