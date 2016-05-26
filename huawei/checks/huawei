@@ -18,6 +18,25 @@
 
 import pprint
 
+huawei_health_states = {
+    '0': '--',
+    '1': 'normal',
+    '2': 'fault',
+    '3': 'preFail',
+    '4': 'partiallyBroken',
+    '5': 'degraded',
+    '6': 'badSectorsFound',
+    '7': 'bitErrorsFound',
+    '8': 'consistent',
+    '9': 'inconsistent',
+    '10': 'busy',
+    '11': 'noInput',
+    '12': 'lowBattery',
+    '13': 'singleLinkFault',
+    '14': 'invalid',
+    '15': 'write protect',
+}
+
 huawei_running_states = {
     '0': '--',
     '1': 'normal',
@@ -104,6 +123,54 @@ huawei_running_states = {
     '93': 'Forced start',
     '94': 'Error',
 }
+
+huawei_port_states = {
+    '0': 'link down',
+    '1': 'link up',
+    '2': 'not exist',
+    '3': 'link bad',
+    '4': 'hardware error',
+    '5': 'speed no match',
+    '6': 'enable',
+    '7': 'disable',
+    '8': 'mac error',
+    '9': 'lane no match',
+}
+
+huawei_port_rates = {
+    '-1': 'unknown',
+    '0': 'auto',
+    '1': '1 Gbit/s',
+    '2': '2 Gbit/s',
+    '4': '4 Gbit/s',
+    '8': '8 Gbit/s',
+    '12': '12 Gbit/s',
+    '16': '16 Gbit/s',
+}
+
+huawei_port_modes = {
+    '-1': 'unknown',
+    '1': 'fabric',
+    '2': 'public-loop',
+    '3': 'point-to-point',
+}
+
+huawei_port_logictypes = {
+    '1': 'service',
+    '2': 'ibc',
+    '3': 'ibs',
+    '4': 'expansion',
+    '5': 'management',
+    '6': 'upsmanagement',
+    '8': 'maintenance',
+}
+
+def huawei_port_index(portid):
+    portid = saveint(portid)
+    return portid >> 16 & 0xF, portid >> 8 & 0xFF, portid >> 4 & 0xF, portid >> 24 & 0xF, portid & 0xF, portid >> 20 & 0xF
+
+def huawei_port_itemname(portid):
+    return "Card%02d Ctrl%02d Type%02d Ctrl%02d Port%02d %02d" % huawei_port_index(portid)
 
 def inventory_huawei_info(info):
     if opt_debug:
@@ -237,7 +304,7 @@ def inventory_huawei_fcports(info):
         pprint.pprint(info)
     for line in info:
         if line[1] != '0':
-            yield (line[0], { 'status': line[1], 'configRate': line[2], 'mode': line[3], 'logicType': line[5], 'speedRate': line[6] } )
+            yield (huawei_port_itemname(line[0]), { 'status': line[1], 'configRate': line[2], 'mode': line[3], 'logicType': line[5], 'speedRate': line[6] } )
 
 def check_huawei_fcports(item, params, info):
     states = {
@@ -274,7 +341,7 @@ def check_huawei_fcports(item, params, info):
         print params
         print info    
     for portID, status, configRate, mode, WWN, logicType, speedRate in info:
-        if portID == item:
+        if huawei_port_itemname(portID) == item:
             res = 0
             msg = 'WWN: %s; link is %s' % (WWN, states[status])
             if status == '2':
@@ -324,7 +391,7 @@ def inventory_huawei_sasports(info):
         pprint.pprint(info)
     for line in info:
         if line[1] != '0':
-            yield (line[0], { 'status': line[1], 'configRate': line[2], 'logicType': line[4], 'speedRate': line[5] } )
+            yield (huawei_port_itemname(line[0]), { 'status': line[1], 'configRate': line[2], 'logicType': line[4], 'speedRate': line[5] } )
 
 def check_huawei_sasports(item, params, info):
     states = {
@@ -356,7 +423,7 @@ def check_huawei_sasports(item, params, info):
         print params
         print info    
     for portID, status, configRate, WWN, logicType, speedRate in info:
-        if portID == item:
+        if huawei_port_itemname(portID) == item:
             res = 0
             msg = 'WWN: %s; link is %s' % (WWN, states[status])
             if status == '2':
@@ -401,7 +468,7 @@ def inventory_huawei_iscsiports(info):
         pprint.pprint(info)
     for line in info:
         if line[1] != '0':
-            yield (line[0], { 'status': line[1], 'ip': line[2], 'netmask': line[3], 'bindMode': line[4], 'logicType': line[5] } )
+            yield (huawei_port_itemname(line[0]), { 'status': line[1], 'ip': line[2], 'netmask': line[3], 'bindMode': line[4], 'logicType': line[5] } )
 
 def check_huawei_iscsiports(item, params, info):
     states = {
@@ -423,7 +490,7 @@ def check_huawei_iscsiports(item, params, info):
         print params
         print info
     for portID, status, ip, netmask, bindMode, logicType in info:
-        if portID == item:
+        if huawei_port_itemname(portID) == item:
             res = 0
             msg = "IP: %s" % ip
             if ip != params['ip']:
@@ -463,7 +530,7 @@ def inventory_huawei_frontports(info):
         pprint.pprint(info)
     for line in info:
         if line[3] != '0':
-            yield line[0], {'status': line[3]}
+            yield huawei_port_itemname(line[0]), {'status': line[3]}
 
 def check_huawei_frontports(item, params, info):
     types = {
@@ -490,7 +557,7 @@ def check_huawei_frontports(item, params, info):
         print params
         print info
     for portIndex, desc, type, status, address in info:
-        if portIndex == item:
+        if huawei_port_itemname(portIndex) == item:
             res = 0
             msg = "%s %s port; address: %s; state is %s" % (desc, types[type], address, states[status])
             if status != params['status']:
@@ -519,21 +586,6 @@ def inventory_huawei_controller(info):
         yield line[0], { 'runningStatus': line[3] }
 
 def check_huawei_controller(item, params, info):
-    healthStates = {
-        '1': 'normal',
-        '2': 'fault',
-        '3': 'preFail',
-        '4': 'partiallyBroken',
-        '5': 'degraded',
-        '6': 'badSectorsFound',
-        '7': 'bitErrorsFound',
-        '8': 'consistent',
-        '9': 'inconsistent',
-        '10': 'busy',
-        '11': 'noInput',
-        '12': 'lowBattery',
-        '13': 'singleLinkFault',
-    }
     if opt_debug:
         print item
         print params
@@ -541,7 +593,7 @@ def check_huawei_controller(item, params, info):
     for name, location, healthStatus, runningStatus, softVer, isMaster, BIOSVer in info:
         if name == item:
             res = 0
-            msg = 'Location: %s; software version %s; BIOS version %s; health is %s' % (location, softVer, BIOSVer, healthStates[healthStatus])
+            msg = 'Location: %s; software version %s; BIOS version %s; health is %s' % (location, softVer, BIOSVer, huawei_health_states[healthStatus])
             if healthStatus in ['2', '9']:
                 res = 2
                 msg += '(!!)'
@@ -655,7 +707,7 @@ def inventory_huawei_disk(info):
     if opt_debug:
         pprint.pprint(info)
     for line in info:
-        yield line[0], { 'runningStatus': line[2], 'serial': line[12] }
+        yield line[0], { 'runningStatus': line[2], 'role': line[5], 'interfaceBandwidth': line[7], 'serial': line[12] }
 
 def check_huawei_disk(item, params, info):
     if opt_debug:
@@ -665,12 +717,37 @@ def check_huawei_disk(item, params, info):
     for line in info:
         if line[0] == item:
             res = 0
-            perfdata = [ ( 'temp', saveint(line[8]) ) ]
-            msg = "%s %s %s" % (line[11], line[9], line[12])
+            msg = "%s %s %s %s" % (get_bytes_human_readable(saveint(line[4])*1024*1024), line[11], line[9], line[12])
             if line[12] != params['serial']:
                 res = 1
                 msg += '(!)'
             msg += " %s" % line[10]
+            msg += "; health %s" % huawei_health_states[line[1]]
+            if line[1] in [ '3', '6', '8', '12']:
+                res = 1
+                msg += '(!)'
+            elif line[1] != '1':
+                res = 2
+                msg += '(!!)'
+            msg += '; %s' % huawei_running_states[line[2]]
+            if line[2] != params['runningStatus']:
+                res = 2
+                msg += ', changed from %s(!!)' % huawei_running_states[params['runningStatus']]
+            if line[5] != params['role']:
+                res = 2
+                msg += '; role has changed(!!)'
+            msg += '; %d Gbit/s' % (saveint(line[7]) / 1000)
+            if line[7] != params['interfaceBandwidth']:
+                res = 2
+                msg += ', changed from %d Gbit/s(!!)' % (saveint(params['interfaceBandwidth']) / 1000)
+            msg += '; %s' % line[13]
+
+            temp = saveint(line[8])
+            tempres, tempmsg, perfdata = check_temperature(temp, params)
+            if tempres > res:
+                res = tempres
+            msg += "; %s" % tempmsg
+           
             return (res, msg, perfdata)
 
 check_info['huawei_disk'] = {
@@ -694,33 +771,222 @@ check_info['huawei_disk'] = {
                                                                      '18', # 13 hwInfoDiskDiskDomainName
                                   ] ),
     'snmp_scan_function'    : lambda oid: oid('.1.3.6.1.2.1.1.2.0') == '.1.3.6.1.4.1.2011.2.91',
+    'group'                 : 'temperature',
+    'includes'              : [ 'temperature.include', ],
 }
+
+def parse_huawei_ports(info):
+    portinfo = {}
+    for line in info:
+        if opt_debug:
+            print line
+        if line[10] != '':
+            # FC-Port
+            portname = huawei_port_itemname(line[10])
+            if portinfo.has_key(portname):
+                pprint.pprint(portinfo)
+                raise KeyError(portname)
+            portinfo[portname] = ['FC'] + line[1:10] + line[10:17]
+        elif line[17] != '':
+            # SAS-Port
+            portname = huawei_port_itemname(line[17])
+            if portinfo.has_key(portname):
+                pprint.pprint(portinfo)
+                raise KeyError(portname)
+            portinfo[portname] =  ['SAS'] + line[1:10] + line[17:23]
+        elif line[23] != '':
+            # iSCSI-Port
+            portname = huawei_port_itemname(line[23])
+            if portinfo.has_key(portname):
+                pprint.pprint(portinfo)
+                raise KeyError(portname)
+            portinfo[portname] = ['iSCSI'] + line[1:10] + line[23:]
+    return portinfo
+
+def inventory_huawei_ports(parsed):
+    if opt_debug:
+        print "inventory"
+        print 
+    for port in parsed:
+        if opt_debug:
+            print parsed[port]
+        if parsed[port][11] != '0':
+            params = { 'status': parsed[port][11],
+                       'logicType': parsed[port][12],
+                       }
+            if parsed[port][0] == 'FC':
+                params.update( { 'configRate': parsed[port][13],
+                                 'speedRate': parsed[port][14],
+                                 'mode': parsed[port][16],
+                                 } )
+            if parsed[port][0] == 'SAS':
+                params.update( { 'configRate': parsed[port][13],
+                                 'speedRate': parsed[port][14],
+                                 } )
+            if parsed[port][0] == 'iSCSI':
+                params.update( { 'ip': parsed[port][13],
+                                 'netmask': parsed[port][14],
+                                 'bindMode': parsed[port][15],
+                                 } )
+            yield port, params
+
+def check_huawei_ports(item, params, parsed):
+    if opt_debug:
+        print item
+        print params
+        print parsed
+    if item in parsed:
+        portinfo = parsed[item]
+        res = 0
+        msg = "%s-Port" % portinfo[0]
+        perfdata = []
+        #
+        # portinfo:
+        #
+        #	0	type
+        #	1	hwPerfPortLocation
+        #	2	ReadIOPS
+        #	3	WriteIOPS
+        #	4	ReadTraffic
+        #	5	WriteTraffic
+        #	6	PortIfIndex
+        #	7	PortType
+        #	8	PortStatus
+        #	9	PortPhysAddress
+        #	10	PortID
+        #	11	PortStatus
+        #	12	LogicType
+        #	13	IP / ConfigRate
+        #	14	Mask / SpeedRate
+        #	15	BindMode / WWN
+        #	16	PortMode
+        #
+        if portinfo[1] != '':
+            msg += " @ %s" % portinfo[1]
+        if portinfo[0] in [ 'FC', 'SAS' ]:
+            msg += '; WWN: %s' % portinfo[15]
+            msg += '; configured rate: %s' % huawei_port_rates[portinfo[13]]
+            if portinfo[13] != params['configRate']:
+                if res == 0:
+                    res = 1
+                msg += ', has changed from %s(!)' % huawei_port_rates[params['configRate']]
+            msg += '; speed: %s' % huawei_port_rates[portinfo[14]]
+            if portinfo[14] != params['speedRate']:
+                if res == 0:
+                    res = 1
+                msg += ', has changed from %s(!)' % huawei_port_rates[params['speedRate']]
+            if portinfo[0] == 'FC':
+                msg += '; port mode: %s' % huawei_port_modes[portinfo[16]]
+                if portinfo[16] != params['mode']:
+                    res = 2
+                    msg += ', has changed from %s(!!)' % huawei_port_modes[params['mode']]
+        if portinfo[0] in [ 'iSCSI' ]:
+            msg += "; IP: %s" % portinfo[13]
+            if portinfo[13] != params['ip']:
+                res = 2
+                msg += '(!!)'
+            msg += '/%s' % portinfo[14]
+            if portinfo[14] != params['netmask']:
+                res = 2
+                msg += '(!!)'
+            if portinfo[9] != '':
+                msg += ' %s' % portinfo[9]
+        msg += '; state is %s' % huawei_port_states[portinfo[11]]
+        if portinfo[11] == '2':
+            res = 2
+            msg += '(!!)'
+        elif portinfo[11] != params['status']:
+            res = 1
+            msg += ', has changed from %s(!)' % huawei_port_states[params['status']]
+        msg += '; type is %s' % huawei_port_logictypes[portinfo[12]]
+        if portinfo[12] != params['logicType']:
+            res = 2
+            msg += ', has changed from %s(!!)' % huawei_port_logictypes[params['logicType']]
+        if portinfo[2] != '':
+            read_bytes_per_sec = saveint(portinfo[4]) * 1024 * 1024
+            write_bytes_per_sec = saveint(portinfo[5]) * 1024 * 1024
+            iops = saveint(portinfo[2]) + saveint(portinfo[3])
+            perfdata = [ ( 'read', read_bytes_per_sec ),
+                         ( 'write', write_bytes_per_sec ),
+                         ( 'iops', iops ),
+                         ]
+            msg += "; read %s/sec, write %s/sec, IOPS total %s/sec" % (get_bytes_human_readable(read_bytes_per_sec),
+                                                                       get_bytes_human_readable(write_bytes_per_sec),
+                                                                       iops)
+        return (res, msg, perfdata)
+
+check_info['huawei_ports'] = {
+    'inventory_function'    : inventory_huawei_ports,
+    'check_function'        : check_huawei_ports,
+    'parse_function'        : parse_huawei_ports,
+    'service_description'   : 'Port %s',
+    'has_perfdata'          : True,
+    'snmp_info'             : ( '.1.3.6.1.4.1.34774.4.1', [ '21.5.1.1',    # 0  hwPerfPortIfIndex
+                                                            '21.5.1.11',   # 1  hwPerfPortLocation
+                                                            '21.5.1.4',    # 2  hwPerfPortReadIOPS
+                                                            '21.5.1.5',    # 3  hwPerfPortWriteIOPS
+                                                            '21.5.1.7',    # 4  hwPerfPortReadTraffic
+                                                            '21.5.1.8',    # 5  hwPerfPortWriteTraffic
+                                                            '19.8.11.1.1', # 6  hwStorageFrontEndHostPortIfIndex
+                                                            '19.8.11.1.2', # 7  hwStorageFrontEndHostPortType
+                                                            '19.8.11.1.3', # 8  hwStorageFrontEndHostPortStatus
+                                                            '19.8.11.1.4', # 9  hwStorageFrontEndHostPortPhysAddress
+                                                            '19.8.7.1.3',  # 10 hwStorageFCPortID
+                                                            '19.8.7.1.4',  # 11 hwStorageFCPortStatus
+                                                            '19.8.7.1.8',  # 15 hwStorageFCPortLogicType
+                                                            '19.8.7.1.5',  # 12 hwStorageFCPortConfigRate
+                                                            '19.8.7.1.9',  # 16 hwStorageFCPortSpeedRate
+                                                            '19.8.7.1.7',  # 14 hwStorageFCPortWWN
+                                                            '19.8.7.1.6',  # 13 hwStorageFCPortMode
+                                                            '19.8.8.1.3',  # 17 hwStorageSASPortID
+                                                            '19.8.8.1.4',  # 18 hwStorageSASPortStatus
+                                                            '19.8.8.1.7',  # 21 hwStorageSASPortLogicType
+                                                            '19.8.8.1.5',  # 19 hwStorageSASPortConfigRate
+                                                            '19.8.8.1.8',  # 22 hwStorageSASPortSpeedRate
+                                                            '19.8.8.1.6',  # 20 hwStorageSASPortWWN
+                                                            '19.8.9.1.3',  # 23 hwStorageISCSIPortID
+                                                            '19.8.9.1.4',  # 24 hwStorageISCSIPortStatus
+                                                            '19.8.9.1.8',  # 28 hwStorageISCSIPortLogicType
+                                                            '19.8.9.1.5',  # 25 hwStorageISCSIPortIP
+                                                            '19.8.9.1.6',  # 26 hwStorageISCSIPortNetMask
+                                                            '19.8.9.1.7',  # 27 hwStorageISCSIPortBindMode
+                                  ] ),
+    'snmp_scan_function'    : lambda oid: oid('.1.3.6.1.2.1.1.2.0') == '.1.3.6.1.4.1.2011.2.91',
+}
+
+#
+# PSUs
+#
+
+#
+# Fans
+#
 
 #
 # Template Code
 #
 
-def inventory_huawei(info):
-    if opt_debug:
-        pprint.pprint(info)
+##def inventory_huawei(info):
+##    if opt_debug:
+##        pprint.pprint(info)
 
-def check_huawei(item, params, info):
-    if opt_debug:
-        print item
-        print params
-        print info    
+##def check_huawei(item, params, info):
+##    if opt_debug:
+##        print item
+##        print params
+##        print info    
 
-check_info['huawei'] = {
-    'inventory_function'    : inventory_huawei,
-    'check_function'        : check_huawei,
-    'service_description'   : '%s',
-    'has_perfdata'          : False,
-    'snmp_info'             : ( '', [ '', # 
-                                      '', # 
-                                      '', # 
-                                      '', # 
-                                      '', # 
-                                      '', # 
-                                  ] ),
-    'snmp_scan_function'    : lambda oid: oid('.1.3.6.1.2.1.1.2.0') == '.1.3.6.1.4.1.2011.2.91',
-}
+##check_info['huawei'] = {
+##    'inventory_function'    : inventory_huawei,
+##    'check_function'        : check_huawei,
+##    'service_description'   : '%s',
+##    'has_perfdata'          : False,
+##    'snmp_info'             : ( '', [ '', # 
+##                                      '', # 
+##                                      '', # 
+##                                      '', # 
+##                                      '', # 
+##                                      '', # 
+##                                  ] ),
+##    'snmp_scan_function'    : lambda oid: oid('.1.3.6.1.2.1.1.2.0') == '.1.3.6.1.4.1.2011.2.91',
+##}
