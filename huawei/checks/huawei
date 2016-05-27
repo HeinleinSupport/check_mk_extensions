@@ -80,6 +80,12 @@ huawei_device_type = {
     803: 'VIS8800',
 }
 
+huawei_disk_types = {
+    '1': 'SAS',
+    '3': 'SSD',
+    '4': 'NL-SAS',
+}
+
 huawei_health_states = {
     '0': '--',
     '1': 'normal',
@@ -457,7 +463,7 @@ def check_huawei_disk(item, params, info):
     for line in info:
         if line[0] == item:
             res = 0
-            msg = "%s %s %s %s" % (get_bytes_human_readable(saveint(line[4])*1024*1024), line[11], line[9], line[12])
+            msg = "%s %s %s %s %s" % (get_bytes_human_readable(saveint(line[4])*1024*1024), huawei_disk_types[line[3]], line[11], line[9], line[12])
             if line[12] != params['serial']:
                 res = 1
                 msg += '(!)'
