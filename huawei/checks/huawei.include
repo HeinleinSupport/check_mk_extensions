@@ -1,0 +1,251 @@
+#!/usr/bin/python
+# -*- encoding: utf-8; py-indent-offset: 4 -*-
+
+# (c) 2016 Heinlein Support GmbH
+#          Robert Sander <r.sander@heinlein-support.de>
+
+#
+# This is free software;  you can redistribute it and/or modify it
+# under the  terms of the  GNU General Public License  as published by
+# the Free Software Foundation in version 2.  check_mk is  distributed
+# in the hope that it will be useful, but WITHOUT ANY WARRANTY;  with-
+# out even the implied warranty of  MERCHANTABILITY  or  FITNESS FOR A
+# PARTICULAR PURPOSE. See the  GNU General Public License for more de-
+# ails.  You should have  received  a copy of the  GNU  General Public
+# License along with GNU Make; see the file  COPYING.  If  not,  write
+# to the Free Software Foundation, Inc., 51 Franklin St,  Fifth Floor,
+# Boston, MA 02110-1301 USA.
+
+import pprint
+
+huawei_device_types = {
+    0: 'V1500',
+    1: 'V1800',
+    2: 'S2100',
+    3: 'S2300',
+    4: 'S5100',
+    5: 'S5300',
+    6: 'S5500',
+    7: 'S5600',
+    8: 'VIS',
+    9: 'S2600',
+    10: 'S6800E',
+    11: 'V1500N',
+    12: 'S2300E',
+    13: 'COMMON (mixed)',
+    15: 'N8000',
+    16: 'S6900',
+    17: 'S3900',
+    18: 'S5500T',
+    19: 'S5600T',
+    20: 'S6800T',
+    21: 'S6900-M100',
+    22: 'S3900-M200',
+    23: 'S3900-M300',
+    24: 'S5900-M100',
+    25: 'S8100',
+    26: 'S5800T',
+    27: 'V1600N',
+    28: 'S5900-M200',
+    29: 'N8001',
+    30: 'S2600T',
+    31: 'S8000-I',
+    32: 'Dorado5100',
+    33: 'T3200',
+    34: 'T3500',
+    35: 'N8000-R710',
+    36: 'N8000-C2',
+    40: 'N8000-C2-SYMC',
+    42: 'S2900',
+    43: 'S2200T',
+    44: 'Dorado2100_G2',
+    56: 'OceanStor 18500F',
+    57: 'OceanStor 18500',
+    58: 'OceanStor 18800',
+    60: 'Dorado2100',
+    61: '6800 V3',
+    62: '6900 V3',
+    63: '5600 V3',
+    64: '5800 V3',
+    65: 'T3200',
+    66: 'WUSHAN_SQL',
+    67: 'WUSHAN_HD',
+    68: '5500 V3',
+    69: '2600 V3',
+    70: '5300 V3',
+    401: 'N5000',
+    800: 'VIS8200',
+    801: 'VIS8400',
+    802: 'VIS8600',
+    803: 'VIS8800',
+}
+
+huawei_disk_types = {
+    '1': 'SAS',
+    '3': 'SSD',
+    '4': 'NL-SAS',
+}
+
+huawei_power_types = {
+    '0': 'DC (No battery)',
+    '1': 'AC (No battery)',
+    '2': 'AC (Battery)',
+    '3': 'DC (Battery)',
+    '4': 'AC',
+}
+
+huawei_health_states = {
+    '0': '--',
+    '1': 'normal',
+    '2': 'fault',
+    '3': 'preFail',
+    '4': 'partiallyBroken',
+    '5': 'degraded',
+    '6': 'badSectorsFound',
+    '7': 'bitErrorsFound',
+    '8': 'consistent',
+    '9': 'inconsistent',
+    '10': 'busy',
+    '11': 'noInput',
+    '12': 'lowBattery',
+    '13': 'singleLinkFault',
+    '14': 'invalid',
+    '15': 'write protect',
+}
+
+huawei_running_states = {
+    '0': '--',
+    '1': 'normal',
+    '2': 'running',
+    '3': 'not running',
+    '4': 'not existed',
+    '5': 'sleep in high temperature',
+    '6': 'starting',
+    '7': 'power failure protecting',
+    '8': 'spin down',
+    '9': 'started',
+    '10': 'link up',
+    '11': 'link down',
+    '12': 'powering on',
+    '13': 'powered off',
+    '14': 'precopy',
+    '15': 'copyback',
+    '16': 'reconstruction',
+    '17': 'expansion',
+    '18': 'unformatted',
+    '19': 'formatting',
+    '20': 'unmapped',
+    '21': 'initial synchronizing',
+    '22': 'consistent',
+    '23': 'synchronizing',
+    '24': 'synchronized',
+    '25': 'unsynchronized',
+    '26': 'splited',
+    '27': 'online',
+    '28': 'offline',
+    '29': 'locked',
+    '30': 'enabled',
+    '31': 'disabled',
+    '32': 'balancing',
+    '33': 'to be recoverd',
+    '34': 'interrupted',
+    '35': 'invalid',
+    '36': 'not start',
+    '37': 'queuing',
+    '38': 'stopped',
+    '39': 'copying',
+    '40': 'completed',
+    '41': 'paused',
+    '42': 'reverse synchronizing',
+    '43': 'activated',
+    '44': 'restore',
+    '45': 'inactive',
+    '46': 'idle',
+    '47': 'powering off',
+    '48': 'charging',
+    '49': 'charging completed',
+    '50': 'discharging',
+    '51': 'upgrading',
+    '63': 'running normal',
+    '64': 'running fail',
+    '65': 'running success',
+    '66': 'Running success',
+    '67': 'Running failed',
+    '68': 'Waiting',
+    '69': 'Canceling',
+    '70': 'Canceled',
+    '71': 'About to synchronize',
+    '72': 'Synchronizing data',
+    '73': 'Failed to synchronize',
+    '74': 'Fault',
+    '75': 'Migrating',
+    '76': 'Migrated',
+    '77': 'Activating',
+    '78': 'Deactivating',
+    '79': 'Start failed',
+    '80': 'Stop failed',
+    '81': 'Decommissioning',
+    '82': 'Decommissioned',
+    '83': 'Recommissioning',
+    '84': 'Replacing node',
+    '85': 'Scheduling',
+    '86': 'Pausing',
+    '87': 'Suspending',
+    '88': 'Suspended',
+    '89': 'Overload',
+    '90': 'To be switch',
+    '91': 'Switching',
+    '92': 'To be cleanup',
+    '93': 'Forced start',
+    '94': 'Error',
+}
+
+huawei_port_states = {
+    '0': 'link down',
+    '1': 'link up',
+    '2': 'not exist',
+    '3': 'link bad',
+    '4': 'hardware error',
+    '5': 'speed no match',
+    '6': 'enable',
+    '7': 'disable',
+    '8': 'mac error',
+    '9': 'lane no match',
+}
+
+huawei_port_rates = {
+    '-1': 'unknown',
+    '0': 'auto',
+    '1': '1 Gbit/s',
+    '2': '2 Gbit/s',
+    '4': '4 Gbit/s',
+    '8': '8 Gbit/s',
+    '12': '12 Gbit/s',
+    '16': '16 Gbit/s',
+}
+
+huawei_port_modes = {
+    '-1': 'unknown',
+    '1': 'fabric',
+    '2': 'public-loop',
+    '3': 'point-to-point',
+}
+
+huawei_port_logictypes = {
+    '1': 'service',
+    '2': 'ibc',
+    '3': 'ibs',
+    '4': 'expansion',
+    '5': 'management',
+    '6': 'upsmanagement',
+    '8': 'maintenance',
+}
+
+def huawei_port_index(portid):
+    portid = saveint(portid)
+    return portid >> 16 & 0xF, portid >> 8 & 0xFF, portid >> 4 & 0xF, portid >> 24 & 0xF, portid & 0xF, portid >> 20 & 0xF
+
+def huawei_port_itemname(portid):
+    # "Card%02d Ctrl%02d Type%02d Ctrl%02d Port%02d %02d"
+    return "C%02d C%02d T%02d C%02d P%02d %02d" % huawei_port_index(portid)
+
