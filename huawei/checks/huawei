@@ -804,32 +804,55 @@ check_info['huawei_fan'] = {
     'snmp_scan_function'    : lambda oid: oid('.1.3.6.1.2.1.1.2.0') == '.1.3.6.1.4.1.2011.2.91',
 }
 
-
 #
-# Template Code
+# BBU with lifetime check
 #
 
-##def inventory_huawei(info):
-##    if opt_debug:
-##        pprint.pprint(info)
+def inventory_huawei_bbu(info):
+    if opt_debug:
+        pprint.pprint(info)
+    for line in info:
+        yield line[0], { 'runningStatus': line[2] }
 
-##def check_huawei(item, params, info):
-##    if opt_debug:
-##        print item
-##        print params
-##        print info    
+def check_huawei_bbu(item, params, info):
+    import datetime
+    bbu_lifetime = datetime.timedelta(2880) # days
+    if opt_debug:
+        print item
+        print params
+        print info
+    for line in info:
+        if line[0] == item:
+            res = 0
+            deliveredon = map(saveint, line[3].split('-'))
+            if len(deliveredon) == 3:
+                deliverydate = datetime.date(deliveredon[0], deliveredon[1], deliveredon[2])
+                daysleft = (deliverydate + bbu_lifetime - datetime.date.today()).days
+                msg = 'Delivery Date: %s, %d Days left' % (deliverydate.isoformat(), daysleft)
+                perfdata = [ ( 'daysleft', daysleft ) ]
+            else:
+                res = 1
+                msg = 'unable to get delivery date from %s(!)' % line[3]
+                perfdata = []
+            msg += '; health %s' % huawei_health_states[line[1]]
+            if line[1] != '1':
+                res = 2
+                msg += '(!!)'
+            msg += '; state %s' % huawei_running_states[line[2]]
+            if line[2] != params['runningStatus']:
+                res = 2
+                msg += ', changed from %s(!!)' % huawei_running_states[params['runningStatus']]                
+            return res, msg, perfdata
 
-##check_info['huawei'] = {
-##    'inventory_function'    : inventory_huawei,
-##    'check_function'        : check_huawei,
-##    'service_description'   : '%s',
-##    'has_perfdata'          : False,
-##    'snmp_info'             : ( '', [ '', # 
-##                                      '', # 
-##                                      '', # 
-##                                      '', # 
-##                                      '', # 
-##                                      '', # 
-##                                  ] ),
-##    'snmp_scan_function'    : lambda oid: oid('.1.3.6.1.2.1.1.2.0') == '.1.3.6.1.4.1.2011.2.91',
-##}
+check_info['huawei_bbu'] = {
+    'inventory_function'    : inventory_huawei_bbu,
+    'check_function'        : check_huawei_bbu,
+    'service_description'   : 'BBU %s',
+    'has_perfdata'          : True,
+    'snmp_info'             : ( '.1.3.6.1.4.1.34774.4.1.23.5.5.1', [ '2',  # hwInfoBBULocation
+                                                                     '3',  # hwInfoBBUHealthStatus
+                                                                     '4',  # hwInfoBBURunningStatus
+                                                                     '9',  # hwInfoBBUDeliveredOn
+                                  ] ),
+    'snmp_scan_function'    : lambda oid: oid('.1.3.6.1.2.1.1.2.0') == '.1.3.6.1.4.1.2011.2.91',
+}
