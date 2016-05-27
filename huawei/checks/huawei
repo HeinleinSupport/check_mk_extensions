@@ -232,7 +232,8 @@ def huawei_port_index(portid):
     return portid >> 16 & 0xF, portid >> 8 & 0xFF, portid >> 4 & 0xF, portid >> 24 & 0xF, portid & 0xF, portid >> 20 & 0xF
 
 def huawei_port_itemname(portid):
-    return "Card%02d Ctrl%02d Type%02d Ctrl%02d Port%02d %02d" % huawei_port_index(portid)
+    # "Card%02d Ctrl%02d Type%02d Ctrl%02d Port%02d %02d"
+    return "C%02d C%02d T%02d C%02d P%02d %02d" % huawei_port_index(portid)
 
 def inventory_huawei_info(info):
     if opt_debug:
