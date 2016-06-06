@@ -42,14 +42,14 @@ def check_cephpools(item, params, info):
                 used = saveint(line[2][:-1]) * factor[line[2][-1]]
             else:
                 used = saveint(line[2])
-            size = saveint(line[4][:-1]) * factor[line[4][-1]]
+            size = (  saveint(line[4][:-1]) * factor[line[4][-1]] ) + used
             warn = 0.8 * size
             crit = 0.9 * size
             if used > crit:
                 rc = 2
             elif used > warn:
                 rc = 1
-            return (rc, "Size: %s; Used: %s" % (line[4], line[2]), [("Used", "%dB" % used, warn, crit, 0, size)])
+            return (rc, "Used: %s; Max Avail: %s" % (  line[2] , line[4]), [("Used", "%dB" % used, warn, crit, 0, size)])
  
     return (3, 'Pool %s not found' % item, [])
 
