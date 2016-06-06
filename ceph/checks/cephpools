@@ -15,6 +15,19 @@
 # to the Free Software Foundation, Inc., 51 Franklin St,  Fifth Floor,
 # Boston, MA 02110-1301 USA.
 
+#<<<cephpools>>>
+#GLOBAL:
+#    SIZE       AVAIL      RAW USED     %RAW USED 
+#    67562G     48491G       19070G         28.23 
+#POOLS:
+#    NAME         ID     USED      %USED     MAX AVAIL     OBJECTS 
+#    data         0          0         0        15162G           0 
+#    metadata     1          0         0        15162G           0 
+#    rbd          2      5479G      8.11        15162G     1443443 
+#    rbd2         3      1260G      1.87        22743G      341364 
+#    ssd          11     3268M         0          161G        1010 
+
+
 def inventory_cephpools(info):
     inventory = []
     pool = False
@@ -34,29 +47,32 @@ def check_cephpools(item, params, info):
                'G': 1073741824,
                'M': 1048576,
                'K': 1024,
+               '': 1,
              }
     for line in info:
         if item == line[0]:
             rc = 0
-            if line[2][-1] in ['T', 'G', 'M']:
+            if line[2][-1] in factor.keys():
                 used = saveint(line[2][:-1]) * factor[line[2][-1]]
             else:
                 used = saveint(line[2])
-            size = (  saveint(line[4][:-1]) * factor[line[4][-1]] ) + used
-            warn = 0.8 * size
-            crit = 0.9 * size
-            if used > crit:
-                rc = 2
-            elif used > warn:
-                rc = 1
-            return (rc, "Used: %s; Max Avail: %s" % (  line[2] , line[4]), [("Used", "%dB" % used, warn, crit, 0, size)])
+            if line[4][-1] in factor.keys():
+                max_avail = saveint(line[4][:-1]) * factor[line[4][-1]]
+            else:
+                max_avail = saveint(line[4])
+            size_mb = float(used + max_avail) / float(factor['M'])
+            avail_mb = float(max_avail) / float(factor['M'])
+            return df_check_filesystem_list(item, params, [ (item, size_mb, avail_mb) ])
  
     return (3, 'Pool %s not found' % item, [])
 
 check_info["cephpools"] = {
-    'check_function'        : check_cephpools,
-    'inventory_function'    : inventory_cephpools,
-    'service_description'   : 'Ceph Pool %s',
-    'has_perfdata'          : True,
+    'check_function'         : check_cephpools,
+    'inventory_function'     : inventory_cephpools,
+    'service_description'    : 'fs_Ceph Pool %s',
+    'has_perfdata'           : True,
+    'group'                  : 'filesystem',
+    'default_levels_variable': 'filesystem_default_levels',
+    'includes'               : [ 'df.include' ],
 }
 
