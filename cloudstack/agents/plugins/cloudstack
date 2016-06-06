@@ -89,3 +89,11 @@ if __name__ == "__main__":
         print 'type\tACS-Pool'
         print 'uncommitted\t%d' % (storage['disksizeallocated'] - storage['disksizeused'])
         print 'url\tds:///ACS/%s/%s/%s' % (storage['clustername'], storage['podname'], storage['name'])
+    print '<<<local>>>'
+    for systemvm in cloudstack.listSystemVms():
+        msg = '%s (%s) on %s' % (systemvm['systemvmtype'], systemvm['publicip'], systemvm['hostname'])
+        res = 0
+        if systemvm['state'] != 'Running':
+            res = 2
+            msg += ', state is %s(!!)' % systemvm['state']
+        print '%d SystemVM_%s - %s' % (res, systemvm['name'], msg)
