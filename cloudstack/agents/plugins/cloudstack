@@ -71,14 +71,11 @@ if __name__ == "__main__":
         print 'P %s_CPU used=%s;90;95;0;100|allocated=%s CPU' % (host['hypervisor'].replace(' ', '_'),
                                                                  host['cpuused'].replace(',', '.').replace('%', ''),
                                                                  host['cpuallocated'].replace(',', '.').replace('%', ''))
-        print 'P %s_Memory used=%d;%d;%d;0;%d|allocated=%d Memory' % (host['hypervisor'].replace(' ', '_'),
-                                                                      host['memoryused'],
-                                                                      host['memorytotal'] * 0.9,
-                                                                      host['memorytotal'] * 0.95,
-                                                                      host['memorytotal'],
-                                                                      host['memoryallocated'])
+        print '0 %s_Memory used=%dB;;;0;%d|allocated=%dB Memory' % (host['hypervisor'].replace(' ', '_'),
+                                                                    host['memoryused'],
+                                                                    host['memorytotal'],
+                                                                    host['memoryallocated'])
         print '<<<<>>>>'
-
     print '<<<esx_vsphere_datastores:sep(9)>>>'
     for storage in cloudstack.listStoragePools():
         print '[%s/%s/%s]' % (storage['clustername'], storage['podname'], storage['name'])
