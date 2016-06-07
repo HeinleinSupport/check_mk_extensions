@@ -18,14 +18,30 @@
 
 # Return network interface addresses
 
-try:
-    import netifaces
+import subprocess
 
-    print '<<<netifaces>>>'
+families = { 'link/loopback': 'AF_PACKET',
+             'link/ether': 'AF_PACKET',
+             'inet': 'AF_INET',
+             'inet6': 'AF_INET6',
+           }
 
-    for interface in netifaces.interfaces():
-        for family, addresses in netifaces.ifaddresses(interface).iteritems():
-            for address in addresses:
-                print interface, netifaces.address_families[family], address['addr']
-except ImportError:
-    pass
+info = map(lambda x: x.split(' '), subprocess.check_output(['ip', 'addr', 'show']).split('\n'))
+ifaces = {}
+curif = None
+for line in info:
+    if len(line) > 5:
+        if line[1]:
+            curif = line[1][:-1]
+            ifaces[curif] = {}
+        if curif:
+            for type, family in families.iteritems():
+                if line[4] == type:
+                    if family not in ifaces[curif]:
+                        ifaces[curif][family] = []
+                    ifaces[curif][family].append(line[5])
+
+for iface in ifaces:
+    for family, addresses in ifaces[iface].iteritems():
+        for address in addresses:
+            print iface, family, address

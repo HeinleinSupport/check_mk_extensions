@@ -45,6 +45,7 @@ def inventory_netifaces_rbl(info):
         for family in ifaces[iface].keys():
             if family == 'AF_INET':
                 for addr in ifaces[iface][family]:
+                    addr = addr.split('/')[0]
                     if not reduce( lambda result, network: result or ( ipaddr.IPAddress(addr) in network ), netifaces_blacklist, False):
                         inventory.append( ( addr, netifaces_rbl_default_values ) )
     return inventory
