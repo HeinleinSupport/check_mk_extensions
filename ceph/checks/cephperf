@@ -1,0 +1,75 @@
+#!/usr/bin/python
+# -*- encoding: utf-8; py-indent-offset: 4 -*-
+# vim: tabstop=8 expandtab shiftwidth=4 softtabstop=4
+
+# (c) 2016 Marco Gabriel - inett GmbH <mgabriel@inett.de>
+
+# This is free software;  you can redistribute it and/or modify it
+# under the  terms of the  GNU General Public License  as published by
+# the Free Software Foundation in version 2.  This file is distributed
+# in the hope that it will be useful, but WITHOUT ANY WARRANTY;  with-
+# out even the implied warranty of  MERCHANTABILITY  or  FITNESS FOR A
+# PARTICULAR PURPOSE. See the  GNU General Public License for more de-
+# ails.  You should have  received  a copy of the  GNU  General Public
+# License along with GNU Make; see the file  COPYING.  If  not,  write
+# to the Free Software Foundation, Inc., 51 Franklin St,  Fifth Floor,
+# Boston, MA 02110-1301 USA.
+
+def inventory_cephperf(info):
+    inventory = []
+    #print info
+    #if len(info) > 0:
+    #    inventory.append(( None, [20, 30] ))
+    inventory.append(('IOPS/BW', None))
+    return inventory
+
+def check_cephperf(item, params, info):
+    rc = 0
+    perfdata = []
+    text = []
+    #warn, crit = params
+    rd = 0
+    wr = 0
+    iops = 0
+    f = {   'PB/s': 1125899906842624,
+            'TB/s': 1099511627776,
+            'GB/s': 1073741824,
+            'MB/s': 1048576,
+            'kB/s': 1024,
+            'B/s': 1
+    }
+#    if len(info) == 0:
+#        return (3, 'no data', [])
+
+    #[['client', 'io', '10278', 'kB/s', 'rd,', '3341', 'kB/s', 'wr,', '558', 'op/s']]
+    for line in info:
+        if line[0] == "client" and line[1] == "io":
+            line = line[2:]
+        if line[-1] == "op/s":
+            iops = line[-2]
+            line = line[:-2]
+        if line[-1].strip(",") == "wr":
+            wr = int(line[-3]) * f[line[-2]]
+            line = line[:-3]
+        if line[-1].strip(",") == "rd":
+            rd = int(line[-3]) * f[line[-2]]
+
+    #if fs_commit_latency > warn or fs_apply_latency > warn:
+    #    rc = 1
+    #if fs_commit_latency > crit or fs_apply_latency > crit:
+    #    rc = 2
+
+    #return (rc, "Commit Latency: %s ms; Apply Latency: %s ms" % (fs_commit_latency, fs_apply_latency), [("Commit Latency", "%dms" % fs_commit_latency, warn, crit, 0, fs_apply_latency)])
+    return rc, "Ceph Performance: IOPS: %s   Read: %s   Write: %s" % (iops, rd, wr), [
+            ("IOPS", iops),
+            ("Read bps", rd),
+            ("Write bps", wr)
+            ]
+
+check_info["cephperf"] = {
+    'check_function'        : check_cephperf,
+    'inventory_function'    : inventory_cephperf,
+    'service_description'   : 'Ceph Perf',
+    'has_perfdata'          : True,
+}
+

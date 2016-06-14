@@ -21,4 +21,6 @@ if [ -x /usr/bin/ceph ]; then
   /usr/bin/ceph df
   echo '<<<cephosdperf>>>'
   /usr/bin/ceph osd perf
+  echo '<<<cephperf>>>'
+  /usr/bin/ceph status|tail -n 1
 fi
