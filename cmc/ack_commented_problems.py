@@ -15,10 +15,8 @@
 # to the Free Software Foundation, Inc., 51 Franklin St,  Fifth Floor,
 # Boston, MA 02110-1301 USA.
 
-#
-# Creates commands to acknowledge previously acknowledged host and
-# service problems after migrating from Nagios core to CMC.
-#
+"""Creates commands to acknowledge previously acknowledged host and
+service problems after migrating from Nagios core to CMC."""
 
 import requests
 import datetime
@@ -31,7 +29,7 @@ parser.add_argument('-H', '--host', required=True, help='Hostname')
 parser.add_argument('-s', '--site', required=True, help='Monitoring Site')
 args = parser.parse_args()
 
-baseurl='https://%s/%s/check_mk/view.py' % (args.host, args.site)
+baseurl = 'https://%s/%s/check_mk/view.py' % (args.host, args.site)
 services_to_ack = {}
 
 #
@@ -101,4 +99,3 @@ for comment in comments[1:]:
                                                                       comment[columns['service_description']],
                                                                       comment[columns['comment_author']],
                                                                       comment[columns['comment_comment']])
-            
