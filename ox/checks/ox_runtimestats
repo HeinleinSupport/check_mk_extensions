@@ -120,9 +120,9 @@ def check_ox_attributes(item, params, info):
 		number = saveint(line[1])
 		if line[0] in ox_counters:
 		    timediff, rate_per_sec = get_counter("ox_runtimestat.attributes.%s" % hashlib.sha256(line[0]).hexdigest(), now, number)
-		    return (0, "%0.3f %s per second" % (rate_per_sec, item), [ (item, rate_per_sec) ])
+		    return (0, "%0.3f %s per second" % (rate_per_sec, item), [ (item.replace(' ', '_'), rate_per_sec) ])
 		else:
-		    return (0, "%d %s" % (number, item), [ (item, number) ])
+		    return (0, "%d %s" % (number, item), [ (item.replace(' ', '_'), number) ])
     return (3, "Not found")
 
 check_info['ox_runtimestats.attributes'] = {
