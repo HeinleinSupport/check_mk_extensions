@@ -17,9 +17,9 @@
 if [ -x /sbin/lvm ]; then
 
   echo "<<<vgs>>>"
-  vgs --units b --nosuffix --noheadings --separator '	'
+  waitmax -s 2 4 vgs --units b --nosuffix --noheadings --separator '	'
 
   echo "<<<pvs>>>"
-  pvs --units b --nosuffix --noheadings --separator '	'
+  waitmax -s 2 4 pvs --units b --nosuffix --noheadings --separator '	'
 
 fi
