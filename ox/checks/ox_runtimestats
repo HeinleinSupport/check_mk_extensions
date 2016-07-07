@@ -123,7 +123,6 @@ def check_ox_attributes(item, params, info):
 		    return (0, "%0.3f %s per second" % (rate_per_sec, item), [ (item.replace(' ', '_'), rate_per_sec) ])
 		else:
 		    return (0, "%d %s" % (number, item), [ (item.replace(' ', '_'), number) ])
-    return (3, "Not found")
 
 check_info['ox_runtimestats.attributes'] = {
     'check_function':          check_ox_attributes,
