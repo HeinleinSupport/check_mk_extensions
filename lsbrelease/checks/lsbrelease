@@ -21,7 +21,7 @@ lsbrelease_default_values = [ ( 'Debian', '6.0.7' ),
                             ]
 
 def versiontuple(v):
-    return tuple(map(int, (v.split("."))))
+    return tuple(map(saveint, [item for sublist in map(lambda x: x.split('-'), v.split('.')) for item in sublist]))
 
 def inventory_lsbrelease(checkname, info):
     inventory = []
