@@ -18,6 +18,8 @@
 
 # Return network interface addresses
 
+print '<<<netifaces>>>'
+
 import subprocess
 
 families = { 'link/loopback': 'AF_PACKET',
