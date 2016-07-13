@@ -21,13 +21,17 @@ service problems after migrating from Nagios core to CMC."""
 import requests
 import datetime
 import argparse
+import getpass
 
 parser = argparse.ArgumentParser()
 parser.add_argument('-u', '--username', required=True, help='Automation User')
-parser.add_argument('-p', '--password', required=True, help='Automation Secret')
+parser.add_argument('-p', '--password', required=False, help='Automation Secret')
 parser.add_argument('-H', '--host', required=True, help='Hostname')
 parser.add_argument('-s', '--site', required=True, help='Monitoring Site')
 args = parser.parse_args()
+
+if not args.password:
+    args.password = getpass.getpass('Please enter password for %s: ' % args.username)
 
 baseurl = 'https://%s/%s/check_mk/view.py' % (args.host, args.site)
 services_to_ack = {}
