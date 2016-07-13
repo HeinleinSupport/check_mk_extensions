@@ -33,17 +33,11 @@ if [ -x /usr/sbin/postconf ]; then
     count=""
 
     if [ "$cmd" = "smtpd" ]; then
-
       if [ "$service" = "smtpd" ]; then
-
         count=$(echo "$processes" | grep "$cmd -t $type" | wc -l)
-
       else
-
         count=$(echo "$processes" | grep "$cmd -n $service -t $type" | wc -l)
-
       fi
-
     fi
     if [ "$cmd" = "smtp" -o "$cmd" = "lmtp" ]; then
       if [ "$service" = "smtp" -o "$service" = "lmtp" ]; then
