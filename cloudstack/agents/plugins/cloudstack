@@ -68,13 +68,22 @@ if __name__ == "__main__":
     for host in cloudstack.listHosts(args={'type': 'Routing'}):
         print '<<<<%s>>>>' % host['name']
         print '<<<local>>>'
-        print 'P %s_CPU used=%s;90;95;0;100|allocated=%s CPU' % (host['hypervisor'].replace(' ', '_'),
-                                                                 host['cpuused'].replace(',', '.').replace('%', ''),
-                                                                 host['cpuallocated'].replace(',', '.').replace('%', ''))
-        print '0 %s_Memory used=%dB;;;0;%d|allocated=%dB Memory' % (host['hypervisor'].replace(' ', '_'),
-                                                                    host['memoryused'],
-                                                                    host['memorytotal'],
-                                                                    host['memoryallocated'])
+        print '0 %s_State - State is %s' % (host['hypervisor'].replace(' ', '_'),
+                                            host['resourcestate'])
+        if host['resourcestate'] == 'Enabled':
+            print 'P %s_CPU used=%s;90;95;0;100|allocated=%s CPU' % (host['hypervisor'].replace(' ', '_'),
+                                                                     host['cpuused'].replace(',', '.').replace('%', ''),
+                                                                     host['cpuallocated'].replace(',', '.').replace('%', ''))
+            print '0 %s_Memory used=%dB;;;0;%d|allocated=%dB Memory' % (host['hypervisor'].replace(' ', '_'),
+                                                                        host['memoryused'],
+                                                                        host['memorytotal'],
+                                                                        host['memoryallocated'])
+        else:
+            print '0 %s_CPU used=0;90;95;0;100|allocated=%s CPU' % (host['hypervisor'].replace(' ', '_'),
+                                                                    host['cpuallocated'].replace(',', '.').replace('%', ''))
+            print '0 %s_Memory used=0B;;;0;%d|allocated=%dB Memory' % (host['hypervisor'].replace(' ', '_'),
+                                                                       host['memorytotal'],
+                                                                       host['memoryallocated'])
         print '<<<<>>>>'
     print '<<<esx_vsphere_datastores:sep(9)>>>'
     for storage in cloudstack.listStoragePools():
