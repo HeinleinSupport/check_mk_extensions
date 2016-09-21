@@ -87,6 +87,8 @@ if __name__ == "__main__":
         print '<<<<>>>>'
     print '<<<esx_vsphere_datastores:sep(9)>>>'
     for storage in cloudstack.listStoragePools():
+        if not storage.has_key('disksizeused'):
+            storage['disksizeused'] = 0
         print '[%s/%s/%s]' % (storage['clustername'], storage['podname'], storage['name'])
         if storage['state'] == 'Up':
             print 'accessible\ttrue'
