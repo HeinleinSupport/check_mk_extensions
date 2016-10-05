@@ -80,7 +80,11 @@ if [ -e  /proc/driver/cciss -o  -e /sys/bus/cciss -o -e /sys/bus/pci/drivers/hps
         read -d + -a x <<< $($RAID_CHECK_TOOL controller slot=${controllers[$c]} array ${cary[1]} show | sed 's/(Embedded)//')
         # collect words
         read -a ary <<< ${x[*]}
-        echo "${controllers[$c]}:${cary[1]} ${ary[16]} ${ary[10]} ${ary[13]} ${ary[14]}"
+        if [[ "$RAID_CHECK_TOOL" = "hpacucli" ]]; then
+          echo "${controllers[$c]}:${cary[1]} ${ary[16]} ${ary[10]} ${ary[13]} ${ary[14]}"
+        else
+          echo "${controllers[$c]}:${cary[1]} ${ary[22]} ${ary[10]} ${ary[13]} ${ary[14]}"
+        fi
         arrays[$ac]=${cary[1]}
       fi
     done < <( $CMD )
