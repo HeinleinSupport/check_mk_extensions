@@ -1,0 +1,8 @@
+#!/bin/sh
+
+if [ -x /usr/bin/doveadm ]; then
+
+    echo '<<<dovereplstat>>>'
+    /usr/bin/doveadm replicator status
+
+fi
