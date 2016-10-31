@@ -1,0 +1,16 @@
+title: Dovecot Replicator Status
+agents: linux
+catalog: app/dovecot
+license: GPL
+distribution: heinlein
+description:
+  The check uses `doveadm replicator status` to
+  gather measures about the dovecot replicator.
+
+  You can set upper warn and crit levels.
+
+perfdata:
+  Values for the various measures reported.
+
+inventory:
+  Automatically.
