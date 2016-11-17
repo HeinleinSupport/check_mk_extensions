@@ -17,7 +17,7 @@
 
 import ipaddr
 
-netifaces_rbl_default_values = [ "cbl.abuseat.org", "b.barracudacentral.org", "zen.spamhaus.org", "ix.dnsbl.manitu.net" ]
+netifaces_rbl_default_values = { 'crit': [ "bl.spamcop.org", "zen.spamhaus.org", "ix.dnsbl.manitu.net" ] }
 
 netifaces_blacklist = [ ipaddr.IPNetwork('10.0.0.0/8'),
                         ipaddr.IPNetwork('127.0.0.0/8'),
@@ -38,9 +38,8 @@ def parse_netifaces(info):
         res[iface][family].append(addr)
     return res
 
-def inventory_netifaces_rbl(info):
+def inventory_netifaces_rbl(ifaces):
     inventory = []
-    ifaces = parse_netifaces(info)
     for iface in ifaces.keys():
         for family in ifaces[iface].keys():
             if family == 'AF_INET':
@@ -50,25 +49,28 @@ def inventory_netifaces_rbl(info):
                         inventory.append( ( addr, netifaces_rbl_default_values ) )
     return inventory
 
-def check_netifaces_rbl(item, rbls, info):
+def check_netifaces_rbl(item, rbls, ifaces):
     import socket
-    from pprint import pformat
-
-    for iface, families in parse_netifaces(info).iteritems():
+    levels = { 'warn': (1, '(!)'),
+               'crit': (2, '(!!)'),
+               }
+    for iface, families in ifaces.iteritems():
         for family, addresses in families.iteritems():
-            for address in addresses:
+            for address in map(lambda x: x.split('/')[0], addresses):
                 if item == address:
                     msg = ["bound on %s" % iface]
                     res = 0
                     count = 0
-                    for rbl in rbls:
-                        try:
-                            ip = socket.gethostbyname("%s.%s." % (".".join(reversed(address.split('.'))), rbl))
-                            res = 1
-                            count += 1
-                            msg.append('found in %s: %s (!)' % (rbl, ip))
-                        except socket.gaierror:
-                            pass
+                    for level, levelres in levels.iteritems():
+                        for rbl in rbls[level]:
+                            try:
+                                ip = socket.gethostbyname("%s.%s." % (".".join(reversed(address.split('.'))), rbl))
+                                if levelres[0] > res:
+                                    res = levelres[0]
+                                count += 1
+                                msg.append('found in %s: %s %s' % (rbl, ip, levelres[1]))
+                            except socket.gaierror:
+                                pass
                     if count > 1:
                         res = 2
                         msg.append('found in more than 1 RBL (!!)')
@@ -86,3 +88,7 @@ check_info["netifaces.rbl"] = {
 check_default_levels['netifaces_rbl'] = 'netifaces_rbl_default_values'
 
 factory_settings['netifaces_rbl_default_values'] = netifaces_rbl_default_values
+
+check_info['netifaces'] = {
+    'parse_function'        : parse_netifaces,
+}
