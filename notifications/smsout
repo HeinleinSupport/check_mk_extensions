@@ -1,0 +1,50 @@
+#!/usr/bin/python
+# smsout.de
+# -*- encoding: utf-8; py-indent-offset: 4 -*-
+
+import sys, os, urllib
+
+# This does not need to be changed
+to       = os.environ.get("NOTIFY_CONTACTPAGER")
+user     = ""
+passwd   = ""
+url      = "https://www.smsout.de/client/sendsms.php?"
+
+if len(sys.argv) > 1:
+    to = sys.argv[1]
+
+if not to:
+    sys.stderr.write("NOTIFY_CONTACTPAGER is not set.\n")
+    sys.exit(1)
+
+max_len = 160
+message = os.environ['NOTIFY_HOSTNAME'] + " "
+
+if os.environ['NOTIFY_WHAT'] == 'SERVICE':
+    message += os.environ['NOTIFY_SERVICESTATE'][:2]
+    avail_len = max_len - len(message) - 1
+    message += " " + os.environ['NOTIFY_SERVICEDESC'][:avail_len]
+    avail_len = max_len - len(message) - 1
+    message += " " + os.environ['NOTIFY_SERVICEOUTPUT'][:avail_len]
+else:
+    message += "is " + os.environ['NOTIFY_HOSTSTATE']
+
+url += urllib.urlencode([ 
+   ( "Username", user ),
+   ( "Password", passwd ),
+   ( "SMSType", "V3" ),
+   ( "SMSTo", to ),
+   ( "SMSText", message )
+])
+
+try:
+    handle = urllib.urlopen(url)
+    response = handle.read().strip()
+    if response.startswith("Return: OK"):
+        sys.stdout.write("Successfully sent SMS to %s\n" % to)
+    else:
+        sys.stderr.write("Error sending SMS to %s: %s\n" % (to, response))
+        sys.stderr.write("URL was %s\n" % url)
+except Exception, e:
+    sys.stderr.write("Error sending SMS to %s. Exception: %s%s\n" % e)
+
