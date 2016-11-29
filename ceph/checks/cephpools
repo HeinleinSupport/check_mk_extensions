@@ -62,7 +62,7 @@ def check_cephpools(item, params, info):
                 max_avail = saveint(line[4])
             size_mb = float(used + max_avail) / float(factor['M'])
             avail_mb = float(max_avail) / float(factor['M'])
-            return df_check_filesystem_list(item, params, [ (item, size_mb, avail_mb) ])
+            return df_check_filesystem_list(item, params, [ (item, size_mb, avail_mb, 0) ])
  
     return (3, 'Pool %s not found' % item, [])
 
