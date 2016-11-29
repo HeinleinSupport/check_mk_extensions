@@ -5,9 +5,10 @@ register_check_parameters(
     subgroup_storage,
     "dir_size",
     _("Directory Size Limits"),
-    Tuple(
+    Dictionary(
         help = _("Size of all files and subdirectories"),
         elements = [
+            ( 'unit',
             DropdownChoice(
                 title = _('Unit for Levels'),
                 choices = [ ( 'TB', 'Terabytes' ),
@@ -17,15 +18,15 @@ register_check_parameters(
                             ( 'B', 'Bytes' ),
                           ],
                 default_value = 'MB',
-            ),
-            Integer(title = _("Warning at")),
-            Integer(title = _("Critical at")),
+            )),
+            ('warn', Integer(title = _("Warning at"))),
+            ('crit', Integer(title = _("Critical at"))),
         ]
     ),
     TextAscii(
         title = _("Directory"),
         allow_empty = False,
     ),
-    match_type = "first",
+    match_type = "dict",
 )
 

@@ -61,7 +61,7 @@ def check_dir_size(item, params, info):
         pprint.pprint(item)
         pprint.pprint(params)
         pprint.pprint(info)
-    unit, warn, crit = params
+    unit, warn, crit = params['unit'], params['warn'], params['crit']
     no_warn, no_crit = False, False
     
   
