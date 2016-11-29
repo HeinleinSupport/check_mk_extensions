@@ -1,0 +1,33 @@
+#!/usr/bin/python
+# -*- encoding: utf-8; py-indent-offset: 4 -*-
+
+#
+# Galera Sync Status
+#
+
+def inventory_mysql_galerasync(parsed):
+    if opt_debug:
+        pprint.pprint(parsed)
+    for instance, values in parsed.items():
+        if u'wsrep_local_state_comment' in values:
+            yield instance, {}
+
+def check_mysql_galerasync(item, _no_params, parsed):
+    if opt_debug:
+        pprint.pprint(item)
+        pprint.pprint(parsed)
+    if item in parsed:
+        values = parsed[item]
+        if u'wsrep_local_state_comment' in values:
+            if values[u'wsrep_local_state_comment'] == 'Synced':
+                return (0, values[u'wsrep_local_state_comment'])
+            else:
+                return (2, values[u'wsrep_local_state_comment'])
+
+check_info['mysql.galerasync'] = {
+    "inventory_function"      : inventory_mysql_galerasync,
+    "check_function"          : check_mysql_galerasync,
+    "service_description"     : "MySQL Galera Status",
+    "has_perfdata"            : False,
+}
+
