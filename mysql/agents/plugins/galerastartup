@@ -1,6 +1,6 @@
 #!/bin/bash
 
-MYCNF=/tmp/mysql/my.cnf
+MYCNF=/etc/mysql/my.cnf
 WARN=60
 CRIT=3600
 
