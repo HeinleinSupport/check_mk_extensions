@@ -1,0 +1,10 @@
+#!/usr/bin/python
+# -*- encoding: utf-8; py-indent-offset: 4 -*-
+
+def bake_amavis(opsys, conf, conf_dir, plugins_dir):
+    shutil.copy2(local_agents_dir + "/plugins/amavis", plugins_dir + "/amavis")
+
+bakery_info["amavis"] = {
+    "bake_function" : bake_amavis,
+    "os"            : [ "linux", ],
+}

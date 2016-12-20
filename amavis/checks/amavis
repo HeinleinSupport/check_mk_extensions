@@ -1,0 +1,122 @@
+#!/usr/bin/python
+# -*- encoding: utf-8; py-indent-offset: 4 -*-
+
+# (c) 2016 Heinlein Support GmbH
+#          Robert Sander <r.sander@heinlein-support.de>
+
+# This is free software;  you can redistribute it and/or modify it
+# under the  terms of the  GNU General Public License  as published by
+# the Free Software Foundation in version 2.  This file is distributed
+# in the hope that it will be useful, but WITHOUT ANY WARRANTY;  with-
+# out even the implied warranty of  MERCHANTABILITY  or  FITNESS FOR A
+# PARTICULAR PURPOSE. See the  GNU General Public License for more de-
+# ails.  You should have  received  a copy of the  GNU  General Public
+# License along with GNU Make; see the file  COPYING.  If  not,  write
+# to the Free Software Foundation, Inc., 51 Franklin St,  Fifth Floor,
+# Boston, MA 02110-1301 USA.
+
+factory_settings['amavis_default_levels'] = {
+    'busy_childs': (75, 95),
+    }
+
+def parse_amavis(info):
+    if opt_debug:
+        print 'info = %s' % pprint.pformat(info)
+    parsed = {'ps': [], 'agent': {}}
+    in_ps = False
+    in_agent = False
+    for line in info:
+        if len(line) == 1:
+            if line[0] == u'[ps]':
+                in_ps = True
+                in_agent = False
+                continue
+            if line[0] == u'[agent]':
+                in_ps = False
+                in_agent = True
+                continue
+        if in_ps:
+            parsed['ps'].append((line[4], " ".join(line[5:])))
+        if in_agent:
+            parsed['agent'][line[0]] = line[1:]
+    return parsed
+
+def inventory_amavis(parsed):
+    if opt_debug:
+        print 'parsed = %s' % pprint.pformat(parsed)
+    if parsed['ps']:
+        yield None, None
+
+def check_amavis(_no_item, params, parsed):
+    if opt_debug:
+        print 'params = %s' % pprint.pformat(params)
+        print 'parsed = %s' % pprint.pformat(parsed)
+    if parsed['ps']:
+        perfdata = []
+        msg = []
+        state = 0
+        this_time = int(time.time())
+        
+        master_proc = 0
+        child_procs = 0
+        child_avail = 0
+        for proc in parsed['ps']:
+            if proc[1] == u'(master)':
+                master_proc += 1
+            if proc[1] == u'(virgin child)':
+                child_procs += 1
+                child_avail += 1
+            if proc[1].startswith(u'(ch'):
+                child_procs += 1
+                if proc[1].endswith(u'-avail)'):
+                    child_avail += 1
+        if opt_debug:
+            print master_proc, child_procs, child_avail
+        if master_proc != 1:
+            state = 2
+            msg.append('More than one amavisd master process running: %d(!!)' % master_proc)
+        else:
+            msg.append('Amavis master process running')
+        msg.append('%d child processes running' % child_procs)
+        avail_text = '%d child processes available' % child_avail
+        if 'busy_childs' in params:
+            warn = child_procs * (100.0 - params['busy_childs'][0]) / 100.0
+            crit = child_procs * (100.0 - params['busy_childs'][1]) / 100.0
+            perfdata.append(('amavis_child_avail', child_avail, warn, crit, 0, child_procs ))
+            if child_avail < crit:
+                if state < 2:
+                    state = 2
+                avail_text += '(!!)'
+            elif child_avail < warn:
+                if state < 1:
+                    state = 1
+                avail_text += '(!)'
+        else:
+            perfdata.append(('amavis_child_avail', child_avail, None, None, 0, child_procs ))
+        msg.append(avail_text)
+
+        metrics = [ 'ContentCleanMsgs',
+                    'ContentSpamMsgs',
+                    'ContentVirusMsgs',
+                    'InMsgs',
+                    'OutMsgs',
+                    'OutMsgsAttemptFails',
+                    'InMsgsStatusRejectedOriginating' ]
+        for metric in metrics:
+            if metric in parsed['agent']:
+                if opt_debug:
+                    print '%s = %s' % (metric, pprint.pformat(parsed['agent'][metric]))
+                rate = get_rate('amavis.%s' % metric, this_time, saveint(parsed['agent'][metric][0]))
+                perfdata.append(('amavis_%s' % metric, rate))
+        
+        return (state, "; ".join(msg), perfdata)
+
+check_info['amavis'] = {
+    'parse_function':      parse_amavis,
+    'check_function':      check_amavis,
+    'service_description': "Amavis",
+    'has_perfdata':        True,
+    'inventory_function':  inventory_amavis,
+    'group':               'amavis',
+    'default_levels_variable': 'amavis_default_levels',
+}
