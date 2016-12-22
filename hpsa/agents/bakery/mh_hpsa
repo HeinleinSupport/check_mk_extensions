@@ -3,7 +3,13 @@
 
 def bake_mh_hpsa(opsys, conf, conf_dir, plugins_dir):
     if conf:
-        shutil.copy2(local_agents_dir + "/plugins/mh_hpsa", plugins_dir + "/mh_hpsa")
+        target_dir = plugins_dir
+        if 'interval' in conf:
+            target_dir = plugins_dir + "/%d" % conf["interval"]
+            if not os.path.exists(target_dir):
+                os.makedirs(target_dir)
+
+        shutil.copy2(local_agents_dir + "/plugins/mh_hpsa", target_dir + "/mh_hpsa")
 
 bakery_info["mh_hpsa"] = {
     "bake_function" : bake_mh_hpsa,
