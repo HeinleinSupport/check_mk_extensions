@@ -1,0 +1,9 @@
+#!/bin/bash
+
+max=$(cat /proc/sys/net/nf_conntrack_max)
+cur=$(cat /proc/sys/net/netfilter/nf_conntrack_count)
+war=$(($max * 80 / 100))
+cri=$(($max * 90 / 100))
+
+echo "P CONNTRACK count=$cur;$war;$cri;0;$max connections maximum is $max"
+
