@@ -105,3 +105,45 @@ register_check_parameters(
     match_type='dict',
 )
 
+register_rule("agents/" + _("Agent Plugins"),
+    "agent_config:memcached",
+    CascadingDropdown(
+        title = _("Memcached instances (Linux)"),
+        help = _("If you activate this option, then the agent plugin <tt>memcached</tt> will be deployed. "
+                 "For each configured or detected memcached instance there will be one new service with detailed "
+                 "statistics of the current number of clients and processes and their various states."),
+        style = "dropdown",
+        choices = [
+            ( "autodetect", _("Autodetect instances")
+             ),
+            ( "static", _("Specific list of instances"),
+                ListOf(
+                    Tuple(
+                        elements = [
+                            IPv4Address(
+                                title = _("IP Address"),
+                                default_value = "127.0.0.1",
+                            ),
+                            Alternative(
+                                style = "dropdown",
+                                elements = [
+                                    FixedValue(None,
+                                        title = _("Don't use custom port"),
+                                        totext = _("Use default port"),
+                                    ),
+                                    Integer(
+                                        title = _("TCP Port Number"),
+                                        minvalue = 1,
+                                        maxvalue = 65535,
+                                        default_value = 11211,
+                                    ),
+                                ]
+                            ),
+                        ]
+                    ),
+                ),
+            ),
+            ( '_no_deploy', _("Do not deploy the memcached plugin") ),
+        ]
+    ),
+)
