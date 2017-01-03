@@ -20,14 +20,14 @@ graph_info.append({
 
 
 metric_info["auth_cmds"] = {
-    "title" : _("Authorizations Total"),
-    "unit"  : "",
+    "title" : _("Authorizations"),
+    "unit"  : "1/s",
     "color" : "31/a",
 }
 
 metric_info["auth_errors"] = {
     "title" : _("Authorization Errors"),
-    "unit"  : "",
+    "unit"  : "1/s",
     "color" : "13/a",
 }
 
@@ -42,13 +42,13 @@ graph_info.append({
 
 metric_info["bytes_read"] = {
     "title" : _("Read"),
-    "unit"  : "bytes",
+    "unit"  : "bytes/s",
     "color" : "31/a"
 }
 
 metric_info["bytes_written"] = {
     "title" : _("Written"),
-    "unit"  : "bytes",
+    "unit"  : "bytes/s",
     "color" : "41/a"
 }
 
@@ -63,19 +63,19 @@ graph_info.append({
 
 metric_info["get_hits"] = {
     "title" : _("GET Hits"),
-    "unit"  : "",
+    "unit"  : "1/s",
     "color" : "31/a"
 }
 
 metric_info["get_misses"] = {
     "title" : _("GET Misses"),
-    "unit"  : "",
+    "unit"  : "1/s",
     "color" : "13/a"
 }
 
 metric_info["cmd_get"] = {
     "title" : _("GET Commands"),
-    "unit"  : "",
+    "unit"  : "1/s",
     "color" : "23/a"
 }
 
@@ -90,13 +90,13 @@ graph_info.append({
 
 metric_info["cmd_set"] = {
     "title" : _("SET Commands"),
-    "unit"  : "",
+    "unit"  : "1/s",
     "color" : "33/a"
 }
 
 metric_info["cmd_flush"] = {
     "title" : _("Flush Commands"),
-    "unit"  : "",
+    "unit"  : "1/s",
     "color" : "43/a"
 }
 
@@ -113,19 +113,19 @@ graph_info.append({
 
 metric_info["cas_hits"] = {
     "title" : _("CAS hits"),
-    "unit"  : "",
+    "unit"  : "1/s",
     "color" : "32/a"
 }
 
 metric_info["cas_misses"] = {
     "title" : _("CAS misses"),
-    "unit"  : "",
+    "unit"  : "1/s",
     "color" : "22/a"
 }
 
 metric_info["cas_badval"] = {
     "title" : _("CAS bad identifier"),
-    "unit"  : "",
+    "unit"  : "1/s",
     "color" : "12/a"
 }
 
@@ -141,25 +141,25 @@ graph_info.append({
 
 metric_info["incr_hits"] = {
     "title" : _("Increase Hits"),
-    "unit"  : "",
+    "unit"  : "1/s",
     "color" : "42/a"
 }
 
 metric_info["incr_misses"] = {
     "title" : _("Increase misses"),
-    "unit"  : "",
+    "unit"  : "1/s",
     "color" : "12/a"
 }
 
 metric_info["decr_hits"] = {
     "title" : _("Decrease Hits"),
-    "unit"  : "",
+    "unit"  : "1/s",
     "color" : "45/a"
 }
 
 metric_info["decr_misses"] = {
     "title" : _("Decrease misses"),
-    "unit"  : "",
+    "unit"  : "1/s",
     "color" : "15/a"
 }
 
@@ -175,13 +175,13 @@ graph_info.append({
 
 metric_info["delete_hits"] = {
     "title" : _("Delete Hits"),
-    "unit"  : "",
+    "unit"  : "1/s",
     "color" : "43/a"
 }
 
 metric_info["delete_misses"] = {
     "title" : _("Delete misses"),
-    "unit"  : "",
+    "unit"  : "1/s",
     "color" : "13/a"
 }
 
@@ -195,14 +195,14 @@ graph_info.append({
 
 
 metric_info["total_connections"] = {
-    "title" : _("Total Connections"),
-    "unit"  : "",
+    "title" : _("Connections"),
+    "unit"  : "1/s",
     "color" : "33/a",
 }
 
 metric_info["conn_yields"] = {
     "title" : _("Forced connection yields"),
-    "unit"  : "",
+    "unit"  : "1/s",
     "color" : "14/a",
 }
 
@@ -212,21 +212,21 @@ metric_info["curr_connections"] = {
     "color" : "24/a",
 }
 
-metric_info["connections_structures"] = {
+metric_info["connection_structures"] = {
     "title" : _("Connection Structures"),
     "unit"  : "",
     "color" : "44/a",
 }
 
 metric_info["listen_disabled_num"] = {
-    "title" : _("Times listen disabled"),
-    "unit"  : "",
+    "title" : _("Listen disabled"),
+    "unit"  : "1/s",
     "color" : "15/a",
 }
 
 metric_info["total_items"] = {
-    "title" : _("Total Items"),
-    "unit"  : "",
+    "title" : _("Items stored"),
+    "unit"  : "1/s",
     "color" : "33/a",
 }
 
@@ -238,7 +238,7 @@ metric_info["curr_items"] = {
 
 metric_info["reclaimed"] = {
     "title" : _("Items reclaimed"),
-    "unit"  : "",
+    "unit"  : "1/s",
     "color" : "22/a",
 }
 
@@ -260,18 +260,18 @@ metric_info["bytes_percent"] = {
     "color" : "31/a"
 }
 
-metric_info["eviction"] = {
+metric_info["evictions"] = {
     "title" : _("Evictions"),
-    "unit"  : "",
+    "unit"  : "1/s",
     "color" : "21/a"
 }
 
-graph_info.append({
-    "title"   : _("Items"),
-    "metrics" : [
-        ( "total_items", "area" ),
-        ( "curr_items", "line" ),
-    ],
-})
+#graph_info.append({
+#    "title"   : _("Items"),
+#    "metrics" : [
+#        ( "total_items", "area" ),
+#        ( "curr_items", "line" ),
+#    ],
+#})
 
 

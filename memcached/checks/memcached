@@ -42,70 +42,68 @@ memcached_aggregates = [
                                 (float(readings['get_hits']) / float(readings['cmd_get']) * 100.0) or 100.0)
 ]
 
-
 class Uptime(int):
     pass
-
 
 memcached_traits = [
     ("System Information", {
         'pid':                   {'name': "PID", 'type': int},
-        'pointer_size':          {'name': "Architecture", 'type': int},
+        'pointer_size':          {'name': "Architecture", 'type': int, 'lower_bounds': None, 'perfdata': False},
         'uptime':                {'name': "Uptime", 'type': Uptime},
         'version':               {'name': "Version", 'type': str, 'lower_bounds': ("1.4.15", "1.4.15")},
-        'rusage_system':         {'name': "CPU usage system", 'upper_bounds': None},
-        'rusage_user':           {'name': "CPU usage user", 'upper_bounds': None},
+#        'rusage_system':         {'name': "CPU usage system", 'upper_bounds': None},
+#        'rusage_user':           {'name': "CPU usage user", 'upper_bounds': None},
         'threads':               {'name': "Threads", 'upper_bounds': None},
     }),
     ("Operational", {
         'accepting_conns':       {'name': "Accepting Connections", 'type': int, 'fixed': 1},
     }),
     ("Authentification", {
-        'auth_cmds':             {'name': "Authentifications", 'upper_bounds': None},
-        'auth_errors':           {'name': "Failed Authentifications", 'upper_bounds': None},
+        'auth_cmds':             {'name': "Authentifications", 'upper_bounds': None, 'counter': True},
+        'auth_errors':           {'name': "Failed Authentifications", 'upper_bounds': None, 'counter': True},
     }),
     ("Cache Data", {
         'bytes_percent':         {'name': "Cache usage", 'upper_bounds': (80, 90)},
-        'bytes_read':            {'name': "Bytes read", 'upper_bounds': None},
-        'bytes_written':         {'name': "Bytes written", 'upper_bounds': None},
+        'bytes_read':            {'name': "Bytes read", 'upper_bounds': None, 'counter': True},
+        'bytes_written':         {'name': "Bytes written", 'upper_bounds': None, 'counter': True},
         'curr_items':            {'name': "Cached items", 'upper_bounds': None},
-        'evictions':             {'name': "Evictions", 'upper_bounds': (100, 200)},
-        'get_hits':              {'name': "GET hits", 'upper_bounds': None},
-        'get_misses':            {'name': "GET misses", 'upper_bounds': None},
-        'total_connections':     {'name': "Connections", 'upper_bounds': None},
-        'total_items':           {'name': "Items", 'upper_bounds': None},
+        'evictions':             {'name': "Evictions", 'upper_bounds': (100, 200), 'counter': True},
+        'get_hits':              {'name': "GET hits", 'upper_bounds': None, 'counter': True},
+        'get_misses':            {'name': "GET misses", 'upper_bounds': None, 'counter': True},
+        'total_connections':     {'name': "Connections", 'upper_bounds': None, 'counter': True},
+        'total_items':           {'name': "Items", 'upper_bounds': None, 'counter': True},
         'cache_hit_rate':        {'name': "Hit rate", 'lower_bounds': (20, 10)},
     }),
     ("CAS Data", {
-        'cas_badval':            {'name': "CAS bad value", 'upper_bounds': (5,        10)},
-        'cas_hits':              {'name': "CAS hits", 'upper_bounds': None},
-        'cas_misses':            {'name': "CAS misses", 'upper_bounds': None},
+        'cas_badval':            {'name': "CAS bad value", 'upper_bounds': (5, 10), 'counter': True},
+        'cas_hits':              {'name': "CAS hits", 'upper_bounds': None, 'counter': True},
+        'cas_misses':            {'name': "CAS misses", 'upper_bounds': None, 'counter': True},
     }),
     ("Commands", {
-        'cmd_flush':             {'name': "FLUSH commands", 'upper_bounds': (1,        5)},
-        'cmd_get':               {'name': "GET commands", 'upper_bounds': None},
-        'cmd_set':               {'name': "SET commands", 'upper_bounds': None},
+        'cmd_flush':             {'name': "FLUSH commands", 'upper_bounds': (1, 5), 'counter': True},
+        'cmd_get':               {'name': "GET commands", 'upper_bounds': None, 'counter': True},
+        'cmd_set':               {'name': "SET commands", 'upper_bounds': None, 'counter': True},
     }),
     ("Connections", {
         'connection_structures': {'name': "Connection Structures", 'upper_bounds': None},
         'curr_connections':      {'name': "open connections", 'upper_bounds': None},
-        'listen_disabled_num':   {'name': "Times listen disabled", 'upper_bounds': (5,        10)},
+        'listen_disabled_num':   {'name': "Times listen disabled", 'upper_bounds': (5, 10), 'counter': True},
     }),
     ("Connection Overflow", {
-        'conn_yields':           {'name': "Connection yields", 'upper_bounds': (1,        5)},
+        'conn_yields':           {'name': "Connection yields", 'upper_bounds': (1, 5), 'counter': True},
     }),
     ("Increase/Decrease", {
-        'decr_hits':             {'name': "Decrease hits", 'upper_bounds': None},
-        'decr_misses':           {'name': "Decrease misses", 'upper_bounds': None},
-        'incr_hits':             {'name': "Increase hits", 'upper_bounds': None},
-        'incr_misses':           {'name': "Increase misses", 'upper_bounds': None},
+        'decr_hits':             {'name': "Decrease hits", 'upper_bounds': None, 'counter': True},
+        'decr_misses':           {'name': "Decrease misses", 'upper_bounds': None, 'counter': True},
+        'incr_hits':             {'name': "Increase hits", 'upper_bounds': None, 'counter': True},
+        'incr_misses':           {'name': "Increase misses", 'upper_bounds': None, 'counter': True},
     }),
     ("Deletions", {
-        'delete_hits':           {'name': "Delete hits", 'upper_bounds': None},
-        'delete_misses':         {'name': "Delete misses", 'upper_bounds': (1000,     2000)},
+        'delete_hits':           {'name': "Delete hits", 'upper_bounds': None, 'counter': True},
+        'delete_misses':         {'name': "Delete misses", 'upper_bounds': (1000, 2000), 'counter': True},
     }),
     ("Reclaim", {
-        'reclaimed':             {'name': "Reclaimed", 'upper_bounds': None}
+        'reclaimed':             {'name': "Reclaimed", 'upper_bounds': None, 'counter': True}
     })
 ]
 
@@ -134,6 +132,8 @@ def parse_memcached(info):
             raise Exception("expected instance name")
         else:
             instances[current_instance][line[0]] = line[1]
+    if opt_debug:
+        print "parsed = %s" % pprint.pformat(instances)
     return instances
 
 
@@ -143,6 +143,12 @@ def inventory_memcached(parsed):
 
 
 def check_memcached(item, params, parsed):
+    this_time = time.time()
+
+    if opt_debug:
+        print "item = %s" % pprint.pformat(item)
+        print "params = %s" % pprint.pformat(params)
+    
     def expect_order(*args):
         arglist = filter(lambda x: x != None, args)
         sorted_by_val = sorted(enumerate(arglist), key=lambda x: x[1])
@@ -179,6 +185,11 @@ def check_memcached(item, params, parsed):
                     continue
                 count += 1
                 reading = traits.get('type', float)(readings[key])
+                if traits.get('counter', False):
+                    rate = get_rate('%s.%s' % (item, key), this_time, reading)
+                    if opt_debug:
+                        print "%s is a counter, current reading: %s, rate: %s" % (key, reading, rate)
+                    reading = rate
                 if 'upper_bounds' in traits:
                     warn, crit = params.get(key, (None, None))
                     status = expect_order(reading, warn, crit)
@@ -186,7 +197,7 @@ def check_memcached(item, params, parsed):
                         fails = True
                         yield status, "%s = %s (warn/crit at %s/%s)" %\
                             (traits['name'], format_value(reading), warn, crit)
-                    if type(reading) in [int, float]:
+                    if traits.get('perfdata', True) and type(reading) in [int, float]:
                         yield 0, None, [(key, reading, warn, crit)]
 
                 elif 'lower_bounds' in traits:
@@ -196,7 +207,7 @@ def check_memcached(item, params, parsed):
                         fails = True
                         yield status, "%s = %s (warn/crit below %s/%s)" %\
                             (traits['name'], format_value(reading), warn, crit)
-                    if type(reading) in [int, float]:
+                    if traits.get('perfdata', True) and type(reading) in [int, float]:
                         yield 0, None, [(key, reading)]
 
                 elif 'fixed' in traits:
