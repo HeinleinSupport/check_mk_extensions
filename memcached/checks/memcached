@@ -37,9 +37,9 @@
 
 memcached_aggregates = [
     ('bytes_percent',  lambda readings:
-                                float(readings['bytes']) / float(readings['limit_maxbytes'])),
+                                float(readings['bytes']) / float(readings['limit_maxbytes']) * 100.0),
     ('cache_hit_rate', lambda readings: float(readings['cmd_get']) > 0 and
-                                (float(readings['get_hits']) / float(readings['cmd_get'])) or 1.0)
+                                (float(readings['get_hits']) / float(readings['cmd_get']) * 100.0) or 100.0)
 ]
 
 
@@ -50,7 +50,7 @@ class Uptime(int):
 memcached_traits = [
     ("System Information", {
         'pid':                   {'name': "PID", 'type': int},
-        'pointer_size':          {'name': "Architecture", 'fixed': 64},
+        'pointer_size':          {'name': "Architecture", 'type': int},
         'uptime':                {'name': "Uptime", 'type': Uptime},
         'version':               {'name': "Version", 'type': str, 'lower_bounds': ("1.4.15", "1.4.15")},
         'rusage_system':         {'name': "CPU usage system", 'upper_bounds': None},
@@ -65,16 +65,16 @@ memcached_traits = [
         'auth_errors':           {'name': "Failed Authentifications", 'upper_bounds': None},
     }),
     ("Cache Data", {
-        'bytes_percent':         {'name': "Cache usage", 'upper_bounds': (0.8,      0.9)},
+        'bytes_percent':         {'name': "Cache usage", 'upper_bounds': (80, 90)},
         'bytes_read':            {'name': "Bytes read", 'upper_bounds': None},
         'bytes_written':         {'name': "Bytes written", 'upper_bounds': None},
         'curr_items':            {'name': "Cached items", 'upper_bounds': None},
-        'evictions':             {'name': "Evictions", 'upper_bounds': (100,      200)},
+        'evictions':             {'name': "Evictions", 'upper_bounds': (100, 200)},
         'get_hits':              {'name': "GET hits", 'upper_bounds': None},
         'get_misses':            {'name': "GET misses", 'upper_bounds': None},
         'total_connections':     {'name': "Connections", 'upper_bounds': None},
         'total_items':           {'name': "Items", 'upper_bounds': None},
-        'cache_hit_rate':        {'name': "Hit rate", 'lower_bounds': (0.9,      0.8)},
+        'cache_hit_rate':        {'name': "Hit rate", 'lower_bounds': (20, 10)},
     }),
     ("CAS Data", {
         'cas_badval':            {'name': "CAS bad value", 'upper_bounds': (5,        10)},
