@@ -38,11 +38,12 @@ for dir in $CERT_DIRS; do
     if [ -d "$dir" ]; then
 	for certfile in $(grep -l -- '-----BEGIN CERTIFICATE-----' $dir/* 2> /dev/null); do
 
-		cert_enddate="$($OPENSSL x509 -noout -enddate -in $certfile | cut -d "=" -f 2 )"
+		cert_enddate=$($OPENSSL x509 -noout -enddate -in $certfile | cut -d "=" -f 2 )
 		cert_enddate_epoch=$(date --date "$cert_enddate" '+%s')
-		cert_subject="$($OPENSSL x509 -noout -subject -in $certfile | cut -d "=" -f 2-)"
+		cert_subject=$($OPENSSL x509 -noout -subject -in $certfile | cut -d "=" -f 2-)
+		cert_algosign=$($OPENSSL x509 -noout -text -in $certfile | grep -Po -m1 'Signature Algorithm: \K\w+' )
 
-		echo $certfile $cert_enddate_epoch $cert_subject
+		echo $certfile $cert_enddate_epoch $cert_algosign $cert_subject
 	done
     fi
 done

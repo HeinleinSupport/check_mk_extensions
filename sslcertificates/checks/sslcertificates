@@ -15,38 +15,60 @@
 # to the Free Software Foundation, Inc., 51 Franklin St,  Fifth Floor,
 # Boston, MA 02110-1301 USA.
 
-sslcertificates_default_values = ( 90, 60 )
+factory_settings['sslcertificates_default_levels'] = {
+    'age': ( 90, 60 ),
+    'warnalgo': [ 'md5WithRSAEncryption', 'sha1WithRSAEncryption' ],
+    }
 
 def sslcertificates_name(line):
     return line[0]
 
 def inventory_sslcertificates(checkname, info):
-    inventory = []
     for line in info:
-        inventory.append( ( sslcertificates_name(line), "sslcertificates_default_values" ) )
-    return inventory
+        yield sslcertificates_name(line), {}
 
 def check_sslcertificates(item, params, info):
-    warn, crit = params
+    if type(params) == tuple:
+        # old config
+        warn, crit = params
+        warnalgos = factory_settings['sslcertificates_default_values']['algo']
+    else:
+        warn, crit = params.get('age', (0, 0))
+        warnalgos = params.get('warnalgo', [])
+
     for line in info:
         if item == sslcertificates_name(line):
-            import time
             
-            endtime = int(line[1])
+            endtime = saveint(line[1])
             now = int(time.time())
             daysremaining = ( endtime - now ) / 60 / 60 / 24
             rc = 0
 
-            if daysremaining < 0:
-                infotext = "Subject: %s, expired %d days ago on %s" % ( " ".join(line[2:]), abs(daysremaining), time.strftime("%c", time.gmtime(endtime)))
+            algosign = line[2]
+            if algosign[0] == '/':
+                # old agent plugin
+                algosign = ''
+                subj = " ".join(line[2:])
             else:
-                infotext = "Subject: %s, expires in %d days on %s" % ( " ".join(line[2:]), daysremaining, time.strftime("%c", time.gmtime(endtime)))
+                subj = " ".join(line[3:])
+            infotext = "Subject: %s" % subj
+
+            if algosign:
+                infotext += "; Signature Algorithm: %s" % algosign
+                if algosign in warnalgos:
+                    rc = 1
+                    infotext += "(!)"
+
+            if daysremaining < 0:
+                infotext += "; expired %d days ago on %s" % ( abs(daysremaining), time.strftime("%c", time.gmtime(endtime)))
+            else:
+                infotext += "; expires in %d days on %s" % ( daysremaining, time.strftime("%c", time.gmtime(endtime)))
             if daysremaining < crit:
                 rc = 2
             elif daysremaining < warn:
-                rc = 1
+                if rc < 2:
+                    rc = 1
             return (rc, infotext)
-    return (3, "Queue %s not found" % item)
 
 check_info['sslcertificates'] = {
     'check_function':      check_sslcertificates,
@@ -54,4 +76,5 @@ check_info['sslcertificates'] = {
     'has_perfdata':        False,
     'inventory_function':  inventory_sslcertificates,
     'group':               'sslcertificates',
+    'default_levels_variable' : "sslcertificates_default_levels",
 }
