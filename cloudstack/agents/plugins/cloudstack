@@ -98,7 +98,10 @@ if __name__ == "__main__":
         print 'freeSpace\t%d' % (storage['disksizetotal'] - storage['disksizeused'])
         print 'maintenanceMode\tnormal'
         print 'type\tACS-Pool'
-        print 'uncommitted\t%d' % (storage['disksizeallocated'] - storage['disksizeused'])
+        uncommitted = storage['disksizeallocated'] - storage['disksizeused']
+        if uncommitted < 0:
+            uncommitted = 0
+        print 'uncommitted\t%d' % uncommitted
         print 'url\tds:///ACS/%s/%s/%s' % (storage['clustername'], storage['podname'], storage['name'])
     print '<<<local>>>'
     for systemvm in cloudstack.listSystemVms():
