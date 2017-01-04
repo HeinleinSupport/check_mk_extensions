@@ -1,0 +1,101 @@
+#!/usr/bin/python
+# -*- encoding: utf-8; py-indent-offset: 4 -*-
+# +-----------------------------------------------------------------+
+# |                                                                 |
+# |        (  ___ \     | \    /\|\     /||\     /|( (    /|        |
+# |        | (   ) )    |  \  / /| )   ( || )   ( ||  \  ( |        |
+# |        | (__/ /     |  (_/ / | |   | || (___) ||   \ | |        |
+# |        |  __ (      |   _ (  | |   | ||  ___  || (\ \) |        |
+# |        | (  \ \     |  ( \ \ | |   | || (   ) || | \   |        |
+# |        | )___) )_   |  /  \ \| (___) || )   ( || )  \  |        |
+# |        |/ \___/(_)  |_/    \/(_______)|/     \||/    )_)        |
+# |                                                                 |
+# | Copyright Bastian Kuhn 2011                mail@bastian-kuhn.de | 
+# +-----------------------------------------------------------------+
+#
+# This file is a check Script for check_mk
+# Information about me can be found at http://bastian-kuhn.de
+# Information about check_mk at http://mathias-kettner.de/check_mk.
+#
+# This is free software;  you can redistribute it and/or modify it
+# under the  terms of the  GNU General Public License  as published by
+# the Free Software Foundation in version 2.  check_mk is  distributed
+# in the hope that it will be useful, but WITHOUT ANY WARRANTY;  with-
+# out even the implied warranty of  MERCHANTABILITY  or  FITNESS FOR A
+# PARTICULAR PURPOSE. See the  GNU General Public License for more de-
+# ails.  You should have  received  a copy of the  GNU  General Public
+# License along with GNU Make; see the file  COPYING.  If  not,  write
+# to the Free Software Foundation, Inc., 51 Franklin St,  Fifth Floor,
+# Boston, MA 02110-1301 USA.
+
+
+# Example Agent Output
+#<<<dir_size_ls>>>
+#17516   /tmp/
+#626088  /usr/local/
+
+factory_settings['dir_size_ls_default_levels'] = {
+    'unit': 'KB',
+    'warn': None,
+    'crit': None,
+    }
+
+dir_size_ls_factor = {
+    'B': 1,
+    'KB': 1024,
+    'MB': 1024 * 1024,
+    'GB': 1024 * 1024 * 1024,
+    'TB': 1024 * 1024 * 1024 * 1024,
+}
+
+def inventory_dir_size_ls(info):
+    if opt_debug:
+        print info
+    inventory = []
+    for size, path in info:
+        inventory.append((path,None))
+    return inventory
+
+def check_dir_size_ls(item, params, info):
+    if opt_debug:
+        pprint.pprint(item)
+        pprint.pprint(params)
+        pprint.pprint(info)
+    unit, warn, crit = params
+    no_warn, no_crit = False, False
+    
+  
+    if warn == None:
+        warn = 0
+        no_warn = True
+    else:
+        warn = warn * dir_size_ls_factor[unit]
+    if crit == None:
+        crit = 0
+        no_crit = True
+    else:
+        crit = crit * dir_size_ls_factor[unit]
+ 
+    for size, path in info:
+        if path == item:
+            size = saveint(size)
+
+            perf = [("dir_size_ls","%dB" % size, warn, crit)]
+            output = "Folder size: %s (levels at %s / %s)" % (get_bytes_human_readable(size),
+                                                              get_bytes_human_readable(warn),
+                                                              get_bytes_human_readable(crit))
+            if not no_crit and size >= crit:
+                return (2, output, perf)
+            elif not no_warn and size >= warn:
+                return (1, output, perf)
+            else:
+                return (0, output, perf) 
+
+check_info['dir_size_ls'] = {
+    'check_function':          check_dir_size_ls,
+    'service_description':     'Size of %s',
+    'has_perfdata':            True,
+    'inventory_function':      inventory_dir_size_ls,
+    'group':                   'dir_size_ls',
+    'default_levels_variable': 'dir_size_ls_default_levels',
+}

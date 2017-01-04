@@ -1,0 +1,36 @@
+title: Keep an eye on directorys 
+agents: linux
+author: Bastian Kuhn <mail@bastian-kuhn.de>
+license: GPL
+distribution: none
+description:
+ You can monitor the size of all configured directorys
+ HINT: You have to setup the agent. It has to know the directory paths
+
+perfdata:
+ The actual size of the directory
+
+item:
+ The directory path
+
+inventory:
+ Automatic inventory is supported. You just have to configure the agent configuration file dir_size_ls.cfg on
+ the client site.
+
+ dir_size_ls.cfg just lists one directory per line.
+
+ Warning and critical levels can be configured with check_parameters.
+
+examples:
+ check_parameters = [
+  (("MB",300,500),ALL_HOSTS,["Size of /tmp/"]),
+  (("GB",300,500),ALL_HOSTS,["Size of /usr/local/"])
+ ]
+
+[configuration]
+params (3 tuple): unit, warn and crit
+
+[parameters]
+unit (string): B for Bytes, KB for Kilobytes, MB for Megabytes, GB for Gigabytes or TB Terrabytes
+warn (int or None): Warning level
+crit, (int or None): Critical level
