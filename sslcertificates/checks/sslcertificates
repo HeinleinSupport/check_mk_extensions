@@ -44,7 +44,9 @@ def check_sslcertificates(item, params, info):
             daysremaining = ( endtime - now ) / 60 / 60 / 24
             rc = 0
 
-            algosign = line[2]
+            algosign = '/'
+            if len(line) > 2:
+                algosign = line[2]
             if algosign[0] == '/':
                 # old agent plugin
                 algosign = ''
