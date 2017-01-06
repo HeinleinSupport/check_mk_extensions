@@ -26,7 +26,7 @@ def check_hpsa_array(item, params, info):
             else:
                 infotext = " ".join(line)
             if len(line) > 1:
-                if line[1] == 'OK':
+                if line[1] == 'OK' or line[1] == 'Used':
                     rc = 0
                 else:
                     rc = 2
