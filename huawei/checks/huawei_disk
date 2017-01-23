@@ -60,7 +60,7 @@ def check_huawei_disk(item, params, info):
             msg += '; %s' % line[13]
 
             temp = saveint(line[8])
-            tempres, tempmsg, perfdata = check_temperature(temp, params)
+            tempres, tempmsg, perfdata = check_temperature(temp, params, 'huawei_disks_%s' % item)
             if tempres > res:
                 res = tempres
             msg += "; %s" % tempmsg

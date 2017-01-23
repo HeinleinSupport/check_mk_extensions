@@ -35,7 +35,7 @@ def check_huawei_capacity(item, params, info):
         used_mb = saveint(info[0][0])
         size_mb = saveint(info[0][1])
         avail_mb = size_mb - used_mb
-        return df_check_filesystem_list(item, params, [ (item, size_mb, avail_mb) ])
+        return df_check_filesystem_list(item, params, [ (item, size_mb, avail_mb, 0) ])
 
 check_info['huawei_capacity'] = {
     'inventory_function'     : inventory_huawei_capacity,
