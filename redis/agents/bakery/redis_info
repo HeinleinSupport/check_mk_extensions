@@ -1,0 +1,36 @@
+#!/usr/bin/python
+# -*- encoding: utf-8; py-indent-offset: 4 -*-
+
+# Check_MK Redis Info Plugin
+#
+# Copyright 2016, Clemens Steinkogler <c.steinkogler[at]cashpoint.com>
+#
+# Extended 2017, Robert Sander <r.sander@heinlein-support.de>
+#
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+# You should have received a copy of the GNU General Public License
+# along with this program.  If not, see <http://www.gnu.org/licenses/>.
+
+def bake_redis_info(opsys, conf, conf_dir, plugins_dir):
+    res = True
+    if type(conf) == str and conf == '_no_deploy':
+        res = False
+    elif type(conf) == tuple:
+        if conf[0] == "static":
+            f = file(conf_dir + "/redis_info.cfg", "w")
+            f.write(agent_file_header)
+            f.write("instances = %r\n" % conf[1])
+    if res:
+        shutil.copy2(local_agents_dir + "/plugins/redis_info", plugins_dir + "/redis_info")
+
+bakery_info["redis_info"] = {
+    "bake_function": bake_redis_info,
+    "os"           : ["linux", ],
+}

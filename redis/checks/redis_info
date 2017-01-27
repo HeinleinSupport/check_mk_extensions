@@ -1,0 +1,265 @@
+#!/usr/bin/python
+# -*- encoding: utf-8; py-indent-offset: 4 -*-
+
+# Check_MK Redis Info Plugin
+#
+# Copyright 2016, Clemens Steinkogler <c.steinkogler[at]cashpoint.com>
+#
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+# You should have received a copy of the GNU General Public License
+# along with this program.  If not, see <http://www.gnu.org/licenses/>.
+#
+# check_mk --debug -nv --checks=redis_info some.redis-server.dom
+
+# example output
+# <<<redis_info>>>
+# +++ 127.0.0.1:6380 +++
+# Failed to connect to host
+# --- 127.0.0.1:6380 ---
+# +++ 127.0.0.1:6379 +++
+# $1858
+# # Server
+# redis_version:2.8.19
+
+import time
+
+# factory_settings ... is part of version/share/check_mk/modules/check_mk.py
+factory_settings["redis_info_default_values"] = {
+    'config': ((None, None), False),
+}
+
+
+# the inventory function
+def inventory_redis_info(info):
+    if len(info) > 0:
+        hostinfo = ''
+        for line in info:
+            redis_info_item = ''
+            line = " ".join(line)
+            line = str(line)
+            # print("line: '" + line + "'")
+            if line.startswith('+++'):
+                hostinfo = line.strip('+++').strip()
+                # print('hostinfo: ' + hostinfo)
+                continue  # just go to next line
+            elif line.startswith('---'):
+                continue  # end of host-section reached
+            elif line.startswith('$') or line.startswith('#'):
+                continue
+            # endif
+
+            errors = ['Failed', 'Error']
+            if any(error in line for error in errors):
+                redis_info_item = hostinfo + ": error"
+                yield (redis_info_item, "redis_info_default_values")
+            elif ":" in line:
+                line_as_list = line.split(':')
+                redis_info_item = hostinfo + ": " + str(line_as_list[0])
+                yield (redis_info_item, "redis_info_default_values")
+            # endif
+        # endfor
+    # endif
+# enddef
+
+
+# create the perfdata stuff and save new values in counter-file        
+def create_redis_total_commands_perfdata(current_total_commands, last_total_commands, last_total_commands_diff):
+    total_commands_diff = None
+    # parameter_name = "total_commands_processed"
+    if current_total_commands > last_total_commands:  # redis was not restarted
+        current_diff = current_total_commands - last_total_commands
+        total_commands_diff = last_total_commands_diff + current_diff
+        set_item_state('daily_redis_total_commands_diff', total_commands_diff)  # save new daily total commands difference
+    # endif
+
+    if current_total_commands < last_total_commands:  # redis must have been restarted
+        total_commands_diff = last_total_commands_diff + current_total_commands  # we add the amount of new commands to the already known ones
+        set_item_state('daily_redis_total_commands_diff', total_commands_diff)  # save new daily total commands difference
+    # endif
+
+    # return parameter_name, saveint(total_commands_diff)  # return the needed perfdata
+    return saveint(total_commands_diff)  # return the needed perfdata-value
+# enddef
+
+
+def float_or_int(value):
+    if isinstance(value, int):
+        return saveint(value)
+
+    if isinstance(value, float):
+        return savefloat(value)
+
+    if isinstance(value, basestring):
+        value_int = saveint(value)
+        value_float = savefloat(value)
+
+        if str(value_int) == str(value):
+            return value_int
+
+        if str(value_float) == str(value):
+            return value_float
+    # endif
+# enddef
+
+
+# the check function
+def check_redis_info(item, params, info):
+    perfdata = []
+    state = 0
+
+    item_as_list = item.split(": ")
+    host_in_item, hostinfo_in_item = item_as_list
+    info_as_dict = {}
+    create_perfdata = False
+    errors = ['Failed', 'Error']
+    warn, crit = params['config'][0]
+    create_perfdata = params['config'][1]
+    warn_crit_append_string = ""
+    message = ""
+    perfdata_value = None
+    perfdata_value_str = None
+
+    for line in info:
+        line = " ".join(line)
+        line = str(line)
+        if line.startswith('+++'):
+            hostinfo = line.strip('+++').strip()
+            info_as_dict[hostinfo] = {}
+            continue  # just go to next line
+        elif line.startswith('---'):
+            continue  # end of host-section reached
+        else:
+            if any(error in line for error in errors):
+                info_as_dict[hostinfo].update({hostinfo_in_item: str(line)})
+            elif ":" in line:
+                line_as_list = line.split(':')
+                info_as_dict[hostinfo].update({line_as_list[0]: line_as_list[1]})
+        # endif
+    # endfor
+
+    # from pprint import pprint
+    # pprint(info_as_dict)
+
+    # if initial first connection to host fails (e.g. if first inventory is run)
+    if "error" in item:
+        state = 2
+    # else if connection to host was lost or if REDIS is currently not running
+    elif any(error in str(info_as_dict[host_in_item][hostinfo_in_item]) for error in errors):
+        state = 2
+    else:
+        warn = float_or_int(warn)
+        crit = float_or_int(crit)
+        warn_crit_append_string = " (warn/crit at " + str(warn) + "/" + str(crit) + ")"
+        perfdata_value = float_or_int(info_as_dict[host_in_item][hostinfo_in_item])
+
+        bytes_to_mb_for = ['used_memory', 'used_memory_peak', 'used_memory_rss']
+        if hostinfo_in_item in bytes_to_mb_for:
+            perfdata_value = round(float(perfdata_value) / 1024 / 1024, 2)
+            perfdata_value_str = str(perfdata_value) + "MB"
+        else:
+            perfdata_value_str = str(perfdata_value)
+        # endif
+    # endif
+
+    if create_perfdata:
+        # catch total_commands_processed
+        if hostinfo_in_item == "total_commands_processed":
+            # print("hostinfo_in_item: " + str(hostinfo_in_item))
+            date = time.strftime("%Y%m%d")
+            current_redis_total_commands = saveint(perfdata_value)  # current total_commands_processed value
+            daily_redis_total_commands_diff = get_item_state('daily_redis_total_commands_diff')  # we try to get the daily processed total commands
+            # print("daily_redis_total_commands_diff: " + str(daily_redis_total_commands_diff))
+
+            if daily_redis_total_commands_diff is None:  # there was no value found - so this is running the first time
+                # we set the few differnent counters that we need later
+                daily_redis_total_commands_diff = 0
+                set_item_state('daily_redis_total_commands_diff', daily_redis_total_commands_diff)
+                daily_redis_total_commands_date = date
+                set_item_state('daily_redis_total_commands_date', daily_redis_total_commands_date)
+                last_redis_total_commands = current_redis_total_commands
+                set_item_state('last_redis_total_commands', last_redis_total_commands)
+                perfdata_value = saveint(daily_redis_total_commands_diff)
+                # text = "%s: %d" % (parameter, saveint(daily_redis_total_commands_diff))
+            else:  # we found an old value
+                daily_redis_total_commands_date = get_item_state('daily_redis_total_commands_date')  # we get the set date
+                last_redis_total_commands = get_item_state('last_redis_total_commands')  # we get the last total commands processed value
+                # print("daily_redis_total_commands_date: " + str(daily_redis_total_commands_date))
+
+                if daily_redis_total_commands_date == date:  # do we still have the same day?
+                    # print("date: " + str(date) + " daily_redis_total_commands_date: " + str(daily_redis_total_commands_date))
+                    daily_redis_total_commands_diff = get_item_state('daily_redis_total_commands_diff')
+
+                    # we have a function for creating the perfdata stuff, it will also set the new daily_redis_total_commands_diff value
+                    perfdata_value = create_redis_total_commands_perfdata(current_redis_total_commands, last_redis_total_commands, daily_redis_total_commands_diff)
+
+                    # we set the current total commands processed as the last known - so we can calculate the values for the next check run
+                    set_item_state('last_redis_total_commands', current_redis_total_commands)
+                else:  # we have a new day - we must reset the already daily counted total commands processed to 0
+                    daily_redis_total_commands_diff = 0
+                    daily_redis_total_commands_date = date  # we set the new date
+                    set_item_state('daily_redis_total_commands_date', daily_redis_total_commands_date)
+
+                    # we have a function for creating the perfdata stuff, it will also set the new daily_redis_total_commands_diff value
+                    perfdata_value = create_redis_total_commands_perfdata(current_redis_total_commands, last_redis_total_commands, daily_redis_total_commands_diff)
+
+                    # we set the current total commands processed as the last known
+                    set_item_state('last_redis_total_commands', current_redis_total_commands)
+                # endif
+                perfdata_value_str = str(perfdata_value)
+            # endif
+        # endif
+
+        # perfdata = [(label, value*, warn, crit, min, max)]
+        # * can have a unit of measurement:
+        #   + no unit specified - assume a number (int or float) of things (eg, users, processes, load averages)
+        #   + s - seconds (also us, ms)
+        #   + % - percentage
+        #   + B - bytes (also KB, MB, TB, GB?)
+        #   + c - a continous counter (such as bytes transmitted on an interface)
+        if (warn is None) or (crit is None):
+            perfdata = [(hostinfo_in_item, perfdata_value_str)]
+        else:
+            perfdata = [(hostinfo_in_item, perfdata_value_str, warn, crit, 0)]
+        # endif
+    # endif
+
+    if state != 2:
+        message = str(hostinfo_in_item) + ": " + str(perfdata_value_str) + str(warn_crit_append_string)
+    else:
+        try:
+            message = "(!!) An error occured: " + str(info_as_dict[host_in_item][hostinfo_in_item])
+        except KeyError:
+            state = 2
+            message = "(!!) - Item not found, maybe do a Tabula Rasa :o) "
+    # endif
+
+    # we check if warn/crit is set and if we have to change the state
+    if (warn is not None) or (crit is not None) and (state != 2):
+        if float_or_int(perfdata_value) >= crit:  # critical part
+            state = 2
+            message += " (!!)"
+        elif float_or_int(perfdata_value) >= warn:  # warning part
+            state = 1
+            message += " (!)"
+        # endif
+    # endif
+
+    return state, message, perfdata
+# enddef
+
+# declare the check to Check_MK
+check_info["redis_info"] = {
+    'default_levels_variable': "redis_info_default_values",
+    'inventory_function': inventory_redis_info,
+    'check_function': check_redis_info,
+    'service_description': 'Redis info',
+    'has_perfdata': True,
+    'group': "redis_info",
+}

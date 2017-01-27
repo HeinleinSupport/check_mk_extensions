@@ -1,0 +1,15 @@
+title: Check for redis info
+agents: linux
+author: Clemens Steinkogler <c.steinkogler[at]cashpoint.com>
+license: GPL
+distribution: check_mk
+description:
+ This plugin checks for redis info parameters
+
+ The check becomes {critical} or {warning} if there are defined
+ levels reached.
+
+ This is a inventorized check and will create one service for
+ every info parameter found. Default no warn or critical values
+ are set and no graphs will be created unless the corresponding
+ service is configured via WATO.
