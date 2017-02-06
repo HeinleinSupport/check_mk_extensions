@@ -29,8 +29,6 @@ def parse_huawei_lun(info):
     return luninfo
 
 def inventory_huawei_lun(parsed):
-    if opt_debug:
-        pprint.pprint(parsed)
     for item in parsed:
         yield item, {}
 
@@ -41,10 +39,6 @@ def check_huawei_lun(item, params, parsed):
         '3': 'notformat',
         '4': 'formatting',
     }
-    if opt_debug:
-        print item
-        print params
-        print parsed
     if item in parsed:
         res = 0
         msg = 'WWN: %s; pool: %s; state: %s' % (parsed[item][0], parsed[item][11], states[parsed[item][1]])

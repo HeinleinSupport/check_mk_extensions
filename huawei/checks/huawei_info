@@ -21,16 +21,10 @@
 #
 
 def inventory_huawei_info(info):
-    if opt_debug:
-        print info
     if len(info):
         return [(None, {'state': info[0][2]} )]
 
 def check_huawei_info(item, params, info):
-    if opt_debug:
-        print item
-        print params
-        print info
     if len(info):
         msg = '%s; serial: %s; version: %s; state: %s' % (huawei_device_types[saveint(info[0][1])],
                                                           info[0][0],

@@ -23,38 +23,28 @@
 def parse_huawei_port(info):
     portinfo = {}
     for line in info:
-        if opt_debug:
-            print line
         if line[10] != '':
             # FC-Port
             portname = huawei_port_itemname(line[10])
             if portinfo.has_key(portname):
-                pprint.pprint(portinfo)
                 raise KeyError(portname)
             portinfo[portname] = ['FC'] + line[1:10] + line[10:17]
         elif line[17] != '':
             # SAS-Port
             portname = huawei_port_itemname(line[17])
             if portinfo.has_key(portname):
-                pprint.pprint(portinfo)
                 raise KeyError(portname)
             portinfo[portname] =  ['SAS'] + line[1:10] + line[17:23]
         elif line[23] != '':
             # iSCSI-Port
             portname = huawei_port_itemname(line[23])
             if portinfo.has_key(portname):
-                pprint.pprint(portinfo)
                 raise KeyError(portname)
             portinfo[portname] = ['iSCSI'] + line[1:10] + line[23:]
     return portinfo
 
 def inventory_huawei_port(parsed):
-    if opt_debug:
-        print "inventory"
-        print 
     for port in parsed:
-        if opt_debug:
-            print parsed[port]
         if parsed[port][11] != '0':
             params = { 'status': parsed[port][11],
                        'logicType': parsed[port][12],
@@ -76,10 +66,6 @@ def inventory_huawei_port(parsed):
             yield port, params
 
 def check_huawei_port(item, params, parsed):
-    if opt_debug:
-        print item
-        print params
-        print parsed
     if item in parsed:
         portinfo = parsed[item]
         res = 0

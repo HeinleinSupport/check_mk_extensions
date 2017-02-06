@@ -21,18 +21,12 @@
 #
 
 def inventory_huawei_bbu(info):
-    if opt_debug:
-        pprint.pprint(info)
     for line in info:
         yield line[0], { 'runningStatus': line[2] }
 
 def check_huawei_bbu(item, params, info):
     import datetime
     bbu_lifetime = datetime.timedelta(2880) # days
-    if opt_debug:
-        print item
-        print params
-        print info
     for line in info:
         if line[0] == item:
             res = 0

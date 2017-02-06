@@ -21,16 +21,10 @@
 #
 
 def inventory_huawei_nasfs(info):
-    if opt_debug:
-        pprint.pprint(info)
     for line in info:
         yield line[1], None
 
 def check_huawei_nasfs(item, params, info):
-    if opt_debug:
-        print item
-        pprint.pprint(params)
-        pprint.pprint(info)
     for line in info:
         if item == line[1]:
             if line[4]:
@@ -49,9 +43,7 @@ def check_huawei_nasfs(item, params, info):
                 msg.append('State: unknown %s(?)' % state)
 
             res = df_check_filesystem_list(item, params, [ (item, saveint(line[6]), saveint(line[7]), 0) ])
-            if opt_debug:
-                pprint.pprint(res)
-                
+
             return (res[0], "; ".join(msg + [res[1]]), res[2])
 
 check_info['huawei_nasfs'] = {

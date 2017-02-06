@@ -21,16 +21,10 @@
 #
 
 def inventory_huawei_capacity(info):
-    if opt_debug:
-        print info
     if len(info):
         return [('Total Capacity', None)]
 
 def check_huawei_capacity(item, params, info):
-    if opt_debug:
-        print item
-        print params
-        print info
     if item == 'Total Capacity':
         used_mb = saveint(info[0][0])
         size_mb = saveint(info[0][1])

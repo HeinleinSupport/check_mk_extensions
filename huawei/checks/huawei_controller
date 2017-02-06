@@ -21,16 +21,10 @@
 #
 
 def inventory_huawei_controller(info):
-    if opt_debug:
-        pprint.pprint(info)
     for line in info:
         yield line[0], { 'runningStatus': line[3] }
 
 def check_huawei_controller(item, params, info):
-    if opt_debug:
-        print item
-        print params
-        print info
     for name, location, healthStatus, runningStatus, softVer, isMaster, BIOSVer in info:
         if name == item:
             res = 0

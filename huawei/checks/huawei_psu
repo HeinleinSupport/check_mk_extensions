@@ -21,16 +21,10 @@
 #
 
 def inventory_huawei_psu(info):
-    if opt_debug:
-        pprint.pprint(info)
     for line in info:
         yield line[0], { 'runningStatus': line[2] }
 
 def check_huawei_psu(item, params, info):
-    if opt_debug:
-        print item
-        print params
-        print info
     for line in info:
         if line[0] == item:
             res = 0
