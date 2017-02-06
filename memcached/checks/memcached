@@ -132,8 +132,6 @@ def parse_memcached(info):
             raise Exception("expected instance name")
         else:
             instances[current_instance][line[0]] = line[1]
-    if opt_debug:
-        print "parsed = %s" % pprint.pformat(instances)
     return instances
 
 
@@ -145,10 +143,6 @@ def inventory_memcached(parsed):
 def check_memcached(item, params, parsed):
     this_time = time.time()
 
-    if opt_debug:
-        print "item = %s" % pprint.pformat(item)
-        print "params = %s" % pprint.pformat(params)
-    
     def expect_order(*args):
         arglist = filter(lambda x: x != None, args)
         sorted_by_val = sorted(enumerate(arglist), key=lambda x: x[1])
@@ -187,8 +181,6 @@ def check_memcached(item, params, parsed):
                 reading = traits.get('type', float)(readings[key])
                 if traits.get('counter', False):
                     rate = get_rate('%s.%s' % (item, key), this_time, reading)
-                    if opt_debug:
-                        print "%s is a counter, current reading: %s, rate: %s" % (key, reading, rate)
                     reading = rate
                 if 'upper_bounds' in traits:
                     warn, crit = params.get(key, (None, None))
