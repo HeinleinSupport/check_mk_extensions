@@ -22,7 +22,7 @@ if [ ! -x "$OPENSSL" ]; then
   exit
 fi
 
-CERT_DIRS="/etc/ssl/certs"
+CERT_DIRS=("/etc/ssl/certs")
 
 CONFIG_FILE="$MK_CONFDIR/sslcertificates"
 
@@ -34,7 +34,7 @@ fi
 
 echo '<<<sslcertificates>>>'
 
-for dir in $CERT_DIRS; do
+for dir in ${CERT_DIRS[@]}; do
     if [ -d "$dir" ]; then
 	for certfile in $(grep -l -- '-----BEGIN CERTIFICATE-----' $dir/* 2> /dev/null); do
 
