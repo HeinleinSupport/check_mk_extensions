@@ -16,8 +16,8 @@
 # Boston, MA 02110-1301 USA.
 
 factory_settings['otrs_default_levels'] = {
-	'absolute': ( 50, 100 ),
-	}
+    'levels': [ (['new'], ( 50, 100 )) ],
+}
 
 def otrs_name(line):
     return "%s %02d" % (line[0], saveint(line[1]))
@@ -38,9 +38,22 @@ def inventory_otrs(checkname, info):
     return inventory
 
 def check_otrs(item, params, info):
-    warn, crit = params['absolute']
     otrs = otrs_data(info)
 
+    if opt_debug:
+        print 'item = %s' % pprint.pformat(item)
+        print 'params = %s' % pprint.pformat(params)
+        print 'otrs = %s' % pprint.pformat(otrs)
+
+    paramstate = {}
+    if type(params) == dict:
+        if 'levels' in params:
+            for listofstates, levels in params['levels']:
+                for state in listofstates:
+                    paramstate[state] = levels
+    if opt_debug:
+        print 'paramstate = %s' % pprint.pformat(paramstate)
+                    
     for queue in otrs.keys():
         if item == queue:
             perfdata = []
@@ -49,15 +62,27 @@ def check_otrs(item, params, info):
             for ticket_state in otrs[queue].keys():
                 total = otrs[queue][ticket_state]['total']
                 state = otrs[queue][ticket_state]['state']
-                perfdata.append((state.replace(' ', '_').replace(',', '_').replace('.', '_'), total, warn, crit))
-                if total > crit:
-                    rc = 2
-                    msgtxt.append("%d %s (!!)" % (total, state))
-                elif total > warn:
-                    rc = 1
-                    msgtxt.append("%d %s (!)" % (total, state))
+                dsname = state.replace(' ', '_').replace(',', '_').replace('.', '_')
+                has_no_param = False
+                if state in paramstate:
+                    if type(paramstate[state]) == tuple:
+                        perfdata.append((dsname, total, paramstate[state][0], paramstate[state][1]))
+                    else:
+                        perfdata.append((dsname, total))
+                    if paramstate[state]:
+                        res, text, perf = check_levels(total, dsname, paramstate[state], unit='tickets')
+                        if opt_debug:
+                            print '%s res = %s' % (dsname, pprint.pformat(res))
+                            print '%s text = %s' % (dsname, pprint.pformat(text))
+                            print '%s perf = %s' % (dsname, pprint.pformat(perf))
+                        if res > rc:
+                            rc = res
+                        msgtxt.append('%d %s%s%s' % (total, state, state_markers[res], text))
+                    else:
+                        msgtxt.append('%d %s' % (total, state))
                 else:
-                    msgtxt.append("%d %s" % (total, state))
+                    msgtxt.append('%d %s' % (total, state))
+                    perfdata.append((dsname, total))
             return (rc, "; ".join(msgtxt), perfdata)
     return (3, "Queue %s not found" % item, [])
 
@@ -69,4 +94,3 @@ check_info['otrs'] = {
     'group':               'otrs',
     'default_levels_variable'  : "otrs_default_levels",
 }
-
