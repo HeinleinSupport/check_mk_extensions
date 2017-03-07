@@ -78,6 +78,7 @@ def check_otrs(item, params, info):
                         if res > rc:
                             rc = res
                         msgtxt.append('%d %s%s%s' % (total, state, state_markers[res], text))
+                        perfdata += perf
                     else:
                         msgtxt.append('%d %s' % (total, state))
                 else:
