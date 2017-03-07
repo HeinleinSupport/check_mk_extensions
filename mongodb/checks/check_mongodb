@@ -19,8 +19,6 @@
 
 def check_mongodb_arguments(params):
 
-    print params
-
     action, settings, maxlag, mappedmem, ssl, replicaset, perfdata = params
 
     if 'hostname' in settings:
