@@ -49,7 +49,7 @@ def check_otrs(item, params, info):
             for ticket_state in otrs[queue].keys():
                 total = otrs[queue][ticket_state]['total']
                 state = otrs[queue][ticket_state]['state']
-                perfdata.append((state, total, warn, crit))
+                perfdata.append((state.replace(' ', '_').replace(',', '_').replace('.', '_'), total, warn, crit))
                 if total > crit:
                     rc = 2
                     msgtxt.append("%d %s (!!)" % (total, state))
