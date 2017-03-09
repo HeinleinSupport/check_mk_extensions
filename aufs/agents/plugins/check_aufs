@@ -1,0 +1,18 @@
+#!/bin/bash
+
+echo '<<<local>>>'
+
+awk '/aufs/ { print $2;}' < /proc/mounts | sort -u | while read dir; do
+    res=0
+    msg='File created successfully:'
+    tmpfile=$(waitmax 3 mktemp -p "$dir" 2> /dev/null ) || res=2
+    if [ $res -eq 2 ]; then
+        msg='Unable to create file'
+    else
+        waitmax 3 rm -f $tmpfile 2> /dev/null || res=2
+        if [ $res -eq 2 ]; then
+            msg="Unable to delete"
+        fi
+    fi
+    echo $res aufs_$(echo $dir | tr " " "_") - $msg $tmpfile
+done
