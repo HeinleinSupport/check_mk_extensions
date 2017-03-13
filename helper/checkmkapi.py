@@ -55,7 +55,7 @@ class WATOAPI():
                 print params['action']
                 pprint(data)
                 import urllib
-                print "curl '%s?%s' -d 'request=%s'" % (api_url, urllib.urlencode(params), json.dumps(data))
+                print "curl '%s?%s' -d 'request=%s'" % (self.api_url, urllib.urlencode(params), json.dumps(data))
                 raise RuntimeError('%s: %s' % ( errmsg, resp['result'] ))
             else:
                 print '%s: %s' % ( errmsg, resp['result'] )
