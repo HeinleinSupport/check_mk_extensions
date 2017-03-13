@@ -12,6 +12,7 @@ import pprint
 
 # for hypervisor hosts without FQDN
 appenddomain = '.heinlein-hosting.de'
+sites = ['heinlein']
 
 parser = argparse.ArgumentParser()
 parser.add_argument('-s', '--url', required=True, help='URL to Check_MK site')
@@ -43,4 +44,4 @@ for host in hosts.keys():
         changes = True
         wato.edit_host(host, set_attr={'parents': [ hosts[host] ]})
 if changes:
-    wato.activate()
+    wato.activate(sites)
