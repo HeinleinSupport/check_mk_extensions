@@ -83,11 +83,15 @@ class WATOAPI():
                                 errmsg='Error adding host %s' % hostname)
 
     def edit_host(self, hostname, set_attr={}, unset_attr = [], nodes = []):
+        data = {'hostname': hostname}
+        if set_attr:
+            data['attributes'] = set_attr
+        if unset_attr:
+            data['unset_attributes'] = unset_attr
+        if nodes:
+            data['nodes'] = nodes
         return self.api_request(params=self.api_edit_host,
-                                data={'hostname': hostname,
-                                      'attributes': set_attr,
-                                      'unset_attributes': unset_attr,
-                                      'nodes': nodes},
+                                data=data,
                                 errmsg='Error updating host %s' % hostname)
 
     def delete_host(self, hostname):
