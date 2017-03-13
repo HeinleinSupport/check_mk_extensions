@@ -105,8 +105,11 @@ class WATOAPI():
                                 errmsg='Error discovering host %s' % hostname,
                                 fail=fail)
 
-    def activate(self):
-        return self.api_request(params=self.api_activate)
+    def activate(self, sites=[]):
+        if sites:
+            return self.api_request(params=self.api_activate, data={'sites': sites})
+        else:
+            return self.api_request(params=self.api_activate)
 
 class MultisiteAPI():
     def __init__(self, site_url, api_user, api_secret):
