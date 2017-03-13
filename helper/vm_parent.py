@@ -10,6 +10,9 @@ import argparse
 import checkmkapi
 import pprint
 
+# for hypervisor hosts without FQDN
+appenddomain = '.heinlein-hosting.de'
+
 parser = argparse.ArgumentParser()
 parser.add_argument('-s', '--url', required=True, help='URL to Check_MK site')
 parser.add_argument('-u', '--username', required=True, help='name of the Automation user')
@@ -24,16 +27,20 @@ hosts = {}
 for item in resp:
     if item['svc_plugin_output'].startswith('OK - Running on '):
         hosts[item['host']] = item['svc_plugin_output'][16:]
+        if '.' not in hosts[item['host']]:
+            hosts[item['host']] += appenddomain
 
-# pprint.pprint(hosts)
+watohosts = wato.get_all_hosts()
 
 changes = False
 for host in hosts.keys():
-    watohost = wato.get_host(host)
+    if host in watohosts:
+        watohost = watohosts[host]
+    else:
+        continue
     if watohost['attributes']['parents'] != [ hosts[host] ]:
         print "%s gets %s as parent" % (host, hosts[host])
         changes = True
-        # wato.edit_host(host, set_attr={'parents': [ hosts[host] ]})
+        wato.edit_host(host, set_attr={'parents': [ hosts[host] ]})
 if changes:
-    # wato.activate()
-    pass
+    wato.activate()
