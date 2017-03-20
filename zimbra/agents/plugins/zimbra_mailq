@@ -1,8 +1,8 @@
 #!/bin/bash
 
-if [ -x /opt/zimbra/postfix/sbin/postconf ] ; then
+if [ -x /opt/zimbra/bin/postconf ] ; then
     echo '<<<postfix_mailq>>>'
-    postfix_queue_dir=$(/opt/zimbra/postfix/sbin/postconf -h queue_directory)
+    postfix_queue_dir=$(/opt/zimbra/bin/postconf -h queue_directory)
     postfix_count=$(find $postfix_queue_dir/deferred -type f | wc -l)
     postfix_size=$(du -ks $postfix_queue_dir/deferred | awk '{print $1 }')
     if [ $postfix_count -gt 0 ]
