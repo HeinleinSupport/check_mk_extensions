@@ -30,6 +30,8 @@ for item in resp:
         hosts[item['host']] = item['svc_plugin_output'][16:]
         if '.' not in hosts[item['host']]:
             hosts[item['host']] += appenddomain
+    else:
+        hosts[item['host']] = False
 
 watohosts = wato.get_all_hosts()
 
@@ -40,8 +42,13 @@ for host in hosts.keys():
     else:
         continue
     if watohost['attributes']['parents'] != [ hosts[host] ]:
-        print "%s gets %s as parent" % (host, hosts[host])
-        changes = True
-        wato.edit_host(host, set_attr={'parents': [ hosts[host] ]})
+        if hosts[host]:
+            print "%s gets %s as parent" % (host, hosts[host])
+            wato.edit_host(host, set_attr={'parents': [ hosts[host] ]})
+            changes = True
+        elif len(watohost['attributes']['parents']) == 1:
+            print "%s gets no specific parent" % (host, hosts[host])
+            wato.edit_host(host, unset_attr=['parents'])
+            changes = True
 if changes:
     wato.activate(sites)
