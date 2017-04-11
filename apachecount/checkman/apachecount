@@ -1,0 +1,21 @@
+title: Apache Request Statistics
+agents: linux
+catalog: app/apache
+license: GPL
+distribution: heinlein
+description:
+ This check measures and checks the number of requests
+ per second and their status code handled by an Apache web
+ server.
+
+ A logfile reader daemon has to be installed on the
+ Apache hosts to gather the statistics from tailing
+ an Apache logfile, writing them to a spoolfile the Check_MK
+ agent is able to pick up.
+
+perfdata:
+ Every HTTP status code generates a metric. They can be
+ summarized by blocks of hundred.
+
+inventory:
+ Automatically.

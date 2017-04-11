@@ -1,0 +1,10 @@
+[Unit]
+Description=apachecount for Check_MK
+
+[Service]
+EnvironmentFile=/etc/default/apachecount
+Environment=PYTHONUNBUFFERED=true
+ExecStart=/usr/sbin/apachecount.py -l $LOGFILE -o $OUTPUT -s $SLEEP $DEBUG
+
+[Install]
+WantedBy=multi-user.target
