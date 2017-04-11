@@ -107,7 +107,9 @@ class WATOAPI():
 
     def activate(self, sites=[]):
         if sites:
-            return self.api_request(params=self.api_activate, data={'sites': sites})
+            params = {'mode': 'specific'}
+            params.update(self.api_activate)
+            return self.api_request(params=params, data={'sites': sites})
         else:
             return self.api_request(params=self.api_activate)
 
