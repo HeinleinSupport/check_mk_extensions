@@ -16,56 +16,56 @@
 # to the Free Software Foundation, Inc., 51 Franklin St,  Fifth Floor,
 # Boston, MA 02110-1301 USA.
 
-def parse_dell_sc_encltemp(info):
-    enclid = 1
-    encltempid = 0
+def parse_dell_sc_ctlrtemp(info):
+    ctlrid = 1
+    ctlrtempid = 0
     res = []
     for line in info:
-        if encltempid >= saveint(line[0]):
-            enclid += 1
-        line += [enclid]
-        encltempid = saveint(line[0])
+        if ctlrtempid >= saveint(line[0]):
+            ctlrid += 1
+        line += [ctlrid]
+        ctlrtempid = saveint(line[0])
         res.append(line)
     return res
 
-def item_dell_sc_encltemp(line):
-    return "Encl %d Temp %s" % (line[4], line[0])
+def item_dell_sc_ctlrtemp(line):
+    return "Ctlr %d Temp %s" % (line[4], line[0])
 
-def inventory_dell_sc_encltemp(info):
+def inventory_dell_sc_ctlrtemp(info):
     for line in info:
-        yield item_dell_sc_encltemp(line), None
+        yield item_dell_sc_ctlrtemp(line), None
 
-def check_dell_sc_encltemp(item, params, info):
+def check_dell_sc_ctlrtemp(item, params, info):
     state = {
         1  : ('up', 0),
         2  : ('down', 2),
         3  : ('degraded', 1),
         }
     for line in info:
-        if item_dell_sc_encltemp(line) == item:
-            encltemp_state = state.get(saveint(line[1]), ('unknown', 3))
+        if item_dell_sc_ctlrtemp(line) == item:
+            ctlrtemp_state = state.get(saveint(line[1]), ('unknown', 3))
             temp_state, temp_text, perfdata = check_temperature(saveint(line[3]),
                                                                 params,
-                                                                'dell_sc_encltemp_%s' % item,
-                                                                dev_status = encltemp_state[1],
-                                                                dev_status_name = 'State is %s' % encltemp_state[0])
+                                                                'dell_sc_ctlrtemp_%s' % item,
+                                                                dev_status = ctlrtemp_state[1],
+                                                                dev_status_name = 'State is %s' % ctlrtemp_state[0])
             info_text = "%s, Temperature is %s" % (
                 line[2],
                 temp_text,
             )
             return temp_state, info_text, perfdata
 
-check_info["dell_sc_encltemp"] = {
-    'parse_function'        : parse_dell_sc_encltemp,
-    'check_function'        : check_dell_sc_encltemp,
-    'inventory_function'    : inventory_dell_sc_encltemp,
+check_info["dell_sc_ctlrtemp"] = {
+    'parse_function'        : parse_dell_sc_ctlrtemp,
+    'check_function'        : check_dell_sc_ctlrtemp,
+    'inventory_function'    : inventory_dell_sc_ctlrtemp,
     'service_description'   : 'Dell SC %s',
     'has_perfdata'          : True,
-    'snmp_info'             : ('.1.3.6.1.4.1.674.11000.2000.500.1.2.23.1', [
-        '2',    # scEnclTempNbr
-        '3',    # scEnclTempStatus
-        '4',    # scEnclTempLocation
-        '5',    # scEnclTempCurrentC
+    'snmp_info'             : ('.1.3.6.1.4.1.674.11000.2000.500.1.2.19.1', [
+        '2',    # scCtlrTempNbr
+        '3',    # scCtlrTempStatus
+        '4',    # scCtlrTempName
+        '5',    # scCtlrTempCurrentC
         ] ),
     'snmp_scan_function'    : lambda oid: oid(".1.3.6.1.4.1.674.11000.2000.500.1.2.1.0") != None,
     'includes'              : [ 'temperature.include' ],

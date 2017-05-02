@@ -16,50 +16,50 @@
 # to the Free Software Foundation, Inc., 51 Franklin St,  Fifth Floor,
 # Boston, MA 02110-1301 USA.
 
-def parse_dell_sc_power(info):
+def parse_dell_sc_ctlrpower(info):
     enclid = 1
-    powerid = 0
+    ctlrpowerid = 0
     res = []
     for line in info:
-        if powerid >= saveint(line[0]):
+        if ctlrpowerid >= saveint(line[0]):
             enclid += 1
         line += [enclid]
-        powerid = saveint(line[0])
+        ctlrpowerid = saveint(line[0])
         res.append(line)
     return res
 
-def item_dell_sc_power(line):
-    return "Encl %d Power %s" % (line[3], line[0])
+def item_dell_sc_ctlrpower(line):
+    return "Ctlr %d Power %s" % (line[3], line[0])
 
-def inventory_dell_sc_power(info):
+def inventory_dell_sc_ctlrpower(info):
     for line in info:
-        yield item_dell_sc_power(line), None
+        yield item_dell_sc_ctlrpower(line), None
 
-def check_dell_sc_power(item, params, info):
+def check_dell_sc_ctlrpower(item, params, info):
     state = {
         1  : ('up', 0),
         2  : ('down', 2),
         3  : ('degraded', 1),
         }
     for line in info:
-        if item_dell_sc_power(line) == item:
-            power_state = state.get(saveint(line[1]), ('unknown', 3))
+        if item_dell_sc_ctlrpower(line) == item:
+            ctlrpower_state = state.get(saveint(line[1]), ('unknown', 3))
             info_text = "%s, State is %s" % (
                 line[2],
-                power_state[0]
+                ctlrpower_state[0]
             )
-            return power_state[1], info_text
+            return ctlrpower_state[1], info_text
 
-check_info["dell_sc_power"] = {
-    'parse_function'        : parse_dell_sc_power,
-    'check_function'        : check_dell_sc_power,
-    'inventory_function'    : inventory_dell_sc_power,
+check_info["dell_sc_ctlrpower"] = {
+    'parse_function'        : parse_dell_sc_ctlrpower,
+    'check_function'        : check_dell_sc_ctlrpower,
+    'inventory_function'    : inventory_dell_sc_ctlrpower,
     'service_description'   : 'Dell SC %s',
     'has_perfdata'          : False,
-    'snmp_info'             : ('.1.3.6.1.4.1.674.11000.2000.500.1.2.21.1', [
-            '2',    # scEnclPowerNbr
-            '3',    # scEnclPowerStatus
-            '4',    # scEnclPowerPosition
+    'snmp_info'             : ('.1.3.6.1.4.1.674.11000.2000.500.1.2.17.1', [
+            '2',    # scCtlrPowerNbr
+            '3',    # scCtlrPowerStatus
+            '4',    # scCtlrPowerName
         ] ),
     'snmp_scan_function'    : lambda oid: oid(".1.3.6.1.4.1.674.11000.2000.500.1.2.1.0") != None,
 }

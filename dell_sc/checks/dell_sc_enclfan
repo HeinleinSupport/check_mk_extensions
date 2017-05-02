@@ -21,7 +21,7 @@ def parse_dell_sc_enclfan(info):
     enclfanid = 0
     res = []
     for line in info:
-        if enclfanid > saveint(line[0]):
+        if enclfanid >= saveint(line[0]):
             enclid += 1
         line += [enclid]
         enclfanid = saveint(line[0])
@@ -29,7 +29,7 @@ def parse_dell_sc_enclfan(info):
     return res
 
 def item_dell_sc_enclfan(line):
-    return "%d Fan %s" % (line[4], line[0])
+    return "Encl %d Fan %s" % (line[4], line[0])
 
 def inventory_dell_sc_enclfan(info):
     for line in info:
@@ -55,7 +55,7 @@ check_info["dell_sc_enclfan"] = {
     'parse_function'        : parse_dell_sc_enclfan,
     'check_function'        : check_dell_sc_enclfan,
     'inventory_function'    : inventory_dell_sc_enclfan,
-    'service_description'   : 'Dell SC Enclosure %s',
+    'service_description'   : 'Dell SC %s',
     'has_perfdata'          : False,
     'snmp_info'             : ('.1.3.6.1.4.1.674.11000.2000.500.1.2.20.1', [
         '2',    # scEnclFanNbr

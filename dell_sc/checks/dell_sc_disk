@@ -16,7 +16,6 @@
 # to the Free Software Foundation, Inc., 51 Franklin St,  Fifth Floor,
 # Boston, MA 02110-1301 USA.
 
-
 def inventory_dell_sc_disk(info):
     for line in info:
         yield line[2], None
@@ -30,9 +29,13 @@ def check_dell_sc_disk(item, params, info):
     for line in info:
         if line[2] == item:
             disk_state = state.get(saveint(line[1]), ('unknown', 3))
-            info_text = "Enclosure %s, Size %s GB, State is %s" % (
+            info_text = "Enclosure %s, Size %s GB, Serial: %s (%s %s %s), State is %s" % (
                 line[5],
                 line[4],
+                line[6],
+                line[7],
+                line[8],
+                line[9],
                 disk_state[0]
             )
             return disk_state[1], info_text
@@ -42,13 +45,17 @@ check_info["dell_sc_disk"] = {
     'inventory_function'    : inventory_dell_sc_disk,
     'service_description'   : 'Dell SC Disk %s',
     'has_perfdata'          : False,
-    'snmp_info'             : ('.1.3.6.1.4.1.674.11000.2000.500.1.2.14.1', [
-        '2',    # scDiskNbr
-        '3',    # scDiskStatus
-        '4',    # scDiskNamePosition
-        '5',    # scDiskHealthy
-        '9',    # scDiskSize
-        '11',   # scDiskEnclosure
+    'snmp_info'             : ('.1.3.6.1.4.1.674.11000.2000.500.1.2', [
+        '14.1.2',    # scDiskNbr
+        '14.1.3',    # scDiskStatus
+        '14.1.4',    # scDiskNamePosition
+        '14.1.5',    # scDiskHealthy
+        '14.1.9',    # scDiskSize
+        '14.1.11',   # scDiskEnclosure
+        '45.1.3',    # scDiskConfigSerial
+        '45.1.4',    # scDiskConfigVendor
+        '45.1.5',    # scDiskConfigProduct
+        '45.1.7'     # scDiskConfigRev
         ] ),
     'snmp_scan_function'    : lambda oid: oid(".1.3.6.1.4.1.674.11000.2000.500.1.2.1.0") != None,
 }
