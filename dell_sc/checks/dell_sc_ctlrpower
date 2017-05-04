@@ -16,20 +16,9 @@
 # to the Free Software Foundation, Inc., 51 Franklin St,  Fifth Floor,
 # Boston, MA 02110-1301 USA.
 
-def parse_dell_sc_ctlrpower(info):
-    enclid = 1
-    ctlrpowerid = 0
-    res = []
-    for line in info:
-        if ctlrpowerid >= saveint(line[0]):
-            enclid += 1
-        line += [enclid]
-        ctlrpowerid = saveint(line[0])
-        res.append(line)
-    return res
-
 def item_dell_sc_ctlrpower(line):
-    return "Ctlr %d Power %s" % (line[3], line[0])
+    ctlr, power = line[0].split('.')
+    return "Ctlr %s Power %s" % (ctlr, power)
 
 def inventory_dell_sc_ctlrpower(info):
     for line in info:
@@ -51,13 +40,12 @@ def check_dell_sc_ctlrpower(item, params, info):
             return ctlrpower_state[1], info_text
 
 check_info["dell_sc_ctlrpower"] = {
-    'parse_function'        : parse_dell_sc_ctlrpower,
     'check_function'        : check_dell_sc_ctlrpower,
     'inventory_function'    : inventory_dell_sc_ctlrpower,
     'service_description'   : 'Dell SC %s',
     'has_perfdata'          : False,
     'snmp_info'             : ('.1.3.6.1.4.1.674.11000.2000.500.1.2.17.1', [
-            '2',    # scCtlrPowerNbr
+            OID_END,    # scCtlrPowerNbr
             '3',    # scCtlrPowerStatus
             '4',    # scCtlrPowerName
         ] ),

@@ -16,20 +16,9 @@
 # to the Free Software Foundation, Inc., 51 Franklin St,  Fifth Floor,
 # Boston, MA 02110-1301 USA.
 
-def parse_dell_sc_power(info):
-    enclid = 1
-    powerid = 0
-    res = []
-    for line in info:
-        if powerid >= saveint(line[0]):
-            enclid += 1
-        line += [enclid]
-        powerid = saveint(line[0])
-        res.append(line)
-    return res
-
 def item_dell_sc_power(line):
-    return "Encl %d Power %s" % (line[3], line[0])
+    encl, power = line[0].split('.')
+    return "Encl %s Power %s" % (encl, power)
 
 def inventory_dell_sc_power(info):
     for line in info:
@@ -51,13 +40,12 @@ def check_dell_sc_power(item, params, info):
             return power_state[1], info_text
 
 check_info["dell_sc_power"] = {
-    'parse_function'        : parse_dell_sc_power,
     'check_function'        : check_dell_sc_power,
     'inventory_function'    : inventory_dell_sc_power,
     'service_description'   : 'Dell SC %s',
     'has_perfdata'          : False,
     'snmp_info'             : ('.1.3.6.1.4.1.674.11000.2000.500.1.2.21.1', [
-            '2',    # scEnclPowerNbr
+            OID_END,    # Encl + Power
             '3',    # scEnclPowerStatus
             '4',    # scEnclPowerPosition
         ] ),

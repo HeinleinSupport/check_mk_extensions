@@ -16,20 +16,9 @@
 # to the Free Software Foundation, Inc., 51 Franklin St,  Fifth Floor,
 # Boston, MA 02110-1301 USA.
 
-def parse_dell_sc_enclfan(info):
-    enclid = 1
-    enclfanid = 0
-    res = []
-    for line in info:
-        if enclfanid >= saveint(line[0]):
-            enclid += 1
-        line += [enclid]
-        enclfanid = saveint(line[0])
-        res.append(line)
-    return res
-
 def item_dell_sc_enclfan(line):
-    return "Encl %d Fan %s" % (line[4], line[0])
+    encl, fan = line[0].split('.')
+    return "Encl %s Fan %s" % (encl, fan)
 
 def inventory_dell_sc_enclfan(info):
     for line in info:
@@ -52,13 +41,12 @@ def check_dell_sc_enclfan(item, params, info):
             return enclfan_state[1], info_text
 
 check_info["dell_sc_enclfan"] = {
-    'parse_function'        : parse_dell_sc_enclfan,
     'check_function'        : check_dell_sc_enclfan,
     'inventory_function'    : inventory_dell_sc_enclfan,
     'service_description'   : 'Dell SC %s',
     'has_perfdata'          : False,
     'snmp_info'             : ('.1.3.6.1.4.1.674.11000.2000.500.1.2.20.1', [
-        '2',    # scEnclFanNbr
+        OID_END,    # encl + fan
         '3',    # scEnclFanStatus
         '4',    # scEnclFanLocation
         '5',    # scEnclFanCurrentS

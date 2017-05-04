@@ -16,20 +16,9 @@
 # to the Free Software Foundation, Inc., 51 Franklin St,  Fifth Floor,
 # Boston, MA 02110-1301 USA.
 
-def parse_dell_sc_ctlrfan(info):
-    enclid = 1
-    ctlrfanid = 0
-    res = []
-    for line in info:
-        if ctlrfanid >= saveint(line[0]):
-            enclid += 1
-        line += [enclid]
-        ctlrfanid = saveint(line[0])
-        res.append(line)
-    return res
-
 def item_dell_sc_ctlrfan(line):
-    return "Ctlr %d Fan %s" % (line[4], line[0])
+    ctlr, fan = line[0].split('.')
+    return "Ctlr %s Fan %s" % (ctlr, fan)
 
 def inventory_dell_sc_ctlrfan(info):
     for line in info:
@@ -58,7 +47,7 @@ check_info["dell_sc_ctlrfan"] = {
     'service_description'   : 'Dell SC %s',
     'has_perfdata'          : True,
     'snmp_info'             : ('.1.3.6.1.4.1.674.11000.2000.500.1.2.16.1', [
-        '2',    # scCtlrFanNbr
+        OID_END,    # scCtlrFanNbr
         '3',    # scCtlrFanStatus
         '4',    # scCtlrFanName
         '5',    # scCtlrFanCurrentRpm

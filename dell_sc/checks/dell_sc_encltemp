@@ -16,20 +16,9 @@
 # to the Free Software Foundation, Inc., 51 Franklin St,  Fifth Floor,
 # Boston, MA 02110-1301 USA.
 
-def parse_dell_sc_encltemp(info):
-    enclid = 1
-    encltempid = 0
-    res = []
-    for line in info:
-        if encltempid >= saveint(line[0]):
-            enclid += 1
-        line += [enclid]
-        encltempid = saveint(line[0])
-        res.append(line)
-    return res
-
 def item_dell_sc_encltemp(line):
-    return "Encl %d Temp %s" % (line[4], line[0])
+    encl, temp = line[0].split('.')
+    return "Encl %s Temp %s" % (encl, temp)
 
 def inventory_dell_sc_encltemp(info):
     for line in info:
@@ -56,13 +45,12 @@ def check_dell_sc_encltemp(item, params, info):
             return temp_state, info_text, perfdata
 
 check_info["dell_sc_encltemp"] = {
-    'parse_function'        : parse_dell_sc_encltemp,
     'check_function'        : check_dell_sc_encltemp,
     'inventory_function'    : inventory_dell_sc_encltemp,
     'service_description'   : 'Dell SC %s',
     'has_perfdata'          : True,
     'snmp_info'             : ('.1.3.6.1.4.1.674.11000.2000.500.1.2.23.1', [
-        '2',    # scEnclTempNbr
+        OID_END,    # scEnclTempNbr
         '3',    # scEnclTempStatus
         '4',    # scEnclTempLocation
         '5',    # scEnclTempCurrentC
