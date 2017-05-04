@@ -15,6 +15,8 @@
 # to the Free Software Foundation, Inc., 51 Franklin St,  Fifth Floor,
 # Boston, MA 02110-1301 USA.
 
+test -e /proc/sys/net/nf_conntrack_max || exit 0
+
 max=$(cat /proc/sys/net/nf_conntrack_max)
 cur=$(cat /proc/sys/net/netfilter/nf_conntrack_count)
 war=$(($max * 80 / 100))
