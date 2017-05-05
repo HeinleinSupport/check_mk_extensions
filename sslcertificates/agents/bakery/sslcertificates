@@ -2,22 +2,25 @@
 # -*- encoding: utf-8; py-indent-offset: 4 -*-
 
 def bake_sslcertificates(opsys, conf, conf_dir, plugins_dir):
-    shutil.copy2(local_agents_dir + "/plugins/sslcertificates", plugins_dir + "/sslcertificates")
-    f = file(conf_dir + "/sslcertificates", "w")
-    f.write(agent_file_header)
+    if opsys == "linux":
+        shutil.copy2(local_agents_dir + "/plugins/sslcertificates", plugins_dir + "/sslcertificates")
+        f = file(conf_dir + "/sslcertificates", "w")
+        f.write(agent_file_header)
 
-    dirs = []
+        dirs = []
 
-    for entry in conf:
-        dirs.extend(entry["directories"])
+        for entry in conf:
+            dirs.extend(entry["directories"])
 
-    f.write("\n")
+        f.write("\n")
 
-    if dirs:
-        f.write("CERT_DIRS=\"%s\"\n" % " ".join(dirs))
+        if dirs:
+            f.write("CERT_DIRS=\"%s\"\n" % " ".join(dirs))
+    elif opsys == "windows":
+        shutil.copy2(local_agents_dir + "/windows/plugins/sslcertificates.ps1", plugins_dir + "/sslcertificates.ps1")
 
 bakery_info["sslcertificates"] = {
     "bake_function" : bake_sslcertificates,
-    "os"            : [ "linux", ],
+    "os"            : [ "linux", "windows" ],
     "matchtype"     : "all",
 }
