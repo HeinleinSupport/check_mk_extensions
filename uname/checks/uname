@@ -17,9 +17,6 @@
 
 uname_default_values = { }
 
-def versiontuple(v):
-    return tuple(map(int, (v.split("."))))
-
 def parse_uname(info):
     if opt_debug:
         pprint.pprint(info)
