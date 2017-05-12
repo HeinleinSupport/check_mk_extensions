@@ -1,0 +1,25 @@
+#!/usr/bin/env python
+# -*- encoding: utf-8; py-indent-offset: 4 -*-
+
+#
+# (C) 2016 Heinlein Support GmbH
+# Robert Sander <r.sander@heinlein-support.de>
+#
+
+def agent_perfcalc_arguments(servicespecs, hostname, ipaddress):
+    params = {'servicespecs': servicespecs,
+              'debug': opt_debug}
+    if opt_debug:        
+        pprint.pprint(params)
+        pprint.pprint(hostname)
+        pprint.pprint(ipaddress)
+
+    import cPickle
+    import base64
+
+    cmd = '%s' % ' '.join(base64.encodestring(cPickle.dumps(params)).split('\n'))
+    if opt_debug:
+        print cmd
+    return cmd
+
+special_agent_info['perfcalc'] = agent_perfcalc_arguments

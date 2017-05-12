@@ -1,0 +1,81 @@
+#!/usr/bin/python
+# -*- encoding: utf-8; py-indent-offset: 4 -*-
+
+perfcalc_default_levels = []
+factory_settings['perfcalc_default_levels'] = []
+
+def parse_perfcalc(info):
+    if opt_debug:
+        pprint.pprint(info)
+    data = []
+    service = False
+    for line in info:
+        if line[0] == 'service':
+            service = {'description': " ".join(line[1:]),
+                       'hosts': [],
+                       'data': {}}
+            data.append(service)
+        if line[0] == 'host':
+            service['hosts'] = line[1:]
+        if line[0] == 'ds':
+            service['data'][line[1]] = savefloat(line[2])
+    return data
+
+def inventory_perfcalc(parsed):
+    if opt_debug:
+        pprint.pprint(parsed)
+    for service in parsed:
+        yield service['description'], []
+
+def check_perfcalc(item, params, parsed):
+    if opt_debug:
+        pprint.pprint(item)
+        pprint.pprint(params)
+        pprint.pprint(parsed)
+
+    sign = { 0: '', 1: '(!)', 2: '(!!)', 3: '(?)' }
+
+    levels = {}
+    if type(params) == list:
+        for param in params:
+            if param['levels']:
+                levels[param['dsname']] = param['levels']
+
+    if opt_debug:
+        pprint.pprint(levels)
+
+    for service in parsed:
+        if item == service['description']:
+            if service['hosts'] == []:
+                state = 3
+                msg = [ "No matching hosts found" ]
+            else:
+                state = 0
+                msg = [ 'Data from %s' % ', '.join(service['hosts']) ]
+            perfdata = []
+            for dsname, value in service['data'].iteritems():
+                if dsname in levels:
+                    if type(levels[dsname]) == tuple:
+                        perfdata.append((dsname, value, levels[dsname][0], levels[dsname][1]))
+                    else:
+                        perfdata.append((dsname, value))
+                    res, text, perf = check_levels(value, dsname, levels[dsname])
+                    if res > state:
+                        state = res
+                    msg.append('%s=%s%s%s' % (dsname, value, text, sign[res]))
+                    perfdata += perf
+                else:
+                    msg.append('%s=%s' % (dsname, value))
+                    perfdata.append((dsname, value))
+
+            return (state, "; ".join(msg), perfdata)
+
+check_info['perfcalc'] = {
+    'parse_function':      parse_perfcalc,
+    'inventory_function':  inventory_perfcalc,
+    'check_function':      check_perfcalc,
+    'service_description': '%s',
+    'has_perfdata':        True,
+    'default_levels_variable': 'perfcalc_default_levels',
+    'group':               'perfcalc',
+}

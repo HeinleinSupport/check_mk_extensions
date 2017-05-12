@@ -84,3 +84,28 @@ check_info['mysql.galerastartup'] = {
     "service_description"     : "MySQL Galera Startup %s",
     "has_perfdata"            : False,
 }
+
+def inventory_mysql_galerasize(parsed):
+    for instance, values in parsed.items():
+        if u'wsrep_cluster_size' in values:
+            yield instance, {'invsize': saveint(u'wsrep_cluster_size')}
+
+def check_mysql_galerasize(item, params, parsed):
+    if item in parsed:
+        values = parsed[item]
+        if u'wsrep_cluster_size' in values:
+            size = saveint(values[u'wsrep_cluster_size'])
+            res = 0
+            txt = 'wsrep_cluster_size = %d' % size
+            perfdata = [('size', size)]
+            if size != params['invsize']:
+                res = 2
+                txt += ', size at discovery was %d' % params['invsize']
+            return (res, txt, perfdata)
+
+check_info['mysql.galerasize'] = {
+    "inventory_function"  : inventory_mysql_galerasize,
+    "check_function"      : check_mysql_galerasize,
+    "service_description" : "MySQL Galera Size %s",
+    "has_perfdata"        : True,
+}
