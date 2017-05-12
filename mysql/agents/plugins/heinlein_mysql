@@ -48,9 +48,6 @@ function do_query() {
     echo $INSTANCE_NAME
     mysql --defaults-extra-file=$MK_CONFDIR/mysql.cfg $1 -sN \
      -e "show global status ; show global variables ;"
-    echo "<<<mysql_processlist>>>"
-    echo $INSTANCE_NAME
-    mysqladmin --defaults-extra-file=$MK_CONFDIR/mysql.cfg $1 processlist 2>&1
 
     echo "<<<mysql_slave>>>"
     echo $INSTANCE_NAME
