@@ -20,14 +20,67 @@ def check_mysql_galerasync(item, _no_params, parsed):
         values = parsed[item]
         if u'wsrep_local_state_comment' in values:
             if values[u'wsrep_local_state_comment'] == 'Synced':
-                return (0, values[u'wsrep_local_state_comment'])
+                return (0, 'wsrep_local_state_comment is %s' % values[u'wsrep_local_state_comment'])
             else:
-                return (2, values[u'wsrep_local_state_comment'])
+                return (2, 'wsrep_local_state_comment is %s' % values[u'wsrep_local_state_comment'])
 
 check_info['mysql.galerasync'] = {
     "inventory_function"      : inventory_mysql_galerasync,
     "check_function"          : check_mysql_galerasync,
-    "service_description"     : "MySQL Galera Status",
+    "service_description"     : "MySQL Galera Sync %s",
     "has_perfdata"            : False,
 }
 
+
+def inventory_mysql_galeradonor(parsed):
+    if opt_debug:
+        pprint.pprint(parsed)
+    for instance, values in parsed.items():
+        if u'wsrep_sst_donor' in values:
+            yield instance, {}
+
+def check_mysql_galeradonor(item, _no_params, parsed):
+    if opt_debug:
+        pprint.pprint(item)
+        pprint.pprint(parsed)
+    if item in parsed:
+        values = parsed[item]
+        if u'wsrep_sst_donor' in values:
+            if not values[u'wsrep_sst_donor']:
+                return (0, 'wsrep_sst_donor is empty')
+            else:
+                return (2, 'wsrep_sst_donor contains %s' % values[u'wsrep_sst_donor'])
+
+check_info['mysql.galeradonor'] = {
+    "inventory_function"      : inventory_mysql_galeradonor,
+    "check_function"          : check_mysql_galeradonor,
+    "service_description"     : "MySQL Galera Donor %s",
+    "has_perfdata"            : False,
+}
+
+
+def inventory_mysql_galerastartup(parsed):
+    if opt_debug:
+        pprint.pprint(parsed)
+    for instance, values in parsed.items():
+        if u'wsrep_cluster_address' in values:
+            yield instance, {}
+
+def check_mysql_galerastartup(item, _no_params, parsed):
+    if opt_debug:
+        pprint.pprint(item)
+        pprint.pprint(parsed)
+    if item in parsed:
+        values = parsed[item]
+        if u'wsrep_cluster_address' in values:
+            if values[u'wsrep_cluster_address'] == 'gcomm://':
+                return (2, 'wsrep_cluster_address is empty')
+            else:
+                return (0, 'wsrep_cluster_address contains %s' % values[u'wsrep_cluster_address'])
+
+check_info['mysql.galerastartup'] = {
+    "inventory_function"      : inventory_mysql_galerastartup,
+    "check_function"          : check_mysql_galerastartup,
+    "service_description"     : "MySQL Galera Startup %s",
+    "has_perfdata"            : False,
+}
