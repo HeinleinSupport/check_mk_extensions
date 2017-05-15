@@ -97,7 +97,7 @@ def check_mysql_galerasize(item, params, parsed):
             size = saveint(values[u'wsrep_cluster_size'])
             res = 0
             txt = 'wsrep_cluster_size = %d' % size
-            perfdata = [('size', size)]
+            perfdata = [('galera_size', size)]
             if size != params['invsize']:
                 res = 2
                 txt += ', size at discovery was %d' % params['invsize']
