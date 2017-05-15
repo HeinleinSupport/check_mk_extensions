@@ -41,7 +41,7 @@ def bake_heinlein_mysql(opsys, conf, conf_dir, plugins_dir):
             os.makedirs(target_dir)
 
     # Deploy the agent plugin
-    shutil.copy2(agents_dir + "/plugins/heinlein_mysql", target_dir + "/heinlein_mysql")
+    shutil.copy2(local_agents_dir + "/plugins/heinlein_mysql", target_dir + "/heinlein_mysql")
 
     # Create the agent configuration
     content = agent_file_header
