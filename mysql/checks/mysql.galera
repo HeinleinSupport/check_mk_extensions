@@ -88,7 +88,7 @@ check_info['mysql.galerastartup'] = {
 def inventory_mysql_galerasize(parsed):
     for instance, values in parsed.items():
         if u'wsrep_cluster_size' in values:
-            yield instance, {'invsize': saveint(u'wsrep_cluster_size')}
+            yield instance, {'invsize': saveint(values[u'wsrep_cluster_size'])}
 
 def check_mysql_galerasize(item, params, parsed):
     if item in parsed:
