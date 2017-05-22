@@ -27,38 +27,73 @@ register_check_parameters(
     Dictionary(
         elements=[
             ("config",
-             Tuple(
-                 title=_("Config for Service"),
+             Alternative(
+                 title=_("Choose if output returns Numbers or Strings"),
                  elements=[
-                     Optional(
-                         Tuple(
-                             elements=[
-                                 Float(
-                                     title=_("Warning at"),
-                                     default_value=5,
-                                 ),
-                                 Float(
-                                     title=_("Critical at"),
-                                     default_value=10,
-                                 ),
-                             ],
+                 Tuple(
+                     title=_("Config for Service with Number-output (e.g. maxmemory, used_memory, mem_fragmentation_ratio, ...)"),
+                     elements=[
+                         Optional(
+                             Tuple(
+                                 elements=[
+                                     Float(
+                                         title=_("Warning at"),
+                                         default_value=5,
+                                     ),
+                                     Float(
+                                         title=_("Critical at"),
+                                         default_value=10,
+                                     ),
+                                 ],
+                             ),
+                             label=_("Warn/Crit Levels"),
+                             help=_("Put here the warn/crit-levels. For memory checks like used_memory, used_memory_peak and used_memory_rss should be given values in MB"),
+                             none_label=_("No levels set"),
+                             none_value=(None, None)
                          ),
-                         label=_("Warn/Crit Levels"),
-                         help=_("Put here the warn/crit-levels. For memory checks like used_memory, used_memory_peak and used_memory_rss should be given values in MB"),
-                         none_label=_("No levels set"),
-                         none_value=(None, None)
-                     ),
-                     DropdownChoice(
-                         title=_("Create graph"),
-                         help=_('default is No'),
-                         choices=[
-                             (False, _("No")),
-                             (True, _("Yes")),
-                         ],
-                         default_value="no",
-                     )
+                         DropdownChoice(
+                             title=_("Create graph"),
+                             help=_('default is No'),
+                             choices=[
+                                 (False, _("No")),
+                                 (True, _("Yes")),
+                             ],
+                             default_value="no",
+                         )
+                     ]
+                 ),
+                 Tuple(
+                     title=_("Config for Service with String-output (e.g. role, redis_version, config_file, ...)"),
+                     elements=[
+                         Optional(
+                             Tuple(
+                                 elements=[
+                                     FixedValue(
+                                         None,
+                                         title="",
+                                         totext="",
+                                     ),
+                                     TextAscii(
+                                         title=_("Crit if this string is NOT detected"),
+                                         size=60,
+                                         default_value="",
+                                     ),
+                                 ],
+                             ),
+                             label=_("Critical if string is different to the set one"),
+                             help=_("Put here the string which should be OK"),
+                             none_label=_("Nothing set"),
+                             none_value=(None, None)
+                         ),
+                         FixedValue(
+                             False,
+                             title="No graphs with strings possible",
+                             totext="No",
+                         ),
+                     ]
+                 ),
                  ]
-             ),
+             )
              ),
         ]),
     TextAscii(

@@ -61,8 +61,27 @@ def inventory_redis_info(info):
                 yield (redis_info_item, "redis_info_default_values")
             elif ":" in line:
                 line_as_list = line.split(':')
-                redis_info_item = hostinfo + ": " + str(line_as_list[0])
-                yield (redis_info_item, "redis_info_default_values")
+                # we have to reformat for example ["slave0", "ip=10.12.47.107,port=6380,state=online,offset=89946822,lag=1"]
+                # to get a nice useable format
+                #print(str(line_as_list))
+                if "=" in line_as_list[1]:
+                    dissected_line_as_list = line_as_list[1].split(",")
+                    # will create a new list
+                    # ["ip=10.12.47.107", "port=6380", "state=online", "offset=89946822", "lag=1"]
+                    for dissected_line_as_list_element in dissected_line_as_list:
+                        hostinfo_part, hostinfo_value = dissected_line_as_list_element.split("=")
+                        # we now split for example "ip=10.12.47.107" to hostinfo_part = "ip" and to
+                        # hostinfo_value = "10.12.47.107"
+                        redis_info_item = hostinfo + ": " + str(line_as_list[0]) + "_" + str(hostinfo_part)
+                        # we now yield a new item - e.g.: slave0_ip: 10.12.47.107
+                        # print(str(redis_info_item))
+                        yield (redis_info_item, "redis_info_default_values")
+                    # endfor
+                else:
+                    redis_info_item = hostinfo + ": " + str(line_as_list[0])
+                    # print(str(redis_info_item))
+                    yield (redis_info_item, "redis_info_default_values")
+                # endif
             # endif
         # endfor
     # endif
@@ -89,22 +108,51 @@ def create_redis_total_commands_perfdata(current_total_commands, last_total_comm
 # enddef
 
 
-def float_or_int(value):
+def float_int_or_string(value):
     if isinstance(value, int):
         return saveint(value)
+    # endif
 
     if isinstance(value, float):
         return savefloat(value)
+    # endif
 
     if isinstance(value, basestring):
         value_int = saveint(value)
         value_float = savefloat(value)
 
+        # ### DEBUGGING
+        # print("value: " + str(value))
+        # print("value_int: " + str(value_int))
+        # print("value_float: " + str("{0:.2f}".format(round(value_float,2))))
+        # some examples and their return value
+        #
+        # # value is initially really a string - e.g.: master
+        # saveint will return    0
+        # savefloat will return  0.0
+        # the 'integer string' 0 is not equal to the string master - the elif will be taken into account
+        # the 'float string' 0.0 is not equal to the string master - the else will be taken into account
+        # so the initial given string will be returned
+        #
+        # # value is initially an integer given as string - e.g.: 17
+        # saveint will return    17
+        # savefloat will return  17.0
+        # the 'integer string' 17 is equal to the string 17 the value will be returned as integer
+        #
+        # # value is initially a float given as string - e.g.: 17.4
+        # saveint will return    17
+        # savefloat will return  17.4
+        # the 'integer string' 17 is not equal to the string 17.4 the elif will be taken into account
+        # the 'float string' 17.4 is equal to the string 17.4 so it will be returned as float
         if str(value_int) == str(value):
             return value_int
-
-        if str(value_float) == str(value):
+        # as we possibly receive a value of for example 1.10, savefloat will return 1.1 - for comparison
+        # we need a float with two decimal points
+        elif str("{0:.2f}".format(round(value_float, 2))) == str(value):
             return value_float
+        else:
+            return value
+        # endif
     # endif
 # enddef
 
@@ -114,6 +162,8 @@ def check_redis_info(item, params, info):
     perfdata = []
     state = 0
 
+    # ### DEBUGGING
+    # print(str(params))
     item_as_list = item.split(": ")
     host_in_item, hostinfo_in_item = item_as_list
     info_as_dict = {}
@@ -125,6 +175,14 @@ def check_redis_info(item, params, info):
     message = ""
     perfdata_value = None
     perfdata_value_str = None
+    check_string_crit = False
+    # ### DEBUGGING
+    # just tried something - some interesting variables
+    # print(str(get_info_for_check(g_hostname, lookup_ip_address(g_hostname), 'redis_info')))
+    # print(str(extra_service_conf))
+    # debug warn and crit
+    # print(str(warn))
+    # print(str(crit))
 
     for line in info:
         line = " ".join(line)
@@ -139,25 +197,66 @@ def check_redis_info(item, params, info):
             if any(error in line for error in errors):
                 info_as_dict[hostinfo].update({hostinfo_in_item: str(line)})
             elif ":" in line:
+                # e.g.:  line = "slave0: ip=10.12.47.107,port=6380,state=online,offset=89946822,lag=1"
                 line_as_list = line.split(':')
-                info_as_dict[hostinfo].update({line_as_list[0]: line_as_list[1]})
+                # e.g.: line_as_list = ["slave0", "ip=10.12.47.107,port=6380,state=online,offset=89946822,lag=1"]
+                if "=" in line_as_list[1]:
+                    dissected_line_as_list = line_as_list[1].split(",")
+                    # will create a new list
+                    # ["ip=10.12.47.107", "port=6380", "state=online", "offset=89946822", "lag=1"]
+                    for dissected_line_as_list_element in dissected_line_as_list:
+                        hostinfo_part, hostinfo_value = dissected_line_as_list_element.split("=")
+                        info_as_dict[hostinfo].update({str(line_as_list[0]) + '_' + str(hostinfo_part): str(hostinfo_value)})
+                        # e.g. info_as_dict["127.0.0.1:6379"].update({"slave0_ip": "10.12.47.107"})
+                    # endfor
+                else:
+                    info_as_dict[hostinfo].update({line_as_list[0]: line_as_list[1]})
+                # endif
+            # endif
         # endif
     # endfor
 
     # from pprint import pprint
     # pprint(info_as_dict)
 
+    # Catch if automatic detection is used. The plugin will not be able to connect to an previously automatically
+    # detected redis-instance so here the it will be tried to read the supplied value. But if it's not available
+    # a 'KeyError' would occure
+    try:
+        hostinfo_in_item_value = str(info_as_dict[host_in_item][hostinfo_in_item])
+        # print(str(info_as_dict))
+    except KeyError:
+        hostinfo_in_item_value = "Error - Redis-Instance or Check not available"
+    # endtry
+
     # if initial first connection to host fails (e.g. if first inventory is run)
     if "error" in item:
         state = 2
     # else if connection to host was lost or if REDIS is currently not running
-    elif any(error in str(info_as_dict[host_in_item][hostinfo_in_item]) for error in errors):
+    elif any(error in hostinfo_in_item_value for error in errors):
         state = 2
     else:
-        warn = float_or_int(warn)
-        crit = float_or_int(crit)
-        warn_crit_append_string = " (warn/crit at " + str(warn) + "/" + str(crit) + ")"
-        perfdata_value = float_or_int(info_as_dict[host_in_item][hostinfo_in_item])
+        warn = float_int_or_string(warn)
+        crit = float_int_or_string(crit)
+        # print("host_in_item: " + str(host_in_item))
+        # print("hostinfo_in_item: " + str(hostinfo_in_item))
+        # print("hostinfo_in_item value: " + str(info_as_dict[host_in_item][hostinfo_in_item]))
+        perfdata_value = float_int_or_string(info_as_dict[host_in_item][hostinfo_in_item])
+        # print("perfdata_value after float_int_or_string: " + str(perfdata_value))
+        if isinstance(perfdata_value, basestring):
+            if (warn is None) and (crit is None):
+                warn_crit_append_string = " "
+            else:
+                warn_crit_append_string = " (crit if string changes) "
+                check_string_crit = True
+            # endif
+        else:
+            if (warn is None) and (crit is None):
+                warn_crit_append_string = " "
+            else:
+                warn_crit_append_string = " (warn/crit at " + str(warn) + "/" + str(crit) + ")"
+            # endif
+        # endif
 
         bytes_to_mb_for = ['used_memory', 'used_memory_peak', 'used_memory_rss']
         if hostinfo_in_item in bytes_to_mb_for:
@@ -234,20 +333,28 @@ def check_redis_info(item, params, info):
         message = str(hostinfo_in_item) + ": " + str(perfdata_value_str) + str(warn_crit_append_string)
     else:
         try:
-            message = "(!!) An error occured: " + str(info_as_dict[host_in_item][hostinfo_in_item])
+            message = "(!!) An error occured: " + hostinfo_in_item_value
         except KeyError:
             state = 2
             message = "(!!) - Item not found, maybe do a Tabula Rasa :o) "
+        # endtry
     # endif
 
     # we check if warn/crit is set and if we have to change the state
     if (warn is not None) or (crit is not None) and (state != 2):
-        if float_or_int(perfdata_value) >= crit:  # critical part
-            state = 2
-            message += " (!!)"
-        elif float_or_int(perfdata_value) >= warn:  # warning part
-            state = 1
-            message += " (!)"
+        if check_string_crit:
+            if str(crit) != perfdata_value_str:
+                state = 2
+                message += "difference between set string '" + str(crit) + "' detected(!!)"
+            # endif
+        else:
+            if float_int_or_string(perfdata_value) >= crit:  # critical part
+                state = 2
+                message += " (!!)"
+            elif float_int_or_string(perfdata_value) >= warn:  # warning part
+                state = 1
+                message += " (!)"
+            # endif
         # endif
     # endif
 

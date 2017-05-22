@@ -9,6 +9,9 @@ description:
  The check becomes {critical} or {warning} if there are defined
  levels reached.
 
+ The check may become {critical} if a defined string is not
+ matching.
+
  This is a inventorized check and will create one service for
  every info parameter found. Default no warn or critical values
  are set and no graphs will be created unless the corresponding
