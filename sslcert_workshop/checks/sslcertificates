@@ -20,12 +20,11 @@ factory_settings['sslcertificates_default_levels'] = {
     'warnalgo': [ 'md5WithRSAEncryption', 'sha1WithRSAEncryption' ],
     }
 
-def sslcertificates_name(line):
-    return line[0]
-
 def inventory_sslcertificates(info):
     if opt_debug:
         pprint.pprint(info)
+    for line in info:
+        yield (line[0], None)
 
 def check_sslcertificates(item, params, info):
     pass
