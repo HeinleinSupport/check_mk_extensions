@@ -16,7 +16,7 @@
 # Boston, MA 02110-1301 USA.
 
 factory_settings['sslcertificates_default_levels'] = {
-    'age': ( 4000, 3999 ),
+    'age': ( 90, 60 ),
     'warnalgo': [ 'md5WithRSAEncryption', 'sha1WithRSAEncryption' ],
     }
 
@@ -40,13 +40,19 @@ def check_sslcertificates(item, params, info):
             endtime = saveint(line[1])
             now = int(time.time())
             daysremaining = ( endtime - now ) / 60 / 60 / 24
-            rc = 0
+            status = 0
+            message = "%d days remaining for %s" % (daysremaining, " ".join(line[3:]))
+
+            signalgo = line[2]
+            if signalgo in warnalgos:
+                status = 1
+                message += ", signature algorithm is %s (!)" % signalgo
 
             if daysremaining < crit:
-                rc = 2
+                status = 2
             elif daysremaining < warn:
-                rc = 1
-            return (rc, "%d days remaining" % daysremaining)
+                status = 1
+            return (status, message)
 
 check_info['sslcertificates'] = {
     'check_function':      check_sslcertificates,
