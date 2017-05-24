@@ -16,7 +16,7 @@
 # Boston, MA 02110-1301 USA.
 
 factory_settings['sslcertificates_default_levels'] = {
-    'age': ( 90, 60 ),
+    'age': ( 4000, 3999 ),
     'warnalgo': [ 'md5WithRSAEncryption', 'sha1WithRSAEncryption' ],
     }
 
@@ -27,7 +27,26 @@ def inventory_sslcertificates(info):
         yield (line[0], None)
 
 def check_sslcertificates(item, params, info):
-    pass
+    if opt_debug:
+        pprint.pprint(item)
+        pprint.pprint(params)
+        pprint.pprint(info)
+
+    warn, crit = params.get('age', (0, 0))
+    warnalgos = params.get('warnalgo', [])
+
+    for line in info:
+        if item == line[0]:
+            endtime = saveint(line[1])
+            now = int(time.time())
+            daysremaining = ( endtime - now ) / 60 / 60 / 24
+            rc = 0
+
+            if daysremaining < crit:
+                rc = 2
+            elif daysremaining < warn:
+                rc = 1
+            return (rc, "%d days remaining" % daysremaining)
 
 check_info['sslcertificates'] = {
     'check_function':      check_sslcertificates,
