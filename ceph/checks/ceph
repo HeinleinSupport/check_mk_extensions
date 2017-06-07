@@ -36,7 +36,11 @@ def check_ceph(item, params, info):
             text.append('Cluster %s' % line[1])
         if line[0] == 'health':
             text.append(' '.join(line[1:]))
-            if line[1] != 'HEALTH_OK':
+            if line[1] == 'HEALTH_OK':
+                rc = 0
+            elif line[1] == 'HEALTH_WARN':
+                rc = 1
+            else:
                 rc = 2
         if len(line) > 7 and line[2] == 'used,':
             text.append(' '.join(line))
