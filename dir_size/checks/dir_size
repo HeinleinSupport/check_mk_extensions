@@ -1,4 +1,4 @@
-#!/usr/bin/python
+#!/usr/bin/env python
 # -*- encoding: utf-8; py-indent-offset: 4 -*-
 # +-----------------------------------------------------------------+
 # |                                                                 |
@@ -34,21 +34,11 @@
 #17516   /tmp/
 #626088  /usr/local/
 
-import pprint
-
 factory_settings['dir_size_default_levels'] = {
     'unit': 'KB',
-    'warn': None,
-    'crit': None,
+    'warn': 0,
+    'crit': 0,
     }
-
-dir_size_factor = {
-    'B': 1,
-    'KB': 1024,
-    'MB': 1024 * 1024,
-    'GB': 1024 * 1024 * 1024,
-    'TB': 1024 * 1024 * 1024 * 1024,
-}
 
 def inventory_dir_size(checkname,info):
     inventory = []
@@ -57,21 +47,22 @@ def inventory_dir_size(checkname,info):
     return inventory
 
 def check_dir_size(item, params, info):
-    if opt_debug:
-        pprint.pprint(item)
-        pprint.pprint(params)
-        pprint.pprint(info)
     unit, warn, crit = params['unit'], params['warn'], params['crit']
     no_warn, no_crit = False, False
     
+    dir_size_factor = {
+        'B': 1,
+        'KB': 1024,
+        'MB': 1024 * 1024,
+        'GB': 1024 * 1024 * 1024,
+        'TB': 1024 * 1024 * 1024 * 1024,
+    }
   
-    if warn == None:
-        warn = 0
+    if warn == 0:
         no_warn = True
     else:
         warn = warn * dir_size_factor[unit]
-    if crit == None:
-        crit = 0
+    if crit == 0:
         no_crit = True
     else:
         crit = crit * dir_size_factor[unit]

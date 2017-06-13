@@ -1,4 +1,4 @@
-#!/usr/bin/python
+#!/usr/bin/env python
 # -*- encoding: utf-8; py-indent-offset: 4 -*-
 
 #
@@ -18,11 +18,16 @@
 # Boston, MA 02110-1301 USA.
 
 metric_info['amavis_child_avail'] = {
-    'title': _('Available Amavis Child Processes'),
+    'title': _('Amavis Available Child Processes'),
     'unit': 'count',
     'color': '#90ee90',
 }
-# amavis_ContentCleanMsgs=0;;;; amavis_ContentSpamMsgs=0;;;; amavis_ContentVirusMsgs=0;;;; amavis_InMsgs=0;;;; amavis_OutMsgs=0;;;; amavis_OutMsgsAttemptFails=0;;;; amavis_InMsgsStatusRejectedOriginating
+
+metric_info['amavis_child_busy'] = {
+    'title': _('Amavis Busy Child Processes'),
+    'unit': '%',
+    'color': '#ff6347',
+}
 
 metric_info['amavis_ContentCleanMsgs'] = {
     'title': _('Amavis Clean Messages'),

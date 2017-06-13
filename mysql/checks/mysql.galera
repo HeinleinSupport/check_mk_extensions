@@ -1,4 +1,4 @@
-#!/usr/bin/python
+#!/usr/bin/env python
 # -*- encoding: utf-8; py-indent-offset: 4 -*-
 
 #
@@ -6,16 +6,11 @@
 #
 
 def inventory_mysql_galerasync(parsed):
-    if opt_debug:
-        pprint.pprint(parsed)
     for instance, values in parsed.items():
         if u'wsrep_local_state_comment' in values:
             yield instance, {}
 
 def check_mysql_galerasync(item, _no_params, parsed):
-    if opt_debug:
-        pprint.pprint(item)
-        pprint.pprint(parsed)
     if item in parsed:
         values = parsed[item]
         if u'wsrep_local_state_comment' in values:
@@ -33,16 +28,11 @@ check_info['mysql.galerasync'] = {
 
 
 def inventory_mysql_galeradonor(parsed):
-    if opt_debug:
-        pprint.pprint(parsed)
     for instance, values in parsed.items():
         if u'wsrep_sst_donor' in values:
             yield instance, {}
 
 def check_mysql_galeradonor(item, _no_params, parsed):
-    if opt_debug:
-        pprint.pprint(item)
-        pprint.pprint(parsed)
     if item in parsed:
         values = parsed[item]
         if u'wsrep_sst_donor' in values:
@@ -60,16 +50,11 @@ check_info['mysql.galeradonor'] = {
 
 
 def inventory_mysql_galerastartup(parsed):
-    if opt_debug:
-        pprint.pprint(parsed)
     for instance, values in parsed.items():
         if u'wsrep_cluster_address' in values:
             yield instance, {}
 
 def check_mysql_galerastartup(item, _no_params, parsed):
-    if opt_debug:
-        pprint.pprint(item)
-        pprint.pprint(parsed)
     if item in parsed:
         values = parsed[item]
         if u'wsrep_cluster_address' in values:

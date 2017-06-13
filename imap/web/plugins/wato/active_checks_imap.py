@@ -1,4 +1,4 @@
-#!/usr/bin/python
+#!/usr/bin/env python
 # -*- encoding: utf-8; py-indent-offset: 4 -*-
 
 #
@@ -119,7 +119,7 @@ register_rule(group,
                                     totext = "",
                                     ),
                                 ),
-                              ( "certificate",
+                              ( "certificate_age",
                                 Tuple (
                                     title = _("Minimum number of days a certificate has to be valid."),
                                     elements = [

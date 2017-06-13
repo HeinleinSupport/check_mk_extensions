@@ -1,4 +1,4 @@
-#!/usr/bin/python
+#!/usr/bin/env python
 # -*- encoding: utf-8; py-indent-offset: 4 -*-
 
 # (c) 2016 Heinlein Support GmbH
@@ -26,17 +26,10 @@
 # Total number of known users   38993
 
 def inventory_dovereplstat(checkname, info):
-    if opt_debug:
-        print 'checkname = %s' % pprint.pformat(checkname)
-        print 'info = %s' % pprint.pformat(info)
     if len(info) > 1:
         return [(None, None)]
 
 def check_dovereplstat(item, params, info):
-    if opt_debug:
-        print 'item = %s' % pprint.pformat(item)
-        print 'params = %s' % pprint.pformat(params)
-        print 'info = %s' % pprint.pformat(info)
     perfdata = []
     msg = []
     rc = 0

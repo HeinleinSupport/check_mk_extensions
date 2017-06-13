@@ -1,4 +1,4 @@
-#!/usr/bin/python
+#!/usr/bin/env python
 # -*- encoding: utf-8; py-indent-offset: 4 -*-
 # +-----------------------------------------------------------------+
 # |                                                                 |
@@ -49,21 +49,14 @@ dir_size_ls_factor = {
 }
 
 def inventory_dir_size_ls(info):
-    if opt_debug:
-        print info
     inventory = []
     for size, path in info:
         inventory.append((path,None))
     return inventory
 
 def check_dir_size_ls(item, params, info):
-    if opt_debug:
-        pprint.pprint(item)
-        pprint.pprint(params)
-        pprint.pprint(info)
     unit, warn, crit = params
     no_warn, no_crit = False, False
-    
   
     if warn == None:
         warn = 0

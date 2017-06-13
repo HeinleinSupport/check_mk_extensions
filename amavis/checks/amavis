@@ -1,4 +1,4 @@
-#!/usr/bin/python
+#!/usr/bin/env python
 # -*- encoding: utf-8; py-indent-offset: 4 -*-
 
 # (c) 2016 Heinlein Support GmbH
@@ -20,8 +20,6 @@ factory_settings['amavis_default_levels'] = {
     }
 
 def parse_amavis(info):
-    if opt_debug:
-        print 'info = %s' % pprint.pformat(info)
     parsed = {'ps': [], 'agent': {}}
     in_ps = False
     in_agent = False
@@ -42,15 +40,10 @@ def parse_amavis(info):
     return parsed
 
 def inventory_amavis(parsed):
-    if opt_debug:
-        print 'parsed = %s' % pprint.pformat(parsed)
     if parsed['ps']:
         yield None, None
 
 def check_amavis(_no_item, params, parsed):
-    if opt_debug:
-        print 'params = %s' % pprint.pformat(params)
-        print 'parsed = %s' % pprint.pformat(parsed)
     if parsed['ps']:
         perfdata = []
         msg = []
@@ -70,8 +63,6 @@ def check_amavis(_no_item, params, parsed):
                 child_procs += 1
                 if proc[1].endswith(u'-avail)'):
                     child_avail += 1
-        if opt_debug:
-            print master_proc, child_procs, child_avail
         if master_proc != 1:
             state = 2
             msg.append('More than one amavisd master process running: %d(!!)' % master_proc)
@@ -106,8 +97,6 @@ def check_amavis(_no_item, params, parsed):
                     'InMsgsStatusRejectedOriginating' ]
         for metric in metrics:
             if metric in parsed['agent']:
-                if opt_debug:
-                    print '%s = %s' % (metric, pprint.pformat(parsed['agent'][metric]))
                 rate = get_rate('amavis.%s' % metric, this_time, saveint(parsed['agent'][metric][0]))
                 perfdata.append(('amavis_%s' % metric, rate))
         
