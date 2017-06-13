@@ -30,5 +30,5 @@ register_check_parameters(
         ],
     ),
     None,
-    match = "dict",
+    match_type = "dict",
 )
