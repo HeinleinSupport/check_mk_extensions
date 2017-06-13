@@ -1,12 +1,10 @@
-#!/usr/bin/python
+#!/usr/bin/env python
 # -*- encoding: utf-8; py-indent-offset: 4 -*-
 
 perfcalc_default_levels = []
 factory_settings['perfcalc_default_levels'] = []
 
 def parse_perfcalc(info):
-    if opt_debug:
-        pprint.pprint(info)
     data = []
     service = False
     for line in info:
@@ -22,8 +20,6 @@ def parse_perfcalc(info):
     return data
 
 def inventory_perfcalc(parsed):
-    if opt_debug:
-        pprint.pprint(parsed)
     for service in parsed:
         yield service['description'], []
 
@@ -33,9 +29,6 @@ def check_perfcalc(item, params, parsed):
         for param in params:
             if param['levels']:
                 levels[param['dsname']] = param['levels']
-
-    if opt_debug:
-        pprint.pprint(levels)
 
     for service in parsed:
         if item == service['description']:

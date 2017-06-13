@@ -1,4 +1,4 @@
-#!/usr/bin/python
+#!/usr/bin/env python
 # -*- encoding: utf-8; py-indent-offset: 4 -*-
 
 # (c) 2017 Heinlein Support GmbH
@@ -21,17 +21,10 @@ factory_settings['apachecount_default_levels'] = {
 }
 
 def inventory_apachecount(checkname, info):
-    if opt_debug:
-        print 'checkname = %s' % pprint.pformat(checkname)
-        print 'info = %s' % pprint.pformat(info)
     if len(info) > 1:
         return [(None, {})]
 
 def check_apachecount(item, params, info):
-    if opt_debug:
-        print 'item = %s' % pprint.pformat(item)
-        print 'params = %s' % pprint.pformat(params)
-        print 'info = %s' % pprint.pformat(info)
     perfdata = []
     msg = []
     res = 0
@@ -81,10 +74,6 @@ def check_apachecount(item, params, info):
                     perfdata.append((perfname % item, rate))
                 if param:
                     state, text, perf = check_levels(rate, perfname % item, param, unit=rateinfo['unit'])
-                    if opt_debug:
-                        print "%s state = %s" % (item, pprint.pformat(state))
-                        print "%s text = %s" % (item, pprint.pformat(text))
-                        print "%s perf = %s" % (item, pprint.pformat(perf))
                     if state > res:
                         res = state
                     msg.append('%s%s' % (rateinfo['msg'](item, rate), text))
@@ -94,8 +83,6 @@ def check_apachecount(item, params, info):
         if has_no_param:
             msg.append(rateinfo['msg'](item, rate))
             perfdata.append((perfname % item, rate))
-    if opt_debug:
-        pprint.pprint(perfdata)
     return (res, ", ".join(msg), perfdata)
 
 check_info['apachecount'] = {

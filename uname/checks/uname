@@ -1,4 +1,4 @@
-#!/usr/bin/python
+#!/usr/bin/env python
 # -*- encoding: utf-8; py-indent-offset: 4 -*-
 
 # (c) 2017 Heinlein Support GmbH
@@ -18,16 +18,12 @@
 uname_default_values = { }
 
 def parse_uname(info):
-    if opt_debug:
-        pprint.pprint(info)
     res = {}
     for line in info:
         res[line[0]] = " ".join(line[1:])
     return res
 
 def inventory_uname(info):
-    if opt_debug:
-        pprint.pprint(info)
     if info:
         yield ( None, {} )
 
