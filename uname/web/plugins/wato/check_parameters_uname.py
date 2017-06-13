@@ -7,8 +7,8 @@ register_check_parameters(
     _("Kernel Version Check"),
     Dictionary(
         elements = [
-            ('release', RegExp( title = _("Expected Release") ) ),
-            ('version', RegExp( title = _("Expected Version") ) ),
+            ('release', RegExp( RegExp.prefix, title = _("Expected Release") ) ),
+            ('version', RegExp( RegExp.prefix, title = _("Expected Version") ) ),
         ],
         help = _('The check <tt>uname</tt> monitors the kernel version.'),
     ),
