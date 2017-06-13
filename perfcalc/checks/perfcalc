@@ -28,13 +28,6 @@ def inventory_perfcalc(parsed):
         yield service['description'], []
 
 def check_perfcalc(item, params, parsed):
-    if opt_debug:
-        pprint.pprint(item)
-        pprint.pprint(params)
-        pprint.pprint(parsed)
-
-    sign = { 0: '', 1: '(!)', 2: '(!!)', 3: '(?)' }
-
     levels = {}
     if type(params) == list:
         for param in params:
@@ -62,7 +55,7 @@ def check_perfcalc(item, params, parsed):
                     res, text, perf = check_levels(value, dsname, levels[dsname])
                     if res > state:
                         state = res
-                    msg.append('%s=%s%s%s' % (dsname, value, text, sign[res]))
+                    msg.append('%s=%s%s%s' % (dsname, value, text, state_markers[res]))
                     perfdata += perf
                 else:
                     msg.append('%s=%s' % (dsname, value))
