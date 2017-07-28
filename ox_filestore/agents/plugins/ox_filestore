@@ -1,0 +1,16 @@
+#!/bin/bash
+
+#id path                         size reserved used max-entities cur-entities
+# 2 file:/var/opt/filestore   1000000     4100    4      1000000           21
+#11 file:/var/opt/filestore_2   10000     4000    2         5000           20
+#12 file:/var/opt/filestore_3   10000     3800    0         5000           19
+
+if [ -r $MK_CONFDIR/ox_filestore -a -x /opt/open-xchange/sbin/listfilestore ]; then
+
+    echo '<<<ox_filestore>>>'
+
+    source $MK_CONFDIR/ox_filestore
+
+    /opt/open-xchange/sbin/listfilestore -A "$OX_ADMIN_MASTER" -P "$OX_ADMIN_MASTER_PASSWORD"
+
+fi
