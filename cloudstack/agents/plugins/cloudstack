@@ -70,8 +70,22 @@ if __name__ == "__main__":
         hosts[host['id']] = host
         print '<<<<%s>>>>' % host['name']
         print '<<<local>>>'
-        print '0 %s_State - State is %s' % (host['hypervisor'].replace(' ', '_'),
-                                            host['resourcestate'])
+        if (host['resourcestate'] == 'Maintenance'):
+            res = 0
+        else:
+            res = 1
+            if (host['state'] == 'Up'):
+                res = 0
+            elif (host['state'] == 'Down'):
+                res = 1
+            elif (host['state'] == 'Disconnected'):
+                res = 1
+            elif (host['state'] == 'Alert'):
+                res = 2
+        print '%d %s_State - State is %s (%s)' % (res,
+                                                  host['hypervisor'].replace(' ', '_'),
+                                                  host['resourcestate'],
+                                                  host['state'])
         if host['resourcestate'] == 'Enabled':
             print 'P %s_CPU used=%s;90;95;0;100|allocated=%s CPU' % (host['hypervisor'].replace(' ', '_'),
                                                                      host['cpuused'].replace(',', '.').replace('%', ''),
@@ -253,7 +267,7 @@ if __name__ == "__main__":
     # pprint(cloudstack.listVolumes(args={'isrecursive': 'true', 'listall': 'true'}))
     # pprint(cloudstack.listAlerts())
     # pprint(cloudstack.listHypervisors())
-    # pprint(cloudstack.listLunsOnFiler(args={'poolname': 'SAS-LUN001'}))
+    # pprint(cloudstack.listLunsOnFiler(args={'poolname': 'ACS-LUN002-SATA'}))
     vms = {}
     networks = {}
     nic = { 'PTR': 0, 'PTR0': 0, 'PTR1': 1 }
