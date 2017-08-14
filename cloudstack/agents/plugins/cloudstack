@@ -163,7 +163,7 @@ if __name__ == "__main__":
         print '%d %s INSTANCES=%d;%d;0 %s' % (res, 
                                               csLeastRunningSystemVM[systemVmType]['description'],
                                               csLeastRunningSystemVM[systemVmType]['running'],
-                                              csLeastRunningSystemVM[systemVmType]['least'],
+                                              (csLeastRunningSystemVM[systemVmType]['least'] - 1),
                                               ', '.join(csLeastRunningSystemVM[systemVmType]['msg']) )
 
     csAlertTypes = { 'MEMORY' : 0,
