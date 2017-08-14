@@ -193,12 +193,45 @@ if __name__ == "__main__":
             csAlertRes = max(2, csAlertRes)
         
     if csAlertCnt == 0:
-        msg = 'no uncleared alerts'
+        msg = 'no uncleared alerts.'
     elif csAlertCnt == 1:
         msg = '%d alert: %s' % (csAlertCnt, csAlertMsg)
     else:
         msg = '%d alerts. Most recent: %s' % (csAlertCnt, csAlertMsg)
     print '%d ACS_Alerts - %s' % (csAlertRes, msg)
+
+    for capacity in cloudstack.listCapacity()['capacity']:
+        if (capacity['type'] == 4):
+            res = 0
+            if (capacity['capacitytotal'] - capacity['capacityused'] < 20):
+                res = 1
+            elif (capacity['capacitytotal'] - capacity['capacityused'] < 10):
+                res = 2
+            print '%d ACS_Public_IPs - %d/%d (%s %%) used.' % ( res, capacity['capacityused'], capacity['capacitytotal'], capacity['percentused'] )
+
+        if (capacity['type'] == 5):
+            res = 0
+            if (capacity['capacitytotal'] - capacity['capacityused'] < 20):
+                res = 1
+            elif (capacity['capacitytotal'] - capacity['capacityused'] < 10):
+                res = 2
+            print '%d ACS_Management_IPs - %d/%d (%s %%) used.' % ( res, capacity['capacityused'], capacity['capacitytotal'], capacity['percentused'] )
+
+        if (capacity['type'] == 7):
+            res = 0
+            if (capacity['capacitytotal'] - capacity['capacityused'] < 20):
+                res = 1
+            elif (capacity['capacitytotal'] - capacity['capacityused'] < 10):
+                res = 2
+            print '%d ACS_VLAN/VNI - %d/%d (%s %%) used.' % ( res, capacity['capacityused'], capacity['capacitytotal'], capacity['percentused'] )
+
+        if (capacity['type'] == 8):
+            res = 0
+            if (capacity['capacitytotal'] - capacity['capacityused'] < 20):
+                res = 1
+            elif (capacity['capacitytotal'] - capacity['capacityused'] < 10):
+                res = 2
+            print '%d ACS_Shared_Network_IPs - %d/%d (%s %%) used.' % ( res, capacity['capacityused'], capacity['capacitytotal'], capacity['percentused'] )
 
     # pprint(cloudstack.listSnapshots())
     # pprint(cloudstack.listAccounts())
