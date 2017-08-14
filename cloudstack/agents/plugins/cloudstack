@@ -65,7 +65,9 @@ if __name__ == "__main__":
                                    config['apikey'],
                                    config['secretkey'])
 
+    hosts = {}
     for host in cloudstack.listHosts(args={'type': 'Routing'}):
+        hosts[host['id']] = host
         print '<<<<%s>>>>' % host['name']
         print '<<<local>>>'
         print '0 %s_State - State is %s' % (host['hypervisor'].replace(' ', '_'),
@@ -85,6 +87,9 @@ if __name__ == "__main__":
                                                                        host['memorytotal'],
                                                                        host['memoryallocated'])
         print '<<<<>>>>'
+    # for host in hosts:
+    #     pprint(host)
+    # pprint(cloudstack.listHosts())
     print '<<<esx_vsphere_datastores:sep(9)>>>'
     for storage in cloudstack.listStoragePools():
         if not storage.has_key('disksizeused'):
@@ -102,12 +107,157 @@ if __name__ == "__main__":
         if uncommitted < 0:
             uncommitted = 0
         print 'uncommitted\t%d' % uncommitted
+        # print 'disksizeallocated\t%d' % storage['disksizeallocated']
+        # print 'disksizeused\t%d' % storage['disksizeused']
         print 'url\tds:///ACS/%s/%s/%s' % (storage['clustername'], storage['podname'], storage['name'])
+#        print "/%s/%s/%s ACS-Pool %d %d %d %d%% ACS/%s/%s/%s" % (
+#            storage['clustername'], storage['podname'], storage['name'],
+#            storage['disksizetotal'],
+#            storage['disksizeused'],
+#            storage['disksizetotal'] - storage['disksizeused'],
+#            storage['disksizeused'] * 100 / storage['disksizetotal'],
+#            storage['clustername'], storage['podname'], storage['name'])
     print '<<<local>>>'
+    #
+    # check for SystemVM
+    # csLeastRunningSystemVM[systemvmtype] count = actual count, running = actual running, least = defined necessity, description and msg are output strings
+    #
+    csLeastRunningSystemVM = {
+                               'consoleproxy':       {'count': 0, 'least': 1, 'description': 'ACS_SystemVM_Console_Proxy',     'msg': [], 'running': 0},
+                               'secondarystoragevm': {'count': 0, 'least': 1, 'description': 'ACS_SystemVM_Secondary_Storage', 'msg': [], 'running': 0}
+                             }
     for systemvm in cloudstack.listSystemVms():
-        msg = '%s (%s) on %s' % (systemvm['systemvmtype'], systemvm['publicip'], systemvm['hostname'])
+        if systemvm['systemvmtype'] in csLeastRunningSystemVM:
+            csLeastRunningSystemVM[systemvm['systemvmtype']]['count'] += 1
+            if systemvm['state'] == 'Running':
+                csLeastRunningSystemVM[systemvm['systemvmtype']]['running'] += 1
+                csLeastRunningSystemVM[systemvm['systemvmtype']]['msg'].append('%s [%s] on %s' % (systemvm['name'], systemvm['publicip'], systemvm['hostname']))
+            else:
+                csLeastRunningSystemVM[systemvm['systemvmtype']]['msg'].append('%s [%s] state is %s(!!)' % (systemvm['name'], systemvm['publicip'], systemvm['state']))
+
+    for systemVmType in csLeastRunningSystemVM:
         res = 0
-        if systemvm['state'] != 'Running':
+        if csLeastRunningSystemVM[systemVmType]['running'] < csLeastRunningSystemVM[systemVmType]['count']:
+            res = 1
+        if csLeastRunningSystemVM[systemVmType]['count'] < csLeastRunningSystemVM[systemVmType]['least']:
             res = 2
-            msg += ', state is %s(!!)' % systemvm['state']
-        print '%d SystemVM_%s - %s' % (res, systemvm['name'], msg)
+        if csLeastRunningSystemVM[systemVmType]['running'] < csLeastRunningSystemVM[systemVmType]['least']:
+            res = 2
+        if csLeastRunningSystemVM[systemVmType]['count'] == 0:
+            res = 2
+            csLeastRunningSystemVM[systemvm['systemvmtype']]['msg'].append('No systemvm defined nor running(!!)')
+        print '%d %s - %s' % ( res, csLeastRunningSystemVM[systemVmType]['description'], ', '.join(csLeastRunningSystemVM[systemVmType]['msg']) )
+
+    csAlertTypes = { 'MEMORY' : 0,
+                     'CPU': 1,
+                     'STORAGE': 2,
+                     'STORAGE_ALLOCATED': 3,
+                     'PUBLIC_IP': 4,
+                     'PRIVATE_IP': 5,
+                     'SECONDARY_STORAGE': 6,
+                     'HOST': 7,
+                     'USERVM': 8,
+                     'DOMAIN_ROUTER': 9,
+                     'CONSOLE_PROXY': 10,
+                     'ROUTING': 11,
+                     'STORAGE_MISC': 12,
+                     'USAGE_SERVER': 13,
+                     'MANAGMENT_NODE': 14,
+                     'DOMAIN_ROUTER_MIGRATE': 15,
+                     'CONSOLE_PROXY_MIGRATE': 16,
+                     'USERVM_MIGRATE': 17,
+                     'VLAN': 18,
+                     'SSVM': 19,
+                     'USAGE_SERVER_RESULT': 20,
+                     'STORAGE_DELETE': 21,
+                     'UPDATE_RESOURCE_COUNT': 22,
+                     'USAGE_SANITY_RESULT': 23,
+                     'DIRECT_ATTACHED_PUBLIC_IP': 24,
+                     'LOCAL_STORAGE': 25,
+                     'RESOURCE_LIMIT_EXCEEDED': 26,
+                     'SYNC': 27,
+                     'UPLOAD_FAILED': 28,
+                     'OOBM_AUTH_ERROR': 29 }
+    csAlertTypeWarn = { 0,1,2,3,4,5,6,8,12,13,15,16,18,19,23,26 }
+    csAlertTypeCrit = { 7,9,10,11,14 }
+    csAlertCnt = 0
+    csAlertRes = 0
+    csAlertMsg = ''
+    for csAlert in cloudstack.listAlerts():
+        csAlertCnt = csAlertCnt + 1
+        if csAlertCnt == 1:
+            csAlertMsg = '%s (%s) %s' % (csAlert['description'], csAlert['name'], csAlert['sent'])
+        if csAlert['type'] in csAlertTypeWarn:
+            csAlertRes = max(1, csAlertRes)
+        if csAlert['type'] in csAlertTypeCrit:
+            csAlertRes = max(2, csAlertRes)
+        
+    if csAlertCnt == 0:
+        msg = 'no uncleared alerts'
+    elif csAlertCnt == 1:
+        msg = '%d alert: %s' % (csAlertCnt, csAlertMsg)
+    else:
+        msg = '%d alerts. Most recent: %s' % (csAlertCnt, csAlertMsg)
+    print '%d ACS_Alerts - %s' % (csAlertRes, msg)
+
+    # pprint(cloudstack.listSnapshots())
+    # pprint(cloudstack.listAccounts())
+    # pprint(cloudstack.listDomains())
+    # pprint(cloudstack.listProjects())
+    # pprint(cloudstack.listZones())
+    # pprint(cloudstack.listInstanceGroups(args={'isrecursive': 'true', 'listall': 'true'}))
+    # pprint(cloudstack.listPods())
+    # pprint(cloudstack.listClusters())
+    # pprint(cloudstack.listSSHKeyPairs(args={'isrecursive': 'true', 'listall': 'true'}))
+    # pprint(cloudstack.listResourceLimits(args={'isrecursive': 'true', 'listall': 'true'}))
+    # pprint(cloudstack.listConfigurations())
+    # pprint(cloudstack.listPublicIpAddresses(args={'isrecursive': 'true', 'listall': 'true'}))
+    # pprint(cloudstack.listEvents(args={'isrecursive': 'true', 'listall': 'true', 'level': 'ERROR'}))
+    # pprint(cloudstack.listCapacity()) 
+    # pprint(cloudstack.listNetworks(args={'isrecursive': 'true', 'listall': 'true'}))
+    # pprint(cloudstack.listVirtualMachines(args={'isrecursive': 'true', 'listall': 'true'}))
+    # pprint(cloudstack.listUsageRecords(args={'startdate': '2015-11-16', 'enddate': '2015-11-17'}))
+    # pprint(cloudstack.listVolumes(args={'isrecursive': 'true', 'listall': 'true'}))
+    # pprint(cloudstack.listAlerts())
+    # pprint(cloudstack.listHypervisors())
+    # pprint(cloudstack.listLunsOnFiler(args={'poolname': 'SAS-LUN001'}))
+    vms = {}
+    networks = {}
+    nic = { 'PTR': 0, 'PTR0': 0, 'PTR1': 1 }
+    for domain in cloudstack.listDomains():
+        # print 'domain', domain['id'], domain['path'], domain['name']
+        for vm in cloudstack.listVirtualMachines(args={'domainid': domain['id'], 'isrecursive': 'true', 'listall': 'true'}):
+            vms[vm['id']] = vm
+        for net in cloudstack.listNetworks(args={'domainid': domain['id'], 'isrecursive': 'true', 'listall': 'true'}):
+            networks[net['id']] = net
+        for project in cloudstack.listProjects(args={'domainid': domain['id']}):
+            # print 'project', project['id'], project['name']
+            for vm in cloudstack.listVirtualMachines(args={'domainid': domain['id'], 'projectid': project['id'], 'isrecursive': 'true', 'listall': 'true'}):
+                vms[vm['id']] = vm
+            for net in cloudstack.listNetworks(args={'domainid': domain['id'], 'projectid': project['id'], 'isrecursive': 'true', 'listall': 'true'}):
+                networks[net['id']] = net
+
+    for vm in vms.values():
+        # print 'vm', vm['id'], vm.get('domain', None), vm.get('project', None), vm['name'], vm['displayname'], vm['state'], vm.get('hostname', None)
+        hostname = False
+        for t in vm['tags']:
+            for key in ['monitoring', 'PTR1', 'PTR0', 'PTR' ]:
+                if t['key'] == key:
+                    if '.' in t['value']:
+                        hostname = t['value']
+                        break
+                    elif key in nic:
+                        hostname = '%s.%s' % (t['value'], networks[vm['nic'][nic[key]]['networkid']]['networkdomain'])
+                        break
+            if hostname:
+                print '<<<<%s>>>>' % hostname
+                print '<<<esx_vsphere_vm>>>'
+                print 'config.hardware.memoryMB %s' % vm['memory']
+                print 'config.hardware.numCPU %s' % vm['cpunumber']
+                print 'config.hardware.numCoresPerSocket 1'
+                if vm['state'] == 'Running':
+                    print 'runtime.host %s' % vm['hostname']
+                    print 'runtime.powerState poweredOn'
+                else:
+                    print 'runtime.powerState poweredOff'
+                print '<<<<>>>>'
