@@ -160,7 +160,11 @@ if __name__ == "__main__":
         if csLeastRunningSystemVM[systemVmType]['count'] == 0:
             res = 2
             csLeastRunningSystemVM[systemvm['systemvmtype']]['msg'].append('No systemvm defined nor running(!!)')
-        print '%d %s - %s' % ( res, csLeastRunningSystemVM[systemVmType]['description'], ', '.join(csLeastRunningSystemVM[systemVmType]['msg']) )
+        print '%d %s INSTANCES=%d;%d;0 %s' % (res, 
+                                              csLeastRunningSystemVM[systemVmType]['description'],
+                                              csLeastRunningSystemVM[systemVmType]['running'],
+                                              csLeastRunningSystemVM[systemVmType]['least'],
+                                              ', '.join(csLeastRunningSystemVM[systemVmType]['msg']) )
 
     csAlertTypes = { 'MEMORY' : 0,
                      'CPU': 1,
@@ -216,37 +220,65 @@ if __name__ == "__main__":
 
     for capacity in cloudstack.listCapacity()['capacity']:
         if (capacity['type'] == 4):
+            critReserve = 10
+            warnReserve = 20
             res = 0
-            if (capacity['capacitytotal'] - capacity['capacityused'] < 20):
+            if (capacity['capacitytotal'] - capacity['capacityused'] < critReserve):
                 res = 1
-            elif (capacity['capacitytotal'] - capacity['capacityused'] < 10):
+            elif (capacity['capacitytotal'] - capacity['capacityused'] < warnReserve):
                 res = 2
-            print '%d ACS_Public_IPs - %d/%d (%s %%) used.' % ( res, capacity['capacityused'], capacity['capacitytotal'], capacity['percentused'] )
-
+            print '%d ACS_Public_IPs IPS=%d;%d;%d %d out of %d (%s %%) used.' % (res,
+                                                                            capacity['capacityused'],
+                                                                            (capacity['capacitytotal'] - warnReserve),
+                                                                            (capacity['capacitytotal'] - critReserve),
+                                                                            capacity['capacityused'],
+                                                                            capacity['capacitytotal'],
+                                                                            capacity['percentused'] )
         if (capacity['type'] == 5):
+            critReserve = 10
+            warnReserve = 20
             res = 0
-            if (capacity['capacitytotal'] - capacity['capacityused'] < 20):
+            if (capacity['capacitytotal'] - capacity['capacityused'] < critReserve):
                 res = 1
-            elif (capacity['capacitytotal'] - capacity['capacityused'] < 10):
+            elif (capacity['capacitytotal'] - capacity['capacityused'] < warnReserve):
                 res = 2
-            print '%d ACS_Management_IPs - %d/%d (%s %%) used.' % ( res, capacity['capacityused'], capacity['capacitytotal'], capacity['percentused'] )
-
+            print '%d ACS_Management_IPs IPS=%d;%d;%d %d out of %d (%s %%) used.' % (res,
+                                                                            capacity['capacityused'],
+                                                                            (capacity['capacitytotal'] - warnReserve),
+                                                                            (capacity['capacitytotal'] - critReserve),
+                                                                            capacity['capacityused'],
+                                                                            capacity['capacitytotal'],
+                                                                            capacity['percentused'] )
         if (capacity['type'] == 7):
+            critReserve = 10
+            warnReserve = 20
             res = 0
-            if (capacity['capacitytotal'] - capacity['capacityused'] < 20):
+            if (capacity['capacitytotal'] - capacity['capacityused'] < critReserve):
                 res = 1
-            elif (capacity['capacitytotal'] - capacity['capacityused'] < 10):
+            elif (capacity['capacitytotal'] - capacity['capacityused'] < warnReserve):
                 res = 2
-            print '%d ACS_VLAN/VNI - %d/%d (%s %%) used.' % ( res, capacity['capacityused'], capacity['capacitytotal'], capacity['percentused'] )
-
+            print '%d ACS_VLAN/VNI VLANS=%d;%d;%d %d out of %d (%s %%) used.' % (res,
+                                                                            capacity['capacityused'],
+                                                                            (capacity['capacitytotal'] - warnReserve),
+                                                                            (capacity['capacitytotal'] - critReserve),
+                                                                            capacity['capacityused'],
+                                                                            capacity['capacitytotal'],
+                                                                            capacity['percentused'] )
         if (capacity['type'] == 8):
+            critReserve = 10
+            warnReserve = 20
             res = 0
-            if (capacity['capacitytotal'] - capacity['capacityused'] < 20):
+            if (capacity['capacitytotal'] - capacity['capacityused'] < critReserve):
                 res = 1
-            elif (capacity['capacitytotal'] - capacity['capacityused'] < 10):
+            elif (capacity['capacitytotal'] - capacity['capacityused'] < warnReserve):
                 res = 2
-            print '%d ACS_Shared_Network_IPs - %d/%d (%s %%) used.' % ( res, capacity['capacityused'], capacity['capacitytotal'], capacity['percentused'] )
-
+            print '%d ACS_Shared_Network_IPs IPS=%d;%d;%d %d out of %d (%s %%) used.' % (res,
+                                                                            capacity['capacityused'],
+                                                                            (capacity['capacitytotal'] - warnReserve),
+                                                                            (capacity['capacitytotal'] - critReserve),
+                                                                            capacity['capacityused'],
+                                                                            capacity['capacitytotal'],
+                                                                            capacity['percentused'] )
     # pprint(cloudstack.listSnapshots())
     # pprint(cloudstack.listAccounts())
     # pprint(cloudstack.listDomains())
@@ -268,6 +300,7 @@ if __name__ == "__main__":
     # pprint(cloudstack.listAlerts())
     # pprint(cloudstack.listHypervisors())
     # pprint(cloudstack.listLunsOnFiler(args={'poolname': 'ACS-LUN002-SATA'}))
+
     vms = {}
     networks = {}
     nic = { 'PTR': 0, 'PTR0': 0, 'PTR1': 1 }
