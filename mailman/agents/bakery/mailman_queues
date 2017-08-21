@@ -2,7 +2,7 @@
 # -*- encoding: utf-8; py-indent-offset: 4 -*-
 
 def bake_mailman_queues(opsys, conf, conf_dir, plugins_dir):
-    shutil.copy2(local_agents_dir + "/plugins/mailman_queues", plugins_dir + "/mailman_queues")
+    shutil.copy2(cmk.paths.local_agents_dir + "/plugins/mailman_queues", plugins_dir + "/mailman_queues")
 
     if conf.has_key("queues"):
 

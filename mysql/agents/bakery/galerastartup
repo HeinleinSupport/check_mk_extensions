@@ -1,8 +1,8 @@
-#!/usr/bin/python
+#!/usr/bin/env python
 # -*- encoding: utf-8; py-indent-offset: 4 -*-
 
 def bake_galerastartup(opsys, conf, conf_dir, plugins_dir):
-    shutil.copy2(local_agents_dir + "/plugins/galerastartup", plugins_dir + "/galerastartup")
+    shutil.copy2(cmk.paths.local_agents_dir + "/plugins/galerastartup", plugins_dir + "/galerastartup")
 
 bakery_info["galerastartup"] = {
     "bake_function" : bake_galerastartup,

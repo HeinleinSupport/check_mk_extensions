@@ -17,7 +17,7 @@
 
 def bake_postfix_procs(opsys, conf, conf_dir, plugins_dir):
     if conf:
-        shutil.copy2(local_agents_dir + "/plugins/postfix_procs", plugins_dir + "/postfix_procs")
+        shutil.copy2(cmk.paths.local_agents_dir + "/plugins/postfix_procs", plugins_dir + "/postfix_procs")
 
 bakery_info["postfix_procs"] = {
     "bake_function" : bake_postfix_procs,
