@@ -3,7 +3,7 @@
 
 def bake_icpraid(opsys, conf, conf_dir, plugins_dir):
     if conf:
-        shutil.copy2(local_agents_dir + "/plugins/icpraid", plugins_dir + "/icpraid")
+        shutil.copy2(cmk.paths.local_agents_dir + "/plugins/icpraid", plugins_dir + "/icpraid")
 
 bakery_info["icpraid"] = {
     "bake_function" : bake_icpraid,
