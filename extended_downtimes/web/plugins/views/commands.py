@@ -188,7 +188,7 @@ def command_downtime(cmdtag, spec, row):
 
         def make_command(spec, cmdtag):
             return ("SCHEDULE_" + cmdtag + "_DOWNTIME;%s;" % spec ) \
-                   + ("%d;%d;%d;0;%d;%s;" % (down_from, down_to, fixed_and_recurring, duration, config.user_id)) \
+                   + ("%d;%d;%d;0;%d;%s;" % (down_from, down_to, fixed_and_recurring, duration, config.user.id)) \
                    + lqencode(comment)
 
         if "aggr_tree" in row: # BI mode
