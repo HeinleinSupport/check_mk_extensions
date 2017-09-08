@@ -211,7 +211,7 @@ else:
             raise 'Cannot write file "%s": %s' % (path, e)
         finally:
             cmk.store.release_lock(changes_file)
-        sites.append(changes_file.split('/')[-1].split('_')[-1].split('.')[0])
+        sites.append(changes_file.split('/')[-1][20:-3])
         
     #
     # Activate Sites via WATO Web-API
