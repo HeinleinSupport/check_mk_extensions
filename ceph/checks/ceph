@@ -34,7 +34,13 @@ def check_ceph(item, params, info):
     for line in info:
         if line[0] == 'cluster':
             text.append('Cluster %s' % line[1])
+        if line[0] == 'id:':
+            text.append('Cluster %s' % line[1])
         if line[0] == 'health':
+            text.append(' '.join(line[1:]))
+            if line[1] != 'HEALTH_OK':
+                rc = 2
+        if line[0] == 'health:':
             text.append(' '.join(line[1:]))
             if line[1] != 'HEALTH_OK':
                 rc = 2
@@ -42,6 +48,18 @@ def check_ceph(item, params, info):
             text.append(' '.join(line))
             used = saveint(line[0]) * factor[line[1]]
             size = saveint(line[6]) * factor[line[7]]
+            warn = 0.8 * size
+            crit = 0.9 * size
+            perfdata.append(("Used", "%dB" % used, warn, crit, 0, size))
+            if rc == 0:
+                if used > crit:
+                    rc = 2
+                elif used > warn:
+                    rc = 1
+        if line[0] == 'usage:':
+            text.append(' '.join(line[1:]))
+            used = saveint(line[1]) * factor[line[2]]
+            size = saveint(line[7]) * factor[line[8]]
             warn = 0.8 * size
             crit = 0.9 * size
             perfdata.append(("Used", "%dB" % used, warn, crit, 0, size))
