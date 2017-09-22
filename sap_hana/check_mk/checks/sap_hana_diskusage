@@ -1,0 +1,65 @@
+#!/usr/bin/env python
+# -*- encoding: utf-8; py-indent-offset: 4 -*-
+# Example output from agent:
+#<<<sap_hana_diskusage:sep(44)>>>
+#[[PRH00]]
+#"Data","OK","Size 99.9 GB, Used 2.5 GB, Free 98 %"
+#"Log","OK","Size 99.9 GB, Used 2.2 GB, Free 98 %"
+#"Trace","OK","Size 196.9 GB, Used 25.4 GB, Free 88 %"
+#
+# This will be parsed into
+# parsed = {
+# u'PRH00': [[u'Data', u'OK', u'Size 99.9 GB, Used 2.5 GB, Free 98 %'], 
+#			[u'Log', u'OK', u'Size 99.9 GB, Used 2.2 GB, Free 98 %'], 
+#			[u'Trace', u'OK', u'Size 196.9 GB, Used 25.4 GB, Free 88 %']]
+# }
+
+# FIXME: Crapy copy n paste! Consolidate with other sap_hana_* parse functions
+def parse_sap_hana_diskusage(info):
+    parsed = {}
+    instance = False
+    for line in info:
+        if line[0].startswith("[["):
+            instance = line[0][2:-2]
+            parsed[instance] = []
+        elif instance:
+            parsed[instance].append(line)
+			
+    return parsed
+
+def inventory_sap_hana_diskusage(parsed):
+    for instance,lines in parsed.items():
+		# instance = PRH00
+		# lines = [[u'Data', u'OK', u'Size 99.9 GB, Used 2.5 GB, Free 98 %'], [u'Log', u'OK', u'Size 99.9 GB, Used 2.2 GB, Free 98 %'], [u'Trace', u'OK', u'Size 196.9 GB, Used 25.4 GB, Free 88 %']]
+	  for line in lines:
+		# [u'Data', u'OK', u'Size 99.9 GB, Used 2.5 GB, Free 98 %']
+	    if len(line) > 2: #len = length, array/liste = zahl der elemente
+                item = "%s - %s" % (instance, line[0])
+	        yield item, {}
+
+def check_sap_hana_diskusage(item, params, parsed):
+    for instance,lines in parsed.items():
+	for line in lines:
+          itemname = "%s - %s" % (instance, line[0])
+          if len(line) > 2 and item == itemname:
+            status = line[1]				#status=status
+            value = line[2]					#value=size,used,free
+	    disk_size = re.search("(?<=Size )([\d.]*)", value).group(0)				#	disk_size=Size	
+	    disk_used = re.search("(?<=Used )([\d.]*)", value).group(0) + "GB"		#	disk_used=Used
+	    perfdata = [("disk_used_%s" % re.sub(' - ','_',item), disk_used, "", "", 0, disk_size)]  	#	perfdata=(disk_used_DATA/LOG/TRACE,Used,"","",0,Size)
+	    serviceOutput = "%s (Status: %s)" % (value,status)						#	serviceOutput=size,used,free (Status:OK/Warning/Unknown)
+	    if status == "OK":
+		returnCode = 0
+	    elif status == "UNKNOWN":
+		returnCode = 3
+	    else:
+		returnCode = 2
+            return returnCode, serviceOutput, perfdata
+
+check_info["sap_hana_diskusage"] = {
+    "parse_function"	      : parse_sap_hana_diskusage,
+    "check_function"          : check_sap_hana_diskusage,
+    "inventory_function"      : inventory_sap_hana_diskusage,
+    "service_description"     : "SAP HANA Disk %s",
+    "has_perfdata"            : True,
+}

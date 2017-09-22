@@ -1,0 +1,125 @@
+#!/bin/bash
+# SAP HANA Plugin for Check_MK Agent on Linux
+# Copyright Gerd Stolz - SVA - 2016
+# Changelog
+# 0.1 - 2016-11-10
+# Initial Version
+# 0.2 - 2016-11-28
+# sap_hana_backup - Filter out jobs in state_name = running
+# don't query anything if SID or INSTANCE aren't set
+# 0.3 - 2017-02-01
+# consolidated versions including following
+# 0.4 - 2017-09-02
+# Stay silent when hdb isnt running, needed for this check to work on a cluster host
+# support for hdb userkeystore
+# support for SLES HANA Installations
+# fix for working UNKW state when instance isn't running
+# added support for replication.py script
+
+#set -x
+# Variables
+configFile="$MK_CONFDIR/sap_hana.cfg"
+UNKNOWN_MESSAGE="All Started,UNKNOWN,Check failed - could not find config file $configFile"
+
+function exit_unknown() {
+    echo "<<<sap_hana_status:sep(59)>>>"
+    echo $UNKNOWN_MESSAGE
+    exit
+}
+
+# Prepare plugin run
+if ! [ -e "$configFile" ] ; then
+    exit_unknown
+fi
+
+source "$configFile"
+# configfile should contain USERSTOREKEY for support of multiple HANA instances OR USER + PASSWORD
+# The USERSTOREKEY (if available) is then merged with the SID name to to find a matching entry in the HDB USERSTORE.
+# i.e. USERSTOREKEY="SVAMON" + SID = I08 means we need a key for SVAMONI08 in the HDB userstore
+
+if [ -z $USERSTOREKEY ] ; then
+    # we only need to check for user + pw when we are not using the HDB Userstore,
+    if [ -z $USER ] || [ -z $PASSWORD ] ; then
+	exit_unknown
+    fi
+fi
+
+function do_query() {
+
+    INSTANCE_NAME="[[${SID}${INSTANCE}]]"
+
+    function hdbsql() {
+	# -C don't escape output, -F change separator , -x = quiet output, only query result / -a = no header in reply to select statements # plus sed removes leading and trailing ;
+	if [ -n "$USERSTOREKEY" ] ; then
+	    CREDENTIALS="-U ${USERSTOREKEY}${SID}"
+	else
+	    CREDENTIALS="-u ${USER} -p ${PASSWORD}"
+	fi
+	/usr/sap/${SID}/HDB${INSTANCE}/exe/hdbsql -C -F\; -x -a -n localhost -i ${INSTANCE} ${CREDENTIALS} $1 2>/dev/null | sed -e "s/^;//" -e "s/;$//" ; (exit ${PIPESTATUS[0]})
+    }
+
+    alerts_last_check="$MK_VARDIR/sap_hana_alerts_${INSTANCE_NAME}.last_checked"
+    # Check status
+    echo "<<<sap_hana_status:sep(59)>>>"
+    output=$(hdbsql "SELECT Name , Status, Value FROM M_SYSTEM_OVERVIEW Where NAME='Version' or NAME='All Started'")
+    if [ $? != 0 ] ; then
+	#echo 'All Started;UNKNOWN;Check failed - Could not query' ${INSTANCE_NAME} '- will stop all checks against this instance'
+	#for single instances we could execute the line above, however, this will create problems when we want to cluster the check, so we now exit nothing if an instance isn't running.
+	return
+	# leaving do_query, if we can't even query
+    fi
+    echo $INSTANCE_NAME
+    echo "$output"
+    echo "<<<sap_hana_backup:sep(59)>>>"
+    echo $INSTANCE_NAME
+    query_prefix="Select TOP 1 entry_type_name, sys_end_time,state_name, comment, message from M_BACKUP_CATALOG where"
+    query_suffix="AND state_name <> 'running' order by sys_start_time desc"
+    hdbsql "$query_prefix entry_type_name = 'data snapshot' $query_suffix"
+    hdbsql "$query_prefix entry_type_name = 'complete data backup' $query_suffix"
+    hdbsql "$query_prefix entry_type_name = 'log backup' $query_suffix"
+    
+    echo "<<<sap_hana_diskusage:sep(59)>>>"
+    echo $INSTANCE_NAME
+    hdbsql "SELECT name,status,value FROM M_SYSTEM_OVERVIEW Where NAME='Data' or NAME='Log' or NAME='Trace'"
+
+    echo "<<<sap_hana_license:sep(59)>>>"
+    echo $INSTANCE_NAME
+    hdbsql "SELECT ENFORCED, PERMANENT,LOCKED_DOWN,PRODUCT_USAGE,PRODUCT_LIMIT FROM M_LICENSE"
+
+    echo "<<<sap_hana_memory:sep(59)>>>"
+    echo $INSTANCE_NAME
+    hdbsql "Select TOP 1 a.HOST, round(a.INSTANCE_TOTAL_MEMORY_USED_SIZE/1024/1024/1024, 2) as \"Used Memory GB\", round(b.INSTANCE_TOTAL_MEMORY_USED_SIZE/1024/1024/1024, 2) as \"Peak Used GB\" ,  round(c.ALLOCATION_LIMIT/1024/1024/1024, 2) as \"Allocation Limit GB\" from M_HOST_RESOURCE_UTILIZATION as a, _SYS_STATISTICS.HOST_RESOURCE_UTILIZATION_STATISTICS as b, PUBLIC.M_HOST_RESOURCE_UTILIZATION as c order by \"Peak Used GB\" desc"
+
+    echo "<<<logwatch>>>"
+    echo [[[SAP HANA Alerts for ${SID}${INSTANCE}]]]
+    if [ -r $alerts_last_check ] ; then
+	hdbsql "Select ALERT_TIMESTAMP,ALERT_ID,ALERT_RATING,ALERT_DETAILS from  _SYS_STATISTICS.STATISTICS_ALERTS Where ALERT_TIMESTAMP >= '$(cat $alerts_last_check)' AND (ALERT_ID < '22' OR ALERT_ID > '24') order by ALERT_TIMESTAMP asc"  | sed -e "s/^/W /"
+	#hdbsql "Select ALERT_TIMESTAMP,ALERT_ID,ALERT_RATING,ALERT_DETAILS from  _SYS_STATISTICS.STATISTICS_ALERTS Where ALERT_TIMESTAMP >= '2016-11-20 17:30:30' AND ALERT_ID != '24' order by ALERT_TIMESTAMP asc"
+    else
+	hdbsql "Select ALERT_TIMESTAMP,ALERT_ID,ALERT_RATING,ALERT_DETAILS from  _SYS_STATISTICS.STATISTICS_ALERTS Where ALERT_TIMESTAMP IN (Select max(ALERT_TIMESTAMP) from _SYS_STATISTICS.STATISTICS_ALERTS  group by ALERT_ID) AND ADD_DAYS(Current_timestamp,-1)<=ALERT_TIMESTAMP AND (ALERT_ID < '22' OR ALERT_ID > '24') order by ALERT_TIMESTAMP desc"  | sed -e "s/^/W /"
+    fi
+    if [ $? = 0 ] ; then
+	date +"%Y-%m-%d %H:%M:%S" > $alerts_last_check #2016-11-09 16:14:16.410000000
+    fi
+
+    echo "<<<sap_hana_replication_status>>>"
+    echo $INSTANCE_NAME
+    su - ${INSTANCEUSER} -c "python /usr/sap/${SID}/HDB${INSTANCE}/exe/python_support/systemReplicationStatus.py"
+    echo "Returncode: $?"
+}
+
+# find SID using
+running_hana_instances=$(ps -efw | grep [H]DB.*sapstartsrv)
+#hana01:/usr/sap/PRH/HDB00/exe # ps -ef | grep [H]DB.*sapstartsrv
+#prhadm    4943     1  0 Nov09 ?        00:00:50 /usr/sap/PRH/HDB00/exe/sapstartsrv pf=/usr/sap/PRH/SYS/profile/PRH_HDB00_hana01 -D -u prhadm
+printf "$running_hana_instances\n" | while read line ; do
+    SID=$(echo "$line" | grep  -Po '(?<= /usr/sap/)\w{3}') # (!<= is a look behind assertion, so we find \w{3} <- 3 alpha-numerical characters, that follow " /usr/sap/" <- note the leading space
+    INSTANCE=$(echo "$line" | grep  -Po "(?<= /usr/sap/${SID}/HDB)\d{2}") # same logic as above, but look for 2 \d digits
+    INSTANCEUSER=$(echo "$line" | grep -Po "^\s*(\w+)") # grep only the first word = the user running the instance
+    if [ -z $INSTANCE ] || [ -z $SID ] ; then
+	continue; # no SID or INSTANCE found, no need to query anything
+    else
+	do_query
+    fi
+done
+

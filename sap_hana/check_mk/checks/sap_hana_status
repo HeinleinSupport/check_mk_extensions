@@ -1,0 +1,66 @@
+#!/usr/bin/env python
+# -*- encoding: utf-8; py-indent-offset: 4 -*-
+# Example output from agent:
+#<<<sap_hana_status:sep(44)>>>
+#[[TST00]]
+#Version;;1.00.097.00.1434028111 (fa/newdb100_maint_rel)
+#All Started;OK;Yes
+
+# This will be parsed into
+# parsed = {
+#  u'PRH00': [[u'Version', u'', u'1.00.097.00.1434028111 (fa/newdb100_maint_rel)'], [u'All Started', u'OK', u'Yes']]
+# }
+
+# FIXME: Crapy copy n paste! Consolidate with other mysql_* parse functions
+def parse_sap_hana_status(info):
+    parsed = {}
+    instance = False
+    for line in info:
+        if line[0].startswith("[["):
+            instance = line[0][2:-2]
+            parsed[instance] = []
+        elif instance:
+            parsed[instance].append(line)
+    return parsed
+
+def inventory_sap_hana_status(parsed):
+    for instance,lines in parsed.items():
+	for line in lines:
+	    if len(line) > 2:
+		if line[0] == "All Started":
+		    line[0] = "Status"
+                item = "%s - %s" % (instance, line[0])
+	        yield item, {}
+
+def check_sap_hana_status(item, params, parsed):
+    for instance,lines in parsed.items():
+	for line in lines:
+          if line[0] == u"All Started": 
+             line[0] = u"Status"
+          itemname = "%s - %s" % (instance, line[0])
+          if len(line) > 2 and item == itemname:
+            status = line[1]
+            value = line[2]
+	    if item.endswith("Version"): 
+		yield 0, line[2]		
+	    elif item.endswith("Status"):
+		    serviceOutput = "%s (Status: %s)" % (value,status)
+		    if status == "OK":
+			yield 0, serviceOutput
+			return
+		    elif status == "UNKNOWN":
+			yield 3, serviceOutput
+			return
+		    else:
+			yield 2, serviceOutput
+			return
+	    else:
+			yield 3, "UNKNOWN item " + item
+
+check_info["sap_hana_status"] = {
+    "parse_function"	      : parse_sap_hana_status,
+    "check_function"          : check_sap_hana_status,
+    "inventory_function"      : inventory_sap_hana_status,
+    "service_description"     : "SAP HANA %s",
+    "has_perfdata"            : False,
+}

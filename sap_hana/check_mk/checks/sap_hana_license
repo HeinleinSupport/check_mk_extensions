@@ -1,0 +1,107 @@
+#!/usr/bin/env python
+# -*- encoding: utf-8; py-indent-offset: 4 -*-
+#<<<sap_hana_license:sep(59)>>>
+#[[PRH00]]
+#"FALSE","FALSE","FALSE","11","2147483647"
+
+#ENFORCED, PERMANENT, LOCKED_DOWN, PRODUCT_USAGE, PRODUCT_LIMIT
+#
+# This will be parsed into
+# parsed = {
+# u'PRH00': [[u'FALSE', u'FALSE', u'FALSE', u'11', u'2147483647']]
+# }
+
+
+# FIXME: Crapy copy n paste! Consolidate with other sap_hana_* parse functions
+
+sap_hana_license_default_values = { "license_usage" : [80.0,90.0]}
+
+def parse_sap_hana_license(info):
+    parsed = {}
+    instance = False
+    for line in info:
+        if line[0].startswith("[["): 	# [[PRH00]]
+            instance = line[0][2:-2]	# instance = PRH00
+            parsed[instance] = []
+        elif instance:
+            parsed[instance].append(line) 
+    return parsed
+	
+	
+def inventory_sap_hana_license(parsed):
+    for instance,lines in parsed.items():
+		# instance = PRH00
+		# lines = [[u'FALSE', u'FALSE', u'FALSE', u'11', u'2147483647']]
+	  for line in lines:
+		# [u'FALSE', u'FALSE', u'FALSE', u'11', u'2147483647']
+	    if len(line) > 0: #len = length, array/liste = zahl der elemente
+	        item = "%s" % instance
+	        yield item, sap_hana_license_default_values
+
+def check_sap_hana_license(item, params, parsed):	#(0=OK, 1=WARN, 2=CRIT, 3=UNKNOWN)
+    for instance,lines in parsed.items():
+	(warn,crit) = params["license_usage"]
+	for line in lines:
+	    # unpack check parameters
+            if len(line) > 4 and item == instance:
+                enforced    = line[0]
+                permanent   = line[1]
+		locked      = line[2]
+		p_usage     = savefloat(line[3])
+		p_limit     = savefloat(line[4])
+		prozent     = p_usage/(p_limit/100)
+			
+			
+		if enforced == "TRUE": 			#locked
+		    # Code um die Usage zu prüfen + ggfs. mit Std. Schwellwerten 
+                    # Levels in absolute numbers
+                    if type(warn) == int:
+                        warn_abs = warn
+                        crit_abs = crit
+                        warn_pct = warn*100/p_limit
+                        crit_pct = crit*100/p_limit
+                        limits = "%d/%dGB (warn/crit)" % (warn,crit)
+		        perfdata = [("license","%dGB" % p_usage, warn_abs, crit_abs, 0, p_limit),("license_pct","%.01f%%" % prozent,warn_pct,crit_pct,0,100)] 
+                        if p_usage > crit:	#usage > limit
+                            yield 2, "Product usage is over the critical limit (%s): %d > %dGB" % (limits,p_usage,crit),perfdata
+                        elif p_usage > warn:
+                            yield 1, "Product usage is over the warning limit (%s): %d > %dGB" % (limits,p_usage,warn),perfdata
+                        else:
+                            yield 0, "Product usage is within the limits (%s). Current usage: %dGB"  % (limits,p_usage),perfdata
+                    else:
+                        warn_pct = warn
+                        crit_pct = crit
+                        warn_abs = p_limit*warn_pct/100
+                        crit_abs = p_limit*crit_pct/100
+                        limits = "%.01f%%/%.01f%% (warn/crit)" % (warn,crit)
+		        perfdata = [("license","%dGB" % p_usage, warn_abs, crit_abs, 0, p_limit),("license_pct","%.01f%%" % prozent,warn_pct,crit_pct,0,100)] 
+                        if prozent > crit:	
+                            yield 2, "Product usage is over the critical limit (%s): %.01f%% > %.01f%%" % (limits, prozent,crit),perfdata
+                        elif prozent > warn:
+                            yield 1, "Product usage is over the warning limit (%s): %.01f%% > %.01f%%" % (limits, prozent,warn),perfdata
+                        else:
+                            yield 0, "Product usage is within the limits (%s). Current usage: %.01f%%"  % (limits, prozent),perfdata
+
+
+                elif enforced == "FALSE":
+                    yield 0,"Licensed product usage is unlimited"
+                else:
+                    yield 3,"License status is unknown: %s" % str(enforced)
+
+                if permanent == "TRUE":
+                    yield 0,"License is permanent"
+                else:
+                    yield 1,"License is not permanent" # TODO include expiration_date
+
+                if locked == "TRUE":
+                    yield 2,"System is locked due to license status(!!)."
+                
+check_info["sap_hana_license"] = {
+    "parse_function"	      : parse_sap_hana_license,
+    "check_function"          : check_sap_hana_license,
+    "inventory_function"      : inventory_sap_hana_license,
+    "service_description"     : "SAP HANA License %s",
+    "has_perfdata"            : True,
+    "group"                   : "sap_hana_license"
+    #"default_levels_variable" : sap_hana_license_default_values
+}

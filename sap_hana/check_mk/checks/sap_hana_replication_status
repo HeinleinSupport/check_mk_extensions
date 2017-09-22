@@ -1,0 +1,85 @@
+#!/usr/bin/env python
+# -*- encoding: utf-8; py-indent-offset: 4 -*-
+# Example output from agent:
+#<<<sap_hana_replication_status>>>
+#[[TST00]]
+#| Host     | Port  | Service Name | Volume ID | Site ID | Site Name  | Secondary | Secondary | Secondary | Secondary    | Secondary     | Replication | Replication | Replication                         |
+#|          |       |              |           |         |            | Host      | Port      | Site ID   | Site Name    | Active Status | Mode        | Status      | Status Details                      |
+#| -------- | ----- | ------------ | --------- | ------- | ---------- | --------- | --------- | --------- | ------------ | ------------- | ----------- | ----------- | ----------------------------------- |
+#| sdeu0491 | 30007 | xsengine     |         2 |       1 | P08primary | sdeu0410  |     30007 |         2 | P08secondary | YES           | ASYNC       | ACTIVE      |                                     |
+#| sdeu0491 | 30001 | nameserver   |         1 |       1 | P08primary | sdeu0410  |     30001 |         2 | P08secondary | YES           | ASYNC       | ACTIVE      |                                     |
+#| sdeu0491 | 30003 | indexserver  |         3 |       1 | P08primary | sdeu0410  |     30003 |         2 | P08secondary | YES           | ASYNC       | ACTIVE      |                                     |
+#| sdeu0493 | 30003 | indexserver  |         7 |       1 | P08primary | sdeu0413  |     30003 |         2 | P08secondary | YES           | ASYNC       | ACTIVE      |                                     |
+#| sdeu0495 | 30003 | indexserver  |         9 |       1 | P08primary | sdeu0414  |     30003 |         2 | P08secondary | YES           | ASYNC       | ACTIVE      |                                     |
+#| sdeu0496 | 30003 | indexserver  |        11 |       1 | P08primary | sdeu0416  |     30003 |         2 | P08secondary | YES           | ASYNC       | ACTIVE      |                                     |
+#| sdeu0494 | 30003 | indexserver  |         0 |       1 | P08primary | sdeu0412  |     30003 |         2 | P08secondary | YES           | STANDBY     | ACTIVE      |                                     |
+#| sdeu0497 | 30003 | indexserver  |         5 |       1 | P08primary | sdeu0417  |     30003 |         2 | P08secondary | YES           | ASYNC       | ACTIVE      | Delta Replica: 51 % (7200/13888 MB) |
+#| sdeu0492 | 30003 | indexserver  |         6 |       1 | P08primary | sdeu0411  |     30003 |         2 | P08secondary | YES           | ASYNC       | ACTIVE      |                                     |
+#
+#status system replication site "2": ACTIVE
+#overall system replication status: ACTIVE
+#
+#Local System Replication State
+#~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+#
+#mode: PRIMARY
+#site id: 1
+#site name: P08primary
+#Returncode: 15
+
+# FIXME: Crapy copy n paste! Consolidate with other mysql_* parse functions
+def parse_sap_hana_replication_status(info):
+    parsed = {}
+    instance = False
+    for line in info:
+        if line[0].startswith("[["):
+            instance = line[0][2:-2]
+            parsed[instance] = []
+        elif instance:
+            parsed[instance].append(line)
+    return parsed
+
+def inventory_sap_hana_replication_status(parsed):
+  returncode=0
+  mode="undefined"
+  for instance,lines in parsed.items():
+    for line in lines:
+        if line[0] == "mode:":
+            mode = line[1]
+        if line[0] == "Returncode:":
+            returncode = line[1] # everything after "Returncode:" 
+    if returncode != 10 and mode == "PRIMARY":
+        item = "%s" % (instance)
+        yield item, {}
+            
+returncodeMap = {
+    0: { "desc" : "The script /usr/sap/..../exe/python_support/systemReplicationStatus.py returned an unknown returncode - this check only handles 10-15!", "nagiosRC" : 3 }, 
+    10: { "desc" : "No System Replication - This must have changed, because this check doesn't inventory systems where replication is disabled!", "nagiosRC" : 2 }, # this shouldn't occur, we shouldn't even monitor this
+    11: { "desc" : "Error", "nagiosRC" : 2},
+    12: { "desc" : "Unknown", "nagiosRC" : 2},
+    13: { "desc" : "Initializing", "nagiosRC" : 1},
+    14: { "desc" : "Syncing", "nagiosRC" : 0},
+    15: { "desc" : "Active", "nagiosRC" :  0},
+}
+
+def check_sap_hana_replication_status(item, params, parsed):
+    for instance,lines in parsed.items():
+        #print "\n".join([" ".join(line) for line in lines])
+      for line in lines:
+          if line[0] == "Returncode:": 
+              returncode = saveint(line[1]) # everything after "Returncode:"
+              if returncode < 10 or returncode > 15 :
+                  returncode = 0
+                  break;
+      itemname = "%s" % (instance)
+      if item == itemname:
+          yield returncodeMap[returncode]["nagiosRC"], "Replication Status is: %s" % returncodeMap[returncode]["desc"]
+
+check_info["sap_hana_replication_status"] = {
+    "parse_function"        : parse_sap_hana_replication_status,
+    "check_function"          : check_sap_hana_replication_status,
+    "inventory_function"      : inventory_sap_hana_replication_status,
+    "service_description"     : "SAP HANA Replication Status %s",
+    "has_perfdata"            : False,
+}
+
