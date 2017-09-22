@@ -1,6 +1,9 @@
 #!/usr/bin/env python
 # -*- encoding: utf-8; py-indent-offset: 4 -*-
 
+# (c) Gerd Stolz <Gerd.Stolz@sva.de>
+# (c) Robert Sander <r.sander@heinlein-support.de>
+
 # Example output from agent:
 #[[PRH00]]
 #"complete data backup","2016-11-08 20:02:10.389000000","successful","","<ok>"
@@ -15,22 +18,7 @@
 #		[u'log backup', u'2016-11-08 20:02:10.389000000', u'successful', u'', u'<ok>']]
 # }
 
-import datetime
-
 sap_hana_backup_default_values = { "backup_age" : [24,48]}
-
-
-# FIXME: Crapy copy n paste! Consolidate with other mysql_* parse functions
-def parse_sap_hana_backup(info):
-    parsed = {}
-    instance = False
-    for line in info:
-        if line[0].startswith("[["):
-            instance = line[0][2:-2]
-            parsed[instance] = []
-        elif instance:
-            parsed[instance].append(line)
-    return parsed
 
 def inventory_sap_hana_backup(parsed):
      for instance,lines in parsed.items():
@@ -40,6 +28,7 @@ def inventory_sap_hana_backup(parsed):
 	        yield item, sap_hana_backup_default_values 	
 
 def check_sap_hana_backup(item, params, parsed): 									#(0=OK, 1=WARN, 2=CRIT, 3=UNKNOWN)
+    import datetime
     for instance,lines in parsed.items():
 	for line in lines:
    
@@ -85,11 +74,11 @@ def check_sap_hana_backup(item, params, parsed): 									#(0=OK, 1=WARN, 2=CRIT
                   else:
                           yield 0, "Last backup is new enough (%s)" % age_str
 
-
 check_info["sap_hana_backup"] = {
-    "parse_function"	      : parse_sap_hana_backup,
+    "parse_function"	      : parse_sap_hana,
     "check_function"          : check_sap_hana_backup,
     "inventory_function"      : inventory_sap_hana_backup,
     "service_description"     : "SAP HANA Backup %s",
-    "group"                   : "sap_hana_backup"
+    "group"                   : "sap_hana_backup",
+    "includes"                : [ 'sap_hana.include' ],
 }

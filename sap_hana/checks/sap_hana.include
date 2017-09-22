@@ -1,0 +1,15 @@
+#!/usr/bin/env python
+# -*- encoding: utf-8; py-indent-offset: 4 -*-
+
+def parse_sap_hana(info):
+    if cmk.debug.enabled():
+        pprint.pprint(info)
+    parsed = {}
+    instance = False
+    for line in info:
+        if line[0].startswith("[["):
+            instance = line[0][2:-2]
+            parsed[instance] = []
+        elif instance:
+            parsed[instance].append(line)
+    return parsed

@@ -1,5 +1,9 @@
 #!/usr/bin/env python
 # -*- encoding: utf-8; py-indent-offset: 4 -*-
+
+# (c) Gerd Stolz <Gerd.Stolz@sva.de>
+# (c) Robert Sander <r.sander@heinlein-support.de>
+
 #<<<sap_hana_license:sep(59)>>>
 #[[PRH00]]
 #"FALSE","FALSE","FALSE","11","2147483647"
@@ -12,22 +16,8 @@
 # }
 
 
-# FIXME: Crapy copy n paste! Consolidate with other sap_hana_* parse functions
-
 sap_hana_license_default_values = { "license_usage" : [80.0,90.0]}
 
-def parse_sap_hana_license(info):
-    parsed = {}
-    instance = False
-    for line in info:
-        if line[0].startswith("[["): 	# [[PRH00]]
-            instance = line[0][2:-2]	# instance = PRH00
-            parsed[instance] = []
-        elif instance:
-            parsed[instance].append(line) 
-    return parsed
-	
-	
 def inventory_sap_hana_license(parsed):
     for instance,lines in parsed.items():
 		# instance = PRH00
@@ -97,11 +87,12 @@ def check_sap_hana_license(item, params, parsed):	#(0=OK, 1=WARN, 2=CRIT, 3=UNKN
                     yield 2,"System is locked due to license status(!!)."
                 
 check_info["sap_hana_license"] = {
-    "parse_function"	      : parse_sap_hana_license,
+    "parse_function"	      : parse_sap_hana,
     "check_function"          : check_sap_hana_license,
     "inventory_function"      : inventory_sap_hana_license,
     "service_description"     : "SAP HANA License %s",
     "has_perfdata"            : True,
-    "group"                   : "sap_hana_license"
+    "group"                   : "sap_hana_license",
+    "includes"                : [ 'sap_hana.include' ],
     #"default_levels_variable" : sap_hana_license_default_values
 }

@@ -1,5 +1,9 @@
 #!/usr/bin/env python
 # -*- encoding: utf-8; py-indent-offset: 4 -*-
+
+# (c) Gerd Stolz <Gerd.Stolz@sva.de>
+# (c) Robert Sander <r.sander@heinlein-support.de>
+
 # Example output from agent:
 #<<<sap_hana_diskusage:sep(44)>>>
 #[[PRH00]]
@@ -13,19 +17,6 @@
 #			[u'Log', u'OK', u'Size 99.9 GB, Used 2.2 GB, Free 98 %'], 
 #			[u'Trace', u'OK', u'Size 196.9 GB, Used 25.4 GB, Free 88 %']]
 # }
-
-# FIXME: Crapy copy n paste! Consolidate with other sap_hana_* parse functions
-def parse_sap_hana_diskusage(info):
-    parsed = {}
-    instance = False
-    for line in info:
-        if line[0].startswith("[["):
-            instance = line[0][2:-2]
-            parsed[instance] = []
-        elif instance:
-            parsed[instance].append(line)
-			
-    return parsed
 
 def inventory_sap_hana_diskusage(parsed):
     for instance,lines in parsed.items():
@@ -57,9 +48,10 @@ def check_sap_hana_diskusage(item, params, parsed):
             return returnCode, serviceOutput, perfdata
 
 check_info["sap_hana_diskusage"] = {
-    "parse_function"	      : parse_sap_hana_diskusage,
+    "parse_function"	      : parse_sap_hana,
     "check_function"          : check_sap_hana_diskusage,
     "inventory_function"      : inventory_sap_hana_diskusage,
     "service_description"     : "SAP HANA Disk %s",
     "has_perfdata"            : True,
+    "includes"                : [ 'sap_hana.include' ],
 }
