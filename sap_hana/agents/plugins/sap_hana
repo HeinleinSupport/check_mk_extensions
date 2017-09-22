@@ -107,6 +107,18 @@ function do_query() {
     echo $INSTANCE_NAME
     su - ${INSTANCEUSER} -c "python /usr/sap/${SID}/HDB${INSTANCE}/exe/python_support/systemReplicationStatus.py"
     echo "Returncode: $?"
+
+    echo "<<<sap_hana_ess:sep(59)>>>"
+    echo $INSTANCE_NAME
+    hdbsql "SELECT 'started', count(*) FROM M_SERVICE_THREADS where thread_type='WorkerThread (StatisticsServer)'"
+    hdbsql "select 'active', MAP(IFNULL(SYSTEM_VALUE, IFNULL(HOST_VALUE,DEFAULT_VALUE)), 'true', 'yes', 'false', 'no', 'unknown') FROM (SELECT  MAX(MAP(LAYER_NAME, 'DEFAULT', VALUE)) DEFAULT_VALUE, MAX(MAP(LAYER_NAME, 'HOST',VALUE)) HOST_VALUE, MAX(MAP(LAYER_NAME, 'SYSTEM',  VALUE, 'DATABASE', VALUE)) SYSTEM_VALUE FROM  M_INIFILE_CONTENTS WHERE  FILE_NAME IN ('indexserver.ini', 'nameserver.ini') AND SECTION = 'statisticsserver' AND  KEY = 'active')"
+    
+    echo "<<<sap_hana_events:sep(59)>>>"
+    echo $INSTANCE_NAME
+    hdbsql "select 'open_events', count(*) from m_events where acknowledged='FALSE'"
+    hdbsql "select 'disabled_alerts', count(*) from _sys_statistics.STATISTICS_SCHEDULE where status='Disabled'"
+    hdbsql "select 'high_alerts', count(*) from _sys_statistics.statistics_current_alerts  where  alert_rating >=3"
+
 }
 
 # find SID using
