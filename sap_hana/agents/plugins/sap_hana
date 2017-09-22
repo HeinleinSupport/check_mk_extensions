@@ -46,7 +46,7 @@ fi
 
 function do_query() {
 
-    INSTANCE_NAME="[[${SID}${INSTANCE}]]"
+    INSTANCE_NAME="[[${SID}_HDB${INSTANCE}]]"
 
     function hdbsql() {
 	# -C don't escape output, -F change separator , -x = quiet output, only query result / -a = no header in reply to select statements # plus sed removes leading and trailing ;
