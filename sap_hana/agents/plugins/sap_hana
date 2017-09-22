@@ -51,7 +51,8 @@ function do_query() {
     function hdbsql() {
 	# -C don't escape output, -F change separator , -x = quiet output, only query result / -a = no header in reply to select statements # plus sed removes leading and trailing ;
 	if [ -n "$USERSTOREKEY" ] ; then
-	    CREDENTIALS="-U ${USERSTOREKEY}${SID}"
+	    # CREDENTIALS="-U ${USERSTOREKEY}${SID}"
+	    CREDENTIALS="-U ${USERSTOREKEY}"
 	else
 	    CREDENTIALS="-u ${USER} -p ${PASSWORD}"
 	fi
