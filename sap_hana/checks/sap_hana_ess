@@ -34,7 +34,7 @@ def check_sap_hana_ess(item, params, parsed):
                 if line[0] == 'active':
                     active = line[1]
                 elif line[0] == 'started':
-                    started = int(line[1])
+                    started = saveint(line[1])
             msg = '%d Threads started' % started
             perfdata = [ ('threads', started) ]
             if started < 1:
