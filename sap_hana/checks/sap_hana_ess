@@ -55,6 +55,6 @@ check_info["sap_hana_ess"] = {
     "check_function"          : check_sap_hana_ess,
     "inventory_function"      : inventory_sap_hana_ess,
     "service_description"     : "SAP HANA ESS %s",
-    "has_perfdata"            : False,
+    "has_perfdata"            : True,
     "includes"                : [ 'sap_hana.include' ],
 }
