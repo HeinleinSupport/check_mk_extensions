@@ -25,68 +25,66 @@
 
 # This will be parsed into
 # parsed = {
-#  u'PRH00': [	[u'complete data backup', u'2016-11-08 20:02:10.389000000', u'successful', u'', u'<ok>'],
-#		[u'log backup', u'2016-11-08 20:02:10.389000000', u'successful', u'', u'<ok>']]
+#  u'PRH00': [[u'complete data backup', u'2016-11-08 20:02:10.389000000', u'successful', u'', u'<ok>'],
+#             [u'log backup', u'2016-11-08 20:02:10.389000000', u'successful', u'', u'<ok>']]
 # }
 
 sap_hana_backup_default_values = { "backup_age" : [24,48]}
 
 def inventory_sap_hana_backup(parsed):
-     for instance,lines in parsed.items():
-	  for line in lines:
-	    if len(line) > 0: #len = length, array/liste = zahl der elemente
-	        item = "%s - %s" % (instance, line[0])
-	        yield item, sap_hana_backup_default_values 	
+    for instance,lines in parsed.items():
+        for line in lines:
+            if len(line) > 0: #len = length, array/liste = zahl der elemente
+                item = "%s - %s" % (instance, line[0])
+                yield item, sap_hana_backup_default_values
 
-def check_sap_hana_backup(item, params, parsed): 									#(0=OK, 1=WARN, 2=CRIT, 3=UNKNOWN)
+def check_sap_hana_backup(item, params, parsed):
     import datetime
     for instance,lines in parsed.items():
-	for line in lines:
-   
-            itemname = "%s - %s" % (instance, line[0]) 	
+        for line in lines:
+            itemname = "%s - %s" % (instance, line[0])
             if len(line) > 4 and item == itemname:
-              # unpack check parameters
-              (warn, crit) = params["backup_age"]
-              backup_type = line[0]
-              #print "line0: " + line[0] + " -  line 1: " + line[1]
-              backup_timestamp = re.match('([^.]*)', line[1]).group(0) # keep only all characters before the first . => '2016-11-08 20:02:10.389000000' = Datatype:Timestamp
-              status = line[2]
-              comment = line[3]
-              message = line[4]
+                # unpack check parameters
+                (warn, crit) = params["backup_age"]
+                backup_type = line[0]
+                backup_timestamp = re.match('([^.]*)', line[1]).group(0) # keep only all characters before the first . => '2016-11-08 20:02:10.389000000' = Datatype:Timestamp
+                status = line[2]
+                comment = line[3]
+                message = line[4]
 
-              now = datetime.datetime.now()
-              date_format = "%Y-%m-%d %H:%M"
-              if warn == 0 or crit == 0:
-                  age_str = "no levels set"
-              else:
-                  warn_date = now - datetime.timedelta(hours=warn)
-                  crit_date = now - datetime.timedelta(hours=crit)
-                  age_str = "levels at %s/%s" %(warn_date.strftime(date_format),crit_date.strftime(date_format))
-              day_format = "%Y-%m-%d"
-              time_format = "%H:%M:%S"
-              last_backup = datetime.datetime.strptime(backup_timestamp, day_format + " " + time_format)
-              serviceOutput = "The %s from %s has the status: %s. Message: %s. Comment: %s." % (backup_type,last_backup.strftime(date_format),status,message,comment)
+                now = datetime.datetime.now()
+                date_format = "%Y-%m-%d %H:%M"
+                if warn == 0 or crit == 0:
+                    age_str = "no levels set"
+                else:
+                    warn_date = now - datetime.timedelta(hours=warn)
+                    crit_date = now - datetime.timedelta(hours=crit)
+                    age_str = "levels at %s/%s" %(warn_date.strftime(date_format),crit_date.strftime(date_format))
+                day_format = "%Y-%m-%d"
+                time_format = "%H:%M:%S"
+                last_backup = datetime.datetime.strptime(backup_timestamp, day_format + " " + time_format)
+                serviceOutput = "The %s from %s has the status: %s. Message: %s. Comment: %s." % (backup_type,last_backup.strftime(date_format),status,message,comment)
                 
-              if status == 'failed':
-                      yield 2, serviceOutput
-              elif status == 'cancel pending' or status == 'canceled':
-                      yield 1, serviceOutput
-              elif status == 'successful' or status == 'running':
-                      yield 0, serviceOutput
-              else:
-                      yield 3, serviceOutput
+                if status == 'failed':
+                    yield 2, serviceOutput
+                elif status == 'cancel pending' or status == 'canceled':
+                    yield 1, serviceOutput
+                elif status == 'successful' or status == 'running':
+                    yield 0, serviceOutput
+                else:
+                    yield 3, serviceOutput
 
-              # check if the last backup was done recently
-              if warn > 0 and crit > 0:
-                  if last_backup < crit_date: 
-                          yield 2, "Last backup is too old (%s)" % age_str
-                  elif last_backup < warn_date : 
-                          yield 1, "Last backup is too old (%s)" % age_str
-                  else:
-                          yield 0, "Last backup is new enough (%s)" % age_str
+                # check if the last backup was done recently
+                if warn > 0 and crit > 0:
+                    if last_backup < crit_date: 
+                        yield 2, "Last backup is too old (%s)" % age_str
+                    elif last_backup < warn_date : 
+                        yield 1, "Last backup is too old (%s)" % age_str
+                    else:
+                        yield 0, "Last backup is new enough (%s)" % age_str
 
 check_info["sap_hana_backup"] = {
-    "parse_function"	      : parse_sap_hana,
+    "parse_function"          : parse_sap_hana,
     "check_function"          : check_sap_hana_backup,
     "inventory_function"      : inventory_sap_hana_backup,
     "service_description"     : "SAP HANA Backup %s",

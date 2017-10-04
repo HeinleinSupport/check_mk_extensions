@@ -26,16 +26,18 @@
 #  u'PRH00': [[u'Version', u'', u'1.00.097.00.1434028111 (fa/newdb100_maint_rel)'], [u'All Started', u'OK', u'Yes']]
 # }
 
+def _sap_hana_status_item(instance, line):
+    if line[0] == "All Started":
+        line[0] = "Status"
+    return "%s %s" % (line[0], instance)
+
 def inventory_sap_hana_status(parsed):
     if cmk.debug.enabled():
         pprint.pprint(parsed)
     for instance,lines in parsed.items():
-	for line in lines:
-	    if len(line) > 2:
-		if line[0] == "All Started":
-		    line[0] = "Status"
-                item = "%s - %s" % (instance, line[0])
-	        yield item, {}
+        for line in lines:
+            if len(line) > 2:
+                yield _sap_hana_status_item(instance, line), {}
 
 def check_sap_hana_status(item, params, parsed):
     if cmk.debug.enabled():
@@ -43,31 +45,22 @@ def check_sap_hana_status(item, params, parsed):
         pprint.pprint(params)
         pprint.pprint(parsed)
     for instance,lines in parsed.items():
-	for line in lines:
-          if line[0] == u"All Started": 
-             line[0] = u"Status"
-          itemname = "%s - %s" % (instance, line[0])
-          if len(line) > 2 and item == itemname:
-            status = line[1]
-            value = line[2]
-	    if item.endswith("Version"): 
-		yield 0, line[2]		
-	    elif item.endswith("Status"):
-		    serviceOutput = "%s (Status: %s)" % (value,status)
-		    if status == "OK":
-			yield 0, serviceOutput
-			return
-		    elif status == "UNKNOWN":
-			yield 3, serviceOutput
-			return
-		    else:
-			yield 2, serviceOutput
-			return
-	    else:
-			yield 3, "UNKNOWN item " + item
+        for line in lines:
+            if len(line) > 2 and item == _sap_hana_status_item(instance, line):
+                if item.startswith("Version"): 
+                    return 0, line[2]
+                status = line[1]
+                value = line[2]
+                serviceOutput = "%s (Status: %s)" % (value, status)
+                if status == "OK":
+                    return 0, serviceOutput
+                elif status == "UNKNOWN":
+                    return 3, serviceOutput
+                else:
+                    return 2, serviceOutput
 
 check_info["sap_hana_status"] = {
-    "parse_function"	      : parse_sap_hana,
+    "parse_function"          : parse_sap_hana,
     "check_function"          : check_sap_hana_status,
     "inventory_function"      : inventory_sap_hana_status,
     "service_description"     : "SAP HANA %s",
