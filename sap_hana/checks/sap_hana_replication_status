@@ -43,20 +43,21 @@
 #Returncode: 15
 
 def inventory_sap_hana_replication_status(parsed):
-  returncode=0
-  mode="undefined"
-  for instance,lines in parsed.items():
-    for line in lines:
-        if line[0] == "mode:":
-            mode = line[1]
-        if line[0] == "Returncode:":
-            returncode = line[1] # everything after "Returncode:" 
-    if returncode != 10 and mode == "PRIMARY":
-        item = "%s" % (instance)
-        yield item, {}
+    returncode=0
+    mode="undefined"
+    for instance,lines in parsed.items():
+        returncode = 0
+        mode = ''
+        for line in lines:
+            if line[0] == "mode:":
+                mode = line[1]
+            if line[0] == "Returncode:":
+                returncode = saveint(line[1]) # everything after "Returncode:" 
+        if returncode != 10 and mode == "PRIMARY":
+            yield instance, {}
             
 returncodeMap = {
-    0: { "desc" : "The script /usr/sap/..../exe/python_support/systemReplicationStatus.py returned an unknown returncode - this check only handles 10-15!", "nagiosRC" : 3 }, 
+    0: { "desc" : "The script /usr/sap/…/exe/python_support/systemReplicationStatus.py returned an unknown returncode - this check only handles 10-15!", "nagiosRC" : 3 }, 
     10: { "desc" : "No System Replication - This must have changed, because this check doesn't inventory systems where replication is disabled!", "nagiosRC" : 2 }, # this shouldn't occur, we shouldn't even monitor this
     11: { "desc" : "Error", "nagiosRC" : 2},
     12: { "desc" : "Unknown", "nagiosRC" : 2},
@@ -67,16 +68,12 @@ returncodeMap = {
 
 def check_sap_hana_replication_status(item, params, parsed):
     for instance,lines in parsed.items():
-        #print "\n".join([" ".join(line) for line in lines])
-      for line in lines:
-          if line[0] == "Returncode:": 
-              returncode = saveint(line[1]) # everything after "Returncode:"
-              if returncode < 10 or returncode > 15 :
-                  returncode = 0
-                  break;
-      itemname = "%s" % (instance)
-      if item == itemname:
-          yield returncodeMap[returncode]["nagiosRC"], "Replication Status is: %s" % returncodeMap[returncode]["desc"]
+        returncode = 0
+        if item == instance:
+            for line in lines:
+                if line[0] == "Returncode:": 
+                    returncode = saveint(line[1]) # everything after "Returncode:"
+            yield returncodeMap[returncode]["nagiosRC"], "Replication Status is: %s" % returncodeMap[returncode]["desc"]
 
 check_info["sap_hana_replication_status"] = {
     "parse_function"        : parse_sap_hana,
