@@ -22,16 +22,10 @@
 #active;yes
 
 def inventory_sap_hana_ess(parsed):
-    if cmk.debug.enabled():
-        pprint.pprint(parsed)
     for instance,lines in parsed.items():
         yield instance, {}
 
 def check_sap_hana_ess(item, params, parsed):
-    if cmk.debug.enabled():
-        pprint.pprint(item)
-        pprint.pprint(params)
-        pprint.pprint(parsed)
     for instance,lines in parsed.items():
         if instance == item:
             active = 'unknown'

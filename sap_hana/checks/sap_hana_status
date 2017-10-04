@@ -32,18 +32,12 @@ def _sap_hana_status_item(instance, line):
     return "%s %s" % (line[0], instance)
 
 def inventory_sap_hana_status(parsed):
-    if cmk.debug.enabled():
-        pprint.pprint(parsed)
     for instance,lines in parsed.items():
         for line in lines:
             if len(line) > 2:
                 yield _sap_hana_status_item(instance, line), {}
 
 def check_sap_hana_status(item, params, parsed):
-    if cmk.debug.enabled():
-        pprint.pprint(item)
-        pprint.pprint(params)
-        pprint.pprint(parsed)
     for instance,lines in parsed.items():
         for line in lines:
             if len(line) > 2 and item == _sap_hana_status_item(instance, line):

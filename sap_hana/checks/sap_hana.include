@@ -16,8 +16,6 @@
 # Boston, MA 02110-1301 USA.
 
 def parse_sap_hana(info):
-    if cmk.debug.enabled():
-        pprint.pprint(info)
     parsed = {}
     instance = False
     for line in info:
