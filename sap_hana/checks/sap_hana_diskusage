@@ -45,18 +45,19 @@ def check_sap_hana_diskusage(item, params, parsed):
             itemname = "%s - %s" % (instance, line[0])
             if len(line) > 2 and item == itemname:
                 status = line[1]     # status=status
-                value = line[2]      # value=size,used,free
-                disk_size = re.search("(?<=Size )([\d.]*)", value).group(0)             # disk_size=Size
-                disk_used = re.search("(?<=Used )([\d.]*)", value).group(0) + "GB"      # disk_used=Used
-                perfdata = [("disk_used_%s" % re.sub(' - ','_',item), disk_used, "", "", 0, disk_size)] # perfdata=(disk_used_DATA/LOG/TRACE,Used,"","",0,Size)
-                serviceOutput = "%s (Status: %s)" % (value,status)                      # serviceOutput=size,used,free (Status:OK/Warning/Unknown)
                 if status == "OK":
                     returnCode = 0
                 elif status == "UNKNOWN":
                     returnCode = 3
                 else:
                     returnCode = 2
-                return returnCode, serviceOutput, perfdata
+                yield returnCode, 'Status: %s' % status
+
+                value = line[2]      # value=size,used,free
+                disk_size = savefloat(re.search("(?<=Size )([\d.]*)", value).group(0)) * 1024.0
+                disk_used = savefloat(re.search("(?<=Used )([\d.]*)", value).group(0)) * 1024.0
+                disk_avail = disk_size - disk_used
+                yield df_check_filesystem_list(item, params, [ (item, disk_size, disk_avail, 0) ])
 
 check_info["sap_hana_diskusage"] = {
     "parse_function"          : parse_sap_hana,
@@ -64,5 +65,7 @@ check_info["sap_hana_diskusage"] = {
     "inventory_function"      : inventory_sap_hana_diskusage,
     "service_description"     : "SAP HANA Disk %s",
     "has_perfdata"            : True,
-    "includes"                : [ 'sap_hana.include' ],
+    "includes"                : [ 'sap_hana.include', 'df.include' ],
+    "group"                   : 'filesystem',
+    "default_levels_variable" : 'filesystem_default_levels',
 }
