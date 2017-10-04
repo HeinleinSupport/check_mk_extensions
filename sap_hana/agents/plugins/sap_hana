@@ -59,7 +59,7 @@ fi
 
 function do_query() {
 
-    INSTANCE_NAME="[[${SID}_HDB${INSTANCE}]]"
+    INSTANCE_NAME="[[${SID} ${INSTANCE}]]"
 
     function hdbsql() {
 	# -C don't escape output, -F change separator , -x = quiet output, only query result / -a = no header in reply to select statements # plus sed removes leading and trailing ;
@@ -105,7 +105,7 @@ function do_query() {
 
     alerts_last_check="$MK_VARDIR/sap_hana_alerts_${INSTANCE_NAME}.last_checked"
     echo "<<<logwatch>>>"
-    echo [[[SAP HANA Alerts for ${SID}${INSTANCE}]]]
+    echo [[[SAP HANA Alerts for ${SID} ${INSTANCE}]]]
     if [ -r $alerts_last_check ] ; then
 	hdbsql "Select ALERT_TIMESTAMP,ALERT_ID,ALERT_RATING,ALERT_DETAILS from  _SYS_STATISTICS.STATISTICS_ALERTS Where ALERT_TIMESTAMP >= '$(cat $alerts_last_check)' AND (ALERT_ID < '22' OR ALERT_ID > '24') order by ALERT_TIMESTAMP asc"  | sed -e "s/^/W /"
 	#hdbsql "Select ALERT_TIMESTAMP,ALERT_ID,ALERT_RATING,ALERT_DETAILS from  _SYS_STATISTICS.STATISTICS_ALERTS Where ALERT_TIMESTAMP >= '2016-11-20 17:30:30' AND ALERT_ID != '24' order by ALERT_TIMESTAMP asc"
