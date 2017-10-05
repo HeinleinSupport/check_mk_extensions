@@ -21,27 +21,57 @@ def inventory_ceph(info):
         inventory.append(( None, [] ))
     return inventory
 
+def parse_usage(line):
+    factor = {'PB': 1125899906842624,
+              'TB': 1099511627776,
+              'GB': 1073741824,
+              'MB': 1048576,
+              'KB': 1024,
+             }
+
+    uidx = line.index('used,')
+    aidx = line.index('avail')
+    assert aidx - uidx == 6, "cannot parse data usage line"
+
+    used = saveint(line[uidx - 2]) * factor[line[uidx - 1]]
+    size = saveint(line[aidx - 2]) * factor[line[aidx - 1]]
+    return (used, size)
+
 def check_ceph(item, params, info):
     rc = 0
     perfdata = []
     text = []
-    factor = { 'PB': 1125899906842624,
-               'TB': 1099511627776,
-               'GB': 1073741824,
-               'MB': 1048576,
-               'KB': 1024,
-             }
+    # structural elements in syntax v12 or later
+    section, key, value = '', '', ''
+
     for line in info:
+        if len(line) == 0:
+            continue
+        if len(line) == 1 and line[0].endswith(':'):
+            section = line[0][:-1]
+
+        if len(line) >= 2 and line[0].endswith(':'):
+            key, value = line[0][:-1], line[1:]
+
         if line[0] == 'cluster':
             text.append('Cluster %s' % line[1])
+        elif section == 'cluster' and key == 'id':
+            text.append('Cluster %s' % value)
+
         if line[0] == 'health':
             text.append(' '.join(line[1:]))
             if line[1] != 'HEALTH_OK':
                 rc = 2
-        if len(line) > 7 and line[2] == 'used,':
-            text.append(' '.join(line))
-            used = saveint(line[0]) * factor[line[1]]
-            size = saveint(line[6]) * factor[line[7]]
+        elif section == 'cluster' and key == 'health':
+            text.append(' '.join(value))
+            if not value[0].startswith('HEALTH_OK'):
+                rc = 2
+
+        size = 0
+        if 'used,' in line:
+            used, size = parse_usage(line)
+
+        if size > 0:
             warn = 0.8 * size
             crit = 0.9 * size
             perfdata.append(("Used", "%dB" % used, warn, crit, 0, size))
@@ -54,6 +84,7 @@ def check_ceph(item, params, info):
         rc = 3
         text = ['Unable to find status information.']
     return (rc, '; '.join(text), perfdata)
+
 
 check_info["ceph"] = {
     'check_function'        : check_ceph,
