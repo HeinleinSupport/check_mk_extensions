@@ -99,10 +99,6 @@ function do_query() {
     echo $INSTANCE_NAME
     hdbsql "SELECT ENFORCED, PERMANENT,LOCKED_DOWN,PRODUCT_USAGE,PRODUCT_LIMIT FROM M_LICENSE"
 
-    echo "<<<sap_hana_memory:sep(59)>>>"
-    echo $INSTANCE_NAME
-    hdbsql "Select TOP 1 a.HOST, round(a.INSTANCE_TOTAL_MEMORY_USED_SIZE/1024/1024/1024, 2) as \"Used Memory GB\", round(b.INSTANCE_TOTAL_MEMORY_USED_SIZE/1024/1024/1024, 2) as \"Peak Used GB\" ,  round(c.ALLOCATION_LIMIT/1024/1024/1024, 2) as \"Allocation Limit GB\" from M_HOST_RESOURCE_UTILIZATION as a, _SYS_STATISTICS.HOST_RESOURCE_UTILIZATION_STATISTICS as b, PUBLIC.M_HOST_RESOURCE_UTILIZATION as c order by \"Peak Used GB\" desc"
-
     remote_hostname=$(echo $REMOTE | tr ':' '_')
     if [ -z "$remote_hostname" ]; then
         alerts_last_check="$MK_VARDIR/sap_hana_alerts_${INSTANCE_NAME}.last_checked"
@@ -130,6 +126,10 @@ function do_query() {
     echo $INSTANCE_NAME
     hdbsql "SELECT 'started', count(*) FROM M_SERVICE_THREADS where thread_type='WorkerThread (StatisticsServer)'"
     hdbsql "select 'active', MAP(IFNULL(SYSTEM_VALUE, IFNULL(HOST_VALUE,DEFAULT_VALUE)), 'true', 'yes', 'false', 'no', 'unknown') FROM (SELECT  MAX(MAP(LAYER_NAME, 'DEFAULT', VALUE)) DEFAULT_VALUE, MAX(MAP(LAYER_NAME, 'HOST',VALUE)) HOST_VALUE, MAX(MAP(LAYER_NAME, 'SYSTEM',  VALUE, 'DATABASE', VALUE)) SYSTEM_VALUE FROM  M_INIFILE_CONTENTS WHERE  FILE_NAME IN ('indexserver.ini', 'nameserver.ini') AND SECTION = 'statisticsserver' AND  KEY = 'active')"
+
+    echo "<<<sap_hana_memrate:sep(59)>>>"
+    echo $INSTANCE_NAME
+    hdbsql "SELECT 'mem_rate', INSTANCE_TOTAL_MEMORY_USED_SIZE, ALLOCATION_LIMIT FROM M_HOST_RESOURCE_UTILIZATION"
     
     echo "<<<sap_hana_events:sep(59)>>>"
     echo $INSTANCE_NAME
