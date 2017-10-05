@@ -26,7 +26,7 @@ def inventory_sap_hana_events(parsed):
         yield instance, {}
 
 def check_sap_hana_events(item, params, parsed):
-    events = { 'open_events': (2, 'Acknowledged Events'),
+    events = { 'open_events': (2, 'Unacknowledged Events'),
                'disabled_alerts': (1, 'Disabled Alerts'),
                'high_alerts': (2, 'High Alerts') }
     for instance,lines in parsed.items():
