@@ -18,3 +18,4 @@
 # Boston, MA 02110-1301 USA.
 
 check_metrics["check_mk-sap_hana_diskusage"] = df_translation
+check_metrics["check_mk-sap_hana_memrate"] = memory_simple_translation
