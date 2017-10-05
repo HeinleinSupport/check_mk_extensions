@@ -103,7 +103,12 @@ function do_query() {
     echo $INSTANCE_NAME
     hdbsql "Select TOP 1 a.HOST, round(a.INSTANCE_TOTAL_MEMORY_USED_SIZE/1024/1024/1024, 2) as \"Used Memory GB\", round(b.INSTANCE_TOTAL_MEMORY_USED_SIZE/1024/1024/1024, 2) as \"Peak Used GB\" ,  round(c.ALLOCATION_LIMIT/1024/1024/1024, 2) as \"Allocation Limit GB\" from M_HOST_RESOURCE_UTILIZATION as a, _SYS_STATISTICS.HOST_RESOURCE_UTILIZATION_STATISTICS as b, PUBLIC.M_HOST_RESOURCE_UTILIZATION as c order by \"Peak Used GB\" desc"
 
-    alerts_last_check="$MK_VARDIR/sap_hana_alerts_${INSTANCE_NAME}.last_checked"
+    remote_hostname=$(echo $REMOTE | tr ':' '_')
+    if [ -z "$remote_hostname" ]; then
+        alerts_last_check="$MK_VARDIR/sap_hana_alerts_${INSTANCE_NAME}.last_checked"
+    else
+        alerts_last_check="$MK_VARDIR/sap_hana_alerts_${INSTANCE_NAME}.$remote_hostname.last_checked"
+    fi
     echo "<<<logwatch>>>"
     echo [[[SAP HANA Alerts for ${SID} ${INSTANCE}]]]
     if [ -r $alerts_last_check ] ; then
