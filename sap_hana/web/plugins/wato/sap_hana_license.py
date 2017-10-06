@@ -3,8 +3,6 @@
 
 # Rules for configuring parameters of checks (services)
 
-# subgroup_applications = _("Applications, Processes & Services")
-
 sap_hana_license_elements = [
     ( "license_usage",
         Alternative(

@@ -1,10 +1,6 @@
 #!/usr/bin/env python
 # -*- encoding: utf-8; py-indent-offset: 4 -*-
 
-group = "checkparams"
-
-subgroup_applications = _("Applications, Processes &amp; Services")
-
 register_check_parameters(
     subgroup_applications,
     "postconf",

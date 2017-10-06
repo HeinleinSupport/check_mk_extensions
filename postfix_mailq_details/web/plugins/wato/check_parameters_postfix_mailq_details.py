@@ -15,10 +15,6 @@
 # to the Free Software Foundation, Inc., 51 Franklin St,  Fifth Floor,
 # Boston, MA 02110-1301 USA.
 
-group = "checkparams"
-
-subgroup_applications = _("Applications, Processes &amp; Services")
-
 register_check_parameters(
     subgroup_applications,
     "postfix_mailq_details",

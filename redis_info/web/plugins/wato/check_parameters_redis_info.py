@@ -16,10 +16,6 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-group = "checkparams"
-
-subgroup_applications = _("Applications, Processes &amp; Services")
-
 register_check_parameters(
     subgroup_applications,
     "redis_info",

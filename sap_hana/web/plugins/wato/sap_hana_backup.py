@@ -1,4 +1,3 @@
-subgroup_applications = _("Applications, Processes & Services")
 
 register_check_parameters(
         subgroup_applications,
