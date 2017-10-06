@@ -1,0 +1,7 @@
+#!/bin/bash
+
+SYSTEMCTL=$(which systemctl)
+
+if [ -x "$SYSTEMCTL" ]; then
+  $SYSTEMCTL --all --full --no-legend --no-pager
+fi
