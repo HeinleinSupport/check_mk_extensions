@@ -60,3 +60,16 @@ register_check_parameters(
     TextAscii(title = _("UPS instance")),
     match_type = "dict",
 )
+
+register_rule("agents/" + _("Agent Plugins"),
+    "agent_config:apcaccess",
+    DropdownChoice(
+        title = _("APC UPS via apcaccess (Linux)"),
+        help = _("This will deploy the agent plugin <tt>apcaccess</tt> to check various APC UPS stats."),
+        choices = [
+            ( True, _("Deploy plugin for APC UPS") ),
+            ( None, _("Do not deploy plugin for APC UPS") ),
+        ]
+    )
+)
+
