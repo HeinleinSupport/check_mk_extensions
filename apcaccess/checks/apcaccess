@@ -14,6 +14,13 @@
 # to the Free Software Foundation, Inc., 51 Franklin St,  Fifth Floor,
 # Boston, MA 02110-1301 USA.
 
+factory_settings["apcaccess_status_default"] = {
+    "voltage"         : (210, 190, 240, 260),
+    "output_load"     : (80, 90),
+    "battery_capacity": (90, 80),
+    "timeleft"        : (10, 5),
+}
+
 def parse_apcaccess(info):
     parsed = {}
     instance = False
@@ -22,8 +29,6 @@ def parse_apcaccess(info):
             instance = line[0][2:-2]
             parsed[instance] = {}
         elif instance:
-            if cmk.debug.enabled():
-                pprint.pprint(line)
             parsed[instance][line[0]] = line[1]
     return parsed
 
@@ -32,20 +37,46 @@ def inventory_apcaccess(parsed):
         yield instance, {}
 
 def check_apcaccess(item, params, parsed):
-    if cmk.debug.enabled():
-        pprint.pprint(item)
-        pprint.pprint(parsed)
     if item in parsed:
         data = parsed[item]
-        perfdata = [
-            ( 'voltage', savefloat(data.get('OUTPUTV').split(' ')[0]) ),
-            ( 'output_load', savefloat(data.get('LOADPCT').split(' ')[0]) ),
-            ( 'battery_capacity', savefloat(data.get('BCHARGE').split(' ')[0]) ),
-            ( 'timeleft', savefloat(data.get('TIMELEFT').split(' ')[0]) * 60 ),
-            ]
+        perfdata = []
+        metrics = { 'voltage': ('OUTPUTV', 'Output Voltage'),
+                    'output_load': ('LOADPCT', 'Output Load'),
+                    'battery_capacity': ('BCHARGE', 'Battery Capacity'),
+                    'timeleft': ('TIMELEFT', 'Time Left') }
+        factors = { 'timeleft': 60.0 }
+        status = {}
+        for metric, (key, text) in metrics.iteritems():
+            status[metric] = 0
+            data[metric] = savefloat(data.get(key).split(' ')[0]) * factors.get(metric, 1.0)
+            if metric in params:
+                if len(params[metric]) == 2:
+                    warn, crit = map(lambda x: x * factors.get(metric, 1.0), params[metric])
+                    if warn < crit:
+                        if data[metric] > crit:
+                            status[metric] = 2
+                        elif data[metric] > warn:
+                            status[metric] = 1
+                    else:
+                        if data[metric] < crit:
+                            status[metric] = 2
+                        elif data[metric] < warn:
+                            status[metric] = 1
+                elif len(params[metric]) == 4:
+                    low_warn, low_crit, warn, crit = map(lambda x: x * factors.get(metric, 1.0), params[metric])
+                    if data[metric] < low_crit or data[metric] > crit:
+                        status[metric] = 2
+                    elif data[metric] < low_warn or data[metric] > warn:
+                        status[metric] = 1
+                perfdata.append((metric, data[metric], warn, crit))
+            else:
+                perfdata.append((metric, data[metric]))
         yield 0, ", ".join([data.get('UPSNAME'), data.get('MODEL'), data.get('SERIALNO'), data.get('FIRMWARE')]), perfdata
         if data.get('STATUS') != 'ONLINE' and data.get('SELFTEST') == 'NO':
             yield 2, 'Status is ' + data.get('STATUS')
+        for metric, s in status.iteritems():
+            if s > 0:
+                yield s, '%s is outside limits' % metrics[metric][1]
 
 check_info["apcaccess"] = {
     "parse_function"          : parse_apcaccess,
@@ -53,6 +84,8 @@ check_info["apcaccess"] = {
     "inventory_function"      : inventory_apcaccess,
     "service_description"     : "APC %s Status",
     "has_perfdata"            : True,
+    "default_levels_variable" : "apcaccess_status_default",
+    "group"                   : 'apcaccess',
 }
 
 factory_settings["apcaccess_temp_default"] = {
