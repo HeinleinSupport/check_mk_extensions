@@ -1,0 +1,15 @@
+title: SAP HANA Events
+agents: linux
+catalog: app/sap
+license: GPL
+distribution: heinlein
+description:
+ This check monitors the event status of SAP HANA. It uses data provided by the {sap_hana} agent plugin, which uses hdbsql queries to retrieve information from SAP HANA instances. To make this check work, you have to deploy the {sap_hana} agent plugin on a host.
+
+ The check is not configurable. It becomes critical if there are open events or high alerts, a warning is issued if there are disabled alerts.
+
+item:
+ The SAP HANA instance.
+
+inventory:
+ One service per instance is created.

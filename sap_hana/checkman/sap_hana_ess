@@ -1,0 +1,15 @@
+title: SAP HANA Statistics Server
+agents: linux
+catalog: app/sap
+license: GPL
+distribution: heinlein
+description:
+ This check monitors the SAP HANA statistics server. It uses data provided by the {sap_hana} agent plugin, which uses hdbsql queries to retrieve information from SAP HANA instances. To make this check work, you have to deploy the {sap_hana} agent plugin on a host.
+
+ The check is not configurable. It is OK as long as a statistics server thread is running.
+
+item:
+ The SAP HANA instance.
+
+inventory:
+ One service per instance is created.

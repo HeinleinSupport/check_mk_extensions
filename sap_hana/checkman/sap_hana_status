@@ -1,0 +1,17 @@
+title: SAP HANA Status and Version
+agents: linux
+catalog: app/sap
+license: GPL
+distribution: heinlein
+description:
+ This check monitors the Status and Version of SAP HANA. It uses data provided by the {sap_hana} agent plugin, which uses hdbsql queries to retrieve information from SAP HANA instances. To make this check work, you have to deploy the {sap_hana} agent plugin on a host.
+
+ The Status check is not configurable and OK, if the Status query returns OK.
+
+ The Version check is not configurable and always OK.
+
+item:
+ The SAP HANA instance.
+
+inventory:
+ Two services per instance are created.
