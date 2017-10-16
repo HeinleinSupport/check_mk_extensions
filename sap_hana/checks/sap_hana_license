@@ -26,7 +26,9 @@
 # u'PRH00': [[u'FALSE', u'FALSE', u'FALSE', u'11', u'2147483647']]
 # }
 
-sap_hana_license_default_values = { "license_usage" : [80.0,90.0]}
+factory_settings['sap_hana_license_default_values'] = {
+    "license_usage" : (80.0, 90.0)
+}
 
 def inventory_sap_hana_license(parsed):
     for instance,lines in parsed.items():
@@ -102,5 +104,5 @@ check_info["sap_hana_license"] = {
     "has_perfdata"            : True,
     "group"                   : "sap_hana_license",
     "includes"                : [ 'sap_hana.include' ],
-    #"default_levels_variable" : sap_hana_license_default_values
+    "default_levels_variable" : "sap_hana_license_default_values",
 }
