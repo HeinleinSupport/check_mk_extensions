@@ -3,5 +3,6 @@
 SYSTEMCTL=$(which systemctl)
 
 if [ -x "$SYSTEMCTL" ]; then
+  echo "<<<systemd>>>"
   $SYSTEMCTL --all --full --no-legend --no-pager
 fi
