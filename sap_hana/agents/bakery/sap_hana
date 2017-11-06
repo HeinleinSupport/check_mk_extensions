@@ -25,7 +25,7 @@ def bake_sap_hana(opsys, conf, conf_dir, plugins_dir):
             elif conf['auth'][0] == 'explicit':
                 f.write('USER=%s\n' % conf['auth'][1][0])
                 if conf['auth'][1][1][0] == 'password':
-                    f.write('PASSWORD=%s\n', conf['auth'][1][1][1])
+                    f.write('PASSWORD=%s\n' % conf['auth'][1][1][1])
                 elif conf['auth'][1][1][0] == 'store':
                     passwords = cmk.password_store.load()
                     f.write('PASSWORD=%s\n' % passwords[conf['auth'][1][1][1]])
