@@ -41,7 +41,7 @@ register_rule("checkparams" + '/' + subgroup_inventory,
 )
 
 register_rule("agents/" + _("Agent Plugins"),
-    "agent_config:amavis",
+    "agent_config:systemd",
     DropdownChoice(
         title = _("Systemd Units (Linux)"),
         help = _("This will deploy the agent plugin <tt>systemd</tt> to check state of systemd units (Linux services)."),
