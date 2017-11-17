@@ -30,6 +30,7 @@
 
 def inventory_cephpools(info):
     inventory = []
+    param = {}
     pool = False
     for line in info:
         if line[0] == 'POOLS:':
@@ -38,7 +39,7 @@ def inventory_cephpools(info):
         if pool:
             if line[0] == 'NAME':
                 continue
-            inventory.append(( line[0], [] ))
+            inventory.append(( line[0], param ))
     return inventory
 
 def check_cephpools(item, params, info):
