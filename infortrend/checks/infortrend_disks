@@ -76,6 +76,6 @@ check_info["infortrend_disks"] = {
     'service_description'   : "IFT Disk Slot %s",
     'has_perfdata'          : False,
     'inventory_function'    : inventory_infortrend_disks,
-    'snmp_scan_function'    : lambda oid: oid(".1.3.6.1.4.1.1714.1.6.1.11") != None,
+    'snmp_scan_function'    : lambda oid: oid(".1.3.6.1.4.1.1714.1.1.1.1.0") != None,
     'snmp_info'             : ( ".1.3.6.1.4.1.1714.1.6.1", [ "13", "11" ] ),
 }
