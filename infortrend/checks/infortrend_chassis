@@ -17,10 +17,6 @@
 # to the Free Software Foundation, Inc., 51 Franklin St,  Fifth Floor,
 # Boston, MA 02110-1301 USA.
 
-snmp_scan_functions['infortrend_chassis'] = lambda oid: oid(".1.3.6.1.4.1.1714.1.9.1.13") != None
-
-snmp_info['infortrend_chassis'] = ( ".1.3.6.1.4.1.1714.1.9.1", [ "8", "13", "6", "9", "10" ] )
-
 def inventory_infortrend_chassis(info):
     # Debug: lets see how the data we get looks like
     inventory = []
@@ -144,4 +140,11 @@ def check_infortrend_chassis(item, params, info):
                 return (2, "%d %s" % ( status, ", ".join(output)))
     return (3, "not yet implemented")
 
-check_info["infortrend_chassis"] = (check_infortrend_chassis, "IFT %s", 0, inventory_infortrend_chassis)
+check_info["infortrend_chassis"] = {
+    'check_function'        : check_infortrend_chassis,
+    'service_description'   : "IFT %s",
+    'has_perfdata'          : False,
+    'inventory_function'    : inventory_infortrend_chassis,
+    'snmp_scan_function'    : lambda oid: oid(".1.3.6.1.4.1.1714.1.9.1.13") != None,
+    'snmp_info'             : ( ".1.3.6.1.4.1.1714.1.9.1", [ "8", "13", "6", "9", "10" ] ),
+}

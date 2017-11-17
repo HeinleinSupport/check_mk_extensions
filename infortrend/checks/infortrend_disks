@@ -17,10 +17,6 @@
 # to the Free Software Foundation, Inc., 51 Franklin St,  Fifth Floor,
 # Boston, MA 02110-1301 USA.
 
-snmp_scan_functions['infortrend_disks'] = lambda oid: oid(".1.3.6.1.4.1.1714.1.6.1.11") != None
-
-snmp_info['infortrend_disks'] = ( ".1.3.6.1.4.1.1714.1.6.1", [ "13", "11" ] )
-
 def inventory_infortrend_disks(info):
     # Debug: lets see how the data we get looks like
     inventory = []
@@ -75,4 +71,11 @@ def check_infortrend_disks(item, params, info):
             return (1, status_info[status])
     return (3, "not yet implemented")
 
-check_info["infortrend_disks"] = (check_infortrend_disks, "IFT Disk Slot %s", 0, inventory_infortrend_disks)
+check_info["infortrend_disks"] = {
+    'check_function'        : check_infortrend_disks,
+    'service_description'   : "IFT Disk Slot %s",
+    'has_perfdata'          : False,
+    'inventory_function'    : inventory_infortrend_disks,
+    'snmp_scan_function'    : lambda oid: oid(".1.3.6.1.4.1.1714.1.6.1.11") != None,
+    'snmp_info'             : ( ".1.3.6.1.4.1.1714.1.6.1", [ "13", "11" ] ),
+}
