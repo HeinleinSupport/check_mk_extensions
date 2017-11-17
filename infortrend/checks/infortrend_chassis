@@ -18,10 +18,10 @@
 # Boston, MA 02110-1301 USA.
 
 def inventory_infortrend_chassis(info):
-    # Debug: lets see how the data we get looks like
     inventory = []
     for name, status, type, value, unit in info:
-        inventory.append( (name, status) )
+        if status != '255':
+            inventory.append( (name, status) )
     return inventory
 
 def check_infortrend_chassis(item, params, info):
@@ -138,7 +138,6 @@ def check_infortrend_chassis(item, params, info):
                 return (1, "%d %s" % ( status, ", ".join(output)))
             else:
                 return (2, "%d %s" % ( status, ", ".join(output)))
-    return (3, "not yet implemented")
 
 check_info["infortrend_chassis"] = {
     'check_function'        : check_infortrend_chassis,
