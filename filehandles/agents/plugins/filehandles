@@ -24,3 +24,16 @@ cat /proc/sys/fs/file-nr | while read allocated unused max; do
   echo "P Filehandles count=$allocated;$warn;$crit;0;$max Filehandles allocated, max is $max"
 
 done
+
+if [ -r $MK_CONFDIR/filehandles.cfg ]; then
+    . $MK_CONFDIR/filehandles.cfg
+    for exe in /proc/*/exe; do
+	for proc in $PROCS; do
+	    bin=$(readlink $exe)
+	    if [ "$bin" = "$proc" ]; then
+		pid=$(dirname $exe)
+		echo $proc $(ls -1 $pid/fd | wc -l)
+	    fi
+	done
+    done
+fi
