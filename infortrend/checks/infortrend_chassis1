@@ -17,12 +17,12 @@
 # to the Free Software Foundation, Inc., 51 Franklin St,  Fifth Floor,
 # Boston, MA 02110-1301 USA.
 
-snmp_scan_functions['infortrend_chassis'] = lambda oid: "Infortrend" in oid(".1.3.6.1.2.1.1.1.0").lower() and \
+snmp_scan_functions['infortrend_chassis1'] = lambda oid: "Infortrend" in oid(".1.3.6.1.2.1.1.1.0").lower() and \
     oid(".1.3.6.1.4.1.1714.1.1.9.1.13") != None
 
-snmp_info['infortrend_chassis'] = ( ".1.3.6.1.4.1.1714.1.1.9.1", [ "8", "13", "6", "9", "10" ] )
+snmp_info['infortrend_chassis1'] = ( ".1.3.6.1.4.1.1714.1.1.9.1", [ "8", "13", "6", "9", "10" ] )
 
-def inventory_infortrend_chassis(info):
+def inventory_infortrend_chassis1(info):
     # Debug: lets see how the data we get looks like
     inventory = []
     for name, status, devtype, value, unit in info:
@@ -31,7 +31,7 @@ def inventory_infortrend_chassis(info):
         inventory.append( (name, status) )
     return inventory
 
-def check_infortrend_chassis(item, params, info):
+def check_infortrend_chassis1(item, params, info):
     status_info = {
         # Power supply
         "1": { 'bits': { 0: ( "Power supply functioning normally", "Power supply malfunctioning" ),
@@ -193,5 +193,5 @@ def check_infortrend_chassis(item, params, info):
                 return (2, "%d %s" % ( status, ", ".join(output)))
     return (3, "not yet implemented")
 
-check_info["infortrend_chassis"] = (check_infortrend_chassis, "IFT %s", 0, inventory_infortrend_chassis)
+check_info["infortrend_chassis1"] = (check_infortrend_chassis1, "IFT %s", 0, inventory_infortrend_chassis1)
 
