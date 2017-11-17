@@ -1,0 +1,58 @@
+#!/usr/bin/python
+# -*- encoding: utf-8; py-indent-offset: 4 -*-
+# vim: tabstop=8 expandtab shiftwidth=4 softtabstop=4
+
+# (c) 2015 Marco Gabriel - inett GmbH <mgabriel@inett.de>
+
+# This is free software;  you can redistribute it and/or modify it
+# under the  terms of the  GNU General Public License  as published by
+# the Free Software Foundation in version 2.  This file is distributed
+# in the hope that it will be useful, but WITHOUT ANY WARRANTY;  with-
+# out even the implied warranty of  MERCHANTABILITY  or  FITNESS FOR A
+# PARTICULAR PURPOSE. See the  GNU General Public License for more de-
+# ails.  You should have  received  a copy of the  GNU  General Public
+# License along with GNU Make; see the file  COPYING.  If  not,  write
+# to the Free Software Foundation, Inc., 51 Franklin St,  Fifth Floor,
+# Boston, MA 02110-1301 USA.
+
+def inventory_cephosdperf(info):
+    inventory = []
+    if len(info) > 0:
+        inventory.append(( None, [20, 30] ))
+    return inventory
+
+def check_cephosdperf(item, params, info):
+    rc = 0
+    perfdata = []
+    text = []
+    warn, crit = params
+    fs_commit_latency = 0.0
+    fs_apply_latency = 0.0
+
+#    if len(info) == 0:
+#        return (3, 'no data', [])
+
+    for line in info:
+        if line[0] == "osd":
+            continue
+        fs_commit_latency = fs_commit_latency + float(line[1])
+        fs_apply_latency = fs_apply_latency + float(line[2])
+
+    fs_commit_latency = fs_commit_latency / float(len(info))
+    fs_apply_latency = fs_commit_latency / float(len(info))
+
+    if fs_commit_latency > warn or fs_apply_latency > warn:
+        rc = 1
+    if fs_commit_latency > crit or fs_apply_latency > crit:
+        rc = 2
+
+    #return (rc, "Commit Latency: %s ms; Apply Latency: %s ms" % (fs_commit_latency, fs_apply_latency), [("Commit Latency", "%dms" % fs_commit_latency, warn, crit, 0, fs_apply_latency)])
+    return rc, "Commit Latency: %.2f ms; Apply Latency: %.2fs ms" % (fs_commit_latency, fs_apply_latency), [("Commit Latency", fs_commit_latency, warn, crit, 0, ""),("Apply Latency", fs_apply_latency, warn, crit, 0, "")]
+
+check_info["cephosdperf"] = {
+    'check_function'        : check_cephosdperf,
+    'inventory_function'    : inventory_cephosdperf,
+    'service_description'   : 'Ceph OSD Perf',
+    'has_perfdata'          : True,
+}
+
