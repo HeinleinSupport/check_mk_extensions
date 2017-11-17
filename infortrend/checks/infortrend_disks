@@ -18,11 +18,8 @@
 # Boston, MA 02110-1301 USA.
 
 def inventory_infortrend_disks(info):
-    # Debug: lets see how the data we get looks like
-    inventory = []
-    for slot, status in info:
-        inventory.append( (slot, int(status)) )
-    return inventory
+    for line in info:
+        yield line[0], {}
 
 def check_infortrend_disks(item, params, info):
     status_info = { 
@@ -59,17 +56,17 @@ def check_infortrend_disks(item, params, info):
         254 : "Missing Drive",
         255 : "Failed Drive"
         }
-    for slot, status in info:
-        status = int(status)
+    for slot, status, model, version, serial, size in info:
         if slot == item:
+            status = saveint(status)
+            info = "%s %s %s, %s, " % (model, version, serial, get_bytes_human_readable(saveint(size)))
             if status not in status_info.keys():
-                return (3, "Status is %d" % status)
+                return (3, "%sStatus is %d" % (info, status))
             if status == 1 or status == 3 or status == 9:
-                return (0, status_info[status])
-            if status > 19:
-                return (2, status_info[status])
-            return (1, status_info[status])
-    return (3, "not yet implemented")
+                return (0, info + status_info[status])
+            if status > 63:
+                return (2, info + status_info[status])
+            return (1, info + status_info[status])
 
 check_info["infortrend_disks"] = {
     'check_function'        : check_infortrend_disks,
@@ -77,5 +74,5 @@ check_info["infortrend_disks"] = {
     'has_perfdata'          : False,
     'inventory_function'    : inventory_infortrend_disks,
     'snmp_scan_function'    : lambda oid: oid(".1.3.6.1.4.1.1714.1.1.1.1.0") != None,
-    'snmp_info'             : ( ".1.3.6.1.4.1.1714.1.6.1", [ "13", "11" ] ),
+    'snmp_info'             : ( ".1.3.6.1.4.1.1714.1.6.1", [ "13", "11", "15", "16", "17", "7" ] ),
 }
