@@ -17,12 +17,15 @@
 # to the Free Software Foundation, Inc., 51 Franklin St,  Fifth Floor,
 # Boston, MA 02110-1301 USA.
 
+def _infortrend_chassis_name(name, id):
+    if saveint(id) > 0:
+        return "ID %s %s" % (id, name)
+    return name
+
 def inventory_infortrend_chassis(info):
-    inventory = []
-    for name, status, type, value, unit in info:
+    for name, status, type, value, unit, id in info:
         if status != '255':
-            inventory.append( (name, status) )
-    return inventory
+            yield _infortrend_chassis_name(name, id), {}
 
 def check_infortrend_chassis(item, params, info):
     status_info = {
@@ -40,11 +43,11 @@ def check_infortrend_chassis(item, params, info):
                          6: ( "Temp. Sensor is Activated", "Temp. Sensor is NOT Activated" ),
                          7: ( "Temperature sensor IS present", "Temperature sensor is NOT present" ),
                          },
-               'adtl_info': { 0: "Temp. within safe range",
-                              2: "Cold Temp. Warning",
-                              3: "Hot Temp. Warning",
-                              4: "Cold Temp. Limit Exceeded",
-                              5: "Hot Temp. Limit Exceeded",
+               'adtl_info': { 0: (0, "Temp. within safe range"),
+                              2: (1, "Cold Temp. Warning"),
+                              3: (1, "Hot Temp. Warning"),
+                              4: (2, "Cold Temp. Limit Exceeded"),
+                              5: (2, "Hot Temp. Limit Exceeded"),
                               },
                'adtl_func': lambda status: status >> 1 & 7,
                },
@@ -53,10 +56,10 @@ def check_infortrend_chassis(item, params, info):
                          6: ( "UPS is ON", "UPS is OFF" ),
                          7: ( "UPS IS present", "UPS is NOT present" ),
                          },
-               'adtl_info': { 0: "battery fully charged",
-                              1: "battery not fully charged",
-                              2: "battery charge critically low",
-                              3: "battery completely drained",
+               'adtl_info': { 0: (0, "battery fully charged"),
+                              1: (1, "battery not fully charged"),
+                              2: (2, "battery charge critically low"),
+                              3: (2, "battery completely drained"),
                               },
                'adtl_func': lambda status: status >> 2 & 3,
                },
@@ -64,11 +67,11 @@ def check_infortrend_chassis(item, params, info):
                          6: ( "Voltage Sensor is Activated", "Voltage Sensor is NOT Activated" ),
                          7: ( "Voltage sensor IS present", "Voltage sensor is NOT present" ),
                          },
-               'adtl_info': { 0: "Voltage within acceptable range",
-                              2: "Low Voltage Warning",
-                              3: "High Voltage Warning",
-                              4: "Low Voltage Limit Exceeded",
-                              5: "High Voltage Limit Exceeded",
+               'adtl_info': { 0: (0, "Voltage within acceptable range"),
+                              2: (1, "Low Voltage Warning"),
+                              3: (1, "High Voltage Warning"),
+                              4: (2, "Low Voltage Limit Exceeded"),
+                              5: (2, "High Voltage Limit Exceeded"),
                               },
                'adtl_func': lambda status: status >> 1 & 7,
                },
@@ -76,9 +79,9 @@ def check_infortrend_chassis(item, params, info):
                          6: ( "Current Sensor is Activated", "Current Sensor is NOT Activated" ),
                          7: ( "Current sensor IS present", "Current sensor is NOT present" ),
                          },
-               'adtl_info': { 0: "Current within acceptable range",
-                              3: "Over Current Warning",
-                              5: "Over Current Limit Exceeded",
+               'adtl_info': { 0: (0, "Current within acceptable range"),
+                              3: (1, "Over Current Warning"),
+                              5: (2, "Over Current Limit Exceeded"),
                               },
                'adtl_func': lambda status: status >> 1 & 7,
                },
@@ -98,10 +101,10 @@ def check_infortrend_chassis(item, params, info):
                           6: ( "Battery-backup is enabled", "Battery-backup is disabled" ),
                           7: ( "Battery IS present", "Battery is NOT present" ),
                           },
-                'adtl_info': { 0: "battery fully charged",
-                               1: "battery not fully charged",
-                               2: "battery charge critically low",
-                               3: "battery completely drained",
+                'adtl_info': { 0: (0, "battery fully charged"),
+                               1: (1, "battery not fully charged"),
+                               2: (2, "battery charge critically low"),
+                               3: (2, "battery completely drained"),
                                },
                 'adtl_func': lambda status: status >> 2 & 3,
                 },
@@ -114,30 +117,25 @@ def check_infortrend_chassis(item, params, info):
                 },
         }
     
-    for name, status, type, value, unit in info:
-        status = int(status)
-        if name == item:
+    for name, status, type, value, unit, id in info:
+        if _infortrend_chassis_name(name, id) == item:
+            status = saveint(status)
             if status == 0:
-                return (0, status_info[type]['bits'][0][0])
+                yield 0, status_info[type]['bits'][0][0]
+                break
             if status == 255:
-                return (3, "Status unknown")
-            output = []
+                yield 3, "Status unknown"
+                break
+            yield 0, "%d" % status
             for bit in status_info[type]['bits'].keys():
                 bit_set = ( status & 1 << bit ) >> bit
-                if bit_set:
-                    output.append("<b>%s</b>" % status_info[type]['bits'][bit][bit_set])
+                if bit_set and bit < 6:
+                    yield 2, status_info[type]['bits'][bit][bit_set]
                 else:
-                    output.append(status_info[type]['bits'][bit][bit_set])
+                    yield 0, status_info[type]['bits'][bit][bit_set]
             if status_info[type].has_key('adtl_info'):
                 adtl_status = status_info[type]['adtl_func'](status)
-                if adtl_status > 0:
-                    output.append("<b>%s</b>" % status_info[type]['adtl_info'][adtl_status])
-                else:
-                    output.append(status_info[type]['adtl_info'][adtl_status])
-            if status == 64:
-                return (1, "%d %s" % ( status, ", ".join(output)))
-            else:
-                return (2, "%d %s" % ( status, ", ".join(output)))
+                yield status_info[type]['adtl_info'][adtl_status][0], status_info[type]['adtl_info'][adtl_status][1]
 
 check_info["infortrend_chassis"] = {
     'check_function'        : check_infortrend_chassis,
@@ -145,5 +143,5 @@ check_info["infortrend_chassis"] = {
     'has_perfdata'          : False,
     'inventory_function'    : inventory_infortrend_chassis,
     'snmp_scan_function'    : lambda oid: oid(".1.3.6.1.4.1.1714.1.1.1.1.0") != None,
-    'snmp_info'             : ( ".1.3.6.1.4.1.1714.1.9.1", [ "8", "13", "6", "9", "10" ] ),
+    'snmp_info'             : ( ".1.3.6.1.4.1.1714.1.9.1", [ "8", "13", "6", "9", "10", "12" ] ),
 }
