@@ -1,6 +1,7 @@
-#!/bin/bash
+#!/usr/bin/env python
+# -*- encoding: utf-8; py-indent-offset: 4 -*-
 
-# (c) 2016 Heinlein Support GmbH
+# (c) 2017 Heinlein Support GmbH
 #          Robert Sander <r.sander@heinlein-support.de>
 
 # This is free software;  you can redistribute it and/or modify it
@@ -14,26 +15,30 @@
 # to the Free Software Foundation, Inc., 51 Franklin St,  Fifth Floor,
 # Boston, MA 02110-1301 USA.
 
-echo "<<<local>>>"
+import glob
+import os
+import os.path
+import pwd
 
-cat /proc/sys/fs/file-nr | while read allocated unused max; do
+def fileowner(path):
+    return pwd.getpwuid(os.stat(path).st_uid).pw_name
 
-  warn=$(( $max * 80 / 100 ))
-  crit=$(( $max * 90 / 100 ))
+print '<<<filehandles>>>'
+print 'global %s' % file('/proc/sys/fs/file-nr').read(),
 
-  echo "P Filehandles count=$allocated;$warn;$crit;0;$max Filehandles allocated, max is $max"
+mntns = os.readlink('/proc/self/ns/mnt')
 
-done
-
-if [ -r $MK_CONFDIR/filehandles.cfg ]; then
-    . $MK_CONFDIR/filehandles.cfg
-    for exe in /proc/*/exe; do
-	for proc in $PROCS; do
-	    bin=$(readlink $exe)
-	    if [ "$bin" = "$proc" ]; then
-		pid=$(dirname $exe)
-		echo $proc $(ls -1 $pid/fd | wc -l)
-	    fi
-	done
-    done
-fi
+for exe in glob.glob('/proc/*/exe'):
+    try:
+        bin = os.readlink(exe)
+        if bin:
+            piddir = os.path.dirname(exe)
+            pid = os.path.basename(piddir)
+            if pid.isdigit() and mntns == os.readlink(piddir + '/ns/mnt'):
+                cmdline = piddir + '/cmdline'
+                print "%s %d %s %s" % (pid,
+                                       len(os.listdir(piddir + '/fd')),
+                                       fileowner(cmdline),
+                                       file(cmdline).read().replace('\0', ' ').strip())
+    except OSError:
+        pass
