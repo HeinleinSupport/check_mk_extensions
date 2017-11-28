@@ -13,6 +13,36 @@ register_rule("agents/" + _("Agent Plugins"),
     )
 )
 
+register_check_parameters(
+    subgroup_applications,
+    'filehandles',
+    _('Filehandles'),
+    Dictionary(
+        elements = [
+            ('levels', Tuple(
+                title = _("Filehandles levels"),
+                help = _('The global levels are in percentage, the per process levels are absolute values.'),
+                elements = [
+                    Integer(
+                        title = _("Warning at"),
+                        default_value = 80,
+                    ),
+                    Integer(
+                        title = _("Critical at"),
+                        default_value = 90,
+                    ),
+                ]
+            )),
+        ],
+        help = _("This rule is used to configure thresholds for filehandles, globally or per process."),
+    ),
+    TextAscii(
+        title = _("Process Name"),
+        help = _("Teh process name as defined in the inventory rule or 'global' for the global values."),
+    ),
+    match_type = "dict",
+)
+
 register_rule(
     'checkparams/' + subgroup_inventory,
     varname   = "inventory_filehandles_rules",

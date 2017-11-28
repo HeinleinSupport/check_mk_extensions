@@ -207,19 +207,6 @@ def check_filehandles(item, params, info):
         perfdata = [ ( 'filehandles', max_handles ) ]
     return state, infotext, perfdata
 
-
-#    (cpu_cores, parsed), mem_info, solaris_mem_info, statgrab_mem_info = info
-#    if mem_info:
-#        total_ram = parse_proc_meminfo_bytes(mem_info).get("MemTotal")
-#    elif solaris_mem_info:
-#        total_ram = solaris_mem_info.get("MemTotal") * 1024
-#    elif statgrab_mem_info:
-#        total_ram = statgrab_mem_info.get("MemTotal") * 1024
-#    else:
-#        total_ram = None
-#    return check_ps_common(item, params, parsed, cpu_cores = cpu_cores, total_ram = total_ram)
-
-
 check_info['filehandles'] = {
     "inventory_function"      : inventory_filehandles,
     "check_function"          : check_filehandles,
