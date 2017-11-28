@@ -26,7 +26,7 @@ def fileowner(path):
 print '<<<filehandles>>>'
 print 'global %s' % file('/proc/sys/fs/file-nr').read(),
 
-mntns = os.readlink('/proc/self/ns/mnt')
+pidns = os.readlink('/proc/self/ns/pid')
 
 for exe in glob.glob('/proc/*/exe'):
     try:
@@ -34,7 +34,7 @@ for exe in glob.glob('/proc/*/exe'):
         if bin:
             piddir = os.path.dirname(exe)
             pid = os.path.basename(piddir)
-            if pid.isdigit() and mntns == os.readlink(piddir + '/ns/mnt'):
+            if pid.isdigit() and pidns == os.readlink(piddir + '/ns/pid'):
                 cmdline = piddir + '/cmdline'
                 print "%s %d %s %s" % (pid,
                                        len(os.listdir(piddir + '/fd')),
