@@ -196,8 +196,8 @@ if __name__ == "__main__":
                      'SYNC': 27,
                      'UPLOAD_FAILED': 28,
                      'OOBM_AUTH_ERROR': 29 }
-    csAlertTypeWarn = { 0,1,2,3,4,5,6,8,12,13,15,16,18,19,23,26 }
-    csAlertTypeCrit = { 7,9,10,11,14 }
+    csAlertTypeWarn = { 0,1,2,3,4,5,6,8,9,12,13,15,16,18,19,23,26 }
+    csAlertTypeCrit = { 7,10,11,14 }
     csAlertCnt = 0
     csAlertRes = 0
     csAlertMsg = ''
