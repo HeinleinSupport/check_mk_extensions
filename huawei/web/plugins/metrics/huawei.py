@@ -19,3 +19,11 @@
 
 check_metrics["check_mk-huawei_capacity"] = df_translation
 check_metrics["check_mk-huawei_nasfs"]    = df_translation
+
+check_metrics["check_mk-huawei_lun"] = {
+    "read"  : { "name" : "disk_read_throughput" },
+    "write" : { "name" : "disk_write_throughput" },
+    "ios"   : { "name" : "disk_ios" },
+    "capacity": { "name": "disk_capacity" },
+}
+

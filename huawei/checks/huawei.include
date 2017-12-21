@@ -224,7 +224,8 @@ huawei_port_rates = {
 
 huawei_port_modes = {
     '-1': 'unknown',
-    '1': 'fabric',
+    '0': 'fabric',
+    '1': 'FC-AL',
     '2': 'public-loop',
     '3': 'point-to-point',
 }
