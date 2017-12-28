@@ -1,0 +1,23 @@
+#!/bin/bash
+
+# Test if default route is set
+
+#
+# (C) 2017 Heinlein Support GmbH
+# Robert Sander <r.sander@heinlein-support.de>
+#
+
+echo '<<<local>>>'
+if ip -4 route show | grep -q ^default ; then
+  echo '0 DefaultRoute4 - IPv4 default route exists'
+else
+  echo '2 DefaultRoute4 - No IPv4 default route'
+fi
+
+if [ -n "$(ip -6 route show | grep -v ^fe80)" ]; then
+  if ip -6 route show | grep -q ^default ; then
+    echo '0 DefaultRoute6 - IPv6 default route exists'
+  else
+    echo '2 DefaultRoute6 - No IPv6 default route'
+  fi
+fi
