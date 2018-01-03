@@ -74,7 +74,7 @@ if [ -e  /proc/driver/cciss -o  -e /sys/bus/cciss -o -e /sys/bus/pci/drivers/hps
     ac=-1
     CMD="$RAID_CHECK_TOOL controller slot=${controllers[$c]} array all show"
     while read -a cary; do
-      if [ "X${cary[0]}X" = "XarrayX" ]; then
+      if [ "X${cary[0]}X" = "XarrayX" -o "X${cary[0]}X" = "XArrayX" ]; then
         ac=$(($ac+1))
         # collect lines
         read -d + -a x <<< $($RAID_CHECK_TOOL controller slot=${controllers[$c]} array ${cary[1]} show | sed 's/(Embedded)//')
