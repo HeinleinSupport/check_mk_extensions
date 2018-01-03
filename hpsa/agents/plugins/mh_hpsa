@@ -98,11 +98,20 @@ if [ -e  /proc/driver/cciss -o  -e /sys/bus/cciss -o -e /sys/bus/pci/drivers/hps
       CMD="$RAID_CHECK_TOOL controller slot=${controllers[$c]} array ${arrays[$a]} physicaldrive all show"
       while read -a pdrv; do
         if [ "X${pdrv[0]}X" = "XphysicaldriveX" ]; then
-          echo -n "${controllers[$c]}:${arrays[$a]}:${pdrv[1]} ${pdrv[9]/[),]/} ${pdrv[6]/,/} ${pdrv[7]} ${pdrv[8]/,/} "
-          if [ ${pdrv[10]} ]; then
-            echo ${pdrv[10]/)/}
+          if [ "X${pdrv[7]}X" = "XHDD,X" ]; then
+            echo -n "${controllers[$c]}:${arrays[$a]}:${pdrv[1]} ${pdrv[10]/[),]/} ${pdrv[6]/,/} ${pdrv[8]} ${pdrv[9]/,/} "
+            if [ ${pdrv[11]} ]; then
+              echo ${pdrv[11]/)/}
+            else
+              echo "assigned"
+            fi
           else
-            echo "assigned"
+            echo -n "${controllers[$c]}:${arrays[$a]}:${pdrv[1]} ${pdrv[9]/[),]/} ${pdrv[6]/,/} ${pdrv[7]} ${pdrv[8]/,/} "
+            if [ ${pdrv[10]} ]; then
+              echo ${pdrv[10]/)/}
+            else
+              echo "assigned"
+            fi
           fi
         fi
       done < <( $CMD )
