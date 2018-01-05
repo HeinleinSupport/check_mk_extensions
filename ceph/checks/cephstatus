@@ -1,0 +1,77 @@
+#!/usr/bin/env python
+# -*- encoding: utf-8; py-indent-offset: 4 -*-
+
+# (c) 2017 Heinlein Support GmbH
+#          Robert Sander <r.sander@heinlein-support.de>
+
+# This is free software;  you can redistribute it and/or modify it
+# under the  terms of the  GNU General Public License  as published by
+# the Free Software Foundation in version 2.  This file is distributed
+# in the hope that it will be useful, but WITHOUT ANY WARRANTY;  with-
+# out even the implied warranty of  MERCHANTABILITY  or  FITNESS FOR A
+# PARTICULAR PURPOSE. See the  GNU General Public License for more de-
+# ails.  You should have  received  a copy of the  GNU  General Public
+# License along with GNU Make; see the file  COPYING.  If  not,  write
+# to the Free Software Foundation, Inc., 51 Franklin St,  Fifth Floor,
+# Boston, MA 02110-1301 USA.
+
+def inventory_cephstatus(parsed):
+    if 'health' in parsed:
+        yield 'Status', {}
+
+def check_cephstatus(item, params, parsed):
+    if cmk.debug.enabled():
+        pprint.pprint(parsed)
+    if 'health' in parsed:
+        if 'status' in parsed['health']:
+            if parsed['health']['status'] == 'HEALTH_OK':
+                yield 0, 'Overall Health OK'
+            elif parsed['health']['status'] == 'HEALTH_WARN':
+                yield 1, 'Overall Health WARN'
+            else:
+                yield 2, 'Overall Health %s' % parsed['health']['status']
+        else:
+            yield 3, "Overall Health status not found: %s" % parsed['health']
+    else:
+        yield 3, "Overall Health not found"
+    if 'osdmap' in parsed:
+        if 'osdmap' in parsed['osdmap']:
+            if 'full' in parsed['osdmap']['osdmap']:
+                if parsed['osdmap']['osdmap']['full']:
+                    yield 2, 'OSD Map full'
+            if 'nearfull' in parsed['osdmap']['osdmap']:
+                if parsed['osdmap']['osdmap']['nearfull']:
+                    yield 1, 'OSD Map near full'
+    if 'pgmap' in parsed:
+        pgmap = parsed['pgmap']
+        if 'bytes_avail' in pgmap and 'bytes_total' in pgmap:
+            size_mb = pgmap['bytes_total'] / 1048576.0
+            avail_mb = pgmap['bytes_avail'] / 1048576.0
+            yield df_check_filesystem_list(item, params, [ (item, size_mb, avail_mb, 0) ])
+        if 'num_objects' in pgmap:
+            yield 0, '%d Objects' % pgmap['num_objects'], [('num_objects', pgmap['num_objects'], 0)]
+        if 'num_pgs' in pgmap:
+            yield 0, '%d Placement Groups' % pgmap['num_pgs'], [('num_pgs', pgmap['num_pgs'], 0)]
+        if 'pgs_by_state' in pgmap:
+            for pgstate in pgmap['pgs_by_state']:
+                rc = 1
+                if 'active' in pgstate['state_name']:
+                    rc = 0
+                if 'undersized' in pgstate['state_name']:
+                    rc = 1
+                if 'down' in pgstate['state_name']:
+                    rc = 2
+                if 'stale' in pgstate['state_name']:
+                    rc = 3
+                yield rc, '%d PGs in %s' % (pgstate['count'], pgstate['state_name']), [('pgstate_%s' % pgstate['state_name'].replace('+', '_'), pgstate['count'], 0)]
+            
+check_info["cephstatus"] = {
+    'parse_function'        : parse_json,
+    'check_function'        : check_cephstatus,
+    'inventory_function'    : inventory_cephstatus,
+    'service_description'   : 'Ceph %s',
+    'has_perfdata'          : True,
+    'group'                  : 'filesystem',
+    'default_levels_variable': 'filesystem_default_levels',
+    'includes'               : [ 'df.include', 'json.include' ],
+}

@@ -1,0 +1,80 @@
+#!/usr/bin/env python
+# -*- encoding: utf-8; py-indent-offset: 4 -*-
+
+# (c) 2017 Heinlein Support GmbH
+#          Robert Sander <r.sander@heinlein-support.de>
+
+# This is free software;  you can redistribute it and/or modify it
+# under the  terms of the  GNU General Public License  as published by
+# the Free Software Foundation in version 2.  This file is distributed
+# in the hope that it will be useful, but WITHOUT ANY WARRANTY;  with-
+# out even the implied warranty of  MERCHANTABILITY  or  FITNESS FOR A
+# PARTICULAR PURPOSE. See the  GNU General Public License for more de-
+# ails.  You should have  received  a copy of the  GNU  General Public
+# License along with GNU Make; see the file  COPYING.  If  not,  write
+# to the Free Software Foundation, Inc., 51 Franklin St,  Fifth Floor,
+# Boston, MA 02110-1301 USA.
+
+# {u'pools': [{u'id': 1,
+#             u'name': u'cephfs_data',
+#             u'stats': {u'bytes_used': 0,
+#                        u'dirty': 0,
+#                        u'kb_used': 0,
+#                        u'max_avail': 201491922944,
+#                        u'objects': 0,
+#                        u'percent_used': 0.0,
+#                        u'quota_bytes': 0,
+#                        u'quota_objects': 0,
+#                        u'raw_bytes_used': 0,
+#                        u'rd': 0,
+#                        u'rd_bytes': 0,
+#                        u'wr': 0,
+#                        u'wr_bytes': 0}},
+
+
+def inventory_cephdf(parsed):
+    if cmk.debug.enabled():
+        pprint.pprint(parsed)
+
+    if 'pools' in parsed:
+        for pool in parsed['pools']:
+            yield pool['name'], {}
+
+def check_cephdf(item, params, parsed):
+    if 'pools' in parsed:
+        for pool in parsed['pools']:
+            if pool['name'] == item:
+                stats = pool['stats']
+
+                size_mb = stats['max_avail'] / 1048576.0
+                avail_mb = size_mb - stats['bytes_used'] / 1048576.0
+                yield df_check_filesystem_list(item, params, [ (item, size_mb, avail_mb, 0) ])
+
+                yield 0, '%d Objects' % stats['objects'], [ ( 'num_objects', stats['objects'], 0 ) ]
+
+                now = time.time()
+
+                rd_ios = get_rate('cephdf.%s.ri' % item, now, stats['rd'])
+                rd_bytes = get_rate('cephdf.%s.rb' % item, now, stats['rd_bytes'])
+                wr_ios = get_rate('cephdf.%s.wi' % item, now, stats['wr'])
+                wr_bytes = get_rate('cephdf.%s.wb' % item, now, stats['wr_bytes'])
+
+                yield 0, 'IO: %0.2f Read IOPS, %0.2f Write IOPS, %s/s read, %s/s written' % (
+                          rd_ios,
+                          wr_ios,
+                          get_bytes_human_readable(rd_bytes),
+                          get_bytes_human_readable(wr_bytes)), [ ( "disk_read_ios", rd_ios, 0 ),
+                        ( "disk_write_ios", wr_ios, 0 ),
+                        ( "disk_read_throughput", rd_bytes, 0 ),
+                        ( "disk_write_throughput", wr_bytes, 0 ) ]
+
+check_info["cephdf"] = {
+    'parse_function'         : parse_json,
+    'check_function'         : check_cephdf,
+    'inventory_function'     : inventory_cephdf,
+    'service_description'    : 'Ceph Pool %s',
+    'has_perfdata'           : True,
+    'group'                  : 'filesystem',
+    'default_levels_variable': 'filesystem_default_levels',
+    'includes'               : [ 'df.include', 'json.include' ],
+}
