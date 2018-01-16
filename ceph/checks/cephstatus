@@ -20,8 +20,6 @@ def inventory_cephstatus(parsed):
         yield 'Status', {}
 
 def check_cephstatus(item, params, parsed):
-    if cmk.debug.enabled():
-        pprint.pprint(parsed)
     if 'health' in parsed:
         if 'status' in parsed['health']:
             if parsed['health']['status'] == 'HEALTH_OK':
@@ -54,13 +52,11 @@ def check_cephstatus(item, params, parsed):
             yield 0, '%d Placement Groups' % pgmap['num_pgs'], [('num_pgs', pgmap['num_pgs'], 0)]
         if 'pgs_by_state' in pgmap:
             for pgstate in pgmap['pgs_by_state']:
-                rc = 1
-                if 'active' in pgstate['state_name']:
-                    rc = 0
-                if 'undersized' in pgstate['state_name']:
-                    rc = 1
-                if 'down' in pgstate['state_name']:
+                rc = 0
+                if 'inconsistent' in pgstate['state_name'] or 'incomplete' in pgstate['state_name'] or 'active' not in pgstate['state_name']:
                     rc = 2
+                elif 'active+clean' != pgstate['state_name'] and 'active+clean+scrubbing' != pgstate['state_name'] and 'active+clean+scrubbing+deep' != pgstate['state_name']:
+                    rc = 1
                 if 'stale' in pgstate['state_name']:
                     rc = 3
                 yield rc, '%d PGs in %s' % (pgstate['count'], pgstate['state_name']), [('pgstate_%s' % pgstate['state_name'].replace('+', '_'), pgstate['count'], 0)]

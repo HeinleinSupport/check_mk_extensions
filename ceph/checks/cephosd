@@ -56,19 +56,17 @@
 
 
 def inventory_cephosd(parsed):
-    if cmk.debug.enabled():
-        pprint.pprint(parsed)
     if 'df' in parsed and 'nodes' in parsed['df']:
         for osd in parsed['df']['nodes']:
-            yield osd['id'], {}
+            yield str(osd['id']), {}
 
 def check_cephosd(item, params, parsed):
     if 'df' in parsed and 'nodes' in parsed['df']:
         for osd in parsed['df']['nodes']:
-            if osd['id'] == item:
+            if str(osd['id']) == item:
                 size_mb = osd['kb'] / 1024.0
                 avail_mb = osd['kb_avail'] / 1024.0
-                yield df_check_filesystem_list(str(item), params, [ (str(item), size_mb, avail_mb, 0) ])
+                yield df_check_filesystem_list(item, params, [ (item, size_mb, avail_mb, 0) ])
 
 check_info["cephosd"] = {
     'parse_function'         : parse_json,

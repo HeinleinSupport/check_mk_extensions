@@ -33,9 +33,6 @@
 
 
 def inventory_cephdf(parsed):
-    if cmk.debug.enabled():
-        pprint.pprint(parsed)
-
     if 'pools' in parsed:
         for pool in parsed['pools']:
             yield pool['name'], {}

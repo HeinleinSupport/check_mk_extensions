@@ -32,19 +32,31 @@ metric_info['num_pgs'] = {
 metric_info['pgstate_active_clean'] = {
     'title' : _('PGs Active + Clean'),
     'unit'  : 'count',
-    'color' : indexed_color(1, 3),
+    'color' : indexed_color(1, 5),
 }
 
 metric_info['pgstate_active_scrubbing'] = {
     'title' : _('PGs Active + Scrubbing'),
     'unit'  : 'count',
-    'color' : indexed_color(2, 3),
+    'color' : indexed_color(2, 5),
+}    
+
+metric_info['pgstate_active_clean_scrubbing'] = {
+    'title' : _('PGs Active + Clean + Scrubbing '),
+    'unit'  : 'count',
+    'color' : indexed_color(3, 5),
+}    
+
+metric_info['pgstate_active_clean_scrubbing_deep'] = {
+    'title' : _('PGs Active + Clean + Deep Scrubbing '),
+    'unit'  : 'count',
+    'color' : indexed_color(4, 5),
 }    
 
 metric_info['pgstate_active_undersized_degraded'] = {
     'title' : _('PGs Active + Undersized + Degraded'),
     'unit'  : 'count',
-    'color' : indexed_color(3, 3),
+    'color' : indexed_color(5, 5),
 }
 
 metric_info['pgstates'] = {
@@ -55,7 +67,7 @@ metric_info['pgstates'] = {
 
 check_metrics["check_mk-cephstatus"] = df_translation
 check_metrics["check_mk-cephstatus"]['num_objects'] = {}
-# check_metrics["check_mk-cephstatus"]['num_pgs'] = {}
+check_metrics["check_mk-cephstatus"]['num_pgs'] = {}
 check_metrics["check_mk-cephstatus"]['pgstates'] = { 'name': 'pgstates' }
 check_metrics["check_mk-cephstatus"]['~pgstate_.*'] = {}
 
@@ -68,13 +80,13 @@ check_metrics["check_mk-cephdf"]["disk_write_throughput"] = {}
 
 check_metrics["check_mk-cephosd"] = df_translation
 
-graph_info['pgstates'] = {
-    'title'  : _('Placement Groups'),
-    'metrics': [
-        ( 'num_pgs', 'line', _('Total') ),
-        ( 'pgstate_active_clean', 'area', _('Active+Clean') ),
-        ( 'pgstate_active_scrubbing', 'stack', _('Active+Scrubbing') ),
-        ( 'pgstate_active_undersized_degraded', 'stack', _('Active+Undersized+Degraded') ),
-        ],
+#graph_info['pgstates'] = {
+#    'title'  : _('Placement Groups'),
+#    'metrics': [
+#        ( 'num_pgs', 'line', _('Total') ),
+#        ( 'pgstate_active_clean', 'area', _('Active+Clean') ),
+#        ( 'pgstate_active_scrubbing', 'stack', _('Active+Scrubbing') ),
+#        ( 'pgstate_active_undersized_degraded', 'stack', _('Active+Undersized+Degraded') ),
+#        ],
 #    'range'  : (0, 'num_pgs:max'),
-}
+#}
