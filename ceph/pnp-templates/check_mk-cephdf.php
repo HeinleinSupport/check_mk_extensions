@@ -204,8 +204,12 @@ if (isset($RRD['disk_read_throughput']) && isset($RRD['disk_write_throughput']))
     $def[7] = "DEF:disk_write_throughput=${RRD['disk_write_throughput']} ";
     $def[7] .= "DEF:disk_read_throughput=${RRD['disk_read_throughput']} ";
     $def[7] .= "CDEF:disk_write_throughput_NEG=disk_write_throughput,-1,* ";
-    $def[7] .= "AREA:disk_read_throughput#40c080:'Read throughput ' ";
+    $def[7] .= "AREA:disk_read_throughput#40c080:'Read throughput' ";
+    $def[7] .= "GPRINT:disk_read_throughput:MAX:\"Max\: %2.0lf\" ";
+    $def[7] .= "GPRINT:disk_read_throughput:AVERAGE:\"Average\: %2.0lf\\n\" ";
     $def[7] .= "AREA:disk_write_throughput_NEG#4080c0:'Write throughput' ";
+    $def[7] .= "GPRINT:disk_write_throughput:MAX:\"Max\: %2.0lf\" ";
+    $def[7] .= "GPRINT:disk_write_throughput:AVERAGE:\"Average\: %2.0lf\\n\" ";
     $def[7] .= "HRULE:0#c0c0c0";
 } 
 
