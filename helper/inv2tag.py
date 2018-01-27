@@ -30,6 +30,7 @@ parser = argparse.ArgumentParser()
 parser.add_argument('-s', '--url', required=True, help='URL to Check_MK site')
 parser.add_argument('-u', '--username', required=True, help='name of the Automation user')
 parser.add_argument('-p', '--password', required=True)
+parser.add_argument('-d', '--dump', action="store_true", help='Dump unique values from the view')
 args = parser.parse_args()
 
 mapi = checkmkapi.MultisiteAPI(args.url, args.username, args.password)
@@ -40,26 +41,25 @@ resp = mapi.view(view_name='opsys')
 #
 # get uniq values from view
 #
-#result = {}
-#for info in resp:
-#    for key, value in info.iteritems():
-#        if key not in result:
-#            result[key] = set()
-#        result[key].add(value)
-#pprint.pprint(result)
+if args.dump:
+    result = {}
+    for info in resp:
+        for key, value in info.iteritems():
+            if key not in result:
+                result[key] = set()
+            result[key].add(value)
+    pprint.pprint(result)
+else:
+    for info in resp:
+        print info['host']
+        tags = {}
+        for attr, patterns in tagmap.iteritems():
+            if attr in info:
+                pprint.pprint(info[attr])
+                for pattern, settags in patterns.iteritems():
+                    if pattern.search(info[attr]):
+                        tags.update(settags)
+        print tags
 
-pprint.pprint(tagmap)
-
-for info in resp:
-    print info['host']
-    tags = {}
-    for attr, patterns in tagmap.iteritems():
-        if attr in info:
-            pprint.pprint(info[attr])
-            for pattern, settags in patterns.iteritems():
-                if pattern.search(info[attr]):
-                    tags.update(settags)
-    print tags
-
-    # wato.edit_host(info['host'], set_attr=tags)
+        # wato.edit_host(info['host'], set_attr=tags)
 
