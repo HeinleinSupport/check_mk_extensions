@@ -19,6 +19,10 @@ tagmap = {
         re.compile('ubuntu', re.IGNORECASE): {'tag_opsys': 'ubuntu'},
 #        re.compile('vmware', re.IGNORECASE): {'tag_opsys': 'esxi'},
         re.compile('xenserver', re.IGNORECASE): {'tag_opsys': 'redhat'},
+        re.compile('Microsoft Windows 7'): {'tag_opsys': 'win7'},
+        re.compile('Microsoft Windows Server 2008'): {'tag_opsys': 'win2008'},
+        re.compile('Microsoft Windows Server 2012'): {'tag_opsys': 'win2012'},
+        re.compile('Microsoft Windows Server 2016'): {'tag_opsys': 'win2016'},
     },
 }
 
