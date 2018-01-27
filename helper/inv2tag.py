@@ -20,4 +20,11 @@ mapi = checkmkapi.MultisiteAPI(args.url, args.username, args.password)
 wato = checkmkapi.WATOAPI(args.url, args.username, args.password)
 
 resp = mapi.view(view_name='opsys')
-pprint.pprint(resp)
+result = {}
+for info in resp:
+    for key, value in info.iteritems():
+        if key not in result:
+            result[key] = set()
+        result[key].add(value)
+
+pprint.pprint(result)
