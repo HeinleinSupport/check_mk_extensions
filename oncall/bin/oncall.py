@@ -151,10 +151,10 @@ for user, data in contacts.iteritems():
                 contacts[user]['notification_rules'].append(rule)
                 if args.debug:
                     print "%s is off duty for %s" % (user, notify_plugin)
-        # write other rules at the end of the list
-        contacts[user]['notification_rules'].extend(other_rules)
     elif args.debug:
         print "%s is not oncall" % user
+    # write other rules at the end of the list
+    contacts[user]['notification_rules'].extend(other_rules)
     if args.debug:
         print
 
