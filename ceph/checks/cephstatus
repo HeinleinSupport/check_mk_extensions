@@ -20,6 +20,22 @@ def inventory_cephstatus(parsed):
         yield 'Status', {}
 
 def check_cephstatus(item, params, parsed):
+    _single_state = { 'state': 0, 'count': 0 }
+    _pgstates_list = ['active+clean',
+                      'active+clean+scrubbing',
+                      'active+clean+scrubbing+deep',
+                      'active+undersized',
+                      'active+undersized+degraded',
+                      'active+recovering+degraded',
+                      'active+recovery_wait+degraded',
+                      'active+undersized+degraded+remapped+backfilling',
+                      'active+undersized+degraded+remapped+backfill+wait',
+                      'peering',
+                     ]
+    _ceph_pgstates = {}
+    for state in _pgstates_list:
+        _ceph_pgstates[state] = _single_state.copy()
+
     if 'health' in parsed:
         if 'status' in parsed['health']:
             if parsed['health']['status'] == 'HEALTH_OK':
@@ -52,15 +68,30 @@ def check_cephstatus(item, params, parsed):
             yield 0, '%d Placement Groups' % pgmap['num_pgs'], [('num_pgs', pgmap['num_pgs'], 0)]
         if 'pgs_by_state' in pgmap:
             for pgstate in pgmap['pgs_by_state']:
-                rc = 0
+                if pgstate['state_name'] in _ceph_pgstates:
+                    _ceph_pgstates[pgstate['state_name']]['count'] = pgstate['count']
+                else:
+                    yield 3, pgstate['state_name']
                 if 'inconsistent' in pgstate['state_name'] or 'incomplete' in pgstate['state_name'] or 'active' not in pgstate['state_name']:
-                    rc = 2
+                    _ceph_pgstates[pgstate['state_name']]['state'] = 2
                 elif 'active+clean' != pgstate['state_name'] and 'active+clean+scrubbing' != pgstate['state_name'] and 'active+clean+scrubbing+deep' != pgstate['state_name']:
-                    rc = 1
+                    _ceph_pgstates[pgstate['state_name']]['state'] = 1
                 if 'stale' in pgstate['state_name']:
-                    rc = 3
-                yield rc, '%d PGs in %s' % (pgstate['count'], pgstate['state_name']), [('pgstate_%s' % pgstate['state_name'].replace('+', '_'), pgstate['count'], 0)]
-            
+                    _ceph_pgstates[pgstate['state_name']]['state'] = 3
+            perfdata = []
+            msg = []
+            rc = 3
+            for pgstate, info in _ceph_pgstates.iteritems():
+                if pgstate == 'active+clean':
+                    rc = info['state']
+                    msg.append('%d PGs in %s' % (info['count'], pgstate))
+                    perfdata.append( ('pgstate_%s' % pgstate.replace('+', '_'), info['count'], 0) )
+                elif info['count'] == 0:
+                    perfdata.append( ('pgstate_%s' % pgstate.replace('+', '_'), info['count'], 0) )
+                else: 
+                    yield info['state'], '%d PGs in %s' % (info['count'], pgstate), [('pgstate_%s' % pgstate.replace('+', '_'), info['count'], 0)]
+            yield rc, ', '.join(msg), perfdata
+
 check_info["cephstatus"] = {
     'parse_function'        : parse_json,
     'check_function'        : check_cephstatus,

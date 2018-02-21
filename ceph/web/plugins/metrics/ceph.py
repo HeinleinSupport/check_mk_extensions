@@ -32,6 +32,7 @@ metric_info['num_pgs'] = {
 _ceph_pgstates = ['pgstate_active_clean',
                   'pgstate_active_clean_scrubbing',
                   'pgstate_active_clean_scrubbing_deep',
+                  'pgstate_active_undersized',
                   'pgstate_active_undersized_degraded',
                   'pgstate_active_recovering_degraded',
                   'pgstate_active_recovery_wait_degraded',
@@ -41,19 +42,24 @@ _ceph_pgstates = ['pgstate_active_clean',
                  ]
 
 _ceph_num_pgstates = len(_ceph_pgstates)
+_ceph_pg_metrics = [ ( 'num_pgs', 'line', _('Total') ) ]
+_ceph_pg_metrics_optional = []
 
 for idx, _ceph_pgstate in enumerate(_ceph_pgstates):
+    _ceph_title = " + ".join(map(lambda x: x.capitalize(), _ceph_pgstate.split('_')[1:]))
     metric_info[_ceph_pgstate] = {
-        'title' : _('PGs %s' % " + ".join(map(lambda x: x.capitalize(), _ceph_pgstate.split('_')[1:]))),
+        'title' : _('PGs %s' % _ceph_title),
         'unit'  : 'count',
         'color' : indexed_color(idx+1, _ceph_num_pgstates),
     }
+    _ceph_pg_metrics.append( ( _ceph_pgstate, 'stack', _ceph_title ) )
+    _ceph_pg_metrics_optional.append( _ceph_pgstate )
 
-#metric_info['pgstates'] = {
-#    'title' : _('Placement Groups'),
-#    'unit'  : 'count',
-#    'color' : '53/a',
-#}
+metric_info['pgstates'] = {
+    'title' : _('Placement Groups'),
+    'unit'  : 'count',
+    'color' : '53/a',
+}
 
 check_metrics["check_mk-cephstatus"] = {
     "Status"  : { "name"  : "fs_used", "scale" : MB },
@@ -69,7 +75,7 @@ check_metrics["check_mk-cephstatus"]['~pgstate_.*'] = {}
 
 check_metrics["check_mk-cephdf"] = {
     "~(?!inodes_used|fs_size|growth|trend|fs_provisioning|"
-      "uncommitted|overprovisioned|pgstate_|num_|disk_).*$"   : { "name"  : "fs_used", "scale" : MB },
+      "uncommitted|overprovisioned|num_|disk_).*$"   : { "name"  : "fs_used", "scale" : MB },
     "fs_size" : { "scale" : MB },
     "growth"  : { "name"  : "fs_growth", "scale" : MB / 86400.0 },
     "trend"   : { "name"  : "fs_trend", "scale" : MB / 86400.0 },
@@ -82,13 +88,9 @@ check_metrics["check_mk-cephdf"]["disk_write_throughput"] = {}
 
 check_metrics["check_mk-cephosd"] = df_translation
 
-#graph_info.append({
-#    'title'  : _('Placement Groups'),
-#    'metrics': [
-#        ( 'num_pgs', 'line', _('Total') ),
-#        ( 'pgstate_active_clean', 'area', _('Active+Clean') ),
-#        ( 'pgstate_active_scrubbing', 'stack', _('Active+Scrubbing') ),
-#        ( 'pgstate_active_undersized_degraded', 'stack', _('Active+Undersized+Degraded') ),
-#        ],
-#    'range'  : (0, 'num_pgs:max'),
-#})
+graph_info.append({
+    'title'  : _('Placement Groups'),
+    'metrics': _ceph_pg_metrics,
+    'optional_metrics': _ceph_pg_metrics_optional,
+    'range'  : (0, 'num_pgs:max'),
+})
