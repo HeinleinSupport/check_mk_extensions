@@ -192,7 +192,7 @@ if (isset($RRD['num_pgs'])) {
     }
     foreach ($NAME as $i => $n) {
         if (substr($n, 0, 8) == 'pgstate_') {
-            $def[7] .= "AREA:${n}#123456:\"${n}\: \":STACK ";
+            $def[7] .= "AREA:${n}#${i}${i}${i}:'${n}\: ':STACK ";
             $def[7] .= "GPRINT:${n}:LAST:\"%6.2lf\\n\" ";
         }
     }
