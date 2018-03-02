@@ -89,7 +89,26 @@ check_metrics["check_mk-cephdf"]["disk_write_ios"] = {}
 check_metrics["check_mk-cephdf"]["disk_read_throughput"] = {}
 check_metrics["check_mk-cephdf"]["disk_write_throughput"] = {}
 
+metric_info["apply_latency"] = {
+    'title' : _('Apply Latency'),
+    'unit'  : 's',
+    'color' : '22/a',
+}
+
+metric_info["commit_latency"] = {
+    'title' : _('Commit Latency'),
+    'unit'  : 's',
+    'color' : '24/a',
+}
+
 check_metrics["check_mk-cephosd"] = df_translation
+check_metrics["check_mk-cephosd"]["apply_latency"] = {}
+check_metrics["check_mk-cephosd"]["commit_latency"] = {}
+
+graph_info.append({
+    'title'  : _('OSD Latency'),
+    'metrics': [ ('apply_latency', 'line' ), ('commit_latency', 'line' ) ],
+})
 
 graph_info.append({
     'title'  : _('Placement Groups'),
