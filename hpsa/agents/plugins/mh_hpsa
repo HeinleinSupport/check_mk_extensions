@@ -42,7 +42,7 @@ export INFOMGR_BYPASS_NONSA=1
 RAID_CHECK_TOOL=hpacucli
 if [ -x /usr/sbin/hpssacli ]; then
 	RAID_CHECK_TOOL=hpssacli
-if [ -x /usr/sbin/ssacli ]; then
+elif [ -x /usr/sbin/ssacli ]; then
 	RAID_CHECK_TOOL=ssacli
 fi
 
