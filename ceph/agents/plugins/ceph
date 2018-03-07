@@ -15,22 +15,23 @@
 # Boston, MA 02110-1301 USA.
 
 if [ -x /usr/bin/ceph ]; then
-  echo '<<<ceph>>>'
-  /usr/bin/ceph -s
-  echo '<<<cephpools>>>'
-  /usr/bin/ceph df
+  if [ $(ceph version | cut -f 3 -d " " | cut -f 1 -d .) -lt 10 ]; then
+    echo '<<<ceph>>>'
+    /usr/bin/ceph -s
+    echo '<<<cephpools>>>'
+    /usr/bin/ceph df
+  else
+    echo '<<<cephstatus>>>'
+    /usr/bin/ceph -f json status
 
-  echo '<<<cephstatus>>>'
-  /usr/bin/ceph -f json status
+    echo '<<<cephdf>>>'
+    /usr/bin/ceph -f json df detail
 
-  echo '<<<cephdf>>>'
-  /usr/bin/ceph -f json df detail
-
-  echo '<<<cephosd>>>'
-  echo '{ "df": '
-  /usr/bin/ceph -f json osd df
-  echo ', "perf": '
-  /usr/bin/ceph -f json osd perf
-  echo '}'
-
+    echo '<<<cephosd>>>'
+    echo '{ "df": '
+    /usr/bin/ceph -f json osd df
+    echo ', "perf": '
+    /usr/bin/ceph -f json osd perf
+    echo '}'
+  fi
 fi
