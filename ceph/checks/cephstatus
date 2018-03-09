@@ -24,6 +24,8 @@ def check_cephstatus(item, params, parsed):
     _pgstates_list = ['active+clean',
                       'active+clean+scrubbing',
                       'active+clean+scrubbing+deep',
+                      'active+recovering',
+                      'active+recovery_wait',
                       'active+undersized',
                       'active+undersized+degraded',
                       'active+recovering+degraded',

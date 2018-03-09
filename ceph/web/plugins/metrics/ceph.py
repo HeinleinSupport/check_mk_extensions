@@ -32,6 +32,8 @@ metric_info['num_pgs'] = {
 _ceph_pgstates = ['pgstate_active_clean',
                   'pgstate_active_clean_scrubbing',
                   'pgstate_active_clean_scrubbing_deep',
+                  'pgstate_active_recovering',
+                  'pgstate_active_recovery_wait',
                   'pgstate_active_undersized',
                   'pgstate_active_undersized_degraded',
                   'pgstate_active_recovering_degraded',
