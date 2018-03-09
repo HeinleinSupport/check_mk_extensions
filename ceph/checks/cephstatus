@@ -43,17 +43,21 @@ def check_cephstatus(item, params, parsed):
         if 'status' in parsed['health']:
             if parsed['health']['status'] == 'HEALTH_OK':
                 yield 0, 'Overall Health OK'
-            elif parsed['health']['status'] == 'HEALTH_WARN':
-                yield 1, 'Overall Health WARN'
-            else:
-                yield 2, 'Overall Health %s' % parsed['health']['status']
+            elif 'checks' in parsed['health']:
+                for check, data in parsed['health']['checks'].iteritems():
+                    if data['severity'] == 'HEALTH_WARN':
+                        yield 1, check + ": " + data['summary']['message']
+                    else:
+                        yield 2, check + ": " + data['summary']['message']
         elif 'overall_status' in parsed['health']:
             if parsed['health']['overall_status'] == 'HEALTH_OK':
                 yield 0, 'Overall Health OK'
-            elif parsed['health']['overall_status'] == 'HEALTH_WARN':
-                yield 1, 'Overall Health WARN'
-            else:
-                yield 2, 'Overall Health %s' % parsed['health']['overall_status']
+            elif 'summary' in parsed['health']:
+                for data in parsed['health']['summary']:
+                    if data['severity'] == 'HEALTH_WARN':
+                        yield 1, data['summary']
+                    else:
+                        yield 2, data['summary']
         else:
             yield 3, "Overall Health status not found: %s" % parsed['health']
     else:
