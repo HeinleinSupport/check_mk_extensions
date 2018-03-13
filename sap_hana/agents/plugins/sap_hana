@@ -139,6 +139,10 @@ function do_query() {
     hdbsql "select 'open_events', count(*) from m_events where acknowledged='FALSE'"
     hdbsql "select 'disabled_alerts', count(*) from _sys_statistics.STATISTICS_SCHEDULE where status='Disabled'"
     hdbsql "select 'high_alerts', count(*) from _sys_statistics.statistics_current_alerts  where  alert_rating >=3"
+    
+    echo "<<<sap_hana_proc:sep(59)>>>"
+    echo $INSTANCE_NAME
+    hdbsql "SELECT PORT,SERVICE_NAME,PROCESS_ID,DETAIL,ACTIVE_STATUS,SQL_PORT,COORDINATOR_TYPE FROM M_SERVICES WHERE HOST = '$(hostname -f)'"
 
 }
 
