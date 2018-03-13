@@ -132,7 +132,7 @@ function do_query() {
 
     echo "<<<sap_hana_memrate:sep(59)>>>"
     echo $INSTANCE_NAME
-    hdbsql "SELECT 'mem_rate', INSTANCE_TOTAL_MEMORY_USED_SIZE, ALLOCATION_LIMIT FROM M_HOST_RESOURCE_UTILIZATION"
+    hdbsql "SELECT 'mem_rate', INSTANCE_TOTAL_MEMORY_USED_SIZE, ALLOCATION_LIMIT FROM M_HOST_RESOURCE_UTILIZATION WHERE HOST = '$(hostname -f)'"
     
     echo "<<<sap_hana_events:sep(59)>>>"
     echo $INSTANCE_NAME
