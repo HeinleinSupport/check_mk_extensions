@@ -17,9 +17,9 @@
 
 #<<<sap_hana_license:sep(59)>>>
 #[[PRH00]]
-#"FALSE","FALSE","FALSE","11","2147483647"
+#"FALSE","FALSE","FALSE","11","2147483647","TRUE","2018-01-01"
 
-#ENFORCED, PERMANENT, LOCKED_DOWN, PRODUCT_USAGE, PRODUCT_LIMIT
+#ENFORCED, PERMANENT, LOCKED_DOWN, PRODUCT_USAGE, PRODUCT_LIMIT, VALID, EXPIRATION_DATE
 #
 # This will be parsed into
 # parsed = {
@@ -52,6 +52,8 @@ def check_sap_hana_license(item, params, parsed):
                 p_usage     = savefloat(line[3])
                 p_limit     = savefloat(line[4])
                 prozent     = p_usage/(p_limit/100)
+                is_valid    = line[5]
+                expirydate  = line[6]
 
                 if enforced == "TRUE":
                     # locked
@@ -65,11 +67,11 @@ def check_sap_hana_license(item, params, parsed):
                         limits = "%d/%dGB (warn/crit)" % (warn,crit)
                         perfdata = [("license","%dGB" % p_usage, warn_abs, crit_abs, 0, p_limit),("license_pct","%.01f%%" % prozent,warn_pct,crit_pct,0,100)] 
                         if p_usage > crit:
-                            return 2, "Product usage is over the critical limit (%s): %d > %dGB" % (limits,p_usage,crit),perfdata
+                            yield 2, "Product usage is over the critical limit (%s): %d > %dGB" % (limits,p_usage,crit),perfdata
                         elif p_usage > warn:
-                            return 1, "Product usage is over the warning limit (%s): %d > %dGB" % (limits,p_usage,warn),perfdata
+                            yield 1, "Product usage is over the warning limit (%s): %d > %dGB" % (limits,p_usage,warn),perfdata
                         else:
-                            return 0, "Product usage is within the limits (%s). Current usage: %dGB"  % (limits,p_usage),perfdata
+                            yield 0, "Product usage is within the limits (%s). Current usage: %dGB"  % (limits,p_usage),perfdata
                     else:
                         warn_pct = warn
                         crit_pct = crit
@@ -78,23 +80,29 @@ def check_sap_hana_license(item, params, parsed):
                         limits = "%.01f%%/%.01f%% (warn/crit)" % (warn,crit)
                         perfdata = [("license","%dGB" % p_usage, warn_abs, crit_abs, 0, p_limit),("license_pct","%.01f%%" % prozent,warn_pct,crit_pct,0,100)] 
                         if prozent > crit:
-                            return 2, "Product usage is over the critical limit (%s): %.01f%% > %.01f%%" % (limits, prozent,crit),perfdata
+                            yield 2, "Product usage is over the critical limit (%s): %.01f%% > %.01f%%" % (limits, prozent,crit),perfdata
                         elif prozent > warn:
-                            return 1, "Product usage is over the warning limit (%s): %.01f%% > %.01f%%" % (limits, prozent,warn),perfdata
+                            yield 1, "Product usage is over the warning limit (%s): %.01f%% > %.01f%%" % (limits, prozent,warn),perfdata
                         else:
-                            return 0, "Product usage is within the limits (%s). Current usage: %.01f%%"  % (limits, prozent),perfdata
+                            yield 0, "Product usage is within the limits (%s). Current usage: %.01f%%"  % (limits, prozent),perfdata
                 elif enforced == "FALSE":
-                    return 0,"Licensed product usage is unlimited"
+                    yield 0, "Licensed product usage is unlimited"
                 else:
-                    return 3,"License status is unknown: %s" % str(enforced)
+                    yield 3, "License status is unknown: %s" % str(enforced)
 
                 if permanent == "TRUE":
-                    return 0,"License is permanent"
+                    yield 0, "License is permanent"
                 else:
-                    return 1,"License is not permanent" # TODO include expiration_date
+                    yield 1, "License is not permanent"
+
+                if is_valid != "TRUE":
+                    yield 1, "License is not valid"
+
+                if expirydate != "?":
+                    yield 1, "Expiration Date is %s" % expirydate
 
                 if locked == "TRUE":
-                    return 2,"System is locked due to license status(!!)."
+                    yield 2, "System is locked due to license status"
                 
 check_info["sap_hana_license"] = {
     "parse_function"          : parse_sap_hana,

@@ -97,7 +97,7 @@ function do_query() {
 
     echo "<<<sap_hana_license:sep(59)>>>"
     echo $INSTANCE_NAME
-    hdbsql "SELECT ENFORCED, PERMANENT,LOCKED_DOWN,PRODUCT_USAGE,PRODUCT_LIMIT FROM M_LICENSE"
+    hdbsql "SELECT ENFORCED, PERMANENT,LOCKED_DOWN,PRODUCT_USAGE,PRODUCT_LIMIT,VALID,EXPIRATION_DATE FROM M_LICENSE"
 
     remote_hostname=$(echo $REMOTE | tr ':' '_')
     if [ -z "$remote_hostname" ]; then
