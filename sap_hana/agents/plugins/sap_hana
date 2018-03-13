@@ -62,7 +62,8 @@ function do_query() {
     INSTANCE_NAME="[[${SID} ${INSTANCE}]]"
 
     function hdbsql() {
-	# -C don't escape output, -F change separator , -x = quiet output, only query result / -a = no header in reply to select statements # plus sed removes leading and trailing ;
+	# -C don't escape output, -F change separator , -x = quiet output, only query result / -a = no header in reply to select statements
+	# plus sed removes leading and trailing ;
 	if [ -n "$USERSTOREKEY" ] ; then
 	    # CREDENTIALS="-U ${USERSTOREKEY}${SID}"
 	    CREDENTIALS="-U ${USERSTOREKEY}"
@@ -77,7 +78,9 @@ function do_query() {
     output=$(hdbsql "SELECT Name , Status, Value FROM M_SYSTEM_OVERVIEW Where NAME='Version' or NAME='All Started'")
     if [ $? != 0 ] ; then
 	#echo 'All Started;UNKNOWN;Check failed - Could not query' ${INSTANCE_NAME} '- will stop all checks against this instance'
-	#for single instances we could execute the line above, however, this will create problems when we want to cluster the check, so we now exit nothing if an instance isn't running.
+	# for single instances we could execute the line above, however,
+	# this will create problems when we want to cluster the check,
+	# so we now exit nothing if an instance isn't running.
 	return
 	# leaving do_query, if we can't even query
     fi
