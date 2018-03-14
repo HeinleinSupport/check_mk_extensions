@@ -129,7 +129,7 @@ function do_query() {
 
     echo "<<<sap_hana_ess:sep(59)>>>"
     echo $INSTANCE_NAME
-    hdbsql "SELECT 'started', count(*) FROM M_SERVICE_THREADS where thread_type='WorkerThread (StatisticsServer)'"
+    hdbsql "SELECT 'started', count(*) FROM M_SERVICE_THREADS where thread_type='WorkerThread (StatisticsServer)' and HOST = '$(hostname -f)'"
     hdbsql "select 'active', MAP(IFNULL(SYSTEM_VALUE, IFNULL(HOST_VALUE,DEFAULT_VALUE)), 'true', 'yes', 'false', 'no', 'unknown') FROM (SELECT  MAX(MAP(LAYER_NAME, 'DEFAULT', VALUE)) DEFAULT_VALUE, MAX(MAP(LAYER_NAME, 'HOST',VALUE)) HOST_VALUE, MAX(MAP(LAYER_NAME, 'SYSTEM',  VALUE, 'DATABASE', VALUE)) SYSTEM_VALUE FROM  M_INIFILE_CONTENTS WHERE  FILE_NAME IN ('indexserver.ini', 'nameserver.ini') AND SECTION = 'statisticsserver' AND  KEY = 'active')"
 
     echo "<<<sap_hana_memrate:sep(59)>>>"
