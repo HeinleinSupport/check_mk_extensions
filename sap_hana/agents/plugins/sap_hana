@@ -29,7 +29,7 @@
 # fix for working UNKW state when instance isn't running
 # added support for replication.py script
 
-#set -x
+set -x
 # Variables
 configFile="$MK_CONFDIR/sap_hana.cfg"
 UNKNOWN_MESSAGE="All Started,UNKNOWN,Check failed - could not find config file $configFile"
