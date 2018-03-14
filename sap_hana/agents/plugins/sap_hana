@@ -70,7 +70,7 @@ function do_query() {
 	else
 	    CREDENTIALS="-u ${USER} -p ${PASSWORD}"
 	fi
-	su - ${INSTANCEUSER} -c "/usr/sap/${SID}/HDB${INSTANCE}/exe/hdbsql -C -F\; -x -a -n localhost -i ${INSTANCE} ${CREDENTIALS} $1" 2>/dev/null | sed -e "s/^;//" -e "s/;$//" ; (exit ${PIPESTATUS[0]})
+	su - ${INSTANCEUSER} -c "/usr/sap/${SID}/HDB${INSTANCE}/exe/hdbsql -C -F\; -x -a -n localhost -i ${INSTANCE} ${CREDENTIALS} \"$1\"" 2>/dev/null | sed -e "s/^;//" -e "s/;$//" ; (exit ${PIPESTATUS[0]})
     }
 
     # Check status
