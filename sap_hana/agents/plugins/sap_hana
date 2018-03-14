@@ -78,7 +78,7 @@ function do_query() {
 
     # Check status
     echo "<<<sap_hana_status:sep(59)>>>"
-    output=$(hdbsql "SELECT Name , Status, Value FROM M_SYSTEM_OVERVIEW Where NAME='Version' or NAME='All Started'")
+    output=$(hdbsql "SELECT Name, Status, Value FROM M_SYSTEM_OVERVIEW Where NAME='Version' or NAME='All Started'")
     if [ $? != 0 ] ; then
 	#echo 'All Started;UNKNOWN;Check failed - Could not query' ${INSTANCE_NAME} '- will stop all checks against this instance'
 	# for single instances we could execute the line above, however,
@@ -91,7 +91,7 @@ function do_query() {
     echo "$output"
     echo "<<<sap_hana_backup:sep(59)>>>"
     echo $INSTANCE_NAME
-    query_prefix="Select TOP 1 entry_type_name, sys_end_time,state_name, comment, message from M_BACKUP_CATALOG where"
+    query_prefix="Select TOP 1 entry_type_name, sys_end_time, state_name, comment, message from M_BACKUP_CATALOG where"
     query_suffix="AND state_name <> 'running' order by sys_start_time desc"
     hdbsql "$query_prefix entry_type_name = 'data snapshot' $query_suffix"
     hdbsql "$query_prefix entry_type_name = 'complete data backup' $query_suffix"
@@ -103,7 +103,7 @@ function do_query() {
 
     echo "<<<sap_hana_license:sep(59)>>>"
     echo $INSTANCE_NAME
-    hdbsql "SELECT ENFORCED, PERMANENT,LOCKED_DOWN,PRODUCT_USAGE,PRODUCT_LIMIT,VALID,EXPIRATION_DATE FROM M_LICENSE"
+    hdbsql "SELECT ENFORCED,PERMANENT,LOCKED_DOWN,PRODUCT_USAGE,PRODUCT_LIMIT,VALID,EXPIRATION_DATE FROM M_LICENSE"
 
     remote_hostname=$(echo $REMOTE | tr ':' '_')
     if [ -z "$remote_hostname" ]; then
@@ -115,7 +115,6 @@ function do_query() {
     echo [[[SAP HANA Alerts for ${SID} ${INSTANCE}]]]
     if [ -r "$alerts_last_check" ] ; then
 	hdbsql "Select ALERT_TIMESTAMP,ALERT_ID,ALERT_RATING,ALERT_DETAILS from  _SYS_STATISTICS.STATISTICS_ALERTS Where ALERT_TIMESTAMP >= '$(cat "$alerts_last_check")' AND (ALERT_ID < '22' OR ALERT_ID > '24') order by ALERT_TIMESTAMP asc"  | sed -e "s/^/W /" -e 's/^W \([^;]*;[0-9]*;1;.*\)/O \1/' -e 's/^W \([^;]*;[0-9]*;[23];.*\)/W \1/' -e 's/^W \([^;]*;[0-9]*;[45];.*\)/C \1/'
-	#hdbsql "Select ALERT_TIMESTAMP,ALERT_ID,ALERT_RATING,ALERT_DETAILS from  _SYS_STATISTICS.STATISTICS_ALERTS Where ALERT_TIMESTAMP >= '2016-11-20 17:30:30' AND ALERT_ID != '24' order by ALERT_TIMESTAMP asc"
     else
 	hdbsql "Select ALERT_TIMESTAMP,ALERT_ID,ALERT_RATING,ALERT_DETAILS from  _SYS_STATISTICS.STATISTICS_ALERTS Where ALERT_TIMESTAMP IN (Select max(ALERT_TIMESTAMP) from _SYS_STATISTICS.STATISTICS_ALERTS  group by ALERT_ID) AND ADD_DAYS(Current_timestamp,-1)<=ALERT_TIMESTAMP AND (ALERT_ID < '22' OR ALERT_ID > '24') order by ALERT_TIMESTAMP desc"  | sed -e "s/^/W /" -e 's/^W \([^;]*;[0-9]*;1;.*\)/O \1/' -e 's/^W \([^;]*;[0-9]*;[23];.*\)/W \1/' -e 's/^W \([^;]*;[0-9]*;[45];.*\)/C \1/'
     fi
