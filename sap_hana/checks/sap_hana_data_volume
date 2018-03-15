@@ -36,6 +36,8 @@ def inventory_sap_hana_data_volume(parsed):
             if len(line) == 8:
                 item = "%s - %s %s" % (instance, line[0], line[2])
                 yield item, {}
+                item = "%s - %s %s Disk" % (instance, line[0], line[2])
+                yield item, {}
 
 def check_sap_hana_data_volume(item, params, parsed):
     for instance,lines in parsed.items():
@@ -47,39 +49,19 @@ def check_sap_hana_data_volume(item, params, parsed):
                 disk_used = saveint(line[6]) / 1048576.0
                 disk_avail = disk_size - disk_used
                 yield df_check_filesystem_list(item, params, [ (item , disk_size, disk_avail, 0) ])
+            itemname = "%s - %s %s Disk" % (instance, line[0], line[2])
+            if item == itemname and len(line) == 8:
+                disk_size = saveint(line[5]) / 1048576.0
+                disk_used = saveint(line[7]) / 1048576.0
+                disk_avail = disk_size - disk_used
+                yield df_check_filesystem_list(item, params, [ (item, disk_size, disk_avail, 0) ])
+            
 
 check_info["sap_hana_data_volume"] = {
     "parse_function"          : parse_sap_hana,
     "check_function"          : check_sap_hana_data_volume,
     "inventory_function"      : inventory_sap_hana_data_volume,
     "service_description"     : "SAP HANA Volume %s",
-    "has_perfdata"            : True,
-    "includes"                : [ 'sap_hana.include', 'df.include' ],
-    "group"                   : 'filesystem',
-    "default_levels_variable" : 'filesystem_default_levels',
-}
-
-def inventory_sap_hana_data_volume_disk(parsed):
-    for instance,lines in parsed.items():
-        for line in lines:
-            if len(line) == 8:
-                item = "%s - %s %s" % (instance, line[0], line[2])
-                yield item, {}
-
-def check_sap_hana_data_volume_disk(item, params, parsed):
-    for instance,lines in parsed.items():
-        for line in lines:
-            itemname = "%s - %s %s" % (instance, line[0], line[2])
-            if item == itemname and len(line) == 8:
-                disk_size = saveint(line[5]) / 1048576.0
-                disk_used = saveint(line[7]) / 1048576.0
-                disk_avail = disk_size - disk_used
-                yield df_check_filesystem_list(item, params, [ (item, disk_size, disk_avail, 0) ])
-
-check_info["sap_hana_data_volume.disk"] = {
-    "check_function"          : check_sap_hana_data_volume_disk,
-    "inventory_function"      : inventory_sap_hana_data_volume_disk,
-    "service_description"     : "SAP HANA Disk %s",
     "has_perfdata"            : True,
     "includes"                : [ 'sap_hana.include', 'df.include' ],
     "group"                   : 'filesystem',
