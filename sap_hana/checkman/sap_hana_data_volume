@@ -1,0 +1,19 @@
+title: SAP HANA Data Volume
+agents: linux
+catalog: app/sap
+license: GPL
+distribution: heinlein
+description:
+ This check monitors the data volumes of SAP HANA. It uses data provided by the {sap_hana} agent plugin, which uses hdbsql queries to retrieve information from SAP HANA instances. To make this check work, you have to deploy the {sap_hana} agent plugin on a host.
+
+ It uses the hdbsql query {SELECT FILE_TYPE, SERVICE_NAME, VOLUME_ID, FILE_NAME, DISK_USED_SIZE, DISK_TOTAL_SIZE, DATA_VOLUME_USED_SIZE, DATA_VOLUME_TOTAL_SIZE FROM (select VF.FILE_TYPE, VF.HOST, VF.FILE_NAME, VF.DISK_PART, VF.DATA_VOLUME_USED_SIZE, VF.DATA_VOLUME_TOTAL_SIZE, DS.DISK_USED_SIZE, DS.DISK_TOTAL_SIZE, V.SERVICE_NAME, V.VOLUME_ID FROM (select  VOLUME_ID, FILE_TYPE, HOST, FILE_NAME, LEFT ( FILE_NAME, LOCATE (FILE_NAME, '/', 0, 4) -1 ) DISK_PART, (USED_SIZE) DATA_VOLUME_USED_SIZE, SUM (TOTAL_SIZE) DATA_VOLUME_TOTAL_SIZE FROM M_VOLUME_FILES WHERE FILE_TYPE = 'DATA' GROUP BY VOLUME_ID, USED_SIZE, FILE_TYPE, HOST, FILE_NAME, LEFT ( FILE_NAME, LOCATE (FILE_NAME, '/', 0, 4) -1) ) VF JOIN (select  LEFT (PATH, LENGTH(PATH) - 1) AS DISK_PART, HOST, SUBPATH, DEVICE_ID, USAGE_TYPE, MAX(TOTAL_SIZE) DISK_TOTAL_SIZE, MAX (USED_SIZE) AS DISK_USED_SIZE FROM M_DISKS WHERE USAGE_TYPE = 'DATA' GROUP BY SUBPATH, LEFT (PATH, LENGTH(PATH) - 1), HOST, DEVICE_ID, USAGE_TYPE ) DS ON VF.DISK_PART = DS.DISK_PART and VF.HOST = DS.HOST LEFT JOIN (select VOLUME_ID, SERVICE_NAME from M_VOLUMES) V ON VF.VOLUME_ID = V.VOLUME_ID) WHERE HOST = '$(hostname -f)'}
+
+ The check plugin creates two service checks per volume.
+
+ One checks the volume usage (DATA_VOLUME_USED_SIZE / DATA_VOLUME_TOTAL_SIZE) and the other (postfixed with 'Disk') checks the percentage of disk usage of the volume (DATA_VOLUME_TOTAL_SIZE / DISK_TOTAL_SIZE). Both checks are configurable with the usual filesystem parameters.
+
+item:
+ The SAP HANA instance, file type and volume id. Plus 'Disk' for the second check.
+
+inventory:
+ Two services per instance, file type and volume type are created.
