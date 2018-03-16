@@ -16,7 +16,7 @@
 
 # Example output from agent:
 #<<<sap_hana_proc:sep(59)>>>
-#[[RBF 10]]
+#[[SID INSTANCE]]
 #31000;daemon;15993;;YES;0;NONE
 #31001;nameserver;16010;master;YES;0;MASTER
 #31002;preprocessor;18033;;YES;0;NONE
@@ -25,11 +25,6 @@
 #31006;webdispatcher;21478;;YES;0;NONE
 #31007;xsengine;18142;;YES;0;NONE
 #31010;compileserver;18031;;YES;0;NONE
-# This will be parsed into
-# parsed = {u'RBF 10': [[u'31000', u'daemon', u'15993', u'', u'YES', u'0', u'NONE'],
-#                       [u'31001', u'nameserver', u'16010', u'master', u'YES', u'0', u'MASTER'],
-#                      …
-# }
 
 def inventory_sap_hana_proc(parsed):
     if cmk.debug.enabled():

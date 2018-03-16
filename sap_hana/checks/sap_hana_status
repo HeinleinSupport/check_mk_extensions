@@ -17,14 +17,9 @@
 
 # Example output from agent:
 #<<<sap_hana_status:sep(44)>>>
-#[[TST00]]
+#[[SID INSTANCE]]
 #Version;;1.00.097.00.1434028111 (fa/newdb100_maint_rel)
 #All Started;OK;Yes
-
-# This will be parsed into
-# parsed = {
-#  u'PRH00': [[u'Version', u'', u'1.00.097.00.1434028111 (fa/newdb100_maint_rel)'], [u'All Started', u'OK', u'Yes']]
-# }
 
 def _sap_hana_status_item(instance, line):
     if line[0] == "All Started":

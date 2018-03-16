@@ -16,19 +16,11 @@
 
 # Example output from agent:
 #<<<sap_hana_data_volume:sep(59)>>>
-#[[RBF 10]]
+#[[SID INSTANCE]]
 #FILE_TYPE, SERVICE_NAME, VOLUME_ID, FILE_NAME, DISK_USED_SIZE, DISK_TOTAL_SIZE, DATA_VOLUME_USED_SIZE, DATA_VOLUME_TOTAL_SIZE
-#DATA;indexserver;2;/hana/data/RBF/mnt00001/hdb00002/datavolume_0000.dat;143334731776;1098974756864;90465591296;137517629440
-#DATA;scriptserver;4;/hana/data/RBF/mnt00001/hdb00004/datavolume_0000.dat;143334731776;1098974756864;69779456;335691776
-#DATA;xsengine;3;/hana/data/RBF/mnt00001/hdb00003/datavolume_0000.dat;143334731776;1098974756864;69779456;335691776
-
-#
-# This will be parsed into
-# parsed = {
-#    u'RBF 10': [[u'DATA', u'indexserver', u'2', u'/hana/data/RBF/mnt00001/hdb00002/datavolume_0000.dat', u'143334731776', u'1098974756864', u'90465591296', u'137517629440'],
-#                [u'DATA', u'scriptserver', u'4', u'/hana/data/RBF/mnt00001/hdb00004/datavolume_0000.dat', u'143334731776', u'1098974756864', u'69779456', u'335691776'],
-#                [u'DATA', u'xsengine', u'3', u'/hana/data/RBF/mnt00001/hdb00003/datavolume_0000.dat', u'143334731776', u'1098974756864', u'69779456', u'335691776']]
-# }
+#DATA;indexserver;2;/hana/data/SID/mnt00001/hdb00002/datavolume_0000.dat;143334731776;1098974756864;90465591296;137517629440
+#DATA;scriptserver;4;/hana/data/SID/mnt00001/hdb00004/datavolume_0000.dat;143334731776;1098974756864;69779456;335691776
+#DATA;xsengine;3;/hana/data/SID/mnt00001/hdb00003/datavolume_0000.dat;143334731776;1098974756864;69779456;335691776
 
 def inventory_sap_hana_data_volume(parsed):
     for instance,lines in parsed.items():

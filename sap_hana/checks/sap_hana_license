@@ -16,15 +16,10 @@
 # Boston, MA 02110-1301 USA.
 
 #<<<sap_hana_license:sep(59)>>>
-#[[PRH00]]
-#"FALSE","FALSE","FALSE","11","2147483647","TRUE","2018-01-01"
+#[[SID INSTANCE]]
+#"FALSE","FALSE","FALSE","11","2147483647","TRUE","?"
 
 #ENFORCED, PERMANENT, LOCKED_DOWN, PRODUCT_USAGE, PRODUCT_LIMIT, VALID, EXPIRATION_DATE
-#
-# This will be parsed into
-# parsed = {
-# u'PRH00': [[u'FALSE', u'FALSE', u'FALSE', u'11', u'2147483647']]
-# }
 
 factory_settings['sap_hana_license_default_values'] = {
     "license_usage" : (80.0, 90.0)
