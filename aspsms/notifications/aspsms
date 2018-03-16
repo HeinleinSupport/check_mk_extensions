@@ -21,8 +21,6 @@ import json
 import os
 import sys
     
-from pprint import pprint
-
 api_url = "https://json.aspsms.com/SendSimpleTextSMS"
 
 def main():
@@ -82,9 +80,6 @@ def get_text(context):
     return message
 
 def send_sms(user_key, api_password, originator, text, context):
-    pprint(text)
-    pprint(context)
-
     data = { 'UserName': user_key,
              'Password': api_password,
              'Recipients': [ context['CONTACTPAGER'].replace(" ", "") ],
