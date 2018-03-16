@@ -10,6 +10,8 @@ description:
 
  The check is configurable to warn at a certain backup age.
 
+ The check is cluster ready.
+
 item:
  The SAP HANA instance and backup name.
 
