@@ -23,50 +23,46 @@
 #DATA;xsengine;3;/hana/data/SID/mnt00001/hdb00003/datavolume_0000.dat;143334731776;1098974756864;69779456;335691776
 
 def inventory_sap_hana_data_volume(parsed):
-    for instance,lines in parsed.items():
-        ## filetypes = []
-        for line in lines:
-            if len(line) == 8:
-                item = "%s - %s %s" % (instance, line[0], line[2])
-                yield item, {}
-                item = "%s - %s %s Disk" % (instance, line[0], line[2])
-                yield item, {}
-                ## if line[0] not in filetypes:
-                ##     filetypes.append(line[0])
-                ##     item = "%s - %s" % (instance, line[0])
-                ##     yield item, {}
+    for instance, nodes in parsed.items():
+        for node, lines in nodes.items():
+            for line in lines:
+                if len(line) == 8:
+                    item = "%s - %s %s" % (instance, line[0], line[2])
+                    yield item, {}
+                    item = "%s - %s %s Disk" % (instance, line[0], line[2])
+                    yield item, {}
 
 def check_sap_hana_data_volume(item, params, parsed):
-    for instance,lines in parsed.items():
-        ## filetypes = []
-        for line in lines:
-            itemname = "%s - %s %s" % (instance, line[0], line[2])
-            if item == itemname and len(line) == 8:
-                yield 0, "Service %s, Path %s" % (line[1], line[3])
-                disk_size = saveint(line[7]) / 1048576.0
-                disk_used = saveint(line[6]) / 1048576.0
-                disk_avail = disk_size - disk_used
-                yield df_check_filesystem_list(item, params, [ (item , disk_size, disk_avail, 0) ])
-            itemname = "%s - %s %s Disk" % (instance, line[0], line[2])
-            if item == itemname and len(line) == 8:
-                disk_size = saveint(line[5]) / 1048576.0
-                disk_used = saveint(line[7]) / 1048576.0
-                disk_avail = disk_size - disk_used
-                yield df_check_filesystem_list(item, params, [ (item, disk_size, disk_avail, 0) ])
-            ## itemname = "%s - %s" % (instance, line[0])
-            ## if item == itemname and line[0] not in filetypes:
-            ##     filetypes.append(line[0])
-            ##     disk_size = saveint(line[5]) / 1048576.0
-            ##     disk_used = saveint(line[4]) / 1048576.0
-            ##     disk_avail = disk_size - disk_used
-            ##     yield df_check_filesystem_list(item, params, [ (item, disk_size, disk_avail, 0) ])
+    for instance, nodes in parsed.items():
+        for node, lines in nodes.items():
+            if node:
+                node_text = " on %s" % node
+            else:
+                node_text = ""
+            for line in lines:
+                itemname = "%s - %s %s" % (instance, line[0], line[2])
+                if item == itemname and len(line) == 8:
+                    yield 0, "Service %s, Path %s%s" % (line[1], line[3], node_text)
+                    disk_size = saveint(line[7]) / 1048576.0
+                    disk_used = saveint(line[6]) / 1048576.0
+                    disk_avail = disk_size - disk_used
+                    yield df_check_filesystem_list(item, params, [ (item , disk_size, disk_avail, 0) ])
+                itemname = "%s - %s %s Disk" % (instance, line[0], line[2])
+                if item == itemname and len(line) == 8:
+                    disk_size = saveint(line[5]) / 1048576.0
+                    disk_used = saveint(line[7]) / 1048576.0
+                    disk_avail = disk_size - disk_used
+                    if node_text:
+                        yield 0, "Available%s" % node_text
+                    yield df_check_filesystem_list(item, params, [ (item, disk_size, disk_avail, 0) ])
 
 check_info["sap_hana_data_volume"] = {
-    "parse_function"          : parse_sap_hana,
+    "parse_function"          : parse_sap_hana_cluster,
     "check_function"          : check_sap_hana_data_volume,
     "inventory_function"      : inventory_sap_hana_data_volume,
     "service_description"     : "SAP HANA Volume %s",
     "has_perfdata"            : True,
+    "node_info"               : True,
     "includes"                : [ 'sap_hana.include', 'df.include' ],
     "group"                   : 'filesystem',
     "default_levels_variable" : 'filesystem_default_levels',

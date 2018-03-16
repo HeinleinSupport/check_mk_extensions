@@ -25,3 +25,19 @@ def parse_sap_hana(info):
         elif instance:
             parsed[instance].append(line)
     return parsed
+
+def parse_sap_hana_cluster(info):
+    if cmk.debug.enabled():
+        pprint.pprint(info)
+    parsed = {}
+    instance = False
+    node = False
+    for line in info:
+        if line[1].startswith("[["):
+            node = line[0]
+            instance = line[1][2:-2]
+            parsed[instance] = {}
+            parsed[instance][node] = []
+        elif instance:
+            parsed[instance][line[0]].append(line[1:])
+    return parsed

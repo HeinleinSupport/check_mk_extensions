@@ -12,6 +12,8 @@ description:
 
  One checks the volume usage (DATA_VOLUME_USED_SIZE / DATA_VOLUME_TOTAL_SIZE) and the other (postfixed with 'Disk') checks the percentage of disk usage of the volume (DATA_VOLUME_TOTAL_SIZE / DISK_TOTAL_SIZE). Both checks are configurable with the usual filesystem parameters.
 
+ The check plugin is cluster ready.
+
 item:
  The SAP HANA instance, file type and volume id. Plus 'Disk' for the second check.
 
