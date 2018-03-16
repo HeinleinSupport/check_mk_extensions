@@ -10,6 +10,8 @@ description:
 
  It is configurable to warn at percentage or absolute levels.
 
+ The check is cluster ready.
+
 item:
  The SAP HANA instance.
 
