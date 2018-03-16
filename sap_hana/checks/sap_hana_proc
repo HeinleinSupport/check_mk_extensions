@@ -51,7 +51,7 @@ def check_sap_hana_proc(item, params, parsed):
                 sqlport = saveint(line[5])
                 coordin = line[6]
 
-                yield 0, "Running in Port %d with Process ID %d" % (port, pid)
+                yield 0, "Running on Port %d with Process ID %d" % (port, pid)
                 if coordin != params['coordin']:
                     yield 1, "Role has changed to %s from %s" % (coordin, params['coordin'])
                 elif coordin != 'NONE':
