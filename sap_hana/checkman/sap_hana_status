@@ -12,6 +12,8 @@ description:
 
  The Version check is not configurable and always OK.
 
+ The check plugin is cluster ready.
+
 item:
  The SAP HANA instance.
 
