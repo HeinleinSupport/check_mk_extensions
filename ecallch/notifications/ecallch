@@ -28,6 +28,10 @@ def main():
                       for (var, value) in os.environ.items()
                       if var.startswith("NOTIFY_")])
 
+    if context['CONTACTPAGER'] == "":
+        sys.stderr.write("Contact's pager address is empty, not sending anything.\n")
+        return 0
+
     text    = get_text(context)
 
     username = context["PARAMETER_USERNAME"]
