@@ -131,7 +131,9 @@ if __name__ == "__main__":
 #            storage['disksizetotal'] - storage['disksizeused'],
 #            storage['disksizeused'] * 100 / storage['disksizetotal'],
 #            storage['clustername'], storage['podname'], storage['name'])
+
     print '<<<local>>>'
+
     #
     # check for SystemVM
     # csLeastRunningSystemVM[systemvmtype] count = actual count, running = actual running, least = defined necessity, description and msg are output strings
@@ -196,26 +198,27 @@ if __name__ == "__main__":
                      'SYNC': 27,
                      'UPLOAD_FAILED': 28,
                      'OOBM_AUTH_ERROR': 29 }
-    csAlertTypeWarn = { 0,1,2,3,4,5,6,8,9,12,13,15,16,18,19,23,26 }
-    csAlertTypeCrit = { 7,10,11,14 }
-    csAlertCnt = 0
+    csAlertTypeWarn = [ 0,1,2,3,4,5,6,8,9,12,13,15,16,18,19,23,26 ]
+    csAlertTypeCrit = [ 7,10,11,14 ]
+    csAlerts = []
     csAlertRes = 0
     csAlertMsg = ''
     for csAlert in cloudstack.listAlerts():
-        csAlertCnt = csAlertCnt + 1
-        if csAlertCnt == 1:
-            csAlertMsg = '%s (%s) %s' % (csAlert['description'], csAlert['name'], csAlert['sent'])
+        csAlertMsg = '%s (%s) %s' % (csAlert['description'], csAlert['name'], csAlert['sent'])
         if csAlert['type'] in csAlertTypeWarn:
             csAlertRes = max(1, csAlertRes)
+            csAlertMsg += '(!)'
         if csAlert['type'] in csAlertTypeCrit:
-            csAlertRes = max(2, csAlertRes)
+            csAlertRes = 2
+            csAlertMsg += '(!!)'
+        csAlerts.append(csAlertMsg)
         
-    if csAlertCnt == 0:
+    if len(csAlerts) == 0:
         msg = 'no uncleared alerts.'
-    elif csAlertCnt == 1:
-        msg = '%d alert: %s' % (csAlertCnt, csAlertMsg)
+    elif len(csAlerts) == 1:
+        msg = csAlerts[0]
     else:
-        msg = '%d alerts. Most recent: %s' % (csAlertCnt, csAlertMsg)
+        msg = '%d alerts. Most recent: %s\\n%s' % (len(csAlerts), csAlerts[0], "\\n".join(csAlerts))
     print '%d ACS_Alerts - %s' % (csAlertRes, msg)
 
     for capacity in cloudstack.listCapacity()['capacity']:
