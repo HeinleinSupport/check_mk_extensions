@@ -16,7 +16,7 @@
 # to the Free Software Foundation, Inc., 51 Franklin St,  Fifth Floor,
 # Boston, MA 02110-1301 USA.
 
-OPENSSL=`which openssl`
+OPENSSL=$(which openssl)
 
 if [ ! -x "$OPENSSL" ]; then
   exit
@@ -26,9 +26,9 @@ CERT_DIRS="/etc/ssl/certs"
 
 CONFIG_FILE="$MK_CONFDIR/sslcertificates"
 
-if [ -r $CONFIG_FILE ]; then
+if [ -r "$CONFIG_FILE" ]; then
 
-  . $CONFIG_FILE
+  . "$CONFIG_FILE"
 
 fi
 
@@ -39,13 +39,13 @@ for dir in $CERT_DIRS; do
         for certfile in "$dir"/*; do
             if [ -f "$certfile" ] && grep -q -- '-----BEGIN CERTIFICATE-----' "$certfile"; then
 
-                cert_subject=$($OPENSSL x509 -noout -subject -in $certfile | cut -d "=" -f 2-)
-                if ! grep -q '@snakeoil.dom' <<<$cert_subject; then
-                    cert_enddate=$($OPENSSL x509 -noout -enddate -in $certfile | cut -d "=" -f 2 )
+                cert_subject=$($OPENSSL x509 -noout -subject -in "$certfile" | cut -d "=" -f 2-)
+                if ! grep -q '@snakeoil.dom' <<<"$cert_subject"; then
+                    cert_enddate=$($OPENSSL x509 -noout -enddate -in "$certfile" | cut -d "=" -f 2 )
                     cert_enddate_epoch=$(date --date "$cert_enddate" '+%s')
-                    cert_algosign=$($OPENSSL x509 -noout -text -in $certfile | awk '/Signature Algorithm: / { print $3; exit;}' )
+                    cert_algosign=$($OPENSSL x509 -noout -text -in "$certfile" | awk '/Signature Algorithm: / { print $3; exit;}' )
 
-                    echo $certfile $cert_enddate_epoch $cert_algosign $cert_subject
+                    echo "$certfile $cert_enddate_epoch $cert_algosign $cert_subject"
                 fi
             fi
         done
