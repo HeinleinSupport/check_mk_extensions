@@ -27,7 +27,8 @@ def check_dynamics_crm_orb_transferlog(_no_item, params, info):
         pprint.pprint(info)
     for line in info:
         count = saveint(line[0])
-        yield 0, '%d responses in state %s' % ( count, " ".join(line[1:]) ), [ ( 'count', count ) ]
+        state = line[1]
+        yield 0, '%d responses in state %s' % ( count, state ), [ ( 'count_%s' % state, count ) ]
 
 check_info["dynamics_crm_orb_transferlog"] = {
     'check_function'        : check_dynamics_crm_orb_transferlog,

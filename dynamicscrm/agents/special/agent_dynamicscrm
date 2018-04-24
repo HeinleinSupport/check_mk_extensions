@@ -74,13 +74,17 @@ print '<<<dynamics_crm_orb_transferlog>>>'
 queryString = "orb_transferlogs?$select=orb_transferlogid,ifm_retrycount,orb_statuscode,orb_httpresponse&$filter=orb_statuscode eq 169810000 and ifm_retrycount eq 4&$count=true"
 result = executeRequest(token, queryString)
 count = {}
+states = { 'OK': 'ok',
+           'null': 'null',
+           'The underlying connection was closed: A connection that was expected to be kept alive was closed by the server.': 'closed',
+           }
 for data in result['value']:
     if data['orb_httpresponse'] not in count:
         count[data['orb_httpresponse']] = 1
     else:
         count[data['orb_httpresponse']] += 1
 for c, v in count.iteritems():
-    print v, c
+    print v, states.get(c, 'unknown')
 
 # Query WebAPI for data from Organization Insights
 # https://docs.microsoft.com/en-us/dynamics365/customer-engagement/admin/use-organization-insights-solution-view-instance-metrics#odata-support
