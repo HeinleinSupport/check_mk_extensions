@@ -1,0 +1,122 @@
+#!/usr/bin/env python
+# -*- encoding: utf-8; py-indent-offset: 4 -*-
+
+# https://docs.microsoft.com/en-us/dynamics365/customer-engagement/admin/use-organization-insights-solution-view-instance-metrics
+
+# Pre-requisite: Authentication handling library - https://github.com/AzureAD/azure-activedirectory-library-for-python
+# Installation: pip install adal
+import adal
+import json
+import requests
+import time
+import argparse
+import os
+from pprint import pprint
+
+api_version = "8.2"
+
+parser = argparse.ArgumentParser()
+parser.add_argument('-t', '--tenant', required=True, help='Tenant')
+parser.add_argument('-u', '--username', required=True, help='client id')
+parser.add_argument('-p', '--password', required=True, help='client secret')
+parser.add_argument('-o', '--orgurl', required=True, help='API endpoint URL')
+parser.add_argument('-a', '--authurl', required=False, help='Authentication endpoint URL', default='https://login.microsoftonline.com')
+args = parser.parse_args()
+
+def getToken():
+    authority_url = (args.authurl +  "/" + args.tenant)
+    context = adal.AuthenticationContext(authority_url, validate_authority = args.tenant)
+    tokenResponse = context.acquire_token_with_client_credentials(args.orgurl, args.username, args.password)
+    return(tokenResponse["accessToken"])
+
+def executeRequest(token, query):
+    headers = {
+        'Authorization': 'Bearer ' + token,
+        'OData-MaxVersion': '4.0',
+        'OData-Version': '4.0',
+        'Accept': 'application/json',
+        'Content-Type': 'application/json; charset=utf-8',
+        'Prefer': 'odata.maxpagesize=5000'}
+
+    response = requests.get("%s/api/data/v%s/%s" % (args.orgurl, api_version, query), headers = headers)
+    results = response.json()
+    return results
+
+# Authenticate
+# print("Authenticating...")
+token = getToken()
+# print("Authenticated.")
+
+print "<<<check_mk>>>"
+print "Version: %s" % api_version
+print "AgentOS: REST %s" % args.orgurl
+
+print '<<<dynamics_crm_waiting_jobs>>>'
+# Query WebAPI for info about System Jobs that are waiting for resources
+# 1. API Abfrage:  Ready Async Jobs 
+queryString = "asyncoperations?$select=asyncoperationid&$filter=statuscode eq 0&$count=true"
+result = executeRequest(token, queryString)
+#print("-----------------------------------------------")
+#print("Testing: Ready Async Jobs " )
+#print(json.dumps(result, indent=4))
+# Parsing only the record count
+print result['@odata.count']
+
+print '<<<dynamics_crm_orb_transferlog>>>'
+# Query WebAPI for info about Transfer Logs in Pending state
+# 2. API Abfrage: orb_transferlog 
+queryString = "orb_transferlogs?$select=orb_transferlogid,ifm_retrycount,orb_statuscode,orb_httpresponse&$filter=orb_statuscode eq 169810000 and ifm_retrycount eq 4&$count=true"
+result = executeRequest(token, queryString)
+# print("-----------------------------------------------")
+# print("Testing: orb_transferlog " )
+# print(json.dumps(result, indent=4))
+count = {}
+for data in result['value']:
+    if data['orb_httpresponse'] not in count:
+        count[data['orb_httpresponse']] = 1
+    else:
+        count[data['orb_httpresponse']] += 1
+for c, v in count.iteritems():
+    print v, c
+
+#now = time.time()
+#startTime = time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime(now - 7200))
+#endTime = time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime(now - 3600))
+# print(startTime, endTime)
+
+# Restliche API Abfragen
+indicators = {
+    "active_users": ("4555801D-0EAF-4100-891C-DB34400AB102", 3600),
+    "api_success_rate": ("5555801d-0eaf-4100-891c-db34400ab102", 3600),
+    "plugin_success_rate": ("190F51C1-7DBA-42BA-B031-FB1C0999EE28", 3600),
+    "storage_tenant": ("1C7B6699-9C07-478C-9C17-AF0D17160734", 86400),
+    "storage_instance": ("66BF5239-56EB-4979-AC92-177D98C5077B", 86400),
+}
+
+# Query WebAPI for data from Organization Insights
+# https://docs.microsoft.com/en-us/dynamics365/customer-engagement/admin/use-organization-insights-solution-view-instance-metrics#odata-support
+
+for key, value in indicators.items():
+    cachefile = os.path.join(os.environ['OMD_ROOT'], 'tmp/check_mk/cache/agent_dynamicscrm_%s' % key)
+    mtime = 0
+    if os.path.isfile(cachefile):
+        mtime = os.path.getmtime(cachefile)
+    if mtime == 0:
+        mtime = time.time() - value[1]
+    if mtime <= (time.time() - value[1]):
+        startTime = time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime(mtime))
+        endTime = time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime())
+        print(startTime, endTime)
+        with open(cachefile, 'w') as outfile:
+            queryString = "savedorginsightsconfigurations?$select=jsondata&$filter=savedorginsightsconfigurationid eq " + value[0] + " and jsondatastarttime eq " + startTime + " and jsondataendtime eq " + endTime
+            result = executeRequest(token, queryString)
+            # pprint(result)
+            data = json.loads(result['value'][0]['jsondata'])
+            outfile.write('<<<dynamics_crm_%s:cached(%s,%s)>>>\n' % (key, time.time(), value[1]))
+            for d in data['Results']:
+                for index, category in enumerate(d['CategoryNames']):
+                    for m in d['Metrics']:
+                        outfile.write("%s %s %s\n" % (m['Name'], m['Values'][index], category))
+    if os.path.isfile(cachefile):
+        with open(cachefile, 'r') as infile:
+            print infile.read(),
