@@ -44,6 +44,7 @@ _ceph_pgstates = ['pgstate_active_clean',
                   'pgstate_active_remapped_backfill_wait',
                   'pgstate_active_remapped_backfilling',
                   'pgstate_active_recovery_wait_remapped',
+                  'pgstate_stale_active_undersized_degraded',
                   'pgstate_peering',
                  ]
 

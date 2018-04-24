@@ -36,6 +36,7 @@ def check_cephstatus(item, params, parsed):
                       'active+remapped+backfill_wait',
                       'active+remapped+backfilling',
                       'active+recovery_wait+remapped',
+                      'stale+active+undersized+degraded',
                       'peering',
                      ]
     _ceph_pgstates = {}
