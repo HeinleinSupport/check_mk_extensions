@@ -1,6 +1,20 @@
 #!/usr/bin/env python
 # -*- encoding: utf-8; py-indent-offset: 4 -*-
 
+# (c) 2018 Heinlein Support GmbH
+#          Robert Sander <r.sander@heinlein-support.de>
+
+# This is free software;  you can redistribute it and/or modify it
+# under the  terms of the  GNU General Public License  as published by
+# the Free Software Foundation in version 2.  check_mk is  distributed
+# in the hope that it will be useful, but WITHOUT ANY WARRANTY;  with-
+# out even the implied warranty of  MERCHANTABILITY  or  FITNESS FOR A
+# PARTICULAR PURPOSE. See the  GNU General Public License for more de-
+# tails. You should have  received  a copy of the  GNU  General Public
+# License along with GNU Make; see the file  COPYING.  If  not,  write
+# to the Free Software Foundation, Inc., 51 Franklin St,  Fifth Floor,
+# Boston, MA 02110-1301 USA.
+
 # https://docs.microsoft.com/en-us/dynamics365/customer-engagement/admin/use-organization-insights-solution-view-instance-metrics
 
 # Pre-requisite: Authentication handling library - https://github.com/AzureAD/azure-activedirectory-library-for-python
@@ -43,9 +57,7 @@ def executeRequest(token, query):
     return results
 
 # Authenticate
-# print("Authenticating...")
 token = getToken()
-# print("Authenticated.")
 
 print "<<<check_mk>>>"
 print "Version: %s" % api_version
@@ -53,23 +65,14 @@ print "AgentOS: REST %s" % args.orgurl
 
 print '<<<dynamics_crm_waiting_jobs>>>'
 # Query WebAPI for info about System Jobs that are waiting for resources
-# 1. API Abfrage:  Ready Async Jobs 
 queryString = "asyncoperations?$select=asyncoperationid&$filter=statuscode eq 0&$count=true"
 result = executeRequest(token, queryString)
-#print("-----------------------------------------------")
-#print("Testing: Ready Async Jobs " )
-#print(json.dumps(result, indent=4))
-# Parsing only the record count
 print result['@odata.count']
 
 print '<<<dynamics_crm_orb_transferlog>>>'
 # Query WebAPI for info about Transfer Logs in Pending state
-# 2. API Abfrage: orb_transferlog 
 queryString = "orb_transferlogs?$select=orb_transferlogid,ifm_retrycount,orb_statuscode,orb_httpresponse&$filter=orb_statuscode eq 169810000 and ifm_retrycount eq 4&$count=true"
 result = executeRequest(token, queryString)
-# print("-----------------------------------------------")
-# print("Testing: orb_transferlog " )
-# print(json.dumps(result, indent=4))
 count = {}
 for data in result['value']:
     if data['orb_httpresponse'] not in count:
@@ -79,12 +82,8 @@ for data in result['value']:
 for c, v in count.iteritems():
     print v, c
 
-#now = time.time()
-#startTime = time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime(now - 7200))
-#endTime = time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime(now - 3600))
-# print(startTime, endTime)
-
-# Restliche API Abfragen
+# Query WebAPI for data from Organization Insights
+# https://docs.microsoft.com/en-us/dynamics365/customer-engagement/admin/use-organization-insights-solution-view-instance-metrics#odata-support
 indicators = {
     "active_users": ("4555801D-0EAF-4100-891C-DB34400AB102", 3600),
     "api_success_rate": ("5555801d-0eaf-4100-891c-db34400ab102", 3600),
@@ -93,11 +92,8 @@ indicators = {
     "storage_instance": ("66BF5239-56EB-4979-AC92-177D98C5077B", 86400),
 }
 
-# Query WebAPI for data from Organization Insights
-# https://docs.microsoft.com/en-us/dynamics365/customer-engagement/admin/use-organization-insights-solution-view-instance-metrics#odata-support
-
 for key, value in indicators.items():
-    cachefile = os.path.join(os.environ['OMD_ROOT'], 'tmp/check_mk/cache/agent_dynamicscrm_%s' % key)
+    cachefile = os.path.join(os.environ['OMD_ROOT'], 'tmp/check_mk/cache/agent_dynamicscrm_%s_%s' % (args.tenant, key))
     mtime = 0
     if os.path.isfile(cachefile):
         mtime = os.path.getmtime(cachefile)
@@ -106,13 +102,13 @@ for key, value in indicators.items():
     if mtime <= (time.time() - value[1]):
         startTime = time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime(mtime))
         endTime = time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime())
-        print(startTime, endTime)
         with open(cachefile, 'w') as outfile:
             queryString = "savedorginsightsconfigurations?$select=jsondata&$filter=savedorginsightsconfigurationid eq " + value[0] + " and jsondatastarttime eq " + startTime + " and jsondataendtime eq " + endTime
             result = executeRequest(token, queryString)
-            # pprint(result)
+            #pprint(result)
             data = json.loads(result['value'][0]['jsondata'])
-            outfile.write('<<<dynamics_crm_%s:cached(%s,%s)>>>\n' % (key, time.time(), value[1]))
+            #pprint(data)
+            outfile.write('<<<dynamics_crm_%s:cached(%d,%d)>>>\n' % (key, time.time(), value[1]))
             for d in data['Results']:
                 for index, category in enumerate(d['CategoryNames']):
                     for m in d['Metrics']:
