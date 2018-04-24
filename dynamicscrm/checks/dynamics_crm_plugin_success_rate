@@ -15,11 +15,13 @@
 # to the Free Software Foundation, Inc., 51 Franklin St,  Fifth Floor,
 # Boston, MA 02110-1301 USA.
 
+dynamics_crm_api_success_rate_default_levels = (99, 98)
+
 def inventory_dynamics_crm_plugin_success_rate(info):
     if cmk.debug.enabled():
         pprint.pprint(info)
     if len(info) == 1 and info[0][0] == 'pluginpassrate':
-        yield (None, {})
+        yield (None, 'dynamics_crm_api_success_rate_default_levels')
 
 def check_dynamics_crm_plugin_success_rate(_no_item, params, info):
     if cmk.debug.enabled():
@@ -27,11 +29,18 @@ def check_dynamics_crm_plugin_success_rate(_no_item, params, info):
         pprint.pprint(info)
     if len(info) == 1 and info[0][0] == 'pluginpassrate':
         pluginpassrate = savefloat(info[0][1])
-        yield 0, '%0.1f%% plugin success' % pluginpassrate, [('health', pluginpassrate)]
+        warn, crit = params
+        state = 0
+        if pluginpassrate < crit:
+            state = 2
+        elif pluginpassrate < warn:
+            state = 1
+        yield state, '%0.1f%% successful plugin requests' % pluginpassrate, [('health', pluginpassrate, warn, crit)]
 
 check_info["dynamics_crm_plugin_success_rate"] = {
     'check_function'        : check_dynamics_crm_plugin_success_rate,
     'inventory_function'    : inventory_dynamics_crm_plugin_success_rate,
     'service_description'   : 'Dynamics CRM Plugin Success Rate',
     'has_perfdata'          : True,
+    'group'                 : 'dynamics_crm_plugin_success_rate',
 }

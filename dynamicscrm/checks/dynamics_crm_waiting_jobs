@@ -15,11 +15,13 @@
 # to the Free Software Foundation, Inc., 51 Franklin St,  Fifth Floor,
 # Boston, MA 02110-1301 USA.
 
+dynamics_crm_waiting_jobs_default_levels = (100, 500)
+
 def inventory_dynamics_crm_waiting_jobs(info):
     if cmk.debug.enabled():
         pprint.pprint(info)
     if len(info) == 1 and len(info[0]) == 1:
-        yield (None, {})
+        yield (None, 'dynamics_crm_waiting_jobs_default_levels')
 
 def check_dynamics_crm_waiting_jobs(_no_item, params, info):
     if cmk.debug.enabled():
@@ -27,11 +29,17 @@ def check_dynamics_crm_waiting_jobs(_no_item, params, info):
         pprint.pprint(info)
     if len(info) == 1 and len(info[0]) == 1:
         waitingjobs = saveint(info[0][0])
-        yield 0, '%d waiting jobs' % waitingjobs, [('waitingjobs', waitingjobs)]
+        if type(params) == tuple:
+            warn, crit = params
+        else:
+            warn, crit = None, None
+        state, text, perf = check_levels(waitingjobs, 'waitingjobs', params)
+        yield state, '%d waiting jobs%s' % (waitingjobs, text), [('waitingjobs', waitingjobs, warn, crit)] + perf
 
 check_info["dynamics_crm_waiting_jobs"] = {
     'check_function'        : check_dynamics_crm_waiting_jobs,
     'inventory_function'    : inventory_dynamics_crm_waiting_jobs,
     'service_description'   : 'Dynamics CRM Waiting Jobs',
     'has_perfdata'          : True,
+    'group'                 : 'dynamics_crm_waiting_jobs',
 }

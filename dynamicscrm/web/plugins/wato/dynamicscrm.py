@@ -59,3 +59,44 @@ register_rule('datasource_programs',
               'The agent itself is located in the site directory under <tt>~/local/share/check_mk/agents/special</tt>.'),
     match = 'first')
 
+register_check_parameters(
+    subgroup_applications,
+    'dynamics_crm_waiting_jobs',
+    _('MS Dynamics CRM Waiting Jobs'),
+    Levels(
+        title = _('Number of waiting Jobs'),
+        default_value = (100, 500),
+        ),
+    None,
+    'first',
+)
+
+register_check_parameters(
+    subgroup_applications,
+    'dynamics_crm_api_success_rate',
+    _('MS Dynamics CRM API Success Rate'),
+    Tuple(
+        title = _('Percentage Levels'),
+        elements = [
+            Float(title=_('Warning below'), default_value=99.0, unit='%'),
+            Float(title=_('Critical below'), default_value=98.0, unit='%'),
+            ],
+        ),
+    None,
+    'first',
+)
+
+register_check_parameters(
+    subgroup_applications,
+    'dynamics_crm_plugin_success_rate',
+    _('MS Dynamics CRM Plugin Success Rate'),
+    Tuple(
+        title = _('Percentage Levels'),
+        elements = [
+            Float(title=_('Warning below'), default_value=99.0, unit='%'),
+            Float(title=_('Critical below'), default_value=98.0, unit='%'),
+            ],
+        ),
+    None,
+    'first',
+)
