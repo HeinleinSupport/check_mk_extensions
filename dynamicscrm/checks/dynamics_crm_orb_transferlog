@@ -15,19 +15,38 @@
 # to the Free Software Foundation, Inc., 51 Franklin St,  Fifth Floor,
 # Boston, MA 02110-1301 USA.
 
+factory_settings['dynamics_crm_orb_transferlog'] = {
+    'ok': None,
+    'null': None,
+    'closed': None,
+    'unknown': None,
+}
+
 def inventory_dynamics_crm_orb_transferlog(info):
     if len(info):
         yield None, {}
 
 def check_dynamics_crm_orb_transferlog(_no_item, params, info):
+    responses = { 'ok': 0,
+                  'null': 0,
+                  'closed': 0,
+                  'unknown': 0,
+                }
     for line in info:
-        count = saveint(line[0])
-        state = line[1]
-        yield 0, '%d responses in state %s' % ( count, state ), [ ( 'count_%s' % state, count ) ]
+        responses[line[1]] = saveint(line[0])
+    for response, count in responses.iteritems():
+        if type(params[response]) == tuple:
+            warn, crit = params[response]
+        else:
+            warn, crit = None, None
+        state, text, perf = check_levels(count, 'count_%s' % response, params[response])
+        yield state, '%d %s responses%s' % ( count, response, text ), [ ( 'count_%s' % response, count, warn, crit ) ] + perf
 
 check_info["dynamics_crm_orb_transferlog"] = {
     'check_function'        : check_dynamics_crm_orb_transferlog,
     'inventory_function'    : inventory_dynamics_crm_orb_transferlog,
     'service_description'   : 'Dynamics CRM ORB Transferlog',
     'has_perfdata'          : True,
+    'group'                 : 'dynamics_crm_orb_transferlog',
+    'default_levels_variable': 'dynamics_crm_orb_transferlog',
 }

@@ -100,3 +100,20 @@ register_check_parameters(
     None,
     'first',
 )
+
+register_check_parameters(
+    subgroup_applications,
+    'dynamics_crm_orb_transferlog',
+    _('MS Dynamics CRM ORB transferlog'),
+    Dictionary(
+        title = _('Levels for HTTP Response Codes'),
+        elements = [
+            ('ok', Levels(title = _('OK'), default_value = None)),
+            ('closed', Levels(title = _('Connection closed'), default_value = None)),
+            ('null', Levels(title = _('Null'), default_value = None)),
+            ('unknown', Levels(title = _('Unknown Response Code'), default_value = None)),
+        ],
+        ),
+    None,
+    'dict',
+)
