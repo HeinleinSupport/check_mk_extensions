@@ -16,10 +16,11 @@
 # Boston, MA 02110-1301 USA.
 
 def agent_dynamicscrm_arguments(params, hostname, ipaddress):
-    cmdline = '-t "%s" -u "%s" -p "%s" -o "%s"' % ( params['tenant'],
-                                                    params['username'],
-                                                    params['password'],
-                                                    params['orgurl'] )
+    cmdline = '-t "%s" -u "%s" -p "%s" -o "%s" -H "%s"' % ( params['tenant'],
+                                                            params['username'],
+                                                            params['password'],
+                                                            params['orgurl'],
+                                                            hostname )
     if params.has_key('authurl'):
         cmdline += ' -a "%s"' % params['authurl']
     return cmdline

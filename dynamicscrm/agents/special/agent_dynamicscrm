@@ -35,6 +35,7 @@ parser.add_argument('-u', '--username', required=True, help='client id')
 parser.add_argument('-p', '--password', required=True, help='client secret')
 parser.add_argument('-o', '--orgurl', required=True, help='API endpoint URL')
 parser.add_argument('-a', '--authurl', required=False, help='Authentication endpoint URL', default='https://login.microsoftonline.com')
+parser.add_argument('-H', '--hostname', required=False, help='Hostname for cache file')
 args = parser.parse_args()
 
 def getToken():
@@ -97,7 +98,7 @@ indicators = {
 }
 
 for key, value in indicators.items():
-    cachefile = os.path.join(os.environ['OMD_ROOT'], 'tmp/check_mk/cache/agent_dynamicscrm_%s_%s' % (args.tenant, key))
+    cachefile = os.path.join(os.environ['OMD_ROOT'], 'tmp/check_mk/cache/agent_dynamicscrm_%s_%s' % (args.hostname, key))
     mtime = 0
     if os.path.isfile(cachefile):
         mtime = os.path.getmtime(cachefile)
