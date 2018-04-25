@@ -16,15 +16,10 @@
 # Boston, MA 02110-1301 USA.
 
 def inventory_dynamics_crm_active_users(info):
-    if cmk.debug.enabled():
-        pprint.pprint(info)
     if len(info) == 1 and info[0][0] == 'totalactiveusers':
         yield (None, {})
 
 def check_dynamics_crm_active_users(_no_item, params, info):
-    if cmk.debug.enabled():
-        pprint.pprint(params)
-        pprint.pprint(info)
     if len(info) == 1 and info[0][0] == 'totalactiveusers':
         activeusers = saveint(info[0][1])
         yield 0, '%d active users' % activeusers, [('current_users', activeusers)]

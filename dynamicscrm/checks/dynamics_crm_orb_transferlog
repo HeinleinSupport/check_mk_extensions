@@ -16,15 +16,10 @@
 # Boston, MA 02110-1301 USA.
 
 def inventory_dynamics_crm_orb_transferlog(info):
-    if cmk.debug.enabled():
-        pprint.pprint(info)
     if len(info):
         yield None, {}
 
 def check_dynamics_crm_orb_transferlog(_no_item, params, info):
-    if cmk.debug.enabled():
-        pprint.pprint(params)
-        pprint.pprint(info)
     for line in info:
         count = saveint(line[0])
         state = line[1]

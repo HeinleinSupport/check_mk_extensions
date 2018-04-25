@@ -18,15 +18,10 @@
 dynamics_crm_waiting_jobs_default_levels = (100, 500)
 
 def inventory_dynamics_crm_waiting_jobs(info):
-    if cmk.debug.enabled():
-        pprint.pprint(info)
     if len(info) == 1 and len(info[0]) == 1:
         yield (None, 'dynamics_crm_waiting_jobs_default_levels')
 
 def check_dynamics_crm_waiting_jobs(_no_item, params, info):
-    if cmk.debug.enabled():
-        pprint.pprint(params)
-        pprint.pprint(info)
     if len(info) == 1 and len(info[0]) == 1:
         waitingjobs = saveint(info[0][0])
         if type(params) == tuple:

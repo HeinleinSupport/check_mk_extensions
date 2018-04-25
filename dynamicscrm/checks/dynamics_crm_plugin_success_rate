@@ -18,15 +18,10 @@
 dynamics_crm_api_success_rate_default_levels = (99, 98)
 
 def inventory_dynamics_crm_plugin_success_rate(info):
-    if cmk.debug.enabled():
-        pprint.pprint(info)
     if len(info) == 1 and info[0][0] == 'pluginpassrate':
         yield (None, 'dynamics_crm_api_success_rate_default_levels')
 
 def check_dynamics_crm_plugin_success_rate(_no_item, params, info):
-    if cmk.debug.enabled():
-        pprint.pprint(params)
-        pprint.pprint(info)
     if len(info) == 1 and info[0][0] == 'pluginpassrate':
         pluginpassrate = savefloat(info[0][1])
         warn, crit = params
