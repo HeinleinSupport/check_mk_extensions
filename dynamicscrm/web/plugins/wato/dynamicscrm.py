@@ -18,7 +18,7 @@
 register_rule('datasource_programs',
     "special_agents:dynamicscrm",
     Dictionary(
-            title = _("Credentials for the pingdom API."),
+            title = _("Credentials for the Dynamics CRM API."),
             elements = [
                 ( "username",
                   TextAscii(
