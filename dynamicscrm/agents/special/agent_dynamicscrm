@@ -105,8 +105,9 @@ for key, value in indicators.items():
     if mtime == 0:
         mtime = time.time() - value[1]
     if mtime <= (time.time() - value[1]):
-        startTime = time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime(mtime))
-        endTime = time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime())
+        startTime = time.strftime("%Y-%m-%dT%H:00:00Z", time.gmtime(mtime))
+        endTime = time.strftime("%Y-%m-%dT%H:00:00Z", time.gmtime())
+        # print startTime, endTime
         with open(cachefile, 'w') as outfile:
             queryString = "savedorginsightsconfigurations?$select=jsondata&$filter=savedorginsightsconfigurationid eq " + value[0] + " and jsondatastarttime eq " + startTime + " and jsondataendtime eq " + endTime
             result = executeRequest(token, queryString)
