@@ -10,7 +10,6 @@
 
 from pprint import pprint
 import requests
-import json
 import warnings
 
 class WATOAPI():
@@ -22,30 +21,31 @@ class WATOAPI():
             if not site_url.endswith('check_mk'):
                 site_url += '/check_mk/'
         self.api_url = '%s/webapi.py' % site_url
-        self.api_creds = {'_username': api_user, '_secret': api_secret, 'output_format': 'json'}
+        self.api_creds = {'_username': api_user, '_secret': api_secret, 'request_format': 'python', 'output_format': 'python'}
 
     def api_request(self, params, data=None, errmsg='Error', fail=True):
+        result = { 'result_code': 1,
+                   'result': None }
         with warnings.catch_warnings():
             warnings.simplefilter('ignore')
             if data:
-                resp = requests.post(self.api_url, verify=False, params=params, data='request=%s' % json.dumps(data))
+                resp = requests.post(self.api_url, verify=False, params=params, data='request=%s' % repr(data))
             else:
                 resp = requests.get(self.api_url, verify=False, params=params)
-            try:
-                resp1 = resp.json()
-            except:
-                raise
-            resp = resp1
-        if resp['result_code'] == 1:
+            if resp.status_code == 200:
+                result = eval(resp.text)
+            else:
+                raise RuntimeError(resp.text)
+        if result['result_code'] == 1:
             if fail:
                 print params['action']
                 pprint(data)
                 import urllib
-                print "curl '%s?%s' -d 'request=%s'" % (self.api_url, urllib.urlencode(params), json.dumps(data))
-                raise RuntimeError('%s: %s' % ( errmsg, resp['result'] ))
+                print "curl '%s?%s' -d 'request=%s'" % (self.api_url, urllib.urlencode(params), repr(data))
+                raise RuntimeError('%s: %s' % ( errmsg, result['result'] ))
             else:
-                print '%s: %s' % ( errmsg, resp['result'] )
-        return resp['result']
+                print '%s: %s' % ( errmsg, result['result'] )
+        return result['result']
 
     def get_host(self, hostname, effective_attr=True):
         api_get_host = { 'action': 'get_host', 'effective_attributes': 1 }
@@ -119,22 +119,25 @@ class MultisiteAPI():
             if not site_url.endswith('check_mk'):
                 site_url += '/check_mk/'
         self.site_url = site_url
-        self.api_creds = {'_username': api_user, '_secret': api_secret, 'output_format': 'json', '_transid': '-1'}
+        self.api_creds = {'_username': api_user, '_secret': api_secret, 'request_format': 'python', 'output_format': 'python', '_transid': '-1'}
 
     def api_request(self, api_url, params, data=None, errmsg='Error', fail=True):
-        resp = []
         with warnings.catch_warnings():
             warnings.simplefilter('ignore')
             if data:
-                resp = requests.post(api_url, verify=False, params=params, data='request=%s' % json.dumps(data)).json()
+                resp = requests.post(api_url, verify=False, params=params, data='request=%s' % repr(data))
             else:
-                resp = requests.get(api_url, verify=False, params=params).json()
-        return resp
+                resp = requests.get(api_url, verify=False, params=params)
+            if resp.status_code == 200:
+                return eval(resp.text)
+            else:
+                raise resp.text
+        return []
 
     def view(self, view_name, **kwargs):
         result = []
-        request = self.api_creds.copy()
-        request['view_name'] = view_name
+        request = {'view_name': view_name}
+        request.update(self.api_creds)
         request.update(kwargs)
         resp = self.api_request(self.site_url + 'view.py', request, errmsg='Cannot get view data')
         header = resp[0]
