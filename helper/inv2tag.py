@@ -50,6 +50,7 @@ if args.dump:
             result[key].add(value)
     pprint.pprint(result)
 else:
+    changes = False
     for info in resp:
         print info['host']
         tags = {}
@@ -61,5 +62,8 @@ else:
                         tags.update(settags)
         print tags
 
-        # wato.edit_host(info['host'], set_attr=tags)
-
+        if tags:
+            wato.edit_host(info['host'], set_attr=tags)
+            changes = True
+    if changes:
+        wato.activate()
