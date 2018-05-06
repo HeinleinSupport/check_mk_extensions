@@ -11,32 +11,20 @@ import checkmkapi
 import re
 import pprint
 
-tagmap = {
-    'inv_software_os_name': {
-        re.compile('centos', re.IGNORECASE): {'tag_opsys': 'redhat'},
-        re.compile('debian', re.IGNORECASE): {'tag_opsys': 'debian'},
-        re.compile('suse', re.IGNORECASE):   {'tag_opsys': 'suse'},
-        re.compile('ubuntu', re.IGNORECASE): {'tag_opsys': 'ubuntu'},
-#        re.compile('vmware', re.IGNORECASE): {'tag_opsys': 'esxi'},
-        re.compile('xenserver', re.IGNORECASE): {'tag_opsys': 'redhat'},
-        re.compile('Microsoft Windows 7'): {'tag_opsys': 'win7'},
-        re.compile('Microsoft Windows Server 2008'): {'tag_opsys': 'win2008'},
-        re.compile('Microsoft Windows Server 2012'): {'tag_opsys': 'win2012'},
-        re.compile('Microsoft Windows Server 2016'): {'tag_opsys': 'win2016'},
-    },
-}
-
 parser = argparse.ArgumentParser()
 parser.add_argument('-s', '--url', required=True, help='URL to Check_MK site')
-parser.add_argument('-u', '--username', required=True, help='name of the Automation user')
-parser.add_argument('-p', '--password', required=True)
+parser.add_argument('-u', '--username', required=True, help='name of the automation user')
+parser.add_argument('-p', '--password', required=True, help='secret of the automation user')
+parser.add_argument('-c', '--config', required=False, help='Path to config file', default='./inv2tag.conf')
 parser.add_argument('-d', '--dump', action="store_true", help='Dump unique values from the view')
 args = parser.parse_args()
+
+conf = eval(open(args.config, 'r').read())
 
 mapi = checkmkapi.MultisiteAPI(args.url, args.username, args.password)
 wato = checkmkapi.WATOAPI(args.url, args.username, args.password)
 
-resp = mapi.view(view_name='opsys')
+resp = mapi.view(view_name=conf['view_name'])
 
 #
 # get uniq values from view
@@ -54,7 +42,7 @@ else:
     for info in resp:
         print info['host']
         tags = {}
-        for attr, patterns in tagmap.iteritems():
+        for attr, patterns in conf['tagmap'].iteritems():
             if attr in info:
                 pprint.pprint(info[attr])
                 for pattern, settags in patterns.iteritems():
