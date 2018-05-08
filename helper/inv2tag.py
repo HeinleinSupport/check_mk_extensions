@@ -24,7 +24,7 @@ conf = eval(open(args.config, 'r').read())
 mapi = checkmkapi.MultisiteAPI(args.url, args.username, args.password)
 wato = checkmkapi.WATOAPI(args.url, args.username, args.password)
 
-resp = mapi.view(view_name=conf['view_name'])
+resp = mapi.view(conf['view_name'], **conf.get('args', {}))
 
 #
 # get uniq values from view
