@@ -1,0 +1,15 @@
+USP-MIB DEFINITIONS ::= BEGIN
+
+IMPORTS enterprises, MODULE-IDENTITY FROM SNMPv2-SMI;
+
+
+usp MODULE-IDENTITY
+LAST-UPDATED   "201205091000Z"
+ORGANIZATION   "United Security Providers"
+CONTACT-INFO   "United Security Providers
+               Stauffacherstrasse 65
+               CH-3014 Bern"
+DESCRIPTION    "Base MIB module for USP"
+::= { enterprises 26458 }
+
+END
