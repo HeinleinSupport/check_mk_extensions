@@ -21,8 +21,8 @@ def inventory_dynamics_crm_active_users(info):
 
 def check_dynamics_crm_active_users(_no_item, params, info):
     if len(info) == 1 and info[0][0] == 'totalactiveusers':
-        activeusers = saveint(info[0][1])
-        yield 0, '%d active users' % activeusers, [('current_users', activeusers)]
+        activeusers = savefloat(info[0][1])
+        yield 0, '%0.2f active users' % activeusers, [('current_users', activeusers)]
 
 check_info["dynamics_crm_active_users"] = {
     'check_function'        : check_dynamics_crm_active_users,
