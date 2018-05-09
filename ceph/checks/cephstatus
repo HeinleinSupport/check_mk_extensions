@@ -39,6 +39,7 @@ def check_cephstatus(item, params, parsed):
                       'active+recovery_wait+remapped',
                       'peering',
                       'remapped+peering'
+                      'undersized+degraded+peered',
                      ]
     _ceph_pgstates = {}
     for state in _pgstates_list:
