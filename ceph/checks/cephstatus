@@ -22,6 +22,7 @@ def inventory_cephstatus(parsed):
 def check_cephstatus(item, params, parsed):
     _single_state = { 'state': 0, 'count': 0 }
     _pgstates_list = ['active+clean',
+                      'active+clean+remapped',
                       'active+clean+scrubbing',
                       'active+clean+scrubbing+deep',
                       'active+recovering',
