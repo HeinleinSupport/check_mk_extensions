@@ -38,6 +38,7 @@ def check_cephstatus(item, params, parsed):
                       'active+remapped+backfilling',
                       'active+recovery_wait+remapped',
                       'peering',
+                      'remapped+peering'
                      ]
     _ceph_pgstates = {}
     for state in _pgstates_list:
