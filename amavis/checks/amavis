@@ -63,9 +63,12 @@ def check_amavis(_no_item, params, parsed):
                 child_procs += 1
                 if proc[1].endswith(u'-avail)'):
                     child_avail += 1
-        if master_proc != 1:
+        if master_proc > 1:
             state = 2
             msg.append('More than one amavisd master process running: %d(!!)' % master_proc)
+        elif master_proc == 0:
+            state = 2
+            msg.append('No amavisd master process running(!!)')
         else:
             msg.append('Amavis master process running')
         msg.append('%d child processes running' % child_procs)
