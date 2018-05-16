@@ -77,7 +77,10 @@ def check_amavis(_no_item, params, parsed):
             warn = child_procs * (100.0 - params['busy_childs'][0]) / 100.0
             crit = child_procs * (100.0 - params['busy_childs'][1]) / 100.0
             perfdata.append(('amavis_child_avail', child_avail, warn, crit, 0, child_procs ))
-            perfdata.append(('amavis_child_busy', ( child_procs - child_avail ) * 100.0 / child_procs, params['busy_childs'][0], params['busy_childs'][1], 0, 100))
+            if child_procs == 0:
+                perfdata.append(('amavis_child_busy', 0, params['busy_childs'][0], params['busy_childs'][1], 0, 100))
+            else:
+                perfdata.append(('amavis_child_busy', ( child_procs - child_avail ) * 100.0 / child_procs, params['busy_childs'][0], params['busy_childs'][1], 0, 100))
             if child_avail < crit:
                 if state < 2:
                     state = 2
@@ -88,7 +91,10 @@ def check_amavis(_no_item, params, parsed):
                 avail_text += '(!)'
         else:
             perfdata.append(('amavis_child_avail', child_avail, None, None, 0, child_procs ))
-            perfdata.append(('amavis_child_busy', ( child_procs - child_avail ) * 100.0 / child_procs, None, None, 0, 100))
+            if child_procs == 0:
+                perfdata.append(('amavis_child_busy', 0, None, None, 0, 100))
+            else:
+                perfdata.append(('amavis_child_busy', ( child_procs - child_avail ) * 100.0 / child_procs, None, None, 0, 100))
         msg.append(avail_text)
 
         metrics = [ 'ContentCleanMsgs',
