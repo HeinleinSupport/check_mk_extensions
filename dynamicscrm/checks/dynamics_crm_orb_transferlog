@@ -1,0 +1,52 @@
+#!/usr/bin/env python
+# -*- encoding: utf-8; py-indent-offset: 4 -*-
+
+# (c) 2017 Heinlein Support GmbH
+#          Robert Sander <r.sander@heinlein-support.de>
+
+# This is free software;  you can redistribute it and/or modify it
+# under the  terms of the  GNU General Public License  as published by
+# the Free Software Foundation in version 2.  This file is distributed
+# in the hope that it will be useful, but WITHOUT ANY WARRANTY;  with-
+# out even the implied warranty of  MERCHANTABILITY  or  FITNESS FOR A
+# PARTICULAR PURPOSE. See the  GNU General Public License for more de-
+# ails.  You should have  received  a copy of the  GNU  General Public
+# License along with GNU Make; see the file  COPYING.  If  not,  write
+# to the Free Software Foundation, Inc., 51 Franklin St,  Fifth Floor,
+# Boston, MA 02110-1301 USA.
+
+factory_settings['dynamics_crm_orb_transferlog'] = {
+    'ok': None,
+    'null': None,
+    'closed': None,
+    'unknown': None,
+}
+
+def inventory_dynamics_crm_orb_transferlog(info):
+    if len(info):
+        yield None, {}
+
+def check_dynamics_crm_orb_transferlog(_no_item, params, info):
+    responses = { 'ok': 0,
+                  'null': 0,
+                  'closed': 0,
+                  'unknown': 0,
+                }
+    for line in info:
+        responses[line[1]] = saveint(line[0])
+    for response, count in responses.iteritems():
+        if type(params[response]) == tuple:
+            warn, crit = params[response]
+        else:
+            warn, crit = None, None
+        state, text, perf = check_levels(count, 'count_%s' % response, params[response])
+        yield state, '%d %s responses%s' % ( count, response, text ), [ ( 'count_%s' % response, count, warn, crit ) ] + perf
+
+check_info["dynamics_crm_orb_transferlog"] = {
+    'check_function'        : check_dynamics_crm_orb_transferlog,
+    'inventory_function'    : inventory_dynamics_crm_orb_transferlog,
+    'service_description'   : 'Dynamics CRM ORB Transferlog',
+    'has_perfdata'          : True,
+    'group'                 : 'dynamics_crm_orb_transferlog',
+    'default_levels_variable': 'dynamics_crm_orb_transferlog',
+}
