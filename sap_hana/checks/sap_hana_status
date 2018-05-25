@@ -17,14 +17,9 @@
 
 # Example output from agent:
 #<<<sap_hana_status:sep(44)>>>
-#[[TST00]]
+#[[SID INSTANCE]]
 #Version;;1.00.097.00.1434028111 (fa/newdb100_maint_rel)
 #All Started;OK;Yes
-
-# This will be parsed into
-# parsed = {
-#  u'PRH00': [[u'Version', u'', u'1.00.097.00.1434028111 (fa/newdb100_maint_rel)'], [u'All Started', u'OK', u'Yes']]
-# }
 
 def _sap_hana_status_item(instance, line):
     if line[0] == "All Started":
@@ -32,32 +27,38 @@ def _sap_hana_status_item(instance, line):
     return "%s %s" % (line[0], instance)
 
 def inventory_sap_hana_status(parsed):
-    for instance,lines in parsed.items():
-        for line in lines:
-            if len(line) > 2:
-                yield _sap_hana_status_item(instance, line), {}
+    for instance, nodes in parsed.items():
+        for node, lines in nodes.items():
+            for line in lines:
+                if len(line) > 2:
+                    yield _sap_hana_status_item(instance, line), {}
 
 def check_sap_hana_status(item, params, parsed):
-    for instance,lines in parsed.items():
-        for line in lines:
-            if len(line) > 2 and item == _sap_hana_status_item(instance, line):
-                if item.startswith("Version"): 
-                    return 0, line[2]
-                status = line[1]
-                value = line[2]
-                serviceOutput = "%s (Status: %s)" % (value, status)
-                if status == "OK":
-                    return 0, serviceOutput
-                elif status == "UNKNOWN":
-                    return 3, serviceOutput
-                else:
-                    return 2, serviceOutput
+    for instance, nodes in parsed.items():
+        for node, lines in nodes.items():
+            if node:
+                node_text = " on %s" % node
+            else:
+                node_text = ""
+            for line in lines:
+                if len(line) > 2 and item == _sap_hana_status_item(instance, line):
+                    if item.startswith("Version"): 
+                        return 0, "%s%s" % (line[2], node_text)
+                    status = line[1]
+                    value = line[2]
+                    serviceOutput = "%s (Status: %s)%s" % (value, status, node_text)
+                    if status == "OK":
+                        return 0, serviceOutput
+                    elif status == "UNKNOWN":
+                        return 3, serviceOutput
+                    else:
+                        return 2, serviceOutput
 
 check_info["sap_hana_status"] = {
-    "parse_function"          : parse_sap_hana,
+    "parse_function"          : parse_sap_hana_cluster,
     "check_function"          : check_sap_hana_status,
     "inventory_function"      : inventory_sap_hana_status,
     "service_description"     : "SAP HANA %s",
-    "has_perfdata"            : False,
+    "node_info"               : True,
     "includes"                : [ 'sap_hana.include' ],
 }
