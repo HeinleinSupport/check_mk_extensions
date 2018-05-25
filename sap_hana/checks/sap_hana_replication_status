@@ -17,7 +17,7 @@
 
 # Example output from agent:
 #<<<sap_hana_replication_status>>>
-#[[TST00]]
+#[[SID INSTANCE]]
 #| Host     | Port  | Service Name | Volume ID | Site ID | Site Name  | Secondary | Secondary | Secondary | Secondary    | Secondary     | Replication | Replication | Replication                         |
 #|          |       |              |           |         |            | Host      | Port      | Site ID   | Site Name    | Active Status | Mode        | Status      | Status Details                      |
 #| -------- | ----- | ------------ | --------- | ------- | ---------- | --------- | --------- | --------- | ------------ | ------------- | ----------- | ----------- | ----------------------------------- |

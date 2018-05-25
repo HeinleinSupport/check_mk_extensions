@@ -29,7 +29,10 @@
 # fix for working UNKW state when instance isn't running
 # added support for replication.py script
 
-#set -x
+if [ "$1" = "--debug" ]; then
+  set -x
+fi
+
 # Variables
 configFile="$MK_CONFDIR/sap_hana.cfg"
 UNKNOWN_MESSAGE="All Started,UNKNOWN,Check failed - could not find config file $configFile"
@@ -62,22 +65,25 @@ function do_query() {
     INSTANCE_NAME="[[${SID} ${INSTANCE}]]"
 
     function hdbsql() {
-	# -C don't escape output, -F change separator , -x = quiet output, only query result / -a = no header in reply to select statements # plus sed removes leading and trailing ;
+	# -C don't escape output, -F change separator , -x = quiet output, only query result / -a = no header in reply to select statements
+	# plus sed removes leading and trailing ;
 	if [ -n "$USERSTOREKEY" ] ; then
 	    # CREDENTIALS="-U ${USERSTOREKEY}${SID}"
 	    CREDENTIALS="-U ${USERSTOREKEY}"
 	else
 	    CREDENTIALS="-u ${USER} -p ${PASSWORD}"
 	fi
-	/usr/sap/${SID}/HDB${INSTANCE}/exe/hdbsql -C -F\; -x -a -n localhost -i ${INSTANCE} ${CREDENTIALS} $1 2>/dev/null | sed -e "s/^;//" -e "s/;$//" ; (exit ${PIPESTATUS[0]})
+	su - ${INSTANCEUSER} -c "/usr/sap/${SID}/HDB${INSTANCE}/exe/hdbsql -C -F\; -x -a -n localhost -i ${INSTANCE} ${CREDENTIALS} \"$1\"" 2>/dev/null | sed -e "s/^;//" -e "s/;$//" ; (exit ${PIPESTATUS[0]})
     }
 
     # Check status
     echo "<<<sap_hana_status:sep(59)>>>"
-    output=$(hdbsql "SELECT Name , Status, Value FROM M_SYSTEM_OVERVIEW Where NAME='Version' or NAME='All Started'")
+    output=$(hdbsql "SELECT Name, Status, Value FROM M_SYSTEM_OVERVIEW Where NAME='Version' or NAME='All Started'")
     if [ $? != 0 ] ; then
 	#echo 'All Started;UNKNOWN;Check failed - Could not query' ${INSTANCE_NAME} '- will stop all checks against this instance'
-	#for single instances we could execute the line above, however, this will create problems when we want to cluster the check, so we now exit nothing if an instance isn't running.
+	# for single instances we could execute the line above, however,
+	# this will create problems when we want to cluster the check,
+	# so we now exit nothing if an instance isn't running.
 	return
 	# leaving do_query, if we can't even query
     fi
@@ -85,7 +91,7 @@ function do_query() {
     echo "$output"
     echo "<<<sap_hana_backup:sep(59)>>>"
     echo $INSTANCE_NAME
-    query_prefix="Select TOP 1 entry_type_name, sys_end_time,state_name, comment, message from M_BACKUP_CATALOG where"
+    query_prefix="Select TOP 1 entry_type_name, sys_end_time, state_name, comment, message from M_BACKUP_CATALOG where"
     query_suffix="AND state_name <> 'running' order by sys_start_time desc"
     hdbsql "$query_prefix entry_type_name = 'data snapshot' $query_suffix"
     hdbsql "$query_prefix entry_type_name = 'complete data backup' $query_suffix"
@@ -95,9 +101,13 @@ function do_query() {
     echo $INSTANCE_NAME
     hdbsql "SELECT name,status,value FROM M_SYSTEM_OVERVIEW Where NAME='Data' or NAME='Log' or NAME='Trace'"
 
+    echo "<<<sap_hana_data_volume:sep(59)>>>"
+    echo $INSTANCE_NAME
+    hdbsql "SELECT FILE_TYPE, SERVICE_NAME, VOLUME_ID, FILE_NAME, DISK_USED_SIZE, DISK_TOTAL_SIZE, DATA_VOLUME_USED_SIZE, DATA_VOLUME_TOTAL_SIZE FROM (select VF.FILE_TYPE, VF.HOST, VF.FILE_NAME, VF.DISK_PART, VF.DATA_VOLUME_USED_SIZE, VF.DATA_VOLUME_TOTAL_SIZE, DS.DISK_USED_SIZE, DS.DISK_TOTAL_SIZE, V.SERVICE_NAME, V.VOLUME_ID FROM (select  VOLUME_ID, FILE_TYPE, HOST, FILE_NAME, LEFT ( FILE_NAME, LOCATE (FILE_NAME, '/', 0, 4) -1 ) DISK_PART, (USED_SIZE) DATA_VOLUME_USED_SIZE, SUM (TOTAL_SIZE) DATA_VOLUME_TOTAL_SIZE FROM M_VOLUME_FILES WHERE FILE_TYPE = 'DATA' GROUP BY VOLUME_ID, USED_SIZE, FILE_TYPE, HOST, FILE_NAME, LEFT ( FILE_NAME, LOCATE (FILE_NAME, '/', 0, 4) -1) ) VF JOIN (select  LEFT (PATH, LENGTH(PATH) - 1) AS DISK_PART, HOST, SUBPATH, DEVICE_ID, USAGE_TYPE, MAX(TOTAL_SIZE) DISK_TOTAL_SIZE, MAX (USED_SIZE) AS DISK_USED_SIZE FROM M_DISKS WHERE USAGE_TYPE = 'DATA' GROUP BY SUBPATH, LEFT (PATH, LENGTH(PATH) - 1), HOST, DEVICE_ID, USAGE_TYPE ) DS ON VF.DISK_PART = DS.DISK_PART and VF.HOST = DS.HOST LEFT JOIN (select VOLUME_ID, SERVICE_NAME from M_VOLUMES) V ON VF.VOLUME_ID = V.VOLUME_ID) WHERE HOST = '$(hostname -f)'"
+
     echo "<<<sap_hana_license:sep(59)>>>"
     echo $INSTANCE_NAME
-    hdbsql "SELECT ENFORCED, PERMANENT,LOCKED_DOWN,PRODUCT_USAGE,PRODUCT_LIMIT FROM M_LICENSE"
+    hdbsql "SELECT ENFORCED,PERMANENT,LOCKED_DOWN,PRODUCT_USAGE,PRODUCT_LIMIT,VALID,EXPIRATION_DATE FROM M_LICENSE"
 
     remote_hostname=$(echo $REMOTE | tr ':' '_')
     if [ -z "$remote_hostname" ]; then
@@ -109,7 +119,6 @@ function do_query() {
     echo [[[SAP HANA Alerts for ${SID} ${INSTANCE}]]]
     if [ -r "$alerts_last_check" ] ; then
 	hdbsql "Select ALERT_TIMESTAMP,ALERT_ID,ALERT_RATING,ALERT_DETAILS from  _SYS_STATISTICS.STATISTICS_ALERTS Where ALERT_TIMESTAMP >= '$(cat "$alerts_last_check")' AND (ALERT_ID < '22' OR ALERT_ID > '24') order by ALERT_TIMESTAMP asc"  | sed -e "s/^/W /" -e 's/^W \([^;]*;[0-9]*;1;.*\)/O \1/' -e 's/^W \([^;]*;[0-9]*;[23];.*\)/W \1/' -e 's/^W \([^;]*;[0-9]*;[45];.*\)/C \1/'
-	#hdbsql "Select ALERT_TIMESTAMP,ALERT_ID,ALERT_RATING,ALERT_DETAILS from  _SYS_STATISTICS.STATISTICS_ALERTS Where ALERT_TIMESTAMP >= '2016-11-20 17:30:30' AND ALERT_ID != '24' order by ALERT_TIMESTAMP asc"
     else
 	hdbsql "Select ALERT_TIMESTAMP,ALERT_ID,ALERT_RATING,ALERT_DETAILS from  _SYS_STATISTICS.STATISTICS_ALERTS Where ALERT_TIMESTAMP IN (Select max(ALERT_TIMESTAMP) from _SYS_STATISTICS.STATISTICS_ALERTS  group by ALERT_ID) AND ADD_DAYS(Current_timestamp,-1)<=ALERT_TIMESTAMP AND (ALERT_ID < '22' OR ALERT_ID > '24') order by ALERT_TIMESTAMP desc"  | sed -e "s/^/W /" -e 's/^W \([^;]*;[0-9]*;1;.*\)/O \1/' -e 's/^W \([^;]*;[0-9]*;[23];.*\)/W \1/' -e 's/^W \([^;]*;[0-9]*;[45];.*\)/C \1/'
     fi
@@ -124,18 +133,31 @@ function do_query() {
 
     echo "<<<sap_hana_ess:sep(59)>>>"
     echo $INSTANCE_NAME
-    hdbsql "SELECT 'started', count(*) FROM M_SERVICE_THREADS where thread_type='WorkerThread (StatisticsServer)'"
+    hdbsql "SELECT 'started', count(*) FROM M_SERVICE_THREADS where thread_type='WorkerThread (StatisticsServer)' and HOST = '$(hostname -f)'"
     hdbsql "select 'active', MAP(IFNULL(SYSTEM_VALUE, IFNULL(HOST_VALUE,DEFAULT_VALUE)), 'true', 'yes', 'false', 'no', 'unknown') FROM (SELECT  MAX(MAP(LAYER_NAME, 'DEFAULT', VALUE)) DEFAULT_VALUE, MAX(MAP(LAYER_NAME, 'HOST',VALUE)) HOST_VALUE, MAX(MAP(LAYER_NAME, 'SYSTEM',  VALUE, 'DATABASE', VALUE)) SYSTEM_VALUE FROM  M_INIFILE_CONTENTS WHERE  FILE_NAME IN ('indexserver.ini', 'nameserver.ini') AND SECTION = 'statisticsserver' AND  KEY = 'active')"
 
     echo "<<<sap_hana_memrate:sep(59)>>>"
     echo $INSTANCE_NAME
-    hdbsql "SELECT 'mem_rate', INSTANCE_TOTAL_MEMORY_USED_SIZE, ALLOCATION_LIMIT FROM M_HOST_RESOURCE_UTILIZATION"
+    hdbsql "SELECT 'mem_rate', INSTANCE_TOTAL_MEMORY_USED_SIZE, ALLOCATION_LIMIT FROM M_HOST_RESOURCE_UTILIZATION WHERE HOST = '$(hostname -f)'"
     
     echo "<<<sap_hana_events:sep(59)>>>"
     echo $INSTANCE_NAME
     hdbsql "select 'open_events', count(*) from m_events where acknowledged='FALSE'"
     hdbsql "select 'disabled_alerts', count(*) from _sys_statistics.STATISTICS_SCHEDULE where status='Disabled'"
     hdbsql "select 'high_alerts', count(*) from _sys_statistics.statistics_current_alerts  where  alert_rating >=3"
+    
+    echo "<<<sap_hana_proc:sep(59)>>>"
+    echo $INSTANCE_NAME
+    hdbsql "SELECT PORT,SERVICE_NAME,PROCESS_ID,DETAIL,ACTIVE_STATUS,SQL_PORT,COORDINATOR_TYPE FROM M_SERVICES WHERE HOST = '$(hostname -f)'"
+
+    # echo "<<<sap_hana_threads:sep(59)>>>"
+    # echo $INSTANCE_NAME
+    # hdbsql "select MAX(CPU_TIME_CUMULATIVE), THREAD_METHOD from M_SERVICE_THREADS where THREAD_METHOD <> '' and HOST = '$(hostname -f)' group by THREAD_METHOD"
+    # hdbsql "SELECT SERVICE_NAME, CONNECTION_ID, THREAD_ID, THREAD_METHOD, CALLER, DURATION FROM M_SERVICE_THREADS WHERE HOST = '$(hostname -f)'"
+
+    echo "<<<fileinfo:sep(59)>>>"
+    date +%s
+    hdbsql "SELECT '/SAP HANA $SID $INSTANCE/' || FILE_NAME, FILE_SIZE, SECONDS_BETWEEN('1970-01-01 00:00:00', FILE_MTIME) AS UNIXMTIME FROM M_TRACEFILES WHERE HOST = '$(hostname -f)'"
 
 }
 
