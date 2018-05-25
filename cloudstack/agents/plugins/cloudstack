@@ -339,3 +339,4 @@ if __name__ == "__main__":
                 else:
                     print 'runtime.powerState poweredOff'
                 print '<<<<>>>>'
+                break
