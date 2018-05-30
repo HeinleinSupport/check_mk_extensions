@@ -14,3 +14,27 @@ register_rule(
     )
 )
 
+register_check_parameters(
+    subgroup_applications,
+    "open_xchange",
+    _("Open-XChange Attributes"),
+    Transform(
+        Dictionary(
+            help = _("Thresholds for Open-XChange attributes"),
+            elements = [
+                ("levels",
+                  Levels(
+                      title = _('Levels'),
+                      help = _('The meaning of these levels depend on the OX attribute the rule is applied to.'),
+                      )
+                ),
+            ],
+            optional_keys = [],
+        ),
+    ),
+    TextAscii(
+        title = _("Open-XChange Attribute"),
+        allow_empty = False,
+    ),
+    "dict",
+)
