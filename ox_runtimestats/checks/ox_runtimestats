@@ -15,9 +15,6 @@
 # to the Free Software Foundation, Inc., 51 Franklin St,  Fifth Floor,
 # Boston, MA 02110-1301 USA.
 
-import time
-import hashlib
-
 ox_attributes = {
     'com.openexchange.pooling:name=Overview,NumConnections': 'DB Connections',
     'com.openexchange.monitoring:name=GeneralMonitor,NumberOfOpenAJPSockets': 'Open AJP Sockets',
@@ -104,25 +101,24 @@ ox_counters = [
     ]
 
 def inventory_ox_attributes(checkname, info):
-	inventory = []
-	for line in info:
-	    line = ' '.join(line).split(' = ')
-	    if line[0] in ox_attributes:
-		inventory.append((ox_attributes[line[0]], []))
-	return inventory
+    for line in info:
+        line = ' '.join(line).split(' = ')
+        if line[0] in ox_attributes:
+            yield ox_attributes[line[0]], {}
 
 def check_ox_attributes(item, params, info):
+    import hashlib
     now = time.time()
     for line in info:
-	line = ' '.join(line).split(' = ')
-	if line[0] in ox_attributes:
-	    if ox_attributes[line[0]] == item:
-		number = saveint(line[1])
-		if line[0] in ox_counters:
-		    timediff, rate_per_sec = get_counter("ox_runtimestat.attributes.%s" % hashlib.sha256(line[0]).hexdigest(), now, number)
-		    return (0, "%0.3f %s per second" % (rate_per_sec, item), [ (item.replace(' ', '_'), rate_per_sec) ])
-		else:
-		    return (0, "%d %s" % (number, item), [ (item.replace(' ', '_'), number) ])
+        line = ' '.join(line).split(' = ')
+        if line[0] in ox_attributes:
+            if ox_attributes[line[0]] == item:
+                number = saveint(line[1])
+                if line[0] in ox_counters:
+                    rate_per_sec = get_rate("ox_runtimestat.attributes.%s" % hashlib.sha256(line[0]).hexdigest(), now, number)
+                    return (0, "%0.3f %s per second" % (rate_per_sec, item), [ (item.replace(' ', '_'), rate_per_sec) ])
+                else:
+                    return (0, "%d %s" % (number, item), [ (item.replace(' ', '_'), number) ])
 
 check_info['ox_runtimestats.attributes'] = {
     'check_function':          check_ox_attributes,
