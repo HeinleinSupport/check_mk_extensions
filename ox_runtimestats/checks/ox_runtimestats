@@ -163,3 +163,46 @@ check_info['ox_runtimestats.sessions'] = {
     'has_perfdata':            True,
     'group':                   'open_xchange',
     }
+
+def parse_ox_memorypool(info):
+    memorypools = {}
+    for line in info:
+        line = ' '.join(line).split(' = ')
+        if line[0].startswith('java.lang:') and line[0].endswith('type=MemoryPool,Usage'):
+            name = None
+            for key, value in map(lambda x: x.split('='), line[0][10:].split(',')):
+                if key == 'name':
+                    name = value
+                    break
+            if name:
+                pool = {}
+                if line[1][0] == '[' and line[1][-1] == ']':
+                    for key, value in map(lambda x: x.split('='), line[1][1:-1].split(',')):
+                        pool[key] = saveint(value)
+                    memorypools[name] = pool
+    return memorypools
+
+def inventory_ox_memorypool(info):
+    parsed = parse_ox_memorypool(info)
+    if cmk.debug.enabled():
+        pprint.pprint(parsed)
+    for name in parsed:
+        yield name, {}
+
+def check_ox_memorypool(item, params, info):
+    parsed = parse_ox_memorypool(info)
+    if cmk.debug.enabled():
+        pprint.pprint(item)
+        pprint.pprint(params)
+        pprint.pprint(parsed)
+    if item in parsed:
+        return check_memory_simple(parsed[item]['used'], parsed[item]['max'], params)
+
+check_info['ox_runtimestats.memorypool'] = {
+    'check_function':          check_ox_memorypool,
+    'inventory_function':      inventory_ox_memorypool,
+    'service_description':     'OX MemoryPool %s',
+    'has_perfdata':            True,
+    'group':                   'memory_multiitem',
+    'includes':                [ 'memory.include' ],
+    }
