@@ -1,9 +1,8 @@
 #!/usr/bin/env python
 # -*- encoding: utf-8; py-indent-offset: 4 -*-
 
-group = "agents/" + _("Agent Plugins")
-
-register_rule(group,
+register_rule(
+    "agents/" + _("Agent Plugins"),
     "agent_config:ox_runtimestats",
     DropdownChoice(
         title = _("Open-Xchange runtime statistics (Linux)"),
