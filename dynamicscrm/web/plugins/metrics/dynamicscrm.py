@@ -2,7 +2,7 @@
 # -*- encoding: utf-8; py-indent-offset: 4 -*-
 
 #
-# (c) 2017 Heinlein Support GmbH
+# (c) 2018 Heinlein Support GmbH
 #          Robert Sander <r.sander@heinlein-support.de>
 #
 
@@ -17,7 +17,4 @@
 # to the Free Software Foundation, Inc., 51 Franklin St,  Fifth Floor,
 # Boston, MA 02110-1301 USA.
 
-check_metrics["check_mk-sap_hana_diskusage"] = df_translation
-check_metrics["check_mk-sap_hana_memrate"] = memory_simple_translation
-check_metrics["check_mk-sap_hana_data_volume"] = df_translation
-check_metrics["check_mk-sap_hana_data_volume.disk"] = df_translation
+check_metrics["check_mk-dynamics_crm_storage_tenant"] = df_translation

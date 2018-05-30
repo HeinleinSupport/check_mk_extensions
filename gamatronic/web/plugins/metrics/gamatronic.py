@@ -17,7 +17,15 @@
 # to the Free Software Foundation, Inc., 51 Franklin St,  Fifth Floor,
 # Boston, MA 02110-1301 USA.
 
-check_metrics["check_mk-sap_hana_diskusage"] = df_translation
-check_metrics["check_mk-sap_hana_memrate"] = memory_simple_translation
-check_metrics["check_mk-sap_hana_data_volume"] = df_translation
-check_metrics["check_mk-sap_hana_data_volume.disk"] = df_translation
+metric_info['in_voltage'] = {
+    'title': _('Voltage IN'),
+    'unit' : 'v',
+    'color': '51/a',
+}
+
+
+metric_info['out_voltage'] = {
+    'title': _('Voltage OUT'),
+    'unit' : 'v',
+    'color': '52/a',
+}

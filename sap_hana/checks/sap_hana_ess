@@ -16,7 +16,7 @@
 
 # Example output from agent:
 #<<<sap_hana_ess:sep(59)>>>
-#[[TST00]]
+#[[SID INSTANCE]]
 #started;5
 #active;yes
 

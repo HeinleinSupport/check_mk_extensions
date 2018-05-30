@@ -16,7 +16,7 @@
 
 # Example output from agent:
 #<<<sap_hana_memrate:sep(59)>>>
-#[[TST00]]
+#[[SID INSTANCE]]
 #mem_rate;123;456
 
 factory_settings["sap_hana_memrate_default_levels"] = {

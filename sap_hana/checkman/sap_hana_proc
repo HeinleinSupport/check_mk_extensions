@@ -1,0 +1,19 @@
+title: SAP HANA Process
+agents: linux
+catalog: app/sap
+license: GPL
+distribution: heinlein
+description:
+ This check monitors the process status of SAP HANA. It uses data provided by the {sap_hana} agent plugin, which uses hdbsql queries to retrieve information from SAP HANA instances. To make this check work, you have to deploy the {sap_hana} agent plugin on a host.
+
+ It uses the hdbsql query {SELECT PORT,SERVICE_NAME,PROCESS_ID,DETAIL,ACTIVE_STATUS,SQL_PORT,COORDINATOR_TYPE FROM M_SERVICES WHERE HOST = '$(hostname -f)'}
+
+ The check warns when the process coordinator type is different from the one at the time of discovery, i.e. when the type has switched from master to backup.
+
+ The check is critical when the active status is not YES.
+
+item:
+ The SAP HANA instance and process name.
+
+inventory:
+ One service per instance and process name is created.

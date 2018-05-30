@@ -16,7 +16,7 @@
 
 # Example output from agent:
 #<<<sap_hana_events:sep(59)>>>
-#[[TST00]]
+#[[SID INSTANCE]]
 #open_events;0
 #disabled_alerts;0
 #high_alerts;0

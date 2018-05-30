@@ -6,7 +6,11 @@ distribution: heinlein
 description:
  This check monitors the backup status (Data Snapshot, Data Backup, Log Backup) of SAP HANA. It uses data provided by the {sap_hana} agent plugin, which uses hdbsql queries to retrieve information from SAP HANA instances. To make this check work, you have to deploy the {sap_hana} agent plugin on a host.
 
+ It uses the hdbsql queries {Select TOP 1 entry_type_name, sys_end_time, state_name, comment, message from M_BACKUP_CATALOG where entry_type_name = 'data snapshot' AND state_name <> 'running' order by sys_start_time desc}, {Select TOP 1 entry_type_name, sys_end_time, state_name, comment, message from M_BACKUP_CATALOG where entry_type_name = 'complete data backup' AND state_name <> 'running' order by sys_start_time desc} and {Select TOP 1 entry_type_name, sys_end_time, state_name, comment, message from M_BACKUP_CATALOG where entry_type_name = 'log backup' AND state_name <> 'running' order by sys_start_time desc}.
+
  The check is configurable to warn at a certain backup age.
+
+ The check is cluster ready.
 
 item:
  The SAP HANA instance and backup name.
