@@ -127,4 +127,33 @@ check_info['ox_runtimestats.attributes'] = {
     'has_perfdata':            True,
     'group':                   'open_xchange',
     }
-		
+
+ox_sessions = {
+    'com.openexchange.sessiond:name=SessionD Toolkit,NumberOfLongTermSessions': 'Long Term Sessions',
+    'com.openexchange.sessiond:name=SessionD Toolkit,NumberOfShortTermSessions': 'Short Term Sessions',
+}
+
+def inventory_ox_sessions(info):
+    for line in info:
+        line = ' '.join(line).split(' = ')
+        if line[0] in ox_sessions:
+            yield ox_sessions[line[0]], {}
+
+def check_ox_sessions(item, params, info):
+    import json
+    now = time.time()
+    for line in info:
+        line = ' '.join(line).split(' = ')
+        if line[0] in ox_sessions:
+            if ox_sessions[line[0]] == item:
+                session_buckets = json.loads(line[1])
+                number = session_buckets[0]
+                return (0, "%d %s" % (number, item), [ (item.replace(' ', '_'), number) ])
+
+check_info['ox_runtimestats.sessions'] = {
+    'check_function':          check_ox_sessions,
+    'inventory_function':      inventory_ox_sessions,
+    'service_description':     'OX %s',
+    'has_perfdata':            True,
+    'group':                   'open_xchange',
+    }
