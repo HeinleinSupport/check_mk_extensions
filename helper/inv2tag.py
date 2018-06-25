@@ -9,6 +9,7 @@
 import argparse
 import checkmkapi
 import re
+import copy
 import pprint
 
 parser = argparse.ArgumentParser()
@@ -20,6 +21,11 @@ parser.add_argument('-d', '--dump', action="store_true", help='Dump unique value
 args = parser.parse_args()
 
 conf = eval(open(args.config, 'r').read())
+conf_tagmap = {}
+for attr, patterns in conf['tagmap'].iteritems():
+    conf_tagmap[attr] = {}
+    for pattern, settags in patterns.iteritems():
+        conf_tagmap[attr][re.compile(pattern, re.IGNORECASE)] = settags
 
 mapi = checkmkapi.MultisiteAPI(args.url, args.username, args.password)
 wato = checkmkapi.WATOAPI(args.url, args.username, args.password)
@@ -39,15 +45,21 @@ if args.dump:
     pprint.pprint(result)
 else:
     changes = False
+    hosts = wato.get_all_hosts()
     for info in resp:
         print info['host']
         tags = {}
-        for attr, patterns in conf['tagmap'].iteritems():
+        for attr, patterns in conf_tagmap.iteritems():
             if attr in info:
                 pprint.pprint(info[attr])
                 for pattern, settags in patterns.iteritems():
                     if pattern.search(info[attr]):
-                        tags.update(settags)
+                        for taggroup, tag in settags.iteritems():
+                            if taggroup in hosts[info['host']]['attributes']:
+                                if hosts[info['host']]['attributes'][taggroup] != tag:
+                                    tags[taggroup] = tag
+                            else:
+                                tags[taggroup] = tag
         print tags
 
         if tags:
