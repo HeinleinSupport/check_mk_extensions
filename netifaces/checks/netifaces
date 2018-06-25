@@ -69,8 +69,12 @@ def check_netifaces_rbl(item, rbls, ifaces):
                                     res = levelres[0]
                                 count += 1
                                 msg.append('found in %s: %s %s' % (rbl, ip, levelres[1]))
-                            except socket.gaierror:
-                                pass
+                            except socket.gaierror, er:
+                                if cmk.debug.enabled():
+                                    print 'error in %s.%s): %s' % (".".join(reversed(address.split('.'))), rbl, er)
+                                if er.args[0] != socket.EAI_NONAME:
+                                    res = 1
+                                    msg.append('%s yields %s(!)' % (rbl, er))
                     if count > 1:
                         res = 2
                         msg.append('found in more than 1 RBL (!!)')
