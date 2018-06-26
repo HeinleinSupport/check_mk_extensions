@@ -31,6 +31,10 @@ def inventory_cpufreq(info):
 def check_cpufreq(_no_item, _no_params, info):
     if cmk.debug.enabled():
         pprint.pprint(info)
+    res = 0
+    cpumsgs = []
+    freqs = []
+    perfdata = []
     for line in info:
         cpu = line[0]
         governor = line[1]
@@ -41,16 +45,20 @@ def check_cpufreq(_no_item, _no_params, info):
         epsilon = 5 # 5%
 
         text = '%s has %s governor with %0.2fMHz' % (cpu, governor, cur_freq / 1000.0)
-        perfdata = [ ( 'freq_%s' % cpu, cur_freq * 1000.0, None, None, min_freq * 1000.0, max_freq * 1000.0 ) ]
+        perfdata.append( ( 'freq_%s' % cpu, cur_freq * 1000.0, None, None, min_freq * 1000.0, max_freq * 1000.0 ) )
+        freqs.append(cur_freq)
 
-        if cur_freq < min_freq:
-            yield 2, text + ', min is %0.2fMHz' % (min_freq / 1000.0), perfdata
-        elif cur_freq > max_freq:
-            yield 2, text + ', max is %0.2fMHz' % (max_freq / 1000.0), perfdata
-        elif cur_freq < min_freq * ( 100 + epsilon ) / 100.0:
-            yield 1, text, perfdata
-        else:
-            yield 0, text, perfdata
+        if line[3] != 'unknown' and cur_freq < min_freq:
+            text += ', min is %0.2fMHz(!!)' % (min_freq / 1000.0)
+            res = 2
+        elif line[4] != 'unknown' and cur_freq > max_freq:
+            text += ', max is %0.2fMHz(!!)' % (max_freq / 1000.0)
+            res = 2
+        elif line[3] != 'unknwon' and res == 0 and cur_freq < min_freq * ( 100 + epsilon ) / 100.0:
+            res = 1
+        cpumsgs.append(text)
+    avg_freq = float(sum(freqs)) / max(len(freqs), 1)
+    return res, "%d CPUs, average %0.2fMHz\n%s" % (len(freqs), avg_freq / 1000.0, "\n".join(cpumsgs)), perfdata + [ ( 'freq_cpu_avg', avg_freq * 1000.0 ) ]
 
 check_info['cpufreq'] = {
     'inventory_function':      inventory_cpufreq,

@@ -17,6 +17,12 @@
 # to the Free Software Foundation, Inc., 51 Franklin St,  Fifth Floor,
 # Boston, MA 02110-1301 USA.
 
+metric_info["freq_cpu_avg"] = {
+    "title" : _("Average Frequency"),
+    "unit"  : "hz",
+    "color" : "#000000",
+}
+
 for i in range(MAX_CORES):
     metric_info['freq_cpu%d' % i] = {
         'title' : _('Frequency CPU %d') % i,
@@ -26,6 +32,6 @@ for i in range(MAX_CORES):
 
 graph_info["cpu_frequencies"] = {
     'title': _('CPU Freqencies'),
-    'metrics': [ ( 'freq_cpu%d' % num, 'line' ) for num in range(MAX_CORES) ],
-    'optional_metrics' : [ 'freq_cpu%d' % num for num in range(1, MAX_CORES) ],
+    'metrics': [ ( 'freq_cpu%d' % num, 'line' ) for num in range(MAX_CORES) ] + [ ( 'freq_cpu_avg', 'line' ) ],
+    'optional_metrics' : [ 'freq_cpu%d' % num for num in range(MAX_CORES) ],
 }
