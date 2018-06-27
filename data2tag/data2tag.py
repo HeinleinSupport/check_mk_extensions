@@ -16,7 +16,7 @@ parser = argparse.ArgumentParser()
 parser.add_argument('-s', '--url', required=True, help='URL to Check_MK site')
 parser.add_argument('-u', '--username', required=True, help='name of the automation user')
 parser.add_argument('-p', '--password', required=True, help='secret of the automation user')
-parser.add_argument('-c', '--config', required=False, help='Path to config file', default='./inv2tag.conf')
+parser.add_argument('-c', '--config', required=True, help='Path to config file')
 parser.add_argument('-d', '--dump', action="store_true", help='Dump unique values from the view')
 args = parser.parse_args()
 
