@@ -35,6 +35,7 @@ def check_cpufreq(_no_item, _no_params, info):
     cpumsgs = []
     freqs = []
     perfdata = []
+    errors = []
     for line in info:
         cpu = line[0]
         governor = line[1]
@@ -50,15 +51,26 @@ def check_cpufreq(_no_item, _no_params, info):
 
         if line[3] != 'unknown' and cur_freq < min_freq:
             text += ', min is %0.2fMHz(!!)' % (min_freq / 1000.0)
+            errors.append(text)
             res = 2
         elif line[4] != 'unknown' and cur_freq > max_freq:
             text += ', max is %0.2fMHz(!!)' % (max_freq / 1000.0)
+            errors.append(text)
             res = 2
-        elif line[3] != 'unknwon' and res == 0 and cur_freq < min_freq * ( 100 + epsilon ) / 100.0:
-            res = 1
+        elif line[3] != 'unknwon' and cur_freq < min_freq * ( 100 + epsilon ) / 100.0:
+            text += '(!)'
+            errors.append(text)
+            if res == 0:
+                res = 1
         cpumsgs.append(text)
     avg_freq = float(sum(freqs)) / max(len(freqs), 1)
-    return res, "%d CPUs, average %0.2fMHz\n%s" % (len(freqs), avg_freq / 1000.0, "\n".join(cpumsgs)), perfdata + [ ( 'freq_cpu_avg', avg_freq * 1000.0 ) ]
+    return (res,
+            "%d CPUs, average %0.2fMHz%s%s\n%s" % (len(freqs),
+                                                   avg_freq / 1000.0,
+                                                   ", " if len(errors) else "",
+                                                   ", ".join(errors),
+                                                   "\n".join(cpumsgs)),
+            perfdata + [ ( 'freq_cpu_avg', avg_freq * 1000.0 ) ])
 
 check_info['cpufreq'] = {
     'inventory_function':      inventory_cpufreq,
