@@ -30,7 +30,7 @@ register_check_parameters(
         ],
     ),
     TextAscii(
-        title = _("Name of service"),
+        title = _("Certificate File"),
         allow_empty = False,
     ),
     'dict',
