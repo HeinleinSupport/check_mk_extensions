@@ -43,7 +43,8 @@ if __name__ == "__main__":
     parser.add_argument('--config',
                         required=False,
                         default=['%s/cloudstack.ini' % checkmkconfdir,
-                                 '/etc/cloudstack/cloudmoneky/config',],
+                                 '/root/.cloudmonkey/config',
+                                 '/etc/cloudstack/cloudmonkey/config',],
                         help='Path to configuration file')
     parser.add_argument('-p', '--profile', required=False, default='local', help='CloudStack config profile section name')
     args = parser.parse_args()
