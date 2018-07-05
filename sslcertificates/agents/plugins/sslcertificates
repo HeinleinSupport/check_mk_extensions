@@ -37,7 +37,7 @@ echo '<<<sslcertificates>>>'
 for dir in $CERT_DIRS; do
     if [ -d "$dir" ]; then
         for certfile in "$dir"/*; do
-            if [ -f "$certfile" ] && grep -q -- '-----BEGIN CERTIFICATE-----' "$certfile"; then
+            if [ -f "$certfile" -a ! -L "$certfile" ] && grep -q -- '-----BEGIN CERTIFICATE-----' "$certfile"; then
 
                 cert_subject=$($OPENSSL x509 -noout -subject -in "$certfile" | cut -d "=" -f 2-)
                 if ! grep -q '@snakeoil.dom' <<<"$cert_subject"; then
