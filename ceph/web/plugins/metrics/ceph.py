@@ -50,6 +50,7 @@ _ceph_pgstates = ['pgstate_active_clean',
                   'pgstate_remapped_peering',
                   'pgstate_active_recovery_wait_remapped',
                   'pgstate_stale_active_undersized_degraded',
+                  'pgstate_stale_active_clean',
                   'pgstate_peering',
                  ]
 
