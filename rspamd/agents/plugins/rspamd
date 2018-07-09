@@ -1,0 +1,8 @@
+#!/bin/sh
+
+rspamc=$(which rspamc)
+
+if [ -x "$rspamc" ]; then
+    echo '<<<rspamd>>>'
+    $rspamc --compact stat
+fi

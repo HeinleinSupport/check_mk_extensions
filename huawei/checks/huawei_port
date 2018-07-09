@@ -129,7 +129,7 @@ def check_huawei_port(item, params, parsed):
         elif portinfo[11] != params['status']:
             res = 1
             msg += ', has changed from %s(!)' % huawei_port_states[params['status']]
-        msg += '; type is %s' % huawei_port_logictypes[portinfo[12]]
+        msg += '; type is %s' % huawei_port_logictypes.get(portinfo[12], 'unknown')
         if portinfo[12] != params['logicType']:
             res = 2
             msg += ', has changed from %s(!!)' % huawei_port_logictypes[params['logicType']]

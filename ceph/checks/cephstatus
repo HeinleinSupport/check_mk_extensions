@@ -114,6 +114,10 @@ def check_cephstatus(item, params, parsed):
                 else: 
                     yield info['state'], '%d PGs in %s' % (info['count'], pgstate), [('pgstate_%s' % pgstate.replace('+', '_'), info['count'], 0)]
             yield rc, ', '.join(msg), perfdata
+    if 'mgrmap' in parsed:
+        if 'services' in parsed['mgrmap']:
+            if 'dashboard' in parsed['mgrmap']['services']:
+                yield 0, 'Dashboard: %s' % parsed['mgrmap']['services']['dashboard']
 
 check_info["cephstatus"] = {
     'parse_function'        : parse_json,

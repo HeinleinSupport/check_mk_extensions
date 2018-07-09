@@ -43,7 +43,8 @@ if __name__ == "__main__":
     parser.add_argument('--config',
                         required=False,
                         default=['%s/cloudstack.ini' % checkmkconfdir,
-                                 '/etc/cloudstack/cloudmoneky/config',],
+                                 '/root/.cloudmonkey/config',
+                                 '/etc/cloudstack/cloudmonkey/config',],
                         help='Path to configuration file')
     parser.add_argument('-p', '--profile', required=False, default='local', help='CloudStack config profile section name')
     args = parser.parse_args()
@@ -241,42 +242,41 @@ if __name__ == "__main__":
                                                                                               capacity['capacitytotal'],
                                                                                               capacity['percentused'] )
         if (capacity['type'] == 4):
-            critReserve = 10
-            warnReserve = 20
+            warn = capacity['capacitytotal'] * 0.90
+            crit = capacity['capacitytotal'] * 0.95
             print 'P ACS_Public_IPs count=%d;%d;%d;0;%d %d pubic IPs available, %s%% used' % (capacity['capacityused'],
-                                                                                     capacity['capacitytotal'] - warnReserve,
-                                                                                     capacity['capacitytotal'] - critReserve,
-                                                                                     capacity['capacitytotal'],
-                                                                                     capacity['capacitytotal'],
-                                                                                     capacity['percentused'] )
+                                                                                    warn,
+                                                                                    crit,
+                                                                                    capacity['capacitytotal'],
+                                                                                    capacity['capacitytotal'],
+                                                                                    capacity['percentused'] )
         if (capacity['type'] == 5):
-            critReserve = 10
-            warnReserve = 20
+            warn = capacity['capacitytotal'] * 0.90
+            crit = capacity['capacitytotal'] * 0.95
             print 'P ACS_Management_IPs count=%d;%d;%d;0;%d %d management IPs available, %s%% used' % (capacity['capacityused'],
-                                                                                    capacity['capacitytotal'] - warnReserve,
-                                                                                    capacity['capacitytotal'] - critReserve,
+                                                                                    warn,
+                                                                                    crit,
                                                                                     capacity['capacitytotal'],
                                                                                     capacity['capacitytotal'],
                                                                                     capacity['percentused'] )
         if (capacity['type'] == 7):
-            critReserve = 10
-            warnReserve = 20
+            warn = capacity['capacitytotal'] * 0.90
+            crit = capacity['capacitytotal'] * 0.95
             print 'P ACS_VLAN/VNI count=%d;%d;%d;0;%d %d VLAN IDs available, %s%% used' % (capacity['capacityused'],
-                                                                                      capacity['capacitytotal'] - warnReserve,
-                                                                            (capacity['capacitytotal'] - critReserve),
-                                                                            capacity['capacitytotal'],
-                                                                            capacity['capacitytotal'],
-                                                                            capacity['percentused'] )
+                                                                                    warn,
+                                                                                    crit,
+                                                                                    capacity['capacitytotal'],
+                                                                                    capacity['capacitytotal'],
+                                                                                    capacity['percentused'] )
         if (capacity['type'] == 8):
-            critReserve = 10
-            warnReserve = 20
-            print 'P ACS_Shared_Network_IPs count=%d;%d;%d;0;%d %d shared network IPs available, %s%% used' % (
-                                                                            capacity['capacityused'],
-                                                                            (capacity['capacitytotal'] - warnReserve),
-                                                                            (capacity['capacitytotal'] - critReserve),
-                                                                            capacity['capacitytotal'],
-                                                                            capacity['capacitytotal'],
-                                                                            capacity['percentused'] )
+            warn = capacity['capacitytotal'] * 0.90
+            crit = capacity['capacitytotal'] * 0.95
+            print 'P ACS_Shared_Network_IPs count=%d;%d;%d;0;%d %d shared network IPs available, %s%% used' % (capacity['capacityused'],
+                                                                                    warn,
+                                                                                    crit,
+                                                                                    capacity['capacitytotal'],
+                                                                                    capacity['capacitytotal'],
+                                                                                    capacity['percentused'] )
     # pprint(cloudstack.listSnapshots())
     # pprint(cloudstack.listAccounts())
     # pprint(cloudstack.listDomains())

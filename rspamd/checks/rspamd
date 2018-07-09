@@ -1,0 +1,75 @@
+#!/usr/bin/env python
+# -*- encoding: utf-8; py-indent-offset: 4 -*-
+
+# (c) 2018 Heinlein Support GmbH
+#          Robert Sander <r.sander@heinlein-support.de>
+
+# This is free software;  you can redistribute it and/or modify it
+# under the  terms of the  GNU General Public License  as published by
+# the Free Software Foundation in version 2.  This file is distributed
+# in the hope that it will be useful, but WITHOUT ANY WARRANTY;  with-
+# out even the implied warranty of  MERCHANTABILITY  or  FITNESS FOR A
+# PARTICULAR PURPOSE. See the  GNU General Public License for more de-
+# ails.  You should have  received  a copy of the  GNU  General Public
+# License along with GNU Make; see the file  COPYING.  If  not,  write
+# to the Free Software Foundation, Inc., 51 Franklin St,  Fifth Floor,
+# Boston, MA 02110-1301 USA.
+
+def inventory_rspamd(info):
+    if 'scanned' in info:
+        yield None, {}
+
+def check_rspamd(_no_item, params, info):
+    data = { 'scanned': 0,
+             'ham_count': 0,
+             'spam_count': 0,
+             'actions': { 'add header': 0,
+                          'greylist': 0,
+                          'no action': 0,
+                          'reject': 0,
+                          'rewrite subject': 0,
+                          'soft reject': 0,
+                          },
+            }
+    rate = {}
+    now = time.time()
+    for key, value in data.iteritems():
+        if type(value) == int:
+            if key in info:
+                data[key] = info[key]
+                rate[key] = get_rate('rspamd.%s' % key, now, data[key])
+            else:
+                rate[key] = 0.0
+        elif type(value) == dict:
+            if key not in rate:
+                rate[key] = {}
+            for key2, value2 in data[key].iteritems():
+                if type(value2) == int:
+                    if key2 in info[key]:
+                        data[key][key2] = info[key][key2]
+                        rate[key][key2] = get_rate('rspamd.%s.%s' % (key, key2), now, data[key][key2])
+                    else:
+                        rate[key][key2] = 0.0
+
+    total = data['scanned']
+    total_rate = rate['scanned']
+
+    for key, value in data.iteritems():
+        if type(value) == int:
+            yield 0, '%d %s (%0.2f%%)' % (value, key, value*100.0/total), [ ('rspamd_%s_rate' % key, rate[key]) ]
+        elif type(value) == dict:
+            for key2, value2 in data[key].iteritems():
+                if type(value2) == int:
+                    yield ( 0, '%d %s (%0.2f%%)' % (value2, key2, value2*100.0/total),
+                            [ ('rspamd_%s_%s_rate' % (key, key2.replace(' ', '_')), rate[key][key2]) ] )
+    
+check_info['rspamd'] = {
+    'parse_function'         : parse_json,
+    'inventory_function'     : inventory_rspamd,
+    'check_function'         : check_rspamd,
+    'service_description'    : "Rspamd",
+    'has_perfdata'           : True,
+    'group'                  : 'rspamd',
+    'default_levels_variable': 'rspamd_default_levels',
+    'includes'               : [ 'json.include' ],
+}
