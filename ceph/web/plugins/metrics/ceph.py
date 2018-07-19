@@ -30,6 +30,7 @@ metric_info['num_pgs'] = {
 }
 
 _ceph_pgstates = ['pgstate_active_clean',
+                  'pgstate_active_clean_inconsistent',
                   'pgstate_active_clean_remapped',
                   'pgstate_active_clean_scrubbing',
                   'pgstate_active_clean_scrubbing_deep',
@@ -45,6 +46,8 @@ _ceph_pgstates = ['pgstate_active_clean',
                   'pgstate_undersized_degraded_peered',
                   'pgstate_active_undersized_degraded_remapped_backfilling',
                   'pgstate_active_undersized_degraded_remapped_backfill_wait',
+                  'pgstate_active+undersized+degraded+remapped+inconsistent+backfilling',
+                  'pgstate_active_undersized_degraded_remapped_inconsistent_backfill_wait',
                   'pgstate_active_recovery_wait_undersized_degraded_remapped',
                   'pgstate_active_remapped_backfill_wait',
                   'pgstate_active_remapped_backfilling',
