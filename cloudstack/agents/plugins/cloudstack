@@ -206,10 +206,13 @@ if __name__ == "__main__":
     csAlertMsg = ''
     for csAlert in cloudstack.listAlerts():
         csAlertMsg = '%s (%s) %s' % (csAlert['description'], csAlert['name'], csAlert['sent'])
-        if csAlert['type'] in csAlertTypeWarn:
+        if csAlert['type'] == 14 and 'is up' in csAlert['description']:
+            # Management server node is up is OK
+            pass
+        elif csAlert['type'] in csAlertTypeWarn:
             csAlertRes = max(1, csAlertRes)
             csAlertMsg += '(!)'
-        if csAlert['type'] in csAlertTypeCrit:
+        elif csAlert['type'] in csAlertTypeCrit:
             csAlertRes = 2
             csAlertMsg += '(!!)'
         csAlerts.append(csAlertMsg)
