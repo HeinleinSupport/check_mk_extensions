@@ -42,6 +42,10 @@ class _X25519PrivateKey(object):
         evp_pkey = self._backend._lib.d2i_PUBKEY_bio(
             bio, self._backend._ffi.NULL
         )
+        self._backend.openssl_assert(evp_pkey != self._backend._ffi.NULL)
+        evp_pkey = self._backend._ffi.gc(
+            evp_pkey, self._backend._lib.EVP_PKEY_free
+        )
         return _X25519PublicKey(self._backend, evp_pkey)
 
     def exchange(self, peer_public_key):
@@ -67,5 +71,9 @@ class _X25519PrivateKey(object):
         self._backend.openssl_assert(keylen[0] > 0)
         buf = self._backend._ffi.new("unsigned char[]", keylen[0])
         res = self._backend._lib.EVP_PKEY_derive(ctx, buf, keylen)
-        self._backend.openssl_assert(res == 1)
+        if res != 1:
+            raise ValueError(
+                "Null shared key derived from public/private pair."
+            )
+
         return self._backend._ffi.buffer(buf, keylen[0])[:]

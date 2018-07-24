@@ -129,7 +129,7 @@ def _enc_dec_rsa_pkey_ctx(backend, key, data, padding_enum, padding):
 
 def _handle_rsa_enc_dec_error(backend, key):
     errors = backend._consume_errors()
-    assert errors
+    backend.openssl_assert(errors)
     assert errors[0].lib == backend._lib.ERR_LIB_RSA
     if isinstance(key, _RSAPublicKey):
         assert (errors[0].reason ==
@@ -264,8 +264,7 @@ def _rsa_sig_verify(backend, padding, algorithm, public_key, signature, data):
     # occurs.
     backend.openssl_assert(res >= 0)
     if res == 0:
-        errors = backend._consume_errors()
-        assert errors
+        backend._consume_errors()
         raise InvalidSignature
 
 
