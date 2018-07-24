@@ -101,7 +101,8 @@ def check_cephstatus(item, params, parsed):
                 if pgstate['state_name'] in _ceph_pgstates:
                     _ceph_pgstates[pgstate['state_name']]['count'] = pgstate['count']
                 else:
-                    yield 3, pgstate['state_name']
+                    yield 3, 'new PG state: ' + pgstate['state_name']
+                    continue
                 if 'inconsistent' in pgstate['state_name'] or 'incomplete' in pgstate['state_name'] or 'active' not in pgstate['state_name']:
                     _ceph_pgstates[pgstate['state_name']]['state'] = 2
                 elif 'active+clean' != pgstate['state_name'] and 'active+clean+scrubbing' != pgstate['state_name'] and 'active+clean+scrubbing+deep' != pgstate['state_name']:
