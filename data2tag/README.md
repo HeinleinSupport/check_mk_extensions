@@ -44,3 +44,18 @@ The config file contains a Python data structure (a dictionary) with at least tw
     }
 
 The tag group (e.g. 'opsys') and the tag choices have to exist before running data2tag.
+
+An additional key 'args' may exist in the configuration dictionary which defines view parameters. E.g.:
+
+    {
+      'view_name': 'invswpac_search',
+      'args': {
+        'filled_in': 'filter',
+        'invswpac_name': 'apache2$',
+      },
+      'tagmap': {
+        'invswpac_name': {
+          'apache2': {'tag_apache': 'apache'},
+        },
+      }
+    }
