@@ -59,3 +59,5 @@ An additional key 'args' may exist in the configuration dictionary which defines
         },
       }
     }
+
+The command line switch '-d' dumps all unique values from the view for easier configuration.
