@@ -34,7 +34,7 @@ def check_dell_sc_ctlrfan(item, params, info):
         if item_dell_sc_ctlrfan(line) == item:
             res = check_fan(saveint(line[3]), params)
             ctlrfan_state = state.get(saveint(line[1]), ('unknown', 3))
-            info_text = "%s, %s RPM, State is %s %s" % (
+            info_text = "%s, %s RPM, State is %s" % (
                 line[2],
                 line[3],
                 ctlrfan_state[0],
