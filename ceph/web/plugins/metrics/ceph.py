@@ -58,6 +58,7 @@ _ceph_pgstates = ['pgstate_active_clean',
                   'pgstate_active_remapped_backfilling',
                   'pgstate_peering',
                   'pgstate_remapped_peering',
+                  'pgstate_stale_active_clean',
                   'pgstate_stale_active_undersized_degraded',
                   'pgstate_undersized_degraded_peered',
                  ]
