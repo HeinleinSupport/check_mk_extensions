@@ -30,6 +30,8 @@ def check_dell_sc_ctlrfan(item, params, info):
         2  : ('down', 2),
         3  : ('degraded', 1),
         }
+    if not params:
+        params = {}
     for line in info:
         if item_dell_sc_ctlrfan(line) == item:
             res = check_fan(saveint(line[3]), params)
