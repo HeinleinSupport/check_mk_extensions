@@ -21,6 +21,8 @@ as the site user. This will install a number of Python modules.
 
 The JIRA notification plugin uses several environment variables set by the accompanying WATO plugin or set by custom user attributes. I.e. you can have different monitoring users creating issue in different JIRA projects.
 
+Make sure that the notification rules using this method only create one issue per notification. This can be achieved by setting the JIRA project ID as a custom user attribute for only one user that is a contact of the notified object and leaving the project ID unset in the notification rule.
+
 `NOTIFY_PARAMETER_*` variables are set in the notification rule by the WATO plugin, `NOTIFY_CONTACT_*` variables are set from user custom attributes that have to be configured to be used in notifications.
 
 The custom user attributes should be defined as this:
