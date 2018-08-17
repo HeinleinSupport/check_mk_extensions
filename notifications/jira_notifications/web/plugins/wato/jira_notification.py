@@ -28,7 +28,7 @@ register_notification_parameters("jira", Dictionary(
             size = 40,
             allow_empty = False,
         )),
-        ("password", TextAscii(
+        ("password", Password(
             title = _("Password"),
             help = _("You need to provide a valid passowrd to be able to send notifications."),
             size = 40,
