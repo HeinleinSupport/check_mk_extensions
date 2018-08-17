@@ -47,7 +47,7 @@ The numerical JIRA project ID. If not set, it will be retrieved from a custom us
 
 The numerical JIRA issue type ID. If not set, it will be retrieved from a custom user attribute named `jiraissuetype`. If that is not set, the notification will fail.
 
-## NOTIFY_PARAMETER_PRIORITY or NOTIFIY_CONTACT_JIRAPRIORITY or not set ##
+## NOTIFY_PARAMETER_PRIORITY or NOTIFIY_CONTACT_JIRAPRIORITY ##
 
 The numerical JIRA priority ID. If not set, it will be retrieved from a custom user attribute named `jirapriority`. If that is not set, the standard priority will be used.
 
@@ -55,8 +55,10 @@ The numerical JIRA priority ID. If not set, it will be retrieved from a custom u
 
 The numerical JIRA resolution transition ID. If not set, it will be retrieved from a custom user attribute named jiraresolution.
 
-## NOTIFY_PARAMETER_USERNAME or NOTIFY_CONTACT_JIRAUSER ##
+## NOTIFY_CONTACT_JIRAUSER ##
 
-
+This is the optional username that is used as the reporter for the new issue. If this is not set the issue will be created with the authenticated user as reporter.
 
 ## NOTIFY_PARAMETER_MONITORING ##
+
+Configure the base URL for the Monitoring Web-GUI here. Include the site name. This is used to add a simple link in the newly created issue pointing back to the monitoring site. The URL specified here gets the content of `NOTIFY_HOSTURL` or `NOTIFY_SERVICEURL` appended.
