@@ -27,36 +27,36 @@ The custom user attributes should be defined as this:
 
 ![Custom User Attributes](custom_user_attributes.png) ![Edit User Attribute](edit_user_attribute.png)
 
-## `NOTIFY_PARAMETER_URL` ##
+## NOTIFY_PARAMETER_URL ##
 
 This contains the JIRA base URL. It is set for each notification rule, i.e. you can create issues in different JIRA instances with multiple notification rules.
 
-## `NOTIFY_PARAMETER_USERNAME` ##
+## NOTIFY_PARAMETER_USERNAME ##
 
 This is the JIRA API username for authentication.
 
-## `NOTIFY_PARAMETER_PASSWORD` ##
+## NOTIFY_PARAMETER_PASSWORD ##
 
 This is the JIRA API password for authentication.
 
-## `NOTIFY_PARAMETER_PROJECT` or `NOTIFY_CONTACT_JIRAPROJECT` ##
+## NOTIFY_PARAMETER_PROJECT or NOTIFY_CONTACT_JIRAPROJECT ##
 
 The numerical JIRA project ID. If not set, it will be retrieved from a custom user attribute named `jiraproject`. If that is not set, the notification will fail.
 
-## `NOTIFY_PARAMETER_ISSUETYPE` or `NOTIFY_CONTACT_JIRAISSUETYPE` ##
+## NOTIFY_PARAMETER_ISSUETYPE or NOTIFY_CONTACT_JIRAISSUETYPE ##
 
 The numerical JIRA issue type ID. If not set, it will be retrieved from a custom user attribute named `jiraissuetype`. If that is not set, the notification will fail.
 
-## `NOTIFY_PARAMETER_PRIORITY` or `NOTIFIY_CONTACT_JIRAPRIORITY` or not set ##
+## NOTIFY_PARAMETER_PRIORITY or NOTIFIY_CONTACT_JIRAPRIORITY or not set ##
 
 The numerical JIRA priority ID. If not set, it will be retrieved from a custom user attribute named `jirapriority`. If that is not set, the standard priority will be used.
 
-## `NOTIFY_PARAMETER_RESOLUTION` or `NOTIFY_CONTACT_JIRARESOLUTION` ##
+## NOTIFY_PARAMETER_RESOLUTION or NOTIFY_CONTACT_JIRARESOLUTION ##
 
 The numerical JIRA resolution transition ID. If not set, it will be retrieved from a custom user attribute named jiraresolution.
 
-## `NOTIFY_PARAMETER_USERNAME` or `NOTIFY_CONTACT_JIRAUSER` ##
+## NOTIFY_PARAMETER_USERNAME or NOTIFY_CONTACT_JIRAUSER ##
 
 
 
-## `NOTIFY_PARAMETER_MONITORING`
+## NOTIFY_PARAMETER_MONITORING ##
