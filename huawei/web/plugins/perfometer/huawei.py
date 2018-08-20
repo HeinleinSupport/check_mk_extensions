@@ -17,5 +17,5 @@
 # to the Free Software Foundation, Inc., 51 Franklin St,  Fifth Floor,
 # Boston, MA 02110-1301 USA.
 
-perfometers["check_mk-huawei_capacity"] = perfometer_check_mk_df
-perfometers["check_mk-huawei_nasfs"] = perfometer_check_mk_df
+#perfometers["check_mk-huawei_capacity"] = perfometer_check_mk_df
+#perfometers["check_mk-huawei_nasfs"] = perfometer_check_mk_df

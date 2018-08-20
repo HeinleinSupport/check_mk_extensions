@@ -286,7 +286,7 @@ for mc in multisite_commands[:]:
                 "title"       : _("Schedule downtimes"),
                 "render"      : lambda: paint_downtime_buttons("host"),
                 "action"      : command_downtime,
-                "group"       : _("Downtimes"),
+                "group"       : "downtimes",
             })
         if mc['tables'] == [ "service" ]:
             multisite_commands.remove(mc)
@@ -296,7 +296,7 @@ for mc in multisite_commands[:]:
                 "title"       : _("Schedule downtimes"),
                 "render"      : lambda: paint_downtime_buttons("service"),
                 "action"      : command_downtime,
-                "group"       : _("Downtimes"),
+                "group"       : "downtimes",
             })
         if mc['tables'] == [ "aggr" ]:
             multisite_commands.remove(mc)
@@ -306,6 +306,6 @@ for mc in multisite_commands[:]:
                 "title"       : _("Schedule downtimes"),
                 "render"      : lambda: paint_downtime_buttons("aggr"),
                 "action"      : command_downtime,
-                "group"       : _("Downtimes"),
+                "group"       : "downtimes",
             })
 

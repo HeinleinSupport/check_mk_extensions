@@ -41,7 +41,7 @@ register_rule('datasource_programs',
             title = _("Service Check specification"),
             elements = [
                 ( "hosttags",
-                  HostTagCondition(
+                  watolib.HostTagCondition(
                       title = _('Hosttags'),
                       help = _('Select hosts by matching tags. Hosts will be searched on all connected sites. If you also enter host names below both will be combined with AND as usual.'),
                       allow_empty = True,
