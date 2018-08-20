@@ -138,5 +138,5 @@ check_info["cephstatus"] = {
     'has_perfdata'          : True,
     'group'                  : 'filesystem',
     'default_levels_variable': 'filesystem_default_levels',
-    'includes'               : [ 'df.include', 'json.include' ],
+    'includes'               : [ 'df.include', 'json.include', 'size_trend.include' ],
 }
