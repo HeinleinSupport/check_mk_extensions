@@ -39,7 +39,7 @@ def check_mysql_galeradonor(item, params, parsed):
             if values[u'wsrep_sst_donor'] == params['wsrep_sst_donor']:
                 return (0, 'wsrep_sst_donor contains "%s"' % values[u'wsrep_sst_donor'])
             else:
-                return (2, 'wsrep_sst_donor contains "%s" and not "%s"' % (values[u'wsrep_sst_donor'], params['wsrep_sst_donor']))
+                return (1, 'wsrep_sst_donor contains "%s" and not "%s"' % (values[u'wsrep_sst_donor'], params['wsrep_sst_donor']))
 
 check_info['mysql.galeradonor'] = {
     "inventory_function"      : inventory_mysql_galeradonor,
