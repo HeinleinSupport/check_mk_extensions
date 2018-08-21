@@ -88,8 +88,8 @@ def inventory_filehandles(info):
             if options.get("disabled"):
                 continue
         # Filter out entries with do not match our current host
-        if not hosttags_match_taglist(tags_of_host(g_hostname), taglist) \
-           or not in_extraconf_hostlist(hostlist, g_hostname):
+        if not hosttags_match_taglist(tags_of_host(host_name()), taglist) \
+           or not in_extraconf_hostlist(hostlist, host_name()):
             continue
         v = rule[0]
         rules.append((v['descr'], v.get('match'), v.get('user')))
