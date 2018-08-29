@@ -21,6 +21,7 @@ from ConfigParser import SafeConfigParser
 import argparse
 import os
 from pprint import pprint
+import re
 
 # https://github.com/jasonhancock/cloudstack-python-client
 import CloudStack
@@ -49,7 +50,11 @@ if __name__ == "__main__":
     parser.add_argument('-p', '--profile', required=False, default='local', help='CloudStack config profile section name')
     args = parser.parse_args()
 
-    config = {'url': None, 'apikey': None, 'secretkey': None}
+    config = {'url': None, 'apikey': None, 'secretkey': None, 'mon_ignore': None}
+    # mon_ignore can be defined in args.profile, an example is given here:
+    # mon_ignore =
+    #   Redundant virtual router r-[0-9]+-VM just switch from (BACKUP|UNKNOWN) to MASTER
+    #   Quota Usage Threshold crossed by your account hpls-acs-adm-[0-9]+
 
     if args.config:
         cfg = SafeConfigParser()
@@ -59,8 +64,12 @@ if __name__ == "__main__":
                 if cfg.has_option(args.profile, key):
                     config[key] = cfg.get(args.profile, key)
     for key in config.keys():
+        try:
         if args.__dict__[key]:
             config[key] = args.__dict__[key]
+        except KeyError:
+            # values ony present in args.config …
+            pass
 
     cloudstack = CloudStack.Client(config['url'],
                                    config['apikey'],
@@ -201,11 +210,18 @@ if __name__ == "__main__":
                      'OOBM_AUTH_ERROR': 29 }
     csAlertTypeWarn = [ 0,1,2,3,4,5,6,8,9,12,13,15,16,18,19,23,26 ]
     csAlertTypeCrit = [ 7,10,11,14 ]
+    if config['mon_ignore']:
+        csAlertsIgnore = config['mon_ignore'].splitlines()
+        csAlertsIgnoreRegex = re.compile('|'.join('({})'.format(regex.strip())
+          for regex in csAlertsIgnore if regex.strip()))
     csAlerts = []
     csAlertRes = 0
     csAlertMsg = ''
     for csAlert in cloudstack.listAlerts():
         csAlertMsg = '%s (%s) %s' % (csAlert['description'], csAlert['name'], csAlert['sent'])
+        if (config['mon_ignore'] and
+          re.match(csAlertsIgnoreRegex, csAlert['description'])):
+            continue
         if csAlert['type'] == 14 and 'is up' in csAlert['description']:
             # Management server node is up is OK
             pass
