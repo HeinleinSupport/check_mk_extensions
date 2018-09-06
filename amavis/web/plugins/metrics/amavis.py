@@ -70,3 +70,27 @@ metric_info['amavis_InMsgsStatusRejectedOriginating'] = {
     'unit': '1/s',
     'color': '#ff6347',
 }
+
+metric_info['amavis_ContentCleanMsgs_percentage'] = {
+    'title': _('Amavis Clean Messages %'),
+    'unit': '%',
+    'color': '#90ee90',
+}
+
+metric_info['amavis_ContentSpamMsgs_percentage'] = {
+    'title': _('Amavis Spam Messages %'),
+    'unit': '%',
+    'color': '#ffa500',
+}
+
+metric_info['amavis_ContentVirusMsgs_percentage'] = {
+    'title': _('Amavis Virus Messages %'),
+    'unit': '%',
+    'color': '#ff6347',
+}
+
+metric_info['amavis_InMsgsStatusRejectedOriginating_percentage'] = {
+    'title': _('Amavis Rejected Originating In Messages %'),
+    'unit': '%',
+    'color': '#ff6347',
+}
