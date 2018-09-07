@@ -48,6 +48,7 @@ def check_cephstatus(item, params, parsed):
                       'active+undersized+degraded+remapped+inconsistent+backfilling',
                       'active+undersized+degraded+remapped+inconsistent+backfill_wait',
                       'active+undersized+remapped',
+                      'active+undersized+remapped+backfill_wait',
                       'peering',
                       'remapped+peering',
                       'stale+active+clean',
@@ -138,5 +139,5 @@ check_info["cephstatus"] = {
     'has_perfdata'          : True,
     'group'                  : 'filesystem',
     'default_levels_variable': 'filesystem_default_levels',
-    'includes'               : [ 'df.include', 'json.include', 'size_trend.include' ],
+    'includes'               : [ 'size_trend.include', 'df.include', 'json.include'],
 }
