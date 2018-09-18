@@ -32,22 +32,30 @@ if [ -r "$CONFIG_FILE" ]; then
 
 fi
 
+get_cert_info() {
+    certfile="$1"
+    single="$2"
+    if [ -f "$certfile" -a \( ! -L "$certfile" -o "$single" \) ] && grep -q -- '-----BEGIN CERTIFICATE-----' "$certfile"; then
+
+	cert_subject=$($OPENSSL x509 -noout -subject -in "$certfile" | cut -d "=" -f 2-)
+        if ! grep -q '@snakeoil.dom' <<<"$cert_subject"; then
+            cert_enddate=$($OPENSSL x509 -noout -enddate -in "$certfile" | cut -d "=" -f 2 )
+            cert_enddate_epoch=$(date --date "$cert_enddate" '+%s')
+            cert_algosign=$($OPENSSL x509 -noout -text -in "$certfile" | awk '/Signature Algorithm: / { print $3; exit;}' )
+
+            echo "$certfile $cert_enddate_epoch $cert_algosign $cert_subject"
+        fi
+    fi
+}
+
 echo '<<<sslcertificates>>>'
 
 for dir in $CERT_DIRS; do
     if [ -d "$dir" ]; then
         for certfile in "$dir"/*; do
-            if [ -f "$certfile" -a ! -L "$certfile" ] && grep -q -- '-----BEGIN CERTIFICATE-----' "$certfile"; then
-
-                cert_subject=$($OPENSSL x509 -noout -subject -in "$certfile" | cut -d "=" -f 2-)
-                if ! grep -q '@snakeoil.dom' <<<"$cert_subject"; then
-                    cert_enddate=$($OPENSSL x509 -noout -enddate -in "$certfile" | cut -d "=" -f 2 )
-                    cert_enddate_epoch=$(date --date "$cert_enddate" '+%s')
-                    cert_algosign=$($OPENSSL x509 -noout -text -in "$certfile" | awk '/Signature Algorithm: / { print $3; exit;}' )
-
-                    echo "$certfile $cert_enddate_epoch $cert_algosign $cert_subject"
-                fi
-            fi
+	    get_cert_info "$certfile"
         done
+    else
+	get_cert_info "$dir" 1
     fi
 done
