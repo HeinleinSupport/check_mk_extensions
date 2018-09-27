@@ -7,7 +7,7 @@ register_rule(group,
     "agent_config:ceph",
     DropdownChoice(
         title = _("Ceph Status (Linux)"),
-        help = _("This will deploy the agent plugin <tt>ceph</tt> for monitoring the status of Ceph."),
+        help = _("This will deploy the agent plugin <tt>ceph</tt> for monitoring the status of Ceph. This plugin will be run asynchronously in the background."),
         choices = [
             ( True, _("Deploy plugin for Ceph") ),
             ( None, _("Do not deploy plugin for Ceph") ),

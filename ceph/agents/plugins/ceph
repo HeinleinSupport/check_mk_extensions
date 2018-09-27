@@ -15,25 +15,28 @@
 # Boston, MA 02110-1301 USA.
 
 if [ -x /usr/bin/ceph ]; then
+
+  INT=30
+
   if [ $(ceph version | cut -f 3 -d " " | cut -f 1 -d .) -lt 10 ]; then
-    echo '<<<ceph>>>'
+    echo "<<<ceph:cached($(date +%s),$INT)>>>"
     /usr/bin/ceph -s
-    echo '<<<cephpools>>>'
+    echo "<<<cephpools:cached($(date +%s),$INT)>>>"
     /usr/bin/ceph df
   else
-    echo '<<<cephstatus>>>'
+    echo "<<<cephstatus:cached($(date +%s),$INT)>>>"
     /usr/bin/ceph -f json status
 
-    echo '<<<cephdf>>>'
+    echo "<<<cephdf:cached($(date +%s),$INT)>>>"
     /usr/bin/ceph -f json df detail
 
-    echo '<<<cephosd>>>'
+    echo "<<<cephosd:cached($(date +%s),$INT)>>>"
     echo '{ "df": '
     /usr/bin/ceph -f json osd df
     echo ', "perf": '
     /usr/bin/ceph -f json osd perf
     echo ', "nodes": '
     /usr/bin/ceph -f json node ls osd
-    echo '}'
+    echo "}"
   fi
 fi
