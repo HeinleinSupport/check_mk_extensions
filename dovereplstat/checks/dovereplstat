@@ -24,6 +24,7 @@
 # Queued 'full resync' requests 2667                                                                       
 # Waiting 'failed' requests     0                                                                          
 # Total number of known users   38993
+# Current users 3177
 
 def inventory_dovereplstat(checkname, info):
     if len(info) > 1:
@@ -33,6 +34,8 @@ def check_dovereplstat(item, params, info):
     perfdata = []
     msg = []
     rc = 0
+    total_users = 0
+    current_users = 0
     for line in info:
         key = None
         val = None
@@ -46,6 +49,11 @@ def check_dovereplstat(item, params, info):
         if line[:-1] == [u'Total', u'number', u'of', u'known', u'users']:
             key = 'total_users'
             val = saveint(line[5])
+            total_users = val
+        if line[:-1] == [u'Current', u'users']:
+            key = 'current_users'
+            val = saveint(line[2])
+            current_users = val
         text = "%d %s" % (val, " ".join(line[:-1]))
         if key in params:
             if val > params[key][1]:
@@ -60,6 +68,10 @@ def check_dovereplstat(item, params, info):
         else:
             perfdata.append((key, val))
         msg.append(text)
+    if total_users:
+        perc_users = current_users * 100.0 / total_users
+        perfdata.append(('perc_users', perc_users))
+        msg.append('%d%% user usage')
     return (rc, ", ".join(msg), perfdata)
 
 check_info['dovereplstat'] = {
