@@ -71,7 +71,7 @@ def check_dovereplstat(item, params, info):
     if total_users:
         perc_users = current_users * 100.0 / total_users
         perfdata.append(('perc_users', perc_users))
-        msg.append('%d%% user usage' % perc_users)
+        msg.append('%0.2f%% user usage' % perc_users)
     return (rc, ", ".join(msg), perfdata)
 
 check_info['dovereplstat'] = {
