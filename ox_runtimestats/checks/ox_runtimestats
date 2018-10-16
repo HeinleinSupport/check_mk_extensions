@@ -184,17 +184,11 @@ def parse_ox_memorypool(info):
 
 def inventory_ox_memorypool(info):
     parsed = parse_ox_memorypool(info)
-    if cmk.debug.enabled():
-        pprint.pprint(parsed)
     for name in parsed:
         yield name, {}
 
 def check_ox_memorypool(item, params, info):
     parsed = parse_ox_memorypool(info)
-    if cmk.debug.enabled():
-        pprint.pprint(item)
-        pprint.pprint(params)
-        pprint.pprint(parsed)
     if item in parsed:
         return check_memory_simple(parsed[item]['used'], parsed[item]['max'], params)
 
