@@ -23,14 +23,10 @@
 #cpu3 ondemand 1000000 800000 3001000
 
 def inventory_cpufreq(info):
-    if cmk.debug.enabled():
-        pprint.pprint(info)
     if len(info) > 0 and len(info[0]) > 0:
         yield None, {}
 
 def check_cpufreq(_no_item, _no_params, info):
-    if cmk.debug.enabled():
-        pprint.pprint(info)
     res = 0
     cpumsgs = []
     freqs = []
