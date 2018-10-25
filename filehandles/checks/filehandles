@@ -75,9 +75,6 @@ def _filehandles_matches_check(process_line, process_pattern, user_pattern):
         return command_line[0] == process_pattern
 
 def inventory_filehandles(info):
-    if cmk.debug.enabled():
-        pprint.pprint(info)
-        pprint.pprint(inventory_filehandles_rules)
 
     inventory = []
     rules = []
@@ -93,9 +90,6 @@ def inventory_filehandles(info):
             continue
         v = rule[0]
         rules.append((v['descr'], v.get('match'), v.get('user')))
-
-    if cmk.debug.enabled():
-        pprint.pprint(rules)
 
     for line in info:
         if line[1] == 'global':
@@ -127,15 +121,9 @@ def inventory_filehandles(info):
                 inv = ( i_servicedesc, inv_params )
                 if inv not in inventory:
                     inventory.append(inv)
-    if cmk.debug.enabled():
-        pprint.pprint(inventory)
     return inventory
                 
 def check_filehandles(item, params, info):
-    if cmk.debug.enabled():
-        pprint.pprint(item)
-        pprint.pprint(params)
-        # pprint.pprint(info)
     max_handles = None
     min_handles = None
     sum_handles = 0
@@ -182,13 +170,6 @@ def check_filehandles(item, params, info):
                 process.append(('handles', (handles, '')))
                 processes.append(process)
         
-    if cmk.debug.enabled():
-        pprint.pprint(processes)
-        print count
-        print sum_handles
-        print max_handles
-        print min_handles
-
     avg_handles = sum_handles / count
 
     infotext = '%d processes with max. %d open files' % (count, max_handles)
