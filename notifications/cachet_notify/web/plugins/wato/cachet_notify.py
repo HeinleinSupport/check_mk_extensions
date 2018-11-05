@@ -16,6 +16,7 @@
 # Boston, MA 02110-1301 USA.
 
 register_notification_parameters("cachet_notify", Dictionary(
+    help = _("The Cachet component name is taken from the contact alias."),
     optional_keys = ['incident_prefix', 'incident_visible'],
     elements = [
         ("cachet_url", HTTPUrl(
@@ -25,10 +26,6 @@ register_notification_parameters("cachet_notify", Dictionary(
         ("api_key", TextAscii(
             title = _("Cachet API Key"),
             help = _("You need to provide a valid API key to be able to send notifications."),
-            allow_empty = False,
-        )),
-        ("cachet_component", TextAscii(
-            title = _("Cachet Component"),
             allow_empty = False,
         )),
         ("incident_prefix", TextAscii(
