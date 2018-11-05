@@ -11,3 +11,7 @@ The notification plugin can be used as any other notification method in check_MK
 It does not need a specific contact as destination but you need to configure an explicit email address as dummy destination.
 
 You need to set the Cachet component name in the notification rule. I.e. you need separate notification rules for every Cachet component.
+
+## Thanks
+
+The original cachet_notify is from https://github.com/mpellegrin/nagios-eventhandler-cachet
