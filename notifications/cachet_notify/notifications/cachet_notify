@@ -1,4 +1,4 @@
-#!/usr/bin/php
+#!/usr/bin/env php
 # Cachet Dashboard
 <?php
 
@@ -24,7 +24,8 @@ if ($_SERVER['NOTIFY_PARAMETER_INCIDENT_PREFIX']) {
 $cachet_notify_subscribers = true; // Enable subscribers notifcation for incidents creation and updates
 $cachet_incident_visible = $_SERVER['NOTIFY_PARAMETER_INCIDENT_VISIBLE'];
 
-$cachet_component = $_SERVER['NOTIFY_PARAMETER_CACHET_COMPONENT'];
+# $cachet_component = $_SERVER['NOTIFY_PARAMETER_CACHET_COMPONENT'];
+$cachet_component = $_SERVER['NOTIFY_CONTACTALIAS']; // get component name from contact alias
 $service_name = $_SERVER['NOTIFY_SERVICEDESC'];
 $service_status = $_SERVER['NOTIFY_SERVICESTATE'];
 $service_status_type = 'HARD';
@@ -78,7 +79,7 @@ function cachet_query($api_part, $action = 'GET', $data = null) {
 $result = cachet_query('components');
 if ($result['code'] != 200) {
 	echo 'Can\'t query components' . "\n";
-	exit(1);
+	exit(2);
 }
 $cachet_component_id = false;
 foreach ($result['body']->data as $component) {
@@ -89,7 +90,7 @@ foreach ($result['body']->data as $component) {
 }
 if ($cachet_component_id === false) {
 	echo 'Can\'t find component "' . $cachet_component . '"' . "\n";
-	exit(1);
+	exit(2);
 }
 
 /*
