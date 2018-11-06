@@ -4,6 +4,8 @@
 
 You need an API key from a [Cachet](https://cachethq.io/) instance.
 
+You need php-curl installed on the monitoring server.
+
 ## Usage
 
 The notification plugin can be used as any other notification method in check_MK's notification rules.
