@@ -104,11 +104,24 @@ def check_amavis(_no_item, params, parsed):
                     'OutMsgs',
                     'OutMsgsAttemptFails',
                     'InMsgsStatusRejectedOriginating' ]
+        percentage = { 'total': 'InMsgs',
+                       'parts': {'ContentCleanMsgs': 0,
+                                 'ContentSpamMsgs': 0,
+                                 'ContentVirusMsgs': 0,
+                                 'InMsgsStatusRejectedOriginating': 0 } }
         for metric in metrics:
             if metric in parsed['agent']:
                 rate = get_rate('amavis.%s' % metric, this_time, saveint(parsed['agent'][metric][0]))
                 perfdata.append(('amavis_%s' % metric, rate))
-        
+                if metric == percentage['total']:
+                    percentage['total'] = rate
+                if metric in percentage['parts'].keys():
+                    percentage['parts'][metric] = rate
+        for part, value in percentage['parts'].iteritems():
+            if percentage['total'] > 0 and value > 0:
+                perfdata.append(('amavis_%s_percentage' % part, value * 100.0 / percentage['total']))
+            else:
+                perfdata.append(('amavis_%s_percentage' % part, 0.0))
         return (state, "; ".join(msg), perfdata)
 
 check_info['amavis'] = {

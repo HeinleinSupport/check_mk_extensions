@@ -32,9 +32,11 @@ def check_sslcertificates(item, params, info):
         # old config
         warn, crit = params
         warnalgos = factory_settings['sslcertificates_default_values']['algo']
+        ignore = None
     else:
         warn, crit = params.get('age', (0, 0))
         warnalgos = params.get('warnalgo', [])
+        ignore = params.get('ignore', None)
 
     for line in info:
         if item == sslcertificates_name(line):
@@ -42,7 +44,7 @@ def check_sslcertificates(item, params, info):
             endtime = saveint(line[1])
             now = int(time.time())
             daysremaining = ( endtime - now ) / 60 / 60 / 24
-            rc = 0
+            ignored = False
 
             algosign = '/'
             if len(line) > 2:
@@ -53,24 +55,29 @@ def check_sslcertificates(item, params, info):
                 subj = " ".join(line[2:])
             else:
                 subj = " ".join(line[3:])
-            infotext = "Subject: %s" % subj
-
-            if algosign:
-                infotext += "; Signature Algorithm: %s" % algosign
-                if algosign in warnalgos:
-                    rc = 1
-                    infotext += "(!)"
+            yield 0, "Subject: %s" % subj
 
             if daysremaining < 0:
-                infotext += "; expired %d days ago on %s" % ( abs(daysremaining), time.strftime("%c", time.gmtime(endtime)))
+                infotext = "expired %d days ago on %s" % ( abs(daysremaining), time.strftime("%c", time.gmtime(endtime)))
             else:
-                infotext += "; expires in %d days on %s" % ( daysremaining, time.strftime("%c", time.gmtime(endtime)))
-            if daysremaining < crit:
-                rc = 2
-            elif daysremaining < warn:
-                if rc < 2:
-                    rc = 1
-            return (rc, infotext)
+                infotext = "expires in %d days on %s" % ( daysremaining, time.strftime("%c", time.gmtime(endtime)))
+            if ignore and -daysremaining > ignore[0]:
+                yield 0, infotext + ', ignored because "%s"' % ignore[1]
+                ignored = True
+            else:
+                if daysremaining < crit:
+                        yield 2, infotext
+                elif daysremaining < warn:
+                    yield 1, infotext
+                else:
+                    yield 0, infotext
+
+            if algosign:
+                infotext = "Signature Algorithm: %s" % algosign
+                if not ignored and algosign in warnalgos:
+                    yield 1, infotext
+                else:
+                    yield 0, infotext
 
 check_info['sslcertificates'] = {
     'check_function':      check_sslcertificates,

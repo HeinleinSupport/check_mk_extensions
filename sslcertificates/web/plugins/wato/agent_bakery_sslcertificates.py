@@ -19,7 +19,8 @@ register_rule(
                 elements = [
                    ( "directories",
                      ListOfStrings(
-                        title = _("Directories to look into for SSL certificate files"),
+                        title = _("Directories or filename patterns to look into for SSL certificate files"),
+                        help = _('Enter path patterns that will be searched for certificate files. Only works on Linux. On Windows the agent plugin looks into the cert store.'),
                         valuespec = TextAscii(
                             size = 80,
                             regex = "^/[^ \t]+$",

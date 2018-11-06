@@ -30,16 +30,16 @@ check_info['mysql.galerasync'] = {
 def inventory_mysql_galeradonor(parsed):
     for instance, values in parsed.items():
         if values.get('wsrep_provider', 'none') != 'none' and u'wsrep_sst_donor' in values:
-            yield instance, {}
+            yield instance, {'wsrep_sst_donor': values['wsrep_sst_donor']}
 
-def check_mysql_galeradonor(item, _no_params, parsed):
+def check_mysql_galeradonor(item, params, parsed):
     if item in parsed:
         values = parsed[item]
         if u'wsrep_sst_donor' in values:
-            if not values[u'wsrep_sst_donor']:
-                return (0, 'wsrep_sst_donor is empty')
+            if values[u'wsrep_sst_donor'] == params['wsrep_sst_donor']:
+                return (0, 'wsrep_sst_donor contains "%s"' % values[u'wsrep_sst_donor'])
             else:
-                return (2, 'wsrep_sst_donor contains %s' % values[u'wsrep_sst_donor'])
+                return (1, 'wsrep_sst_donor contains "%s" and not "%s"' % (values[u'wsrep_sst_donor'], params['wsrep_sst_donor']))
 
 check_info['mysql.galeradonor'] = {
     "inventory_function"      : inventory_mysql_galeradonor,

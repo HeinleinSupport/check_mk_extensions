@@ -42,7 +42,7 @@ def inventory_netifaces_rbl(ifaces):
     inventory = []
     for iface in ifaces.keys():
         for family in ifaces[iface].keys():
-            if family == 'AF_INET':
+            if family == 'AF_INET' or family == 'AF_INET6':
                 for addr in ifaces[iface][family]:
                     addr = addr.split('/')[0]
                     if not reduce( lambda result, network: result or ( ipaddr.IPAddress(addr) in network ), netifaces_blacklist, False):
@@ -51,9 +51,13 @@ def inventory_netifaces_rbl(ifaces):
 
 def check_netifaces_rbl(item, rbls, ifaces):
     import socket
+    import dns.reversename
     levels = { 'warn': (1, '(!)'),
                'crit': (2, '(!!)'),
                }
+    reverse_domain = { 'AF_INET': dns.reversename.ipv4_reverse_domain,
+                       'AF_INET6': dns.reversename.ipv6_reverse_domain,
+                     }
     for iface, families in ifaces.iteritems():
         for family, addresses in families.iteritems():
             for address in map(lambda x: x.split('/')[0], addresses):
@@ -63,14 +67,20 @@ def check_netifaces_rbl(item, rbls, ifaces):
                     count = 0
                     for level, levelres in levels.iteritems():
                         for rbl in rbls[level]:
+                            ptr = "%s.%s." % (dns.reversename.from_address(address) - reverse_domain[family], rbl)
                             try:
-                                ip = socket.gethostbyname("%s.%s." % (".".join(reversed(address.split('.'))), rbl))
+                                ip = socket.gethostbyname(ptr)
                                 if levelres[0] > res:
                                     res = levelres[0]
                                 count += 1
                                 msg.append('found in %s: %s %s' % (rbl, ip, levelres[1]))
-                            except socket.gaierror:
-                                pass
+                            except socket.gaierror, er:
+                                import cmk.debug
+                                if cmk.debug.enabled():
+                                    print 'error in %s): %s' % (ptr, er)
+                                if er.args[0] != socket.EAI_NONAME:
+                                    res = 1
+                                    msg.append('%s yields %s(!)' % (rbl, er))
                     if count > 1:
                         res = 2
                         msg.append('found in more than 1 RBL (!!)')

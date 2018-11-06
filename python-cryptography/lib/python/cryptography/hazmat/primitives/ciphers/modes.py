@@ -208,6 +208,8 @@ class GCM(object):
         # for it
         if not isinstance(initialization_vector, bytes):
             raise TypeError("initialization_vector must be bytes")
+        if len(initialization_vector) == 0:
+            raise ValueError("initialization_vector must be at least 1 byte")
         self._initialization_vector = initialization_vector
         if tag is not None:
             if not isinstance(tag, bytes):
@@ -220,6 +222,7 @@ class GCM(object):
                         min_tag_length)
                 )
         self._tag = tag
+        self._min_tag_length = min_tag_length
 
     tag = utils.read_only_property("_tag")
     initialization_vector = utils.read_only_property("_initialization_vector")

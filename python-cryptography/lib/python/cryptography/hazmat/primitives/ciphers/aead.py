@@ -12,6 +12,8 @@ from cryptography.hazmat.backends.openssl.backend import backend
 
 
 class ChaCha20Poly1305(object):
+    _MAX_SIZE = 2 ** 32
+
     def __init__(self, key):
         if not backend.aead_cipher_supported(self):
             raise exceptions.UnsupportedAlgorithm(
@@ -32,6 +34,12 @@ class ChaCha20Poly1305(object):
     def encrypt(self, nonce, data, associated_data):
         if associated_data is None:
             associated_data = b""
+
+        if len(data) > self._MAX_SIZE or len(associated_data) > self._MAX_SIZE:
+            # This is OverflowError to match what cffi would raise
+            raise OverflowError(
+                "Data or associated data too long. Max 2**32 bytes"
+            )
 
         self._check_params(nonce, data, associated_data)
         return aead._encrypt(
@@ -56,6 +64,8 @@ class ChaCha20Poly1305(object):
 
 
 class AESCCM(object):
+    _MAX_SIZE = 2 ** 32
+
     def __init__(self, key, tag_length=16):
         utils._check_bytes("key", key)
         if len(key) not in (16, 24, 32):
@@ -90,6 +100,12 @@ class AESCCM(object):
         if associated_data is None:
             associated_data = b""
 
+        if len(data) > self._MAX_SIZE or len(associated_data) > self._MAX_SIZE:
+            # This is OverflowError to match what cffi would raise
+            raise OverflowError(
+                "Data or associated data too long. Max 2**32 bytes"
+            )
+
         self._check_params(nonce, data, associated_data)
         self._validate_lengths(nonce, len(data))
         return aead._encrypt(
@@ -121,6 +137,8 @@ class AESCCM(object):
 
 
 class AESGCM(object):
+    _MAX_SIZE = 2 ** 32
+
     def __init__(self, key):
         utils._check_bytes("key", key)
         if len(key) not in (16, 24, 32):
@@ -142,6 +160,12 @@ class AESGCM(object):
         if associated_data is None:
             associated_data = b""
 
+        if len(data) > self._MAX_SIZE or len(associated_data) > self._MAX_SIZE:
+            # This is OverflowError to match what cffi would raise
+            raise OverflowError(
+                "Data or associated data too long. Max 2**32 bytes"
+            )
+
         self._check_params(nonce, data, associated_data)
         return aead._encrypt(
             backend, self, nonce, data, associated_data, 16
@@ -160,3 +184,5 @@ class AESGCM(object):
         utils._check_bytes("nonce", nonce)
         utils._check_bytes("data", data)
         utils._check_bytes("associated_data", associated_data)
+        if len(nonce) == 0:
+            raise ValueError("Nonce must be at least 1 byte")

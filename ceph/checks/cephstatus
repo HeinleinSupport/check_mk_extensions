@@ -22,27 +22,39 @@ def inventory_cephstatus(parsed):
 def check_cephstatus(item, params, parsed):
     _single_state = { 'state': 0, 'count': 0 }
     _pgstates_list = ['active+clean',
+                      'active+clean+inconsistent',
                       'active+clean+remapped',
                       'active+clean+scrubbing',
                       'active+clean+scrubbing+deep',
                       'active+recovering',
-                      'active+recovery_wait',
-                      'active+undersized',
-                      'active+undersized+degraded',
                       'active+recovering+degraded',
+                      'active+recovering+degraded+inconsistent',
+                      'active+recovery_wait',
                       'active+recovery_wait+degraded',
-                      'active+recovery_wait+undersized+degraded',
-                      'active+undersized+degraded+remapped+backfilling',
-                      'active+undersized+degraded+remapped+backfill_wait',
+                      'active+recovery_wait+degraded+inconsistent',
                       'active+recovery_wait+degraded+remapped',
+                      'active+recovery_wait+remapped',
+                      'active+recovery_wait+undersized+degraded',
                       'active+recovery_wait+undersized+degraded+remapped',
                       'active+remapped+backfill_wait',
                       'active+remapped+backfilling',
-                      'active+recovery_wait+remapped',
-                      'stale+active+undersized+degraded',
+                      'active+remapped+inconsistent+backfilling',
+                      'active+remapped+inconsistent+backfill_wait',
+                      'active+undersized',
+                      'active+undersized+degraded',
+                      'active+undersized+degraded+inconsistent',
+                      'active+undersized+degraded+remapped+backfilling',
+                      'active+undersized+degraded+remapped+backfill_wait',
+                      'active+undersized+degraded+remapped+inconsistent+backfilling',
+                      'active+undersized+degraded+remapped+inconsistent+backfill_wait',
+                      'active+undersized+remapped',
+                      'active+undersized+remapped+backfill_wait',
                       'peering',
-                      'remapped+peering'
+                      'remapped+peering',
+                      'stale+active+clean',
+                      'stale+active+undersized+degraded',
                       'undersized+degraded+peered',
+                      'unknown',
                      ]
     _ceph_pgstates = {}
     for state in _pgstates_list:
@@ -94,7 +106,8 @@ def check_cephstatus(item, params, parsed):
                 if pgstate['state_name'] in _ceph_pgstates:
                     _ceph_pgstates[pgstate['state_name']]['count'] = pgstate['count']
                 else:
-                    yield 3, pgstate['state_name']
+                    yield 3, 'new PG state: ' + pgstate['state_name']
+                    continue
                 if 'inconsistent' in pgstate['state_name'] or 'incomplete' in pgstate['state_name'] or 'active' not in pgstate['state_name']:
                     _ceph_pgstates[pgstate['state_name']]['state'] = 2
                 elif 'active+clean' != pgstate['state_name'] and 'active+clean+scrubbing' != pgstate['state_name'] and 'active+clean+scrubbing+deep' != pgstate['state_name']:
@@ -114,6 +127,10 @@ def check_cephstatus(item, params, parsed):
                 else: 
                     yield info['state'], '%d PGs in %s' % (info['count'], pgstate), [('pgstate_%s' % pgstate.replace('+', '_'), info['count'], 0)]
             yield rc, ', '.join(msg), perfdata
+    if 'mgrmap' in parsed:
+        if 'services' in parsed['mgrmap']:
+            if 'dashboard' in parsed['mgrmap']['services']:
+                yield 0, 'Dashboard: %s' % parsed['mgrmap']['services']['dashboard']
 
 check_info["cephstatus"] = {
     'parse_function'        : parse_json,
@@ -123,5 +140,5 @@ check_info["cephstatus"] = {
     'has_perfdata'          : True,
     'group'                  : 'filesystem',
     'default_levels_variable': 'filesystem_default_levels',
-    'includes'               : [ 'df.include', 'json.include' ],
+    'includes'               : [ 'size_trend.include', 'df.include', 'json.include'],
 }

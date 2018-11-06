@@ -298,7 +298,7 @@ class Backend(object):
     def _bn_to_int(self, bn):
         assert bn != self._ffi.NULL
 
-        if six.PY3:
+        if not six.PY2:
             # Python 3 has constant time from_bytes, so use that.
             bn_num_bytes = self._lib.BN_num_bytes(bn)
             bin_ptr = self._ffi.new("unsigned char[]", bn_num_bytes)
@@ -326,7 +326,7 @@ class Backend(object):
         if bn is None:
             bn = self._ffi.NULL
 
-        if six.PY3:
+        if not six.PY2:
             # Python 3 has constant time to_bytes, so use that.
 
             binary = num.to_bytes(int(num.bit_length() / 8.0 + 1), "big")
@@ -1296,9 +1296,9 @@ class Backend(object):
         except UnsupportedAlgorithm:
             curve_nid = self._lib.NID_undef
 
-        ctx = self._lib.EC_GROUP_new_by_curve_name(curve_nid)
+        group = self._lib.EC_GROUP_new_by_curve_name(curve_nid)
 
-        if ctx == self._ffi.NULL:
+        if group == self._ffi.NULL:
             errors = self._consume_errors()
             self.openssl_assert(
                 curve_nid == self._lib.NID_undef or
@@ -1310,7 +1310,7 @@ class Backend(object):
             return False
         else:
             self.openssl_assert(curve_nid != self._lib.NID_undef)
-            self._lib.EC_GROUP_free(ctx)
+            self._lib.EC_GROUP_free(group)
             return True
 
     def elliptic_curve_signature_algorithm_supported(
@@ -1355,14 +1355,15 @@ class Backend(object):
         self.openssl_assert(ec_cdata != self._ffi.NULL)
         ec_cdata = self._ffi.gc(ec_cdata, self._lib.EC_KEY_free)
 
-        ec_cdata = self._ec_key_set_public_key_affine_coordinates(
-            ec_cdata, public.x, public.y)
-
         private_value = self._ffi.gc(
             self._int_to_bn(numbers.private_value), self._lib.BN_clear_free
         )
         res = self._lib.EC_KEY_set_private_key(ec_cdata, private_value)
         self.openssl_assert(res == 1)
+
+        ec_cdata = self._ec_key_set_public_key_affine_coordinates(
+            ec_cdata, public.x, public.y)
+
         evp_pkey = self._ec_cdata_to_evp_pkey(ec_cdata)
 
         return _EllipticCurvePrivateKey(self, ec_cdata, evp_pkey)
@@ -1899,7 +1900,7 @@ class Backend(object):
     def x25519_load_private_bytes(self, data):
         # OpenSSL only has facilities for loading PKCS8 formatted private
         # keys using the algorithm identifiers specified in
-        # https://tools.ietf.org/html/draft-ietf-curdle-pkix-03.
+        # https://tools.ietf.org/html/draft-ietf-curdle-pkix-09.
         # This is the standard PKCS8 prefix for a 32 byte X25519 key.
         # The form is:
         #    0:d=0  hl=2 l=  46 cons: SEQUENCE

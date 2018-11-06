@@ -15,9 +15,6 @@
 # to the Free Software Foundation, Inc., 51 Franklin St,  Fifth Floor,
 # Boston, MA 02110-1301 USA.
 
-import time
-import hashlib
-
 ox_attributes = {
     'com.openexchange.pooling:name=Overview,NumConnections': 'DB Connections',
     'com.openexchange.monitoring:name=GeneralMonitor,NumberOfOpenAJPSockets': 'Open AJP Sockets',
@@ -34,44 +31,48 @@ ox_attributes = {
     'com.openexchange.monitoring:name=MailInterfaceMonitor,NumSuccessfulLogins': 'Mail Successful Logins',
     'com.openexchange.monitoring:name=MailInterfaceMonitor,NumFailedLogins': 'Mail Failed Logins',
     'com.openexchange.monitoring:name=MailInterfaceMonitor,NumBrokenConnections': 'Mail Broken Connections',
-    'com.openexchange.pooling:name=ConfigDB Read,NumBrokenConnections': 'ConfigDB Broken Read Connections',
-    'com.openexchange.pooling:name=ConfigDB Write,NumBrokenConnections': 'ConfigDB Broken Write Connections',
-    'com.openexchange.pooling:name=ConfigDB Read,NumActive': 'ConfigDB Read Active',
-    'com.openexchange.pooling:name=ConfigDB Read,NumIdle': 'ConfigDB Read Idle',
-    'com.openexchange.pooling:name=ConfigDB Read,NumWaiting': 'ConfigDB Read Waiting',
-    'com.openexchange.pooling:name=ConfigDB Read,PoolSize': 'ConfigDB Read PoolSize',
-    'com.openexchange.pooling:name=ConfigDB Read,MinUseTime': 'ConfigDB Read MinUseTime',
-    'com.openexchange.pooling:name=ConfigDB Read,AvgUseTime': 'ConfigDB Read AvgUseTime',
-    'com.openexchange.pooling:name=ConfigDB Read,MaxUseTime': 'ConfigDB Read MaxUseTime',
-    'com.openexchange.pooling:name=ConfigDB Write,NumActive': 'ConfigDB Write Active',
-    'com.openexchange.pooling:name=ConfigDB Write,NumIdle': 'ConfigDB Write Idle',
-    'com.openexchange.pooling:name=ConfigDB Write,NumWaiting': 'ConfigDB Write Waiting',
-    'com.openexchange.pooling:name=ConfigDB Write,PoolSize': 'ConfigDB Write PoolSize',
-    'com.openexchange.pooling:name=ConfigDB Write,MinUseTime': 'ConfigDB Write MinUseTime',
-    'com.openexchange.pooling:name=ConfigDB Write,AvgUseTime': 'ConfigDB Write AvgUseTime',
-    'com.openexchange.pooling:name=ConfigDB Write,MaxUseTime': 'ConfigDB Write MaxUseTime',
+    ## 'com.openexchange.pooling:name=ConfigDB Read,NumBrokenConnections': 'ConfigDB Broken Read Connections',
+    ## 'com.openexchange.pooling:name=ConfigDB Write,NumBrokenConnections': 'ConfigDB Broken Write Connections',
+    ## 'com.openexchange.pooling:name=ConfigDB Read,NumActive': 'ConfigDB Read Active',
+    ## 'com.openexchange.pooling:name=ConfigDB Read,NumIdle': 'ConfigDB Read Idle',
+    ## 'com.openexchange.pooling:name=ConfigDB Read,NumWaiting': 'ConfigDB Read Waiting',
+    ## 'com.openexchange.pooling:name=ConfigDB Read,PoolSize': 'ConfigDB Read PoolSize',
+    ## 'com.openexchange.pooling:name=ConfigDB Read,MinUseTime': 'ConfigDB Read MinUseTime',
+    ## 'com.openexchange.pooling:name=ConfigDB Read,AvgUseTime': 'ConfigDB Read AvgUseTime',
+    ## 'com.openexchange.pooling:name=ConfigDB Read,MaxUseTime': 'ConfigDB Read MaxUseTime',
+    ## 'com.openexchange.pooling:name=ConfigDB Write,NumActive': 'ConfigDB Write Active',
+    ## 'com.openexchange.pooling:name=ConfigDB Write,NumIdle': 'ConfigDB Write Idle',
+    ## 'com.openexchange.pooling:name=ConfigDB Write,NumWaiting': 'ConfigDB Write Waiting',
+    ## 'com.openexchange.pooling:name=ConfigDB Write,PoolSize': 'ConfigDB Write PoolSize',
+    ## 'com.openexchange.pooling:name=ConfigDB Write,MinUseTime': 'ConfigDB Write MinUseTime',
+    ## 'com.openexchange.pooling:name=ConfigDB Write,AvgUseTime': 'ConfigDB Write AvgUseTime',
+    ## 'com.openexchange.pooling:name=ConfigDB Write,MaxUseTime': 'ConfigDB Write MaxUseTime',
     'com.openexchange.pooling:name=Overview,MasterConnectionsFetched': 'Master Connections',
     'com.openexchange.pooling:name=Overview,SlaveConnectionsFetched': 'Slave Connections',
     'com.openexchange.pooling:name=Overview,MasterInsteadOfSlave': 'Fallback Connections',
-    'org.glassfish.grizzly:pp=/gmbal-root/HttpServer[HttpServer]/NetworkListener[NetworkListener[http-listener]],type=HttpCodecFilter,name=HttpCodecFilter,total-bytes-written': 'Grizzly HttpCodecFilter Bytes written',
-    'org.glassfish.grizzly:pp=/gmbal-root/HttpServer[HttpServer]/NetworkListener[NetworkListener[http-listener]],type=HttpCodecFilter,name=HttpCodecFilter,total-bytes-received': 'Grizzly HttpCodecFilter Bytes read',
-    'org.glassfish.grizzly:pp=/gmbal-root/HttpServer[HttpServer]/NetworkListener[NetworkListener[http-listener]],type=HttpCodecFilter,name=HttpCodecFilter,http-codec-error-count': 'Grizzly HttpCodecFilter error count',
-    'org.glassfish.grizzly:pp=/gmbal-root/HttpServer[HttpServer]/NetworkListener[NetworkListener[http-listener]],type=HttpServerFilter,name=HttpServerFilter,current-suspended-request-count': 'Grizzly HttpServerFilter Requests suspended',
-    'org.glassfish.grizzly:pp=/gmbal-root/HttpServer[HttpServer]/NetworkListener[NetworkListener[http-listener]],type=HttpServerFilter,name=HttpServerFilter,requests-cancelled-count': 'Grizzly HttpServerFilter Requests cancelled',
-    'org.glassfish.grizzly:pp=/gmbal-root/HttpServer[HttpServer]/NetworkListener[NetworkListener[http-listener]],type=HttpServerFilter,name=HttpServerFilter,requests-completed-count': 'Grizzly HttpServerFilter Requests completed',
-    'org.glassfish.grizzly:pp=/gmbal-root/HttpServer[HttpServer]/NetworkListener[NetworkListener[http-listener]],type=HttpServerFilter,name=HttpServerFilter,requests-received-count': 'Grizzly HttpServerFilter Requests received',
-    'org.glassfish.grizzly:pp=/gmbal-root/HttpServer[HttpServer]/NetworkListener[NetworkListener[http-listener]],type=HttpServerFilter,name=HttpServerFilter,requests-timed-out-count': 'Grizzly HttpServerFilter Requests timed out',
-    'org.glassfish.grizzly:pp=/gmbal-root/HttpServer[HttpServer]/NetworkListener[NetworkListener[http-listener]],type=KeepAlive,name=Keep-Alive,hits-count': 'Grizzly KeepAlive hits',
-    'org.glassfish.grizzly:pp=/gmbal-root/HttpServer[HttpServer]/NetworkListener[NetworkListener[http-listener]],type=KeepAlive,name=Keep-Alive,idle-timeout-seconds': 'Grizzly KeepAlive idle timeout',
-    'org.glassfish.grizzly:pp=/gmbal-root/HttpServer[HttpServer]/NetworkListener[NetworkListener[http-listener]],type=KeepAlive,name=Keep-Alive,live-connections-count': 'Grizzly KeepAlive live connections',
-    'org.glassfish.grizzly:pp=/gmbal-root/HttpServer[HttpServer]/NetworkListener[NetworkListener[http-listener]],type=KeepAlive,name=Keep-Alive,max-requests-count': 'Grizzly KeepAlive max requests',
-    'org.glassfish.grizzly:pp=/gmbal-root/HttpServer[HttpServer]/NetworkListener[NetworkListener[http-listener]],type=KeepAlive,name=Keep-Alive,refuses-count': 'Grizzly KeepAlive refuses',
-    'org.glassfish.grizzly:pp=/gmbal-root/HttpServer[HttpServer]/NetworkListener[NetworkListener[http-listener]],type=KeepAlive,name=Keep-Alive,timeouts-count': 'Grizzly KeepAlive timeouts',
-    'org.glassfish.grizzly:pp=/gmbal-root/HttpServer[HttpServer]/NetworkListener[NetworkListener[http-listener]],type=TCPNIOTransport,name=Transport,bytes-read': 'Grizzly TCPNIO bytes read',
-    'org.glassfish.grizzly:pp=/gmbal-root/HttpServer[HttpServer]/NetworkListener[NetworkListener[http-listener]],type=TCPNIOTransport,name=Transport,bytes-written': 'Grizzly TCPNIO bytes written',
-    'org.glassfish.grizzly:pp=/gmbal-root/HttpServer[HttpServer]/NetworkListener[NetworkListener[http-listener]],type=TCPNIOTransport,name=Transport,last-error': 'Grizzly TCPNIO last error',
-    'org.glassfish.grizzly:pp=/gmbal-root/HttpServer[HttpServer]/NetworkListener[NetworkListener[http-listener]],type=TCPNIOTransport,name=Transport,open-connections-count': 'Grizzly TCPNIO Connections open',
-    'org.glassfish.grizzly:pp=/gmbal-root/HttpServer[HttpServer]/NetworkListener[NetworkListener[http-listener]],type=TCPNIOTransport,name=Transport,total-connections-count': 'Grizzly TCPNIO Connections total',
+    ## 'org.glassfish.grizzly:pp=/gmbal-root/HttpServer[HttpServer]/NetworkListener[NetworkListener[http-listener]],type=HttpCodecFilter,name=HttpCodecFilter,total-bytes-written': 'Grizzly HttpCodecFilter Bytes written',
+    ## 'org.glassfish.grizzly:pp=/gmbal-root/HttpServer[HttpServer]/NetworkListener[NetworkListener[http-listener]],type=HttpCodecFilter,name=HttpCodecFilter,total-bytes-received': 'Grizzly HttpCodecFilter Bytes read',
+    ## 'org.glassfish.grizzly:pp=/gmbal-root/HttpServer[HttpServer]/NetworkListener[NetworkListener[http-listener]],type=HttpCodecFilter,name=HttpCodecFilter,http-codec-error-count': 'Grizzly HttpCodecFilter error count',
+    ## 'org.glassfish.grizzly:pp=/gmbal-root/HttpServer[HttpServer]/NetworkListener[NetworkListener[http-listener]],type=HttpServerFilter,name=HttpServerFilter,current-suspended-request-count': 'Grizzly HttpServerFilter Requests suspended',
+    ## 'org.glassfish.grizzly:pp=/gmbal-root/HttpServer[HttpServer]/NetworkListener[NetworkListener[http-listener]],type=HttpServerFilter,name=HttpServerFilter,requests-cancelled-count': 'Grizzly HttpServerFilter Requests cancelled',
+    ## 'org.glassfish.grizzly:pp=/gmbal-root/HttpServer[HttpServer]/NetworkListener[NetworkListener[http-listener]],type=HttpServerFilter,name=HttpServerFilter,requests-completed-count': 'Grizzly HttpServerFilter Requests completed',
+    ## 'org.glassfish.grizzly:pp=/gmbal-root/HttpServer[HttpServer]/NetworkListener[NetworkListener[http-listener]],type=HttpServerFilter,name=HttpServerFilter,requests-received-count': 'Grizzly HttpServerFilter Requests received',
+    ## 'org.glassfish.grizzly:pp=/gmbal-root/HttpServer[HttpServer]/NetworkListener[NetworkListener[http-listener]],type=HttpServerFilter,name=HttpServerFilter,requests-timed-out-count': 'Grizzly HttpServerFilter Requests timed out',
+    ## 'org.glassfish.grizzly:pp=/gmbal-root/HttpServer[HttpServer]/NetworkListener[NetworkListener[http-listener]],type=KeepAlive,name=Keep-Alive,hits-count': 'Grizzly KeepAlive hits',
+    ## 'org.glassfish.grizzly:pp=/gmbal-root/HttpServer[HttpServer]/NetworkListener[NetworkListener[http-listener]],type=KeepAlive,name=Keep-Alive,idle-timeout-seconds': 'Grizzly KeepAlive idle timeout',
+    ## 'org.glassfish.grizzly:pp=/gmbal-root/HttpServer[HttpServer]/NetworkListener[NetworkListener[http-listener]],type=KeepAlive,name=Keep-Alive,live-connections-count': 'Grizzly KeepAlive live connections',
+    ## 'org.glassfish.grizzly:pp=/gmbal-root/HttpServer[HttpServer]/NetworkListener[NetworkListener[http-listener]],type=KeepAlive,name=Keep-Alive,max-requests-count': 'Grizzly KeepAlive max requests',
+    ## 'org.glassfish.grizzly:pp=/gmbal-root/HttpServer[HttpServer]/NetworkListener[NetworkListener[http-listener]],type=KeepAlive,name=Keep-Alive,refuses-count': 'Grizzly KeepAlive refuses',
+    ## 'org.glassfish.grizzly:pp=/gmbal-root/HttpServer[HttpServer]/NetworkListener[NetworkListener[http-listener]],type=KeepAlive,name=Keep-Alive,timeouts-count': 'Grizzly KeepAlive timeouts',
+    ## 'org.glassfish.grizzly:pp=/gmbal-root/HttpServer[HttpServer]/NetworkListener[NetworkListener[http-listener]],type=TCPNIOTransport,name=Transport,bytes-read': 'Grizzly TCPNIO bytes read',
+    ## 'org.glassfish.grizzly:pp=/gmbal-root/HttpServer[HttpServer]/NetworkListener[NetworkListener[http-listener]],type=TCPNIOTransport,name=Transport,bytes-written': 'Grizzly TCPNIO bytes written',
+    ## 'org.glassfish.grizzly:pp=/gmbal-root/HttpServer[HttpServer]/NetworkListener[NetworkListener[http-listener]],type=TCPNIOTransport,name=Transport,last-error': 'Grizzly TCPNIO last error',
+    ## 'org.glassfish.grizzly:pp=/gmbal-root/HttpServer[HttpServer]/NetworkListener[NetworkListener[http-listener]],type=TCPNIOTransport,name=Transport,open-connections-count': 'Grizzly TCPNIO Connections open',
+    ## 'org.glassfish.grizzly:pp=/gmbal-root/HttpServer[HttpServer]/NetworkListener[NetworkListener[http-listener]],type=TCPNIOTransport,name=Transport,total-connections-count': 'Grizzly TCPNIO Connections total',
+    'java.lang:type=Threading,ThreadCount': 'Thread Count',
+    'com.openexchange.threadpool:name=ThreadPoolInformation,ActiveCount': 'Threadpool Active Threads Created',
+    'com.openexchange.threadpool:name=ThreadPoolInformation,TaskCount': 'Threadpool Tasks Submitted',
+    'com.openexchange.threadpool:name=ThreadPoolInformation,CompletedTaskCount': 'Threadpool Tasks Completed',
 }
 
 ox_counters = [
@@ -101,28 +102,29 @@ ox_counters = [
     'org.glassfish.grizzly:pp=/gmbal-root/HttpServer[HttpServer]/NetworkListener[NetworkListener[http-listener]],type=TCPNIOTransport,name=Transport,last-error',
     'org.glassfish.grizzly:pp=/gmbal-root/HttpServer[HttpServer]/NetworkListener[NetworkListener[http-listener]],type=TCPNIOTransport,name=Transport,open-connections-count',
     'org.glassfish.grizzly:pp=/gmbal-root/HttpServer[HttpServer]/NetworkListener[NetworkListener[http-listener]],type=TCPNIOTransport,name=Transport,total-connections-count',
+    'com.openexchange.threadpool:name=ThreadPoolInformation,TaskCount',
+    'com.openexchange.threadpool:name=ThreadPoolInformation,CompletedTaskCount'
     ]
 
 def inventory_ox_attributes(checkname, info):
-	inventory = []
-	for line in info:
-	    line = ' '.join(line).split(' = ')
-	    if line[0] in ox_attributes:
-		inventory.append((ox_attributes[line[0]], []))
-	return inventory
+    for line in info:
+        line = ' '.join(line).split(' = ')
+        if line[0] in ox_attributes:
+            yield ox_attributes[line[0]], {}
 
 def check_ox_attributes(item, params, info):
+    import hashlib
     now = time.time()
     for line in info:
-	line = ' '.join(line).split(' = ')
-	if line[0] in ox_attributes:
-	    if ox_attributes[line[0]] == item:
-		number = saveint(line[1])
-		if line[0] in ox_counters:
-		    timediff, rate_per_sec = get_counter("ox_runtimestat.attributes.%s" % hashlib.sha256(line[0]).hexdigest(), now, number)
-		    return (0, "%0.3f %s per second" % (rate_per_sec, item), [ (item.replace(' ', '_'), rate_per_sec) ])
-		else:
-		    return (0, "%d %s" % (number, item), [ (item.replace(' ', '_'), number) ])
+        line = ' '.join(line).split(' = ')
+        if line[0] in ox_attributes:
+            if ox_attributes[line[0]] == item:
+                number = saveint(line[1])
+                if line[0] in ox_counters:
+                    rate_per_sec = get_rate("ox_runtimestat.attributes.%s" % hashlib.sha256(line[0]).hexdigest(), now, number)
+                    return (0, "%0.3f %s per second" % (rate_per_sec, item), [ (item.replace(' ', '_'), rate_per_sec) ])
+                else:
+                    return (0, "%d %s" % (number, item), [ (item.replace(' ', '_'), number) ])
 
 check_info['ox_runtimestats.attributes'] = {
     'check_function':          check_ox_attributes,
@@ -131,4 +133,70 @@ check_info['ox_runtimestats.attributes'] = {
     'has_perfdata':            True,
     'group':                   'open_xchange',
     }
-		
+
+ox_sessions = {
+    'com.openexchange.sessiond:name=SessionD Toolkit,NumberOfLongTermSessions': 'Long Term Sessions',
+    'com.openexchange.sessiond:name=SessionD Toolkit,NumberOfShortTermSessions': 'Short Term Sessions',
+}
+
+def inventory_ox_sessions(info):
+    for line in info:
+        line = ' '.join(line).split(' = ')
+        if line[0] in ox_sessions:
+            yield ox_sessions[line[0]], {}
+
+def check_ox_sessions(item, params, info):
+    import json
+    now = time.time()
+    for line in info:
+        line = ' '.join(line).split(' = ')
+        if line[0] in ox_sessions:
+            if ox_sessions[line[0]] == item:
+                session_buckets = json.loads(line[1])
+                number = session_buckets[0]
+                return (0, "%d %s" % (number, item), [ (item.replace(' ', '_'), number) ])
+
+check_info['ox_runtimestats.sessions'] = {
+    'check_function':          check_ox_sessions,
+    'inventory_function':      inventory_ox_sessions,
+    'service_description':     'OX %s',
+    'has_perfdata':            True,
+    'group':                   'open_xchange',
+    }
+
+def parse_ox_memorypool(info):
+    memorypools = {}
+    for line in info:
+        line = ' '.join(line).split(' = ')
+        if line[0].startswith('java.lang:') and line[0].endswith('type=MemoryPool,Usage'):
+            name = None
+            for key, value in map(lambda x: x.split('='), line[0][10:].split(',')):
+                if key == 'name':
+                    name = value
+                    break
+            if name:
+                pool = {}
+                if line[1][0] == '[' and line[1][-1] == ']':
+                    for key, value in map(lambda x: x.split('='), line[1][1:-1].split(',')):
+                        pool[key] = saveint(value)
+                    memorypools[name] = pool
+    return memorypools
+
+def inventory_ox_memorypool(info):
+    parsed = parse_ox_memorypool(info)
+    for name in parsed:
+        yield name, {}
+
+def check_ox_memorypool(item, params, info):
+    parsed = parse_ox_memorypool(info)
+    if item in parsed:
+        return check_memory_simple(parsed[item]['used'], parsed[item]['max'], params)
+
+check_info['ox_runtimestats.memorypool'] = {
+    'check_function':          check_ox_memorypool,
+    'inventory_function':      inventory_ox_memorypool,
+    'service_description':     'OX MemoryPool %s',
+    'has_perfdata':            True,
+    'group':                   'memory_multiitem',
+    'includes':                [ 'memory.include' ],
+    }

@@ -52,13 +52,21 @@
 #                      u'total_kb_used': 7007280}},
 # u'perf': {u'osd_perf_infos': [{u'id': 5,
 #                                u'perf_stats': {u'apply_latency_ms': 0,
-#                                                u'commit_latency_ms': 0}}]}}
-
+#                                                u'commit_latency_ms': 0}}]},
+# u'nodes': {"ceph01":[0,1,2,9,10,11,18,19],
+#            "ceph02":[3,4,5,12,13,14,20,21],
+#            "ceph03":[6,7,8,15,16,17,22,23]}}
 
 def inventory_cephosd(parsed):
+    import cmk_base.piggyback
+    nodes = {host_name(): []}
+    if 'nodes' in parsed:
+        for node, osdlist in parsed['nodes'].iteritems():
+            nodes[cmk_base.piggyback.translate_piggyback_host(host_name(), node)] = osdlist
     if 'df' in parsed and 'nodes' in parsed['df']:
         for osd in parsed['df']['nodes']:
-            yield str(osd['id']), {}
+            if osd['id'] in nodes[host_name()] or 'nodes' not in parsed:
+                yield str(osd['id']), {}
 
 def check_cephosd(item, params, parsed):
     if 'df' in parsed and 'nodes' in parsed['df']:
@@ -82,5 +90,5 @@ check_info["cephosd"] = {
     'has_perfdata'           : True,
     'group'                  : 'filesystem',
     'default_levels_variable': 'filesystem_default_levels',
-    'includes'               : [ 'df.include', 'json.include' ],
+    'includes'               : [ 'size_trend.include', 'df.include', 'json.include' ],
 }
