@@ -1,27 +1,4 @@
 <?php
-# +------------------------------------------------------------------+
-# |             ____ _               _        __  __ _  __           |
-# |            / ___| |__   ___  ___| | __   |  \/  | |/ /           |
-# |           | |   | '_ \ / _ \/ __| |/ /   | |\/| | ' /            |
-# |           | |___| | | |  __/ (__|   <    | |  | | . \            |
-# |            \____|_| |_|\___|\___|_|\_\___|_|  |_|_|\_\           |
-# |                                                                  |
-# | Copyright Mathias Kettner 2014             mk@mathias-kettner.de |
-# +------------------------------------------------------------------+
-#
-# This file is part of Check_MK.
-# The official homepage is at http://mathias-kettner.de/check_mk.
-#
-# check_mk is free software;  you can redistribute it and/or modify it
-# under the  terms of the  GNU General Public License  as published by
-# the Free Software Foundation in version 2.  check_mk is  distributed
-# in the hope that it will be useful, but WITHOUT ANY WARRANTY;  with-
-# out even the implied warranty of  MERCHANTABILITY  or  FITNESS FOR A
-# PARTICULAR PURPOSE. See the  GNU General Public License for more de-
-# tails. You should have  received  a copy of the  GNU  General Public
-# License along with GNU Make; see the file  COPYING.  If  not,  write
-# to the Free Software Foundation, Inc., 51 Franklin St,  Fifth Floor,
-# Boston, MA 02110-1301 USA.
 
 setlocale(LC_ALL, "POSIX");
 
@@ -196,4 +173,19 @@ if (isset($RRD['inodes_used'])) {
     }
 }
 
+if (isset($RRD['apply_latency']) && isset($RRD['commit_latency'])) {
+    $opt[6] = "--vertical-label 'sec' --title 'OSD Latency'  -l 0 ";
+    $def[6] = "DEF:commit_latency=${RRD['commit_latency']} CDEF:commit_latency_LEGSCALED=commit_latency,1.000000,/ CDEF:commit_latency_NEG=commit_latency,-1,* CDEF:commit_latency_LEGSCALED_NEG=commit_latency_LEGSCALED,-1,* ";
+    $def[6] .= "DEF:apply_latency=${RRD['apply_latency']} CDEF:apply_latency_LEGSCALED=apply_latency,1.000000,/ CDEF:apply_latency_NEG=apply_latency,-1,* CDEF:apply_latency_LEGSCALED_NEG=apply_latency_LEGSCALED,-1,* ";
+    $def[6] .= "LINE:apply_latency#ffd600:\"Apply Latency \" ";
+    $def[6] .= "GPRINT:apply_latency_LEGSCALED:AVERAGE:\"%8.2lf s average\" ";
+    $def[6] .= "GPRINT:apply_latency_LEGSCALED:MAX:\"%8.2lf s max\" ";
+    $def[6] .= "GPRINT:apply_latency_LEGSCALED:LAST:\"%8.2lf s last\" ";
+    $def[6] .= "COMMENT:\"\\n\" ";
+    $def[6] .= "LINE:commit_latency#e2ff00:\"Commit Latency\" ";
+    $def[6] .= "GPRINT:commit_latency_LEGSCALED:AVERAGE:\"%8.2lf s average\" ";
+    $def[6] .= "GPRINT:commit_latency_LEGSCALED:MAX:\"%8.2lf s max\" ";
+    $def[6] .= "GPRINT:commit_latency_LEGSCALED:LAST:\"%8.2lf s last\" ";
+    $def[6] .= "COMMENT:\"\\n\" ";
+}
 ?>
