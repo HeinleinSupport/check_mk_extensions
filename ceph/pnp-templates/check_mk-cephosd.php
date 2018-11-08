@@ -15,15 +15,7 @@ foreach ($NAME as $i => $n) {
     $ACT[$n]  = $ACT[$i];
 }
 
-# RRDtool Options
-#$servicedes=$NAGIOS_SERVICEDESC
-
-if (substr($servicedesc, 0, 3) == 'fs_') {
-    $fsname = str_replace("_", "/", substr($servicedesc,3));
-} else {
-    $fsname = str_replace("_", "/", substr($servicedesc,11));
-}
-
+$fsname = str_replace("_", " ", substr($servicedesc,5));
 $fstitle = $fsname;
 
 # Hack for windows: replace C// with C:\
@@ -39,7 +31,7 @@ $critgb = $CRIT[1] / 1024.0;
 $warngbtxt = sprintf("%.1f", $warngb);
 $critgbtxt = sprintf("%.1f", $critgb);
 
-$opt[1] = "--vertical-label GB -l 0 -u $maxgb --title '$hostname: Filesystem $fstitle ($sizegb GB)' ";
+$opt[1] = "--vertical-label GB -l 0 -u $maxgb --title '$hostname: $fstitle ($sizegb GB)' ";
 
 # First graph show current filesystem usage. If there is a "reserved" RRD
 # then substract that and show as extra area
@@ -174,15 +166,15 @@ if (isset($RRD['inodes_used'])) {
 }
 
 if (isset($RRD['apply_latency']) && isset($RRD['commit_latency'])) {
-    $opt[6] = "--vertical-label 'sec' --title 'OSD Latency'  -l 0 ";
+    $opt[6] = "--vertical-label 'sec' -l 0 --title '$hostname: Latency of $fsname' ";
     $def[6] = "DEF:commit_latency=${RRD['commit_latency']} CDEF:commit_latency_LEGSCALED=commit_latency,1.000000,/ CDEF:commit_latency_NEG=commit_latency,-1,* CDEF:commit_latency_LEGSCALED_NEG=commit_latency_LEGSCALED,-1,* ";
     $def[6] .= "DEF:apply_latency=${RRD['apply_latency']} CDEF:apply_latency_LEGSCALED=apply_latency,1.000000,/ CDEF:apply_latency_NEG=apply_latency,-1,* CDEF:apply_latency_LEGSCALED_NEG=apply_latency_LEGSCALED,-1,* ";
-    $def[6] .= "LINE:apply_latency#ffd600:\"Apply Latency \" ";
+    $def[6] .= "LINE:apply_latency#ff0000:\"Apply Latency \" ";
     $def[6] .= "GPRINT:apply_latency_LEGSCALED:AVERAGE:\"%8.2lf s average\" ";
     $def[6] .= "GPRINT:apply_latency_LEGSCALED:MAX:\"%8.2lf s max\" ";
     $def[6] .= "GPRINT:apply_latency_LEGSCALED:LAST:\"%8.2lf s last\" ";
     $def[6] .= "COMMENT:\"\\n\" ";
-    $def[6] .= "LINE:commit_latency#e2ff00:\"Commit Latency\" ";
+    $def[6] .= "LINE:commit_latency_NEG#0000ff:\"Commit Latency\" ";
     $def[6] .= "GPRINT:commit_latency_LEGSCALED:AVERAGE:\"%8.2lf s average\" ";
     $def[6] .= "GPRINT:commit_latency_LEGSCALED:MAX:\"%8.2lf s max\" ";
     $def[6] .= "GPRINT:commit_latency_LEGSCALED:LAST:\"%8.2lf s last\" ";
