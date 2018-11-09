@@ -73,18 +73,22 @@ function cachet_query($api_part, $action = 'GET', $data = null) {
 	return array('code' => $http_code, 'body' => json_decode($http_body));
 }
 
-/* Find Cachet component ID */
-$result = cachet_query('components');
-if ($result['code'] != 200) {
-	echo 'Can\'t query components' . "\n";
-	exit(2);
-}
-$cachet_component_id = false;
-foreach ($result['body']->data as $component) {
-	if ($cachet_component == $component->name) { // We nailed it
-		$cachet_component_id = $component->id;
-		break; // Yes, bad.
-	}
+if ($_SERVER['NOTIFY_CONTACT_CACHET_ID']) {
+    $cachet_component_id = $_SERVER['NOTIFY_CONTACT_CACHET_ID'];
+} else {
+    /* Find Cachet component ID */
+    $result = cachet_query('components');
+    if ($result['code'] != 200) {
+        echo 'Can\'t query components' . "\n";
+        exit(2);
+    }
+    $cachet_component_id = false;
+    foreach ($result['body']->data as $component) {
+        if ($cachet_component == $component->name) { // We nailed it
+            $cachet_component_id = $component->id;
+            break; // Yes, bad.
+        }
+    }
 }
 if ($cachet_component_id === false) {
 	echo 'Can\'t find component "' . $cachet_component . '"' . "\n";
