@@ -52,6 +52,8 @@ source "$configFile"
 # configfile should contain USERSTOREKEY for support of multiple HANA instances OR USER + PASSWORD
 # The USERSTOREKEY (if available) is then merged with the SID name to to find a matching entry in the HDB USERSTORE.
 # i.e. USERSTOREKEY="SVAMON" + SID = I08 means we need a key for SVAMONI08 in the HDB userstore
+#
+# RUNAS is "agent" or "instance"
 
 if [ -z $USERSTOREKEY ] ; then
     # we only need to check for user + pw when we are not using the HDB Userstore,
@@ -73,7 +75,11 @@ function do_query() {
 	else
 	    CREDENTIALS="-u ${USER} -p ${PASSWORD}"
 	fi
-	su - ${INSTANCEUSER} -c "/usr/sap/${SID}/HDB${INSTANCE}/exe/hdbsql -C -F\; -x -a -n localhost -i ${INSTANCE} ${CREDENTIALS} \"$1\"" 2>/dev/null | sed -e "s/^;//" -e "s/;$//" ; (exit ${PIPESTATUS[0]})
+	if [ "$RUNAS" = "agent" ]; then
+	    /usr/sap/${SID}/HDB${INSTANCE}/exe/hdbsql -C -F\; -x -a -n localhost -i ${INSTANCE} ${CREDENTIALS} "$1" 2>/dev/null | sed -e "s/^;//" -e "s/;$//" ; (exit ${PIPESTATUS[0]})
+	else
+	    su - ${INSTANCEUSER} -c "/usr/sap/${SID}/HDB${INSTANCE}/exe/hdbsql -C -F\; -x -a -n localhost -i ${INSTANCE} ${CREDENTIALS} \"$1\"" 2>/dev/null | sed -e "s/^;//" -e "s/;$//" ; (exit ${PIPESTATUS[0]})
+	fi
     }
 
     # Check status
