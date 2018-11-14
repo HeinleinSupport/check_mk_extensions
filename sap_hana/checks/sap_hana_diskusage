@@ -65,7 +65,7 @@ check_info["sap_hana_diskusage"] = {
     "inventory_function"      : inventory_sap_hana_diskusage,
     "service_description"     : "SAP HANA Disk %s",
     "has_perfdata"            : True,
-    "includes"                : [ 'sap_hana.include', 'df.include' ],
+    "includes"                : [ 'sap_hana.include', 'size_trend.include', 'df.include' ],
     "group"                   : 'filesystem',
     "default_levels_variable" : 'filesystem_default_levels',
 }
