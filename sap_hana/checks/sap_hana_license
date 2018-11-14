@@ -46,8 +46,14 @@ def check_sap_hana_license(item, params, parsed):
                     p_usage     = savefloat(line[3])
                     p_limit     = savefloat(line[4])
                     prozent     = p_usage/(p_limit/100)
-                    is_valid    = line[5]
-                    expirydate  = line[6]
+                    if len(line) > 5:
+                        is_valid = line[5]
+                    else:
+                        is_valid = 'TRUE'
+                    if len(line) > 6:
+                        expirydate = line[6]
+                    else:
+                        expirydate = '?'
 
                     if node:
                         yield 0, "License info of %s" % node
