@@ -17,7 +17,7 @@
 def bake_sap_hana(opsys, conf, conf_dir, plugins_dir):
     if opsys == "linux":
         shutil.copy2(cmk.paths.local_agents_dir + "/plugins/sap_hana", plugins_dir + "/sap_hana")
-        if 'auth' in conf or 'runas' in conf:
+        if 'auth' in conf or 'runas' in conf or 'hostname' in conf:
             f = file(conf_dir + "/sap_hana.cfg", "w")
             f.write(agent_file_header)
             if 'auth' in conf:
@@ -32,6 +32,8 @@ def bake_sap_hana(opsys, conf, conf_dir, plugins_dir):
                         f.write('PASSWORD=%s\n' % passwords[conf['auth'][1][1][1]])
             if 'runas' in conf:
                 f.write('RUNAS=%s\n' % conf['runas'])
+            if 'hostname' in conf:
+                f.write('HOSTNAME=%s\n' % conf['hostname'])
 
 bakery_info["sap_hana"] = {
     "bake_function" : bake_sap_hana,

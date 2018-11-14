@@ -58,6 +58,15 @@ register_rule(
                           ],
                           default_value = "instance",
                     )),
+                    ( "hostname",
+                      DropdownChoice(
+                          title = _("Hostname or FQDN"),
+                          help = _("Use the simple hostname or the fully qualified domain name (hostname -f) in the HDBSQL queries."),
+                          choices = [
+                              ( "", _("Use the FQDN")),
+                              ( "hostname", _("Use the simple hostname")),
+                          ],
+                    )),
                 ],
                 optional_keys = 'runas',
             ),
