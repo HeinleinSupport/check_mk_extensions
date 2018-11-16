@@ -48,8 +48,27 @@ register_rule(
                             )
                         ]
                     )),
+                    ( "runas",
+                      DropdownChoice(
+                          title = _("Run As"),
+                          help = _("Run hdbsql as agent user (usually root) or SAP HANA instance user. This is important when using the userstore authentication method."),
+                          choices = [
+                              ( "instance", _("SAP HANA Instance User")),
+                              ( "agent", _("Check_MK Agent User (usually root)")),
+                          ],
+                          default_value = "instance",
+                    )),
+                    ( "hostname",
+                      DropdownChoice(
+                          title = _("Hostname or FQDN"),
+                          help = _("Use the simple hostname or the fully qualified domain name (hostname -f) in the HDBSQL queries."),
+                          choices = [
+                              ( "", _("Use the FQDN")),
+                              ( "hostname", _("Use the simple hostname")),
+                          ],
+                    )),
                 ],
-                optional_keys = False,
+                optional_keys = 'runas',
             ),
             FixedValue(None, title = _("Do not deploy the SAP HANA plugin"), totext = _("(disabled)") ),
         ]

@@ -96,7 +96,7 @@ def check_huawei_port(item, params, parsed):
             msg += " @ %s" % portinfo[1]
         if portinfo[0] in [ 'FC', 'SAS' ]:
             msg += '; WWN: %s' % portinfo[15]
-            msg += '; configured rate: %s' % huawei_port_rates[portinfo[13]]
+            msg += '; configured rate: %s' % huawei_port_rates.get(portinfo[13], 'unknown')
             if portinfo[13] != params['configRate']:
                 if res == 0:
                     res = 1

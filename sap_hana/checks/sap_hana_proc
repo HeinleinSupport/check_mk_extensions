@@ -27,8 +27,6 @@
 #31010;compileserver;18031;;YES;0;NONE
 
 def inventory_sap_hana_proc(parsed):
-    if cmk.debug.enabled():
-        pprint.pprint(parsed)
     for instance,lines in parsed.items():
         for line in lines:
             if len(line) > 2:
@@ -36,10 +34,6 @@ def inventory_sap_hana_proc(parsed):
                 yield item, { 'coordin': line[6] }
 
 def check_sap_hana_proc(item, params, parsed):
-    if cmk.debug.enabled():
-        pprint.pprint(item)
-        pprint.pprint(params)
-        pprint.pprint(parsed)
     for instance,lines in parsed.items():
         for line in lines:
             itemname = "%s - %s" % (instance, line[1])

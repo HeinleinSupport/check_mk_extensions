@@ -27,8 +27,6 @@ def parse_sap_hana(info):
     return parsed
 
 def parse_sap_hana_cluster(info):
-    if cmk.debug.enabled():
-        pprint.pprint(info)
     parsed = {}
     instance = False
     node = False

@@ -63,7 +63,7 @@ check_info["sap_hana_data_volume"] = {
     "service_description"     : "SAP HANA Volume %s",
     "has_perfdata"            : True,
     "node_info"               : True,
-    "includes"                : [ 'sap_hana.include', 'df.include' ],
+    "includes"                : [ 'sap_hana.include', 'size_trend.include', 'df.include' ],
     "group"                   : 'filesystem',
     "default_levels_variable" : 'filesystem_default_levels',
 }
