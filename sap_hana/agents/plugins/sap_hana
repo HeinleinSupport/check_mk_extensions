@@ -64,25 +64,26 @@ if [ -z $USERSTOREKEY ] ; then
     fi
 fi
 
+function hdbsql() {
+     # -C don't escape output, -F change separator , -x = quiet output, only query result / -a = no header in reply to select statements
+     # plus sed removes leading and trailing ;
+    if [ -n "$USERSTOREKEY" ] ; then
+        # CREDENTIALS="-U ${USERSTOREKEY}${SID}"
+        CREDENTIALS="-U ${USERSTOREKEY}"
+    else
+        CREDENTIALS="-u ${USER} -p ${PASSWORD}"
+    fi
+    if [ "$RUNAS" = "agent" ]; then
+        /usr/sap/${SID}/HDB${INSTANCE}/exe/hdbsql -C -F\; -x -a -n localhost -i ${INSTANCE} ${CREDENTIALS} "$1" 2>/dev/null | sed -e "s/^;//" -e "s/;$//" ; (exit ${PIPESTATUS[0]})
+    else
+        su - ${INSTANCEUSER} -c "hdbsql -C -F\; -x -a -n localhost -i ${INSTANCE} ${CREDENTIALS} \"$1\"" 2>/dev/null | sed -e "s/^;//" -e "s/;$//" ; (exit ${PIPESTATUS[0]})
+    fi
+}
+
+
 function do_query() {
 
     INSTANCE_NAME="[[${SID} ${INSTANCE}]]"
-
-    function hdbsql() {
-	# -C don't escape output, -F change separator , -x = quiet output, only query result / -a = no header in reply to select statements
-	# plus sed removes leading and trailing ;
-	if [ -n "$USERSTOREKEY" ] ; then
-	    # CREDENTIALS="-U ${USERSTOREKEY}${SID}"
-	    CREDENTIALS="-U ${USERSTOREKEY}"
-	else
-	    CREDENTIALS="-u ${USER} -p ${PASSWORD}"
-	fi
-	if [ "$RUNAS" = "agent" ]; then
-	    /usr/sap/${SID}/HDB${INSTANCE}/exe/hdbsql -C -F\; -x -a -n localhost -i ${INSTANCE} ${CREDENTIALS} "$1" 2>/dev/null | sed -e "s/^;//" -e "s/;$//" ; (exit ${PIPESTATUS[0]})
-	else
-	    su - ${INSTANCEUSER} -c "/usr/sap/${SID}/HDB${INSTANCE}/exe/hdbsql -C -F\; -x -a -n localhost -i ${INSTANCE} ${CREDENTIALS} \"$1\"" 2>/dev/null | sed -e "s/^;//" -e "s/;$//" ; (exit ${PIPESTATUS[0]})
-	fi
-    }
 
     # Check status
     echo "<<<sap_hana_status:sep(59)>>>"
@@ -169,6 +170,19 @@ function do_query() {
 
 }
 
+function find_tenants() {
+    BAK_SID=${SID} # save SYSTEMDB SID for reentry next TENANT
+    BAK_INSTANCEUSER=${INSTANCEUSER} # same like SID
+    tenant_list=$(su - ${INSTANCEUSER} -c "hdbsql -C -F\; -x -a -n localhost -i ${INSTANCE} -U Z_MONITOR \"SELECT DATABASE_NAME, PORT, HOST FROM SYS_DATABASES.M_SERVICES WHERE ((SERVICE_NAME='indexserver' AND COORDINATOR_TYPE= 'MASTER') OR (SERVICE_NAME='xsengine')) AND HOST='$HOSTNAME'\"")
+    printf "$tenant_list\n" | while read line ; do
+	SID=$(echo "$line" | awk -F';' '{print $2}')
+	INSTANCEUSER=$(su - ${INSTANCEUSER} -c "hdbsql -C -F\; -x -a -n localhost -i ${INSTANCE} -U Z_MONITOR \"SELECT OS_USER FROM M_DATABASES WHERE DATABASE_NAME = '$SID'\"" | awk -F';' '{print $2}')
+	do_query
+    SID=${BAK_SID} # restore SYSTEMDB SID
+    INSTANCEUSER=${BAK_INSTANCEUSER} # same like SID
+done
+}
+
 # find SID using
 running_hana_instances=$(ps -efw | grep [H]DB.*sapstartsrv)
 #hana01:/usr/sap/PRH/HDB00/exe # ps -ef | grep [H]DB.*sapstartsrv
@@ -177,15 +191,17 @@ printf "$running_hana_instances\n" | while read line ; do
     SID=$(echo "$line" | grep  -Po '(?<= /usr/sap/)\w{3}') # (!<= is a look behind assertion, so we find \w{3} <- 3 alpha-numerical characters, that follow " /usr/sap/" <- note the leading space
     INSTANCE=$(echo "$line" | grep  -Po "(?<= /usr/sap/${SID}/HDB)\d{2}") # same logic as above, but look for 2 \d digits
     INSTANCEUSER=$(echo "$line" | grep -Po "^\s*(\w+)") # grep only the first word = the user running the instance
+    HOSTNAME=$(echo "$line" | awk -F'_' '{print $3}' | awk -F' ' '{print $1}')
     if [ -z $INSTANCE ] || [ -z $SID ] ; then
 	continue; # no SID or INSTANCE found, no need to query anything
     else
 	if [ -z "$HOSTNAME" ]; then
 	    HOSTNAME=$(hostname -f)
-	else
-	    HOSTNAME=$(hostname)
+	#else
+	#    HOSTNAME=$(hostname)
 	fi
 	do_query
+	# find Tenants
+	find_tenants
     fi
 done
-
