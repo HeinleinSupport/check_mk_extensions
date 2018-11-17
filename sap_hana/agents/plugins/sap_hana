@@ -173,10 +173,10 @@ function do_query() {
 function find_tenants() {
     BAK_SID=${SID} # save SYSTEMDB SID for reentry next TENANT
     BAK_INSTANCEUSER=${INSTANCEUSER} # same like SID
-    tenant_list=$(su - ${INSTANCEUSER} -c "hdbsql -C -F\; -x -a -n localhost -i ${INSTANCE} -U Z_MONITOR \"SELECT DATABASE_NAME, PORT, HOST FROM SYS_DATABASES.M_SERVICES WHERE ((SERVICE_NAME='indexserver' AND COORDINATOR_TYPE= 'MASTER') OR (SERVICE_NAME='xsengine')) AND HOST='$HOSTNAME'\"")
+    tenant_list=$(hdbsql "SELECT DATABASE_NAME, PORT, HOST FROM SYS_DATABASES.M_SERVICES WHERE ((SERVICE_NAME='indexserver' AND COORDINATOR_TYPE= 'MASTER') OR (SERVICE_NAME='xsengine')) AND HOST='$HOSTNAME'")
     printf "$tenant_list\n" | while read line ; do
-	SID=$(echo "$line" | awk -F';' '{print $2}')
-	INSTANCEUSER=$(su - ${INSTANCEUSER} -c "hdbsql -C -F\; -x -a -n localhost -i ${INSTANCE} -U Z_MONITOR \"SELECT OS_USER FROM M_DATABASES WHERE DATABASE_NAME = '$SID'\"" | awk -F';' '{print $2}')
+	SID=$(echo "$line" | awk -F';' '{print $1}')
+	INSTANCEUSER=$(hdbsql "SELECT OS_USER FROM M_DATABASES WHERE DATABASE_NAME = '$SID'" | awk -F';' '{print $1}')
 	do_query
     SID=${BAK_SID} # restore SYSTEMDB SID
     INSTANCEUSER=${BAK_INSTANCEUSER} # same like SID
