@@ -54,6 +54,7 @@ def check_cephstatus(item, params, parsed):
                       'stale+active+clean',
                       'stale+active+undersized+degraded',
                       'undersized+degraded+peered',
+                      'undersized+peered',
                       'unknown',
                      ]
     _ceph_pgstates = {}

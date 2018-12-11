@@ -62,6 +62,7 @@ _ceph_pgstates = ['pgstate_active_clean',
                   'pgstate_stale_active_clean',
                   'pgstate_stale_active_undersized_degraded',
                   'pgstate_undersized_degraded_peered',
+                  'pgstate_undersized_peered',
                   'pgstate_unknown',
                  ]
 
