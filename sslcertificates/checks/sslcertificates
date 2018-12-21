@@ -44,6 +44,7 @@ def check_sslcertificates(item, params, info):
             endtime = saveint(line[1])
             now = int(time.time())
             daysremaining = ( endtime - now ) / 60 / 60 / 24
+            secondsremaining = endtime - now
             ignored = False
 
             algosign = '/'
@@ -55,7 +56,7 @@ def check_sslcertificates(item, params, info):
                 subj = " ".join(line[2:])
             else:
                 subj = " ".join(line[3:])
-            yield 0, "Subject: %s" % subj
+            yield 0, "Subject: %s" % subj, [ ( 'lifetime_remaining', secondsremaining, warn * 86400, crit * 86400 ) ]
 
             if daysremaining < 0:
                 infotext = "expired %d days ago on %s" % ( abs(daysremaining), time.strftime("%c", time.gmtime(endtime)))
@@ -82,7 +83,7 @@ def check_sslcertificates(item, params, info):
 check_info['sslcertificates'] = {
     'check_function':      check_sslcertificates,
     'service_description': "SSL Certificate in %s",
-    'has_perfdata':        False,
+    'has_perfdata':        True,
     'inventory_function':  inventory_sslcertificates,
     'group':               'sslcertificates',
     'default_levels_variable' : "sslcertificates_default_levels",
