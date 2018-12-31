@@ -17,5 +17,7 @@
 
 def parse_json(info):
     import json
-    return json.loads(" ".join([item for sublist in info for item in sublist]))
-
+    try:
+        return json.loads(" ".join([item for sublist in info for item in sublist]))
+    except ValueError:
+        return {}
