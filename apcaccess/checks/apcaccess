@@ -22,9 +22,6 @@ factory_settings["apcaccess_status_default"] = {
 }
 
 def parse_apcaccess(info):
-    import cmk.debug
-    if cmk.debug.enabled():
-        pprint.pprint(info)
     parsed = {}
     instance = False
     for line in info:
@@ -36,9 +33,6 @@ def parse_apcaccess(info):
     return parsed
 
 def inventory_apcaccess(parsed):
-    import cmk.debug
-    if cmk.debug.enabled():
-        pprint.pprint(parsed)    
     for instance in parsed:
         yield instance, {}
 
