@@ -22,6 +22,9 @@ factory_settings["apcaccess_status_default"] = {
 }
 
 def parse_apcaccess(info):
+    import cmk.debug
+    if cmk.debug.enabled():
+        pprint.pprint(info)
     parsed = {}
     instance = False
     for line in info:
@@ -29,10 +32,13 @@ def parse_apcaccess(info):
             instance = line[0][2:-2]
             parsed[instance] = {}
         elif instance:
-            parsed[instance][line[0]] = line[1]
+            parsed[instance][line[0].strip()] = ":".join(line[1:]).strip()
     return parsed
 
 def inventory_apcaccess(parsed):
+    import cmk.debug
+    if cmk.debug.enabled():
+        pprint.pprint(parsed)    
     for instance in parsed:
         yield instance, {}
 

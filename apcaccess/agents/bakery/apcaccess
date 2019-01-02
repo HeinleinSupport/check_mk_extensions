@@ -2,9 +2,12 @@
 # -*- encoding: utf-8; py-indent-offset: 4 -*-
 
 def bake_apcaccess(opsys, conf, conf_dir, plugins_dir):
-    shutil.copy2(cmk.paths.local_agents_dir + "/plugins/apcaccess", plugins_dir + "/apcaccess")
+    if opsys == "linux":
+        shutil.copy2(cmk.paths.local_agents_dir + "/plugins/apcaccess", plugins_dir + "/apcaccess")
+    elif opsys == "windows":
+        shutil.copy2(cmk.paths.local_agents_dir + "/windows/plugins/apcaccess.bat", plugins_dir + "/apcaccess.bat")
 
 bakery_info["apcaccess"] = {
     "bake_function" : bake_apcaccess,
-    "os"            : [ "linux", ],
+    "os"            : [ "linux", "windows"],
 }
