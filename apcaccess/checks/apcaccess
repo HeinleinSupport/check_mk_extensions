@@ -29,7 +29,7 @@ def parse_apcaccess(info):
             instance = line[0][2:-2]
             parsed[instance] = {}
         elif instance:
-            parsed[instance][line[0]] = line[1]
+            parsed[instance][line[0].strip()] = ":".join(line[1:]).strip()
     return parsed
 
 def inventory_apcaccess(parsed):
