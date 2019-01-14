@@ -66,18 +66,18 @@ def inventory_cephosd(parsed):
     if 'df' in parsed and 'nodes' in parsed['df']:
         for osd in parsed['df']['nodes']:
             if osd['id'] in nodes[host_name()] or 'nodes' not in parsed:
-                yield str(osd['id']), {}
+                yield 'OSD %d' % osd['id'], {}
 
 def check_cephosd(item, params, parsed):
     if 'df' in parsed and 'nodes' in parsed['df']:
         for osd in parsed['df']['nodes']:
-            if str(osd['id']) == item:
+            if 'OSD %d' % osd['id'] == item:
                 size_mb = osd['kb'] / 1024.0
                 avail_mb = osd['kb_avail'] / 1024.0
                 yield df_check_filesystem_list(item, params, [ (item, size_mb, avail_mb, 0) ])
     if 'perf' in parsed and 'osd_perf_infos' in parsed['perf']:
         for osd in parsed['perf']['osd_perf_infos']:
-            if str(osd['id']) == item:
+            if 'OSD %d' % osd['id'] == item:
                 apply_latency = osd['perf_stats']['apply_latency_ms']
                 commit_latency = osd['perf_stats']['commit_latency_ms']
                 yield (0, 'Apply Latency: %dms, Commit Latency: %dms' % ( apply_latency, commit_latency) , [ ( 'apply_latency', apply_latency / 1000.0), ( 'commit_latency', commit_latency / 1000.0) ] )
@@ -86,7 +86,7 @@ check_info["cephosd"] = {
     'parse_function'         : parse_json,
     'check_function'         : check_cephosd,
     'inventory_function'     : inventory_cephosd,
-    'service_description'    : 'Ceph OSD %s',
+    'service_description'    : 'Ceph %s',
     'has_perfdata'           : True,
     'group'                  : 'filesystem',
     'default_levels_variable': 'filesystem_default_levels',
