@@ -200,4 +200,34 @@ if (isset($RRD['num_pgs'])) {
     $def[7] .= "GPRINT:num_pgs:LAST:\"%6.2lf\" ";
 } 
 
+if (isset($RRD['degraded_objects'])) {
+    $opt[8] = "--vertical-label 'Objects' -l 0 --title '$hostname: Degraded Objects' ";
+    $def[8] = "DEF:degraded_objects=${RRD['degraded_objects']} ";
+    $def[8] .= "AREA:degraded_objects#a0608f:\"Degraded Objects\:\" ";
+    $def[8] .= "GPRINT:degraded_objects:LAST:\"%2.0lf\" ";
+    $def[8] .= "LINE1:degraded_objects#c00080:\"\" ";
+    $def[8] .= "GPRINT:degraded_objects:MAX:\"Max\: %2.0lf\" ";
+    $def[8] .= "GPRINT:degraded_objects:AVERAGE:\"Average\: %2.0lf\\n\" ";
+}
+
+if (isset($RRD['misplaced_objects'])) {
+    $opt[9] = "--vertical-label 'Objects' -l 0 --title '$hostname: Misplaced Objects' ";
+    $def[9] = "DEF:misplaced_objects=${RRD['misplaced_objects']} ";
+    $def[9] .= "AREA:misplaced_objects#a0608f:\"Misplaced Objects\:\" ";
+    $def[9] .= "GPRINT:misplaced_objects:LAST:\"%2.0lf\" ";
+    $def[9] .= "LINE1:misplaced_objects#c00080:\"\" ";
+    $def[9] .= "GPRINT:misplaced_objects:MAX:\"Max\: %2.0lf\" ";
+    $def[9] .= "GPRINT:misplaced_objects:AVERAGE:\"Average\: %2.0lf\\n\" ";
+}
+
+if (isset($RRD['recovering'])) {
+    $opt[10] = "--vertical-label 'Recovering (MB/s)' -X0  --title \"Ceph Recovering\" ";
+    $def[10]  = "DEF:recovering=$RRD[recovering] ".
+                "CDEF:recovering_mb=recovering,1048576,/ ".
+                "AREA:recovering_mb#40c080:\"Recovering \" ".
+                "GPRINT:recovering_mb:LAST:\"%8.1lf MB/s last\" ".
+                "GPRINT:recovering_mb:AVERAGE:\"%6.1lf MB/s avg\" ".
+                "GPRINT:recovering_mb:MAX:\"%6.1lf MB/s max\\n\" ";
+}
+
 ?>
