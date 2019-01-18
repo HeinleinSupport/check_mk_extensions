@@ -190,9 +190,10 @@ if (isset($RRD['num_pgs'])) {
             $def[7] .= "DEF:${n}=${RRD[$n]} ";
         }
     }
+    $fac = 256 ** 3 / count($NAME);
     foreach ($NAME as $i => $n) {
         if (substr($n, 0, 8) == 'pgstate_') {
-            $def[7] .= "AREA:${n}#${i}${i}${i}:'${n}\: ':STACK ";
+            $def[7] .= "AREA:${n}#" . substr("000000".dechex($i * $fac),-6). ":'${n}\: ':STACK ";
             $def[7] .= "GPRINT:${n}:LAST:\"%6.2lf\\n\" ";
         }
     }
