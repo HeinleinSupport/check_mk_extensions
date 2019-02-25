@@ -16,10 +16,10 @@
 
 if [ -x /sbin/lvm ]; then
 
-  echo "<<<vgs>>>"
-  waitmax -s 2 4 vgs --units b --nosuffix --noheadings --separator '	'
+  echo "<<<vgs:sep(59)>>>"
+  waitmax -s 2 4 vgs --units b --nosuffix --noheadings --separator ';'
 
-  echo "<<<pvs>>>"
-  waitmax -s 2 4 pvs --units b --nosuffix --noheadings --separator '	'
+  echo "<<<pvs:sep(59)>>>"
+  waitmax -s 2 4 pvs --units b --nosuffix --noheadings --separator ';'
 
 fi
