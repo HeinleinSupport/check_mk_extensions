@@ -74,9 +74,9 @@ function hdbsql() {
         CREDENTIALS="-u ${USER} -p ${PASSWORD}"
     fi
     if [ "$RUNAS" = "agent" ]; then
-        /usr/sap/${SID}/HDB${INSTANCE}/exe/hdbsql -C -F\; -x -a -n localhost -i ${INSTANCE} ${CREDENTIALS} "$1" 2>/dev/null | sed -e "s/^;//" -e "s/;$//" ; (exit ${PIPESTATUS[0]})
+        /usr/sap/${SYSTEMDB}/HDB${INSTANCE}/exe/hdbsql -C -F\; -x -a -n localhost -i ${INSTANCE} ${CREDENTIALS} "$1" 2>/dev/null | sed -e "s/^;//" -e "s/;$//" ; (exit ${PIPESTATUS[0]})
     else
-        su - ${INSTANCEUSER} -c "hdbsql -C -F\; -x -a -n localhost -i ${INSTANCE} ${CREDENTIALS} \"$1\"" 2>/dev/null | sed -e "s/^;//" -e "s/;$//" ; (exit ${PIPESTATUS[0]})
+        su - ${INSTANCEUSER} -c "/usr/sap/${SYSTEMDB}/HDB${INSTANCE}/exe/hdbsql -C -F\; -x -a -n localhost -i ${INSTANCE} ${CREDENTIALS} \"$1\"" 2>/dev/null | sed -e "s/^;//" -e "s/;$//" ; (exit ${PIPESTATUS[0]})
     fi
 }
 
@@ -171,16 +171,19 @@ function do_query() {
 }
 
 function find_tenants() {
-    BAK_SID=${SID} # save SYSTEMDB SID for reentry next TENANT
-    BAK_INSTANCEUSER=${INSTANCEUSER} # same like SID
     tenant_list=$(hdbsql "SELECT DATABASE_NAME, PORT, HOST FROM SYS_DATABASES.M_SERVICES WHERE ((SERVICE_NAME='indexserver' AND COORDINATOR_TYPE= 'MASTER') OR (SERVICE_NAME='xsengine')) AND HOST='$HOSTNAME'")
-    printf "$tenant_list\n" | while read line ; do
-	SID=$(echo "$line" | awk -F';' '{print $1}')
-	INSTANCEUSER=$(hdbsql "SELECT OS_USER FROM M_DATABASES WHERE DATABASE_NAME = '$SID'" | awk -F';' '{print $1}')
-	do_query
-    SID=${BAK_SID} # restore SYSTEMDB SID
-    INSTANCEUSER=${BAK_INSTANCEUSER} # same like SID
-done
+    INSTANCEUSER_BAK=$(echo $INSTANCEUSER)
+    if [ -z $tenant_list ] ; then
+        continue;
+    else
+	printf "$tenant_list\n" | while read line ; do
+                SID=$(echo "$line" | awk -F';' '{print $1}')
+		INSTANCEUSER=$(hdbsql "select OS_USER from "SYS"."M_DATABASES" WHERE DATABASE_NAME = '$SID'")
+		do_query
+    INSTANCEUSER=$(echo $INSTANCEUSER_BAK)
+        done
+
+    fi
 }
 
 # find SID using
@@ -189,19 +192,36 @@ running_hana_instances=$(ps -efw | grep [H]DB.*sapstartsrv)
 #prhadm    4943     1  0 Nov09 ?        00:00:50 /usr/sap/PRH/HDB00/exe/sapstartsrv pf=/usr/sap/PRH/SYS/profile/PRH_HDB00_hana01 -D -u prhadm
 printf "$running_hana_instances\n" | while read line ; do
     SID=$(echo "$line" | grep  -Po '(?<= /usr/sap/)\w{3}') # (!<= is a look behind assertion, so we find \w{3} <- 3 alpha-numerical characters, that follow " /usr/sap/" <- note the leading space
+    if [ -z $SID ] ; then
+        SID=$(echo "$line" | grep  -Po '(?<= /hana/shared/)\w{3}') # (!<= is a look behind assertion, so we find \w{3} <- 3 alpha-numerical characters, that follow " /hana/shared/" <- note the leading space
+        if [ -z $SID ] ; then
+                exit_unknown
+        fi
+    fi
+    SYSTEMDB=$SID
     INSTANCE=$(echo "$line" | grep  -Po "(?<= /usr/sap/${SID}/HDB)\d{2}") # same logic as above, but look for 2 \d digits
+    if [ -z $INSTANCE ] ; then
+        INSTANCE=$(echo "$line" | grep  -Po "(?<= /hana/shared/${SID}/HDB)\d{2}") # same logic as above, but look for 2 \d digits
+        if [ -z $INSTANCE ] ; then
+                exit_unknown
+        fi
+    fi
     INSTANCEUSER=$(echo "$line" | grep -Po "^\s*(\w+)") # grep only the first word = the user running the instance
     HOSTNAME=$(echo "$line" | awk -F'_' '{print $3}' | awk -F' ' '{print $1}')
+#    if [ -z $SYSTEMDB_VERSION ] ; then
+#       SYSTEMDB_VERSION=$(hdbsql "SELECT VALUE FROM M_SYSTEM_OVERVIEW Where NAME='Version'" | awk -F';' '{print $1}')
+#       echo $SYSTEMDB_VERSION
+#    fi
     if [ -z $INSTANCE ] || [ -z $SID ] ; then
-	continue; # no SID or INSTANCE found, no need to query anything
+        continue; # no SID or INSTANCE found, no need to query anything
     else
-	if [ -z "$HOSTNAME" ]; then
-	    HOSTNAME=$(hostname -f)
-	#else
-	#    HOSTNAME=$(hostname)
-	fi
-	do_query
-	# find Tenants
-	find_tenants
+        if [ -z "$HOSTNAME" ]; then
+            HOSTNAME=$(hostname -f)
+        #else
+        #    HOSTNAME=$(hostname)
+        fi
+        do_query
+        # find Tenants
+        find_tenants
     fi
 done
