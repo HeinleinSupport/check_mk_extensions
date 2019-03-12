@@ -38,6 +38,7 @@ def check_cephstatus(item, params, parsed):
                       'active+recovery_wait+undersized+degraded',
                       'active+recovery_wait+undersized+degraded+remapped',
                       'active+remapped+backfill_wait',
+                      'active+remapped+backfill_wait+backfill_toofull',
                       'active+remapped+backfilling',
                       'active+remapped+inconsistent+backfilling',
                       'active+remapped+inconsistent+backfill_wait',
