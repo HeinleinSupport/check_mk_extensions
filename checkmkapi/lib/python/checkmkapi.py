@@ -113,6 +113,11 @@ class WATOAPI():
         else:
             return self.api_request(params=api_activate)
 
+    def bake_agents(self):
+        api_bake_agents = { 'action': 'bake_agents' }
+        api_bake_agents.update(self.api_creds)
+        return self.api_request(params=api_bake_agents)
+
 class MultisiteAPI():
     def __init__(self, site_url, api_user, api_secret):
         self.site_url = check_mk_url(site_url)
