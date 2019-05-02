@@ -26,9 +26,12 @@ def check_cephstatus(item, params, parsed):
                       'active+clean+remapped',
                       'active+clean+scrubbing',
                       'active+clean+scrubbing+deep',
+                      'active+degraded',
                       'active+recovering',
                       'active+recovering+degraded',
                       'active+recovering+degraded+inconsistent',
+                      'active+recovering+degraded+remapped',
+                      'active+recovering+remapped',
                       'active+recovery_wait',
                       'active+recovery_wait+degraded',
                       'active+recovery_wait+degraded+inconsistent',
@@ -37,6 +40,7 @@ def check_cephstatus(item, params, parsed):
                       'active+recovery_wait+undersized+degraded',
                       'active+recovery_wait+undersized+degraded+remapped',
                       'active+remapped+backfill_wait',
+                      'active+remapped+backfill_wait+backfill_toofull',
                       'active+remapped+backfilling',
                       'active+remapped+inconsistent+backfilling',
                       'active+remapped+inconsistent+backfill_wait',
@@ -54,6 +58,7 @@ def check_cephstatus(item, params, parsed):
                       'stale+active+clean',
                       'stale+active+undersized+degraded',
                       'undersized+degraded+peered',
+                      'undersized+peered',
                       'unknown',
                      ]
     _ceph_pgstates = {}
@@ -101,6 +106,12 @@ def check_cephstatus(item, params, parsed):
             yield 0, '%d Objects' % pgmap['num_objects'], [('num_objects', pgmap['num_objects'], 0)]
         if 'num_pgs' in pgmap:
             yield 0, '%d Placement Groups' % pgmap['num_pgs'], [('num_pgs', pgmap['num_pgs'], 0)]
+        if 'degraded_objects' in pgmap and 'degraded_total' in pgmap and 'degraded_ratio' in pgmap:
+            yield 0, None, [('degraded_objects', pgmap['degraded_objects'], None, None, 0, pgmap['degraded_total'])]
+        if 'misplaced_objects' in pgmap and 'misplaced_total' in pgmap and 'misplaced_ratio' in pgmap:
+            yield 0, None, [('misplaced_objects', pgmap['misplaced_objects'], None, None, 0, pgmap['misplaced_total'])]
+        if 'recovering_bytes_per_sec' in pgmap:
+            yield 0, '%s/s recovering' % get_bytes_human_readable(pgmap['recovering_bytes_per_sec']), [('recovering', pgmap['recovering_bytes_per_sec'])]
         if 'pgs_by_state' in pgmap:
             for pgstate in pgmap['pgs_by_state']:
                 if pgstate['state_name'] in _ceph_pgstates:

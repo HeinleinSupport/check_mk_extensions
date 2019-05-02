@@ -1,0 +1,5066 @@
+KENTIXDEVICES DEFINITIONS ::= BEGIN
+IMPORTS
+	Counter32, Unsigned32, Gauge32, Opaque, Integer32, OBJECT-TYPE, TimeTicks, enterprises, MODULE-IDENTITY, OBJECT-IDENTITY, NOTIFICATION-TYPE
+		FROM SNMPv2-SMI
+	TEXTUAL-CONVENTION, DisplayString, TruthValue
+		FROM SNMPv2-TC;
+
+kentix MODULE-IDENTITY
+	LAST-UPDATED "201705240000Z"
+	ORGANIZATION "Kentix GmbH"
+	CONTACT-INFO "info@kentix.com"
+	DESCRIPTION  "MIB of the Kentix devices"
+
+	REVISION "201705240000Z"
+	DESCRIPTION
+			"Minor improvements/adjustments"
+::= { enterprises 37954 }
+
+-------------------------------------------------------------------------------------------
+
+kentixdevices  OBJECT IDENTIFIER ::= { kentix 5 }
+
+-------------------------------------------------------------------------------------------
+
+-------------------------------------------------------------------------------------------
+-- Top-Level
+-------------------------------------------------------------------------------------------
+
+system            OBJECT IDENTIFIER ::= { kentixdevices 1 }
+valuemultiplier   OBJECT IDENTIFIER ::= { system 1 }
+alarmstate        OBJECT IDENTIFIER ::= { system 2 }
+energy            OBJECT IDENTIFIER ::= { system 3 }
+sensors           OBJECT IDENTIFIER ::= { kentixdevices 2 }
+inputs            OBJECT IDENTIFIER ::= { sensors 100 }
+outputs           OBJECT IDENTIFIER ::= { sensors 101 }
+pdus              OBJECT IDENTIFIER ::= { sensors 102 }
+pdu1              OBJECT IDENTIFIER ::= { pdus 1 }
+pdu2              OBJECT IDENTIFIER ::= { pdus 2 }
+pdu3              OBJECT IDENTIFIER ::= { pdus 3 }
+pdu4              OBJECT IDENTIFIER ::= { pdus 4 }
+pdu5              OBJECT IDENTIFIER ::= { pdus 5 }
+pdu6              OBJECT IDENTIFIER ::= { pdus 6 }
+pdu7              OBJECT IDENTIFIER ::= { pdus 7 }
+pdu8              OBJECT IDENTIFIER ::= { pdus 8 }
+pdu9              OBJECT IDENTIFIER ::= { pdus 9 }
+pdu10             OBJECT IDENTIFIER ::= { pdus 10 }
+pdu11             OBJECT IDENTIFIER ::= { pdus 11 }
+pdu12             OBJECT IDENTIFIER ::= { pdus 12 }
+pdu13             OBJECT IDENTIFIER ::= { pdus 13 }
+pdu14             OBJECT IDENTIFIER ::= { pdus 14 }
+pdu15             OBJECT IDENTIFIER ::= { pdus 15 }
+pdu16             OBJECT IDENTIFIER ::= { pdus 16 }
+zones             OBJECT IDENTIFIER ::= { kentixdevices 3 }
+logbook           OBJECT IDENTIFIER ::= { kentixdevices 4 }
+-- notifications     OBJECT IDENTIFIER ::= { kentixdevices 5 }
+
+
+-------------------------------------------------------------------------------------------
+-- Value Multiplier
+-------------------------------------------------------------------------------------------
+
+multiplierTemperature OBJECT-TYPE
+SYNTAX          Unsigned32
+MAX-ACCESS      read-write
+STATUS          current
+DESCRIPTION     "Multiplier for temperature measurements."
+::= { valuemultiplier 1}
+
+multiplierHumidity OBJECT-TYPE
+SYNTAX          Unsigned32
+MAX-ACCESS      read-write
+STATUS          current
+DESCRIPTION     "Multiplier for humidity measurements."
+::= { valuemultiplier 2}
+
+multiplierDewpoint OBJECT-TYPE
+SYNTAX          Unsigned32
+MAX-ACCESS      read-write
+STATUS          current
+DESCRIPTION     "Multiplier for dew point measurements."
+::= { valuemultiplier 3}
+
+multiplierBatterylevel OBJECT-TYPE
+SYNTAX          Unsigned32
+MAX-ACCESS      read-write
+STATUS          current
+DESCRIPTION     "Multiplier for battery level measurements."
+::= { valuemultiplier 4}
+
+multiplierVoltage OBJECT-TYPE
+SYNTAX          Unsigned32
+MAX-ACCESS      read-write
+STATUS          current
+DESCRIPTION     "Multiplier for voltage measurements."
+::= { valuemultiplier 5}
+
+multiplierCurrent OBJECT-TYPE
+SYNTAX          Unsigned32
+MAX-ACCESS      read-write
+STATUS          current
+DESCRIPTION     "Multiplier for current measurements."
+::= { valuemultiplier 6}
+
+multiplierActivepower OBJECT-TYPE
+SYNTAX          Unsigned32
+MAX-ACCESS      read-write
+STATUS          current
+DESCRIPTION     "Multiplier for activepower measurements."
+::= { valuemultiplier 7}
+
+multiplierReactivepower OBJECT-TYPE
+SYNTAX          Unsigned32
+MAX-ACCESS      read-write
+STATUS          current
+DESCRIPTION     "Multiplier for reactivepower measurements."
+::= { valuemultiplier 8}
+
+multiplierApparent OBJECT-TYPE
+SYNTAX          Unsigned32
+MAX-ACCESS      read-write
+STATUS          current
+DESCRIPTION     "Multiplier for apparent measurements."
+::= { valuemultiplier 9}
+
+multiplierFrequency OBJECT-TYPE
+SYNTAX          Unsigned32
+MAX-ACCESS      read-write
+STATUS          current
+DESCRIPTION     "Multiplier for frequency measurements."
+::= { valuemultiplier 10}
+
+multiplierConsumption OBJECT-TYPE
+SYNTAX          Unsigned32
+MAX-ACCESS      read-write
+STATUS          current
+DESCRIPTION     "Multiplier for consumption measurements."
+::= { valuemultiplier 11}
+
+multiplierPue OBJECT-TYPE
+SYNTAX          Unsigned32
+MAX-ACCESS      read-write
+STATUS          current
+DESCRIPTION     "Multiplier for pue measurements."
+::= { valuemultiplier 12}
+
+
+-------------------------------------------------------------------------------------------
+-- Alarmstate
+-------------------------------------------------------------------------------------------
+
+alarm1 OBJECT-TYPE
+SYNTAX          TruthValue
+MAX-ACCESS      read-write
+STATUS          current
+DESCRIPTION     "Alarm state for alarm 1 on the Kentix KAM-PRO."
+::= { alarmstate 1}
+
+alarm2 OBJECT-TYPE
+SYNTAX          TruthValue
+MAX-ACCESS      read-write
+STATUS          current
+DESCRIPTION     "Alarm state for alarm 2 on the Kentix KAM-PRO."
+::= { alarmstate 2}
+
+serverstate OBJECT-TYPE
+SYNTAX          TruthValue
+MAX-ACCESS      read-write
+STATUS          current
+DESCRIPTION     "State for serverpolling on the Kentix KAM-PRO."
+::= { alarmstate 3}
+
+sensorcommunication OBJECT-TYPE
+SYNTAX          TruthValue
+MAX-ACCESS      read-write
+STATUS          current
+DESCRIPTION     "State for sensor communication on the Kentix KAM-PRO."
+::= { alarmstate 4}
+
+sabotage OBJECT-TYPE
+SYNTAX          TruthValue
+MAX-ACCESS      read-write
+STATUS          current
+DESCRIPTION     "State for the sabtage alarm on the Kentix KAM-PRO."
+::= { alarmstate 5}
+
+gsmsignal OBJECT-TYPE
+SYNTAX          TruthValue
+MAX-ACCESS      read-write
+STATUS          current
+DESCRIPTION     "Strength of the GSM signal on the Kentix KAM-PRO."
+::= { alarmstate 6}
+
+gsmok OBJECT-TYPE
+SYNTAX          TruthValue
+MAX-ACCESS      read-write
+STATUS          current
+DESCRIPTION     "State for the GSM provider on the Kentix KAM-PRO."
+::= { alarmstate 7}
+
+systemarmed OBJECT-TYPE
+SYNTAX          TruthValue
+MAX-ACCESS      read-write
+STATUS          current
+DESCRIPTION     "Value true if one zone is armed."
+::= { alarmstate 8}
+
+alarmtemp OBJECT-TYPE
+SYNTAX          TruthValue
+MAX-ACCESS      read-write
+STATUS          current
+DESCRIPTION     "Collective alarm for temperature."
+::= { alarmstate 9}
+
+alarmhum OBJECT-TYPE
+SYNTAX          TruthValue
+MAX-ACCESS      read-write
+STATUS          current
+DESCRIPTION     "Collective alarm for humidity."
+::= { alarmstate 10}
+
+alarmdewpoint OBJECT-TYPE
+SYNTAX          TruthValue
+MAX-ACCESS      read-write
+STATUS          current
+DESCRIPTION     "Collective alarm for dewpoint."
+::= { alarmstate 11}
+
+alarmco OBJECT-TYPE
+SYNTAX          TruthValue
+MAX-ACCESS      read-write
+STATUS          current
+DESCRIPTION     "Collective alarm for co."
+::= { alarmstate 12}
+
+alarmvoltage OBJECT-TYPE
+SYNTAX          TruthValue
+MAX-ACCESS      read-write
+STATUS          current
+DESCRIPTION     "Collective alarm for voltage."
+::= { alarmstate 13}
+
+alarmcurrent OBJECT-TYPE
+SYNTAX          TruthValue
+MAX-ACCESS      read-write
+STATUS          current
+DESCRIPTION     "Collective alarm for current."
+::= { alarmstate 14}
+
+alarmfrequency OBJECT-TYPE
+SYNTAX          TruthValue
+MAX-ACCESS      read-write
+STATUS          current
+DESCRIPTION     "Collective alarm for frequency."
+::= { alarmstate 15}
+
+alarmactivpower OBJECT-TYPE
+SYNTAX          TruthValue
+MAX-ACCESS      read-write
+STATUS          current
+DESCRIPTION     "Collective alarm for active power."
+::= { alarmstate 16}
+
+alarmreactivepower OBJECT-TYPE
+SYNTAX          TruthValue
+MAX-ACCESS      read-write
+STATUS          current
+DESCRIPTION     "Collective alarm for reactive power."
+::= { alarmstate 17}
+
+alarmapparentpower OBJECT-TYPE
+SYNTAX          TruthValue
+MAX-ACCESS      read-write
+STATUS          current
+DESCRIPTION     "Collective alarm for apparent power."
+::= { alarmstate 18}
+
+alarmflicker OBJECT-TYPE
+SYNTAX          TruthValue
+MAX-ACCESS      read-write
+STATUS          current
+DESCRIPTION     "Collective alarm for flicker."
+::= { alarmstate 19}
+
+alarmsurge OBJECT-TYPE
+SYNTAX          TruthValue
+MAX-ACCESS      read-write
+STATUS          current
+DESCRIPTION     "Collective alarm for surge."
+::= { alarmstate 20}
+
+alarmpeak OBJECT-TYPE
+SYNTAX          TruthValue
+MAX-ACCESS      read-write
+STATUS          current
+DESCRIPTION     "Collective alarm for peak."
+::= { alarmstate 21}
+
+
+-------------------------------------------------------------------------------------------
+-- Energy consumption
+-------------------------------------------------------------------------------------------
+
+active OBJECT-TYPE
+SYNTAX          Unsigned32
+MAX-ACCESS      read-write
+STATUS          current
+DESCRIPTION     "Active power of the system."
+::= { energy 1}
+
+apparent OBJECT-TYPE
+SYNTAX          Unsigned32
+MAX-ACCESS      read-write
+STATUS          current
+DESCRIPTION     "Apparent power of the system."
+::= { energy 2}
+
+reactive OBJECT-TYPE
+SYNTAX          Unsigned32
+MAX-ACCESS      read-write
+STATUS          current
+DESCRIPTION     "Reactive power of the system."
+::= { energy 3}
+
+consumption OBJECT-TYPE
+SYNTAX          Unsigned32
+MAX-ACCESS      read-write
+STATUS          current
+DESCRIPTION     "Consumption of the system."
+::= { energy 4}
+
+pue OBJECT-TYPE
+SYNTAX          Unsigned32
+MAX-ACCESS      read-write
+STATUS          current
+DESCRIPTION     "Pue of the system."
+::= { energy 5}
+
+-------------------------------------------------------------------------------------------
+-- Sensors
+-------------------------------------------------------------------------------------------
+
+-------------------------------------------------------------------------------------------
+-- Sensor general
+-------------------------------------------------------------------------------------------
+
+generalTable OBJECT-TYPE
+SYNTAX          SEQUENCE OF GeneralEntry
+MAX-ACCESS      not-accessible
+STATUS          current
+DESCRIPTION     "General values."
+::= { sensors 1 }
+
+generalEntry OBJECT-TYPE
+SYNTAX          GeneralEntry
+MAX-ACCESS      not-accessible
+STATUS          current
+DESCRIPTION     "Entry in general table."
+INDEX        { generalIndex }
+::= { generalTable 1 }
+
+GeneralEntry ::= SEQUENCE {
+generalIndex	Unsigned32,
+sensorName	DisplayString,
+sensorType	DisplayString,
+sensorVersion	DisplayString,
+sensorAddress	DisplayString,
+sensorPort	Unsigned32,
+sensorZone	DisplayString,
+sensorCommunication	TruthValue,
+sensorBatteryLevel	Unsigned32}
+
+generalIndex OBJECT-TYPE
+SYNTAX          Unsigned32
+MAX-ACCESS      read-write
+STATUS          current
+DESCRIPTION     "Table Index."
+::= { generalEntry 1}
+
+sensorName OBJECT-TYPE
+SYNTAX          DisplayString
+MAX-ACCESS      read-write
+STATUS          current
+DESCRIPTION     "Name of the sensor."
+::= { generalEntry 2}
+
+sensorType OBJECT-TYPE
+SYNTAX          DisplayString
+MAX-ACCESS      read-write
+STATUS          current
+DESCRIPTION     "Devicetype of the sensor."
+::= { generalEntry 3}
+
+sensorVersion OBJECT-TYPE
+SYNTAX          DisplayString
+MAX-ACCESS      read-write
+STATUS          current
+DESCRIPTION     "Version of the sensor."
+::= { generalEntry 4}
+
+sensorAddress OBJECT-TYPE
+SYNTAX          DisplayString
+MAX-ACCESS      read-write
+STATUS          current
+DESCRIPTION     "Address of the sensor."
+::= { generalEntry 5}
+
+sensorPort OBJECT-TYPE
+SYNTAX          Unsigned32
+MAX-ACCESS      read-write
+STATUS          current
+DESCRIPTION     "Sensor port."
+::= { generalEntry 6}
+
+sensorZone OBJECT-TYPE
+SYNTAX          DisplayString
+MAX-ACCESS      read-write
+STATUS          current
+DESCRIPTION     "Sensor zone."
+::= { generalEntry 7}
+
+sensorCommunication OBJECT-TYPE
+SYNTAX          TruthValue
+MAX-ACCESS      read-write
+STATUS          current
+DESCRIPTION     "State of the sensorcommunication."
+::= { generalEntry 8}
+
+sensorBatteryLevel OBJECT-TYPE
+SYNTAX          Unsigned32
+MAX-ACCESS      read-write
+STATUS          current
+DESCRIPTION     "Battery level, only used for battery sensors."
+::= { generalEntry 9}
+
+
+-------------------------------------------------------------------------------------------
+-- Sensor termperature
+-------------------------------------------------------------------------------------------
+
+temperatureTable OBJECT-TYPE
+SYNTAX          SEQUENCE OF TemperatureEntry
+MAX-ACCESS      not-accessible
+STATUS          current
+DESCRIPTION     "Temperature values."
+::= { sensors 2 }
+
+temperatureEntry OBJECT-TYPE
+SYNTAX          TemperatureEntry
+MAX-ACCESS      not-accessible
+STATUS          current
+DESCRIPTION     "Entry in temperature table."
+INDEX        { temperatureIndex }
+::= { temperatureTable 1 }
+
+TemperatureEntry ::= SEQUENCE {
+temperatureIndex	Unsigned32,
+tempValue	Integer32,
+tempAlarm	Unsigned32,
+tempMin	Integer32,
+tempMax	Integer32}
+
+temperatureIndex OBJECT-TYPE
+SYNTAX          Unsigned32
+MAX-ACCESS      read-write
+STATUS          current
+DESCRIPTION     "Table Index."
+::= { temperatureEntry 1}
+
+tempValue OBJECT-TYPE
+SYNTAX          Integer32
+MAX-ACCESS      read-write
+STATUS          current
+DESCRIPTION     "Current value."
+::= { temperatureEntry 2}
+
+tempAlarm OBJECT-TYPE
+SYNTAX          Unsigned32
+MAX-ACCESS      read-write
+STATUS          current
+DESCRIPTION     "Alarmstate of this value."
+::= { temperatureEntry 3}
+
+tempMin OBJECT-TYPE
+SYNTAX          Integer32
+MAX-ACCESS      read-write
+STATUS          current
+DESCRIPTION     "Min. threshold of this value."
+::= { temperatureEntry 4}
+
+tempMax OBJECT-TYPE
+SYNTAX          Integer32
+MAX-ACCESS      read-write
+STATUS          current
+DESCRIPTION     "Max. threshold of this value."
+::= { temperatureEntry 5}
+
+
+-------------------------------------------------------------------------------------------
+-- Sensor humidity
+-------------------------------------------------------------------------------------------
+
+humidityTable OBJECT-TYPE
+SYNTAX          SEQUENCE OF HumidityEntry
+MAX-ACCESS      not-accessible
+STATUS          current
+DESCRIPTION     "Humidity values."
+::= { sensors 3 }
+
+humidityEntry OBJECT-TYPE
+SYNTAX          HumidityEntry
+MAX-ACCESS      not-accessible
+STATUS          current
+DESCRIPTION     "Entry in humidity table."
+INDEX        { humidityIndex }
+::= { humidityTable 1 }
+
+HumidityEntry ::= SEQUENCE {
+humidityIndex	Unsigned32,
+humValue	Unsigned32,
+humAlarm	Unsigned32,
+humMax	Unsigned32}
+
+humidityIndex OBJECT-TYPE
+SYNTAX          Unsigned32
+MAX-ACCESS      read-write
+STATUS          current
+DESCRIPTION     "Table Index."
+::= { humidityEntry 1}
+
+humValue OBJECT-TYPE
+SYNTAX          Unsigned32
+MAX-ACCESS      read-write
+STATUS          current
+DESCRIPTION     "Current value."
+::= { humidityEntry 2}
+
+humAlarm OBJECT-TYPE
+SYNTAX          Unsigned32
+MAX-ACCESS      read-write
+STATUS          current
+DESCRIPTION     "Alarmstate of this value."
+::= { humidityEntry 3}
+
+humMax OBJECT-TYPE
+SYNTAX          Unsigned32
+MAX-ACCESS      read-write
+STATUS          current
+DESCRIPTION     "Max. threshold of this value."
+::= { humidityEntry 5}
+
+
+-------------------------------------------------------------------------------------------
+-- Sensor dewpoint
+-------------------------------------------------------------------------------------------
+
+dewpointTable OBJECT-TYPE
+SYNTAX          SEQUENCE OF DewpointEntry
+MAX-ACCESS      not-accessible
+STATUS          current
+DESCRIPTION     "Dewpoint values."
+::= { sensors 4 }
+
+dewpointEntry OBJECT-TYPE
+SYNTAX          DewpointEntry
+MAX-ACCESS      not-accessible
+STATUS          current
+DESCRIPTION     "Entry in dewpoint table."
+INDEX        { dewpointIndex }
+::= { dewpointTable 1 }
+
+DewpointEntry ::= SEQUENCE {
+dewpointIndex	Unsigned32,
+dewValue	Integer32,
+dewAlarm	Unsigned32,
+dewMax	Integer32}
+
+dewpointIndex OBJECT-TYPE
+SYNTAX          Unsigned32
+MAX-ACCESS      read-write
+STATUS          current
+DESCRIPTION     "Table Index."
+::= { dewpointEntry 1}
+
+dewValue OBJECT-TYPE
+SYNTAX          Integer32
+MAX-ACCESS      read-write
+STATUS          current
+DESCRIPTION     "Current value."
+::= { dewpointEntry 2}
+
+dewAlarm OBJECT-TYPE
+SYNTAX          Unsigned32
+MAX-ACCESS      read-write
+STATUS          current
+DESCRIPTION     "Alarmstate of this value."
+::= { dewpointEntry 3}
+
+dewMax OBJECT-TYPE
+SYNTAX          Integer32
+MAX-ACCESS      read-write
+STATUS          current
+DESCRIPTION     "Max. hysterese to the temperature value."
+::= { dewpointEntry 5}
+
+
+-------------------------------------------------------------------------------------------
+-- Sensor co
+-------------------------------------------------------------------------------------------
+
+coTable OBJECT-TYPE
+SYNTAX          SEQUENCE OF CoEntry
+MAX-ACCESS      not-accessible
+STATUS          current
+DESCRIPTION     "CO values."
+::= { sensors 5 }
+
+coEntry OBJECT-TYPE
+SYNTAX          CoEntry
+MAX-ACCESS      not-accessible
+STATUS          current
+DESCRIPTION     "Entry in co table."
+INDEX        { coIndex }
+::= { coTable 1 }
+
+CoEntry ::= SEQUENCE {
+coIndex	Unsigned32,
+coValue	Unsigned32,
+coAlarm	Unsigned32,
+coMax	Unsigned32}
+
+coIndex OBJECT-TYPE
+SYNTAX          Unsigned32
+MAX-ACCESS      read-write
+STATUS          current
+DESCRIPTION     "Table Index."
+::= { coEntry 1}
+
+coValue OBJECT-TYPE
+SYNTAX          Unsigned32
+MAX-ACCESS      read-write
+STATUS          current
+DESCRIPTION     "Current value."
+::= { coEntry 2}
+
+coAlarm OBJECT-TYPE
+SYNTAX          Unsigned32
+MAX-ACCESS      read-write
+STATUS          current
+DESCRIPTION     "Alarmstate of this value."
+::= { coEntry 3}
+
+coMax OBJECT-TYPE
+SYNTAX          Unsigned32
+MAX-ACCESS      read-write
+STATUS          current
+DESCRIPTION     "Max. threshold of this value."
+::= { coEntry 5}
+
+
+-------------------------------------------------------------------------------------------
+-- Sensor motion.
+-------------------------------------------------------------------------------------------
+
+motionTable OBJECT-TYPE
+SYNTAX          SEQUENCE OF MotionEntry
+MAX-ACCESS      not-accessible
+STATUS          current
+DESCRIPTION     "Motion values."
+::= { sensors 6 }
+
+motionEntry OBJECT-TYPE
+SYNTAX          MotionEntry
+MAX-ACCESS      not-accessible
+STATUS          current
+DESCRIPTION     "Entry in motion table."
+INDEX        { motionIndex }
+::= { motionTable 1 }
+
+MotionEntry ::= SEQUENCE {
+motionIndex	Unsigned32,
+motValue	Unsigned32,
+motAlarm	Unsigned32,
+motMax	Unsigned32}
+
+motionIndex OBJECT-TYPE
+SYNTAX          Unsigned32
+MAX-ACCESS      read-write
+STATUS          current
+DESCRIPTION     "Table Index."
+::= { motionEntry 1}
+
+motValue OBJECT-TYPE
+SYNTAX          Unsigned32
+MAX-ACCESS      read-write
+STATUS          current
+DESCRIPTION     "Current value."
+::= { motionEntry 2}
+
+motAlarm OBJECT-TYPE
+SYNTAX          Unsigned32
+MAX-ACCESS      read-write
+STATUS          current
+DESCRIPTION     "Alarmstate of this value."
+::= { motionEntry 3}
+
+motMax OBJECT-TYPE
+SYNTAX          Unsigned32
+MAX-ACCESS      read-write
+STATUS          current
+DESCRIPTION     "Max. threshold of this value."
+::= { motionEntry 5}
+
+
+-------------------------------------------------------------------------------------------
+-- Sensor vibration.
+-------------------------------------------------------------------------------------------
+
+vibrationTable OBJECT-TYPE
+SYNTAX          SEQUENCE OF VibrationEntry
+MAX-ACCESS      not-accessible
+STATUS          current
+DESCRIPTION     "Vibration values."
+::= { sensors 7 }
+
+vibrationEntry OBJECT-TYPE
+SYNTAX          VibrationEntry
+MAX-ACCESS      not-accessible
+STATUS          current
+DESCRIPTION     "Entry in vibration table."
+INDEX        { vibrationIndex }
+::= { vibrationTable 1 }
+
+VibrationEntry ::= SEQUENCE {
+vibrationIndex	Unsigned32,
+vibValue	Unsigned32,
+vibAlarm	Unsigned32,
+vibMax	Unsigned32}
+
+vibrationIndex OBJECT-TYPE
+SYNTAX          Unsigned32
+MAX-ACCESS      read-write
+STATUS          current
+DESCRIPTION     "Table Index."
+::= { vibrationEntry 1}
+
+vibValue OBJECT-TYPE
+SYNTAX          Unsigned32
+MAX-ACCESS      read-write
+STATUS          current
+DESCRIPTION     "Current value."
+::= { vibrationEntry 2}
+
+vibAlarm OBJECT-TYPE
+SYNTAX          Unsigned32
+MAX-ACCESS      read-write
+STATUS          current
+DESCRIPTION     "Alarmstate of this value."
+::= { vibrationEntry 3}
+
+vibMax OBJECT-TYPE
+SYNTAX          Unsigned32
+MAX-ACCESS      read-write
+STATUS          current
+DESCRIPTION     "Sensitivity level."
+::= { vibrationEntry 5}
+
+
+-------------------------------------------------------------------------------------------
+-- Sensor latency
+-------------------------------------------------------------------------------------------
+
+latencyTable OBJECT-TYPE
+SYNTAX          SEQUENCE OF LatencyEntry
+MAX-ACCESS      not-accessible
+STATUS          current
+DESCRIPTION     "Latency values for the network monitoring."
+::= { sensors 8 }
+
+latencyEntry OBJECT-TYPE
+SYNTAX          LatencyEntry
+MAX-ACCESS      not-accessible
+STATUS          current
+DESCRIPTION     "Entry in latency table."
+INDEX        { latencyIndex }
+::= { latencyTable 1 }
+
+LatencyEntry ::= SEQUENCE {
+latencyIndex	Unsigned32,
+latValue	Unsigned32,
+latAlarm	Unsigned32,
+latMax	Unsigned32}
+
+latencyIndex OBJECT-TYPE
+SYNTAX          Unsigned32
+MAX-ACCESS      read-write
+STATUS          current
+DESCRIPTION     "Table Index."
+::= { latencyEntry 1}
+
+latValue OBJECT-TYPE
+SYNTAX          Unsigned32
+MAX-ACCESS      read-write
+STATUS          current
+DESCRIPTION     "Current value."
+::= { latencyEntry 2}
+
+latAlarm OBJECT-TYPE
+SYNTAX          Unsigned32
+MAX-ACCESS      read-write
+STATUS          current
+DESCRIPTION     "Alarmstate of this value."
+::= { latencyEntry 3}
+
+latMax OBJECT-TYPE
+SYNTAX          Unsigned32
+MAX-ACCESS      read-write
+STATUS          current
+DESCRIPTION     "Max. threshold of this value."
+::= { latencyEntry 5}
+
+
+-------------------------------------------------------------------------------------------
+-- Sensor inputs
+-------------------------------------------------------------------------------------------
+
+-------------------------------------------------------------------------------------------
+-- Input 1.
+-------------------------------------------------------------------------------------------
+
+input1Table OBJECT-TYPE
+SYNTAX          SEQUENCE OF Input1Entry
+MAX-ACCESS      not-accessible
+STATUS          current
+DESCRIPTION     "Input1 values."
+::= { inputs 1 }
+
+input1Entry OBJECT-TYPE
+SYNTAX          Input1Entry
+MAX-ACCESS      not-accessible
+STATUS          current
+DESCRIPTION     "Entry in input1 table."
+INDEX        { input1Index }
+::= { input1Table 1 }
+
+Input1Entry ::= SEQUENCE {
+input1Index	Unsigned32,
+input1Name	DisplayString,
+input1Zone	DisplayString,
+input1Value	Integer32,
+input1Alarm	Unsigned32}
+
+input1Index OBJECT-TYPE
+SYNTAX          Unsigned32
+MAX-ACCESS      read-write
+STATUS          current
+DESCRIPTION     "Table Index."
+::= { input1Entry 1}
+
+input1Name OBJECT-TYPE
+SYNTAX          DisplayString
+MAX-ACCESS      read-write
+STATUS          current
+DESCRIPTION     "Name of the input."
+::= { input1Entry 2}
+
+input1Zone OBJECT-TYPE
+SYNTAX          DisplayString
+MAX-ACCESS      read-write
+STATUS          current
+DESCRIPTION     "Alarmzone of the input."
+::= { input1Entry 3}
+
+input1Value OBJECT-TYPE
+SYNTAX          Integer32
+MAX-ACCESS      read-write
+STATUS          current
+DESCRIPTION     "Value of the input."
+::= { input1Entry 4}
+
+input1Alarm OBJECT-TYPE
+SYNTAX          Unsigned32
+MAX-ACCESS      read-write
+STATUS          current
+DESCRIPTION     "Alarmstate of the input."
+::= { input1Entry 5}
+
+
+-------------------------------------------------------------------------------------------
+-- Input 2.
+-------------------------------------------------------------------------------------------
+
+input2Table OBJECT-TYPE
+SYNTAX          SEQUENCE OF Input2Entry
+MAX-ACCESS      not-accessible
+STATUS          current
+DESCRIPTION     "Input2 values."
+::= { inputs 2 }
+
+input2Entry OBJECT-TYPE
+SYNTAX          Input2Entry
+MAX-ACCESS      not-accessible
+STATUS          current
+DESCRIPTION     "Entry in input2 table."
+INDEX        { input2Index }
+::= { input2Table 1 }
+
+Input2Entry ::= SEQUENCE {
+input2Index	Unsigned32,
+input2Name	DisplayString,
+input2Zone	DisplayString,
+input2Value	Integer32,
+input2Alarm	Unsigned32}
+
+input2Index OBJECT-TYPE
+SYNTAX          Unsigned32
+MAX-ACCESS      read-write
+STATUS          current
+DESCRIPTION     "Table Index."
+::= { input2Entry 1}
+
+input2Name OBJECT-TYPE
+SYNTAX          DisplayString
+MAX-ACCESS      read-write
+STATUS          current
+DESCRIPTION     "Name of the input."
+::= { input2Entry 2}
+
+input2Zone OBJECT-TYPE
+SYNTAX          DisplayString
+MAX-ACCESS      read-write
+STATUS          current
+DESCRIPTION     "Alarmzone of the input."
+::= { input2Entry 3}
+
+input2Value OBJECT-TYPE
+SYNTAX          Integer32
+MAX-ACCESS      read-write
+STATUS          current
+DESCRIPTION     "Value of the input."
+::= { input2Entry 4}
+
+input2Alarm OBJECT-TYPE
+SYNTAX          Unsigned32
+MAX-ACCESS      read-write
+STATUS          current
+DESCRIPTION     "Alarmstate of the input."
+::= { input2Entry 5}
+
+
+-------------------------------------------------------------------------------------------
+-- Input 3.
+-------------------------------------------------------------------------------------------
+
+input3Table OBJECT-TYPE
+SYNTAX          SEQUENCE OF Input3Entry
+MAX-ACCESS      not-accessible
+STATUS          current
+DESCRIPTION     "Input3 values."
+::= { inputs 3 }
+
+input3Entry OBJECT-TYPE
+SYNTAX          Input3Entry
+MAX-ACCESS      not-accessible
+STATUS          current
+DESCRIPTION     "Entry in input3 table."
+INDEX        { input3Index }
+::= { input3Table 1 }
+
+Input3Entry ::= SEQUENCE {
+input3Index	Unsigned32,
+input3Name	DisplayString,
+input3Zone	DisplayString,
+input3Value	Integer32,
+input3Alarm	Unsigned32}
+
+input3Index OBJECT-TYPE
+SYNTAX          Unsigned32
+MAX-ACCESS      read-write
+STATUS          current
+DESCRIPTION     "Table Index."
+::= { input3Entry 1}
+
+input3Name OBJECT-TYPE
+SYNTAX          DisplayString
+MAX-ACCESS      read-write
+STATUS          current
+DESCRIPTION     "Name of the input."
+::= { input3Entry 2}
+
+input3Zone OBJECT-TYPE
+SYNTAX          DisplayString
+MAX-ACCESS      read-write
+STATUS          current
+DESCRIPTION     "Alarmzone of the input."
+::= { input3Entry 3}
+
+input3Value OBJECT-TYPE
+SYNTAX          Integer32
+MAX-ACCESS      read-write
+STATUS          current
+DESCRIPTION     "Value of the input."
+::= { input3Entry 4}
+
+input3Alarm OBJECT-TYPE
+SYNTAX          Unsigned32
+MAX-ACCESS      read-write
+STATUS          current
+DESCRIPTION     "Alarmstate of the input."
+::= { input3Entry 5}
+
+
+-------------------------------------------------------------------------------------------
+-- Input 4.
+-------------------------------------------------------------------------------------------
+
+input4Table OBJECT-TYPE
+SYNTAX          SEQUENCE OF Input4Entry
+MAX-ACCESS      not-accessible
+STATUS          current
+DESCRIPTION     "Input4 values."
+::= { inputs 4 }
+
+input4Entry OBJECT-TYPE
+SYNTAX          Input4Entry
+MAX-ACCESS      not-accessible
+STATUS          current
+DESCRIPTION     "Entry in input4 table."
+INDEX        { input4Index }
+::= { input4Table 1 }
+
+Input4Entry ::= SEQUENCE {
+input4Index	Unsigned32,
+input4Name	DisplayString,
+input4Zone	DisplayString,
+input4Value	Integer32,
+input4Alarm	Unsigned32}
+
+input4Index OBJECT-TYPE
+SYNTAX          Unsigned32
+MAX-ACCESS      read-write
+STATUS          current
+DESCRIPTION     "Table Index."
+::= { input4Entry 1}
+
+input4Name OBJECT-TYPE
+SYNTAX          DisplayString
+MAX-ACCESS      read-write
+STATUS          current
+DESCRIPTION     "Name of the input."
+::= { input4Entry 2}
+
+input4Zone OBJECT-TYPE
+SYNTAX          DisplayString
+MAX-ACCESS      read-write
+STATUS          current
+DESCRIPTION     "Alarmzone of the input."
+::= { input4Entry 3}
+
+input4Value OBJECT-TYPE
+SYNTAX          Integer32
+MAX-ACCESS      read-write
+STATUS          current
+DESCRIPTION     "Value of the input."
+::= { input4Entry 4}
+
+input4Alarm OBJECT-TYPE
+SYNTAX          Unsigned32
+MAX-ACCESS      read-write
+STATUS          current
+DESCRIPTION     "Alarmstate of the input."
+::= { input4Entry 5}
+
+
+-------------------------------------------------------------------------------------------
+-- Input 5.
+-------------------------------------------------------------------------------------------
+
+input5Table OBJECT-TYPE
+SYNTAX          SEQUENCE OF Input5Entry
+MAX-ACCESS      not-accessible
+STATUS          current
+DESCRIPTION     "Input5 values."
+::= { inputs 5 }
+
+input5Entry OBJECT-TYPE
+SYNTAX          Input5Entry
+MAX-ACCESS      not-accessible
+STATUS          current
+DESCRIPTION     "Entry in input5 table."
+INDEX        { input5Index }
+::= { input5Table 1 }
+
+Input5Entry ::= SEQUENCE {
+input5Index	Unsigned32,
+input5Name	DisplayString,
+input5Zone	DisplayString,
+input5Value	Integer32,
+input5Alarm	Unsigned32}
+
+input5Index OBJECT-TYPE
+SYNTAX          Unsigned32
+MAX-ACCESS      read-write
+STATUS          current
+DESCRIPTION     "Table Index."
+::= { input5Entry 1}
+
+input5Name OBJECT-TYPE
+SYNTAX          DisplayString
+MAX-ACCESS      read-write
+STATUS          current
+DESCRIPTION     "Name of the input."
+::= { input5Entry 2}
+
+input5Zone OBJECT-TYPE
+SYNTAX          DisplayString
+MAX-ACCESS      read-write
+STATUS          current
+DESCRIPTION     "Alarmzone of the input."
+::= { input5Entry 3}
+
+input5Value OBJECT-TYPE
+SYNTAX          Integer32
+MAX-ACCESS      read-write
+STATUS          current
+DESCRIPTION     "Value of the input."
+::= { input5Entry 4}
+
+input5Alarm OBJECT-TYPE
+SYNTAX          Unsigned32
+MAX-ACCESS      read-write
+STATUS          current
+DESCRIPTION     "Alarmstate of the input."
+::= { input5Entry 5}
+
+
+-------------------------------------------------------------------------------------------
+-- Input 6.
+-------------------------------------------------------------------------------------------
+
+input6Table OBJECT-TYPE
+SYNTAX          SEQUENCE OF Input6Entry
+MAX-ACCESS      not-accessible
+STATUS          current
+DESCRIPTION     "Input6 values."
+::= { inputs 6 }
+
+input6Entry OBJECT-TYPE
+SYNTAX          Input6Entry
+MAX-ACCESS      not-accessible
+STATUS          current
+DESCRIPTION     "Entry in input6 table."
+INDEX        { input6Index }
+::= { input6Table 1 }
+
+Input6Entry ::= SEQUENCE {
+input6Index	Unsigned32,
+input6Name	DisplayString,
+input6Zone	DisplayString,
+input6Value	Integer32,
+input6Alarm	Unsigned32}
+
+input6Index OBJECT-TYPE
+SYNTAX          Unsigned32
+MAX-ACCESS      read-write
+STATUS          current
+DESCRIPTION     "Table Index."
+::= { input6Entry 1}
+
+input6Name OBJECT-TYPE
+SYNTAX          DisplayString
+MAX-ACCESS      read-write
+STATUS          current
+DESCRIPTION     "Name of the input."
+::= { input6Entry 2}
+
+input6Zone OBJECT-TYPE
+SYNTAX          DisplayString
+MAX-ACCESS      read-write
+STATUS          current
+DESCRIPTION     "Alarmzone of the input."
+::= { input6Entry 3}
+
+input6Value OBJECT-TYPE
+SYNTAX          Integer32
+MAX-ACCESS      read-write
+STATUS          current
+DESCRIPTION     "Value of the input."
+::= { input6Entry 4}
+
+input6Alarm OBJECT-TYPE
+SYNTAX          Unsigned32
+MAX-ACCESS      read-write
+STATUS          current
+DESCRIPTION     "Alarmstate of the input."
+::= { input6Entry 5}
+
+
+-------------------------------------------------------------------------------------------
+-- Input 7.
+-------------------------------------------------------------------------------------------
+
+input7Table OBJECT-TYPE
+SYNTAX          SEQUENCE OF Input7Entry
+MAX-ACCESS      not-accessible
+STATUS          current
+DESCRIPTION     "Input7 values."
+::= { inputs 7 }
+
+input7Entry OBJECT-TYPE
+SYNTAX          Input7Entry
+MAX-ACCESS      not-accessible
+STATUS          current
+DESCRIPTION     "Entry in input7 table."
+INDEX        { input7Index }
+::= { input7Table 1 }
+
+Input7Entry ::= SEQUENCE {
+input7Index	Unsigned32,
+input7Name	DisplayString,
+input7Zone	DisplayString,
+input7Value	Integer32,
+input7Alarm	Unsigned32}
+
+input7Index OBJECT-TYPE
+SYNTAX          Unsigned32
+MAX-ACCESS      read-write
+STATUS          current
+DESCRIPTION     "Table Index."
+::= { input7Entry 1}
+
+input7Name OBJECT-TYPE
+SYNTAX          DisplayString
+MAX-ACCESS      read-write
+STATUS          current
+DESCRIPTION     "Name of the input."
+::= { input7Entry 2}
+
+input7Zone OBJECT-TYPE
+SYNTAX          DisplayString
+MAX-ACCESS      read-write
+STATUS          current
+DESCRIPTION     "Alarmzone of the input."
+::= { input7Entry 3}
+
+input7Value OBJECT-TYPE
+SYNTAX          Integer32
+MAX-ACCESS      read-write
+STATUS          current
+DESCRIPTION     "Value of the input."
+::= { input7Entry 4}
+
+input7Alarm OBJECT-TYPE
+SYNTAX          Unsigned32
+MAX-ACCESS      read-write
+STATUS          current
+DESCRIPTION     "Alarmstate of the input."
+::= { input7Entry 5}
+
+
+-------------------------------------------------------------------------------------------
+-- Input 8.
+-------------------------------------------------------------------------------------------
+
+input8Table OBJECT-TYPE
+SYNTAX          SEQUENCE OF Input8Entry
+MAX-ACCESS      not-accessible
+STATUS          current
+DESCRIPTION     "Input8 values."
+::= { inputs 8 }
+
+input8Entry OBJECT-TYPE
+SYNTAX          Input8Entry
+MAX-ACCESS      not-accessible
+STATUS          current
+DESCRIPTION     "Entry in input8 table."
+INDEX        { input8Index }
+::= { input8Table 1 }
+
+Input8Entry ::= SEQUENCE {
+input8Index	Unsigned32,
+input8Name	DisplayString,
+input8Zone	DisplayString,
+input8Value	Integer32,
+input8Alarm	Unsigned32}
+
+input8Index OBJECT-TYPE
+SYNTAX          Unsigned32
+MAX-ACCESS      read-write
+STATUS          current
+DESCRIPTION     "Table Index."
+::= { input8Entry 1}
+
+input8Name OBJECT-TYPE
+SYNTAX          DisplayString
+MAX-ACCESS      read-write
+STATUS          current
+DESCRIPTION     "Name of the input."
+::= { input8Entry 2}
+
+input8Zone OBJECT-TYPE
+SYNTAX          DisplayString
+MAX-ACCESS      read-write
+STATUS          current
+DESCRIPTION     "Alarmzone of the input."
+::= { input8Entry 3}
+
+input8Value OBJECT-TYPE
+SYNTAX          Integer32
+MAX-ACCESS      read-write
+STATUS          current
+DESCRIPTION     "Value of the input."
+::= { input8Entry 4}
+
+input8Alarm OBJECT-TYPE
+SYNTAX          Unsigned32
+MAX-ACCESS      read-write
+STATUS          current
+DESCRIPTION     "Alarmstate of the input."
+::= { input8Entry 5}
+
+
+-------------------------------------------------------------------------------------------
+-- Input 9.
+-------------------------------------------------------------------------------------------
+
+input9Table OBJECT-TYPE
+SYNTAX          SEQUENCE OF Input9Entry
+MAX-ACCESS      not-accessible
+STATUS          current
+DESCRIPTION     "Input9 values."
+::= { inputs 9 }
+
+input9Entry OBJECT-TYPE
+SYNTAX          Input9Entry
+MAX-ACCESS      not-accessible
+STATUS          current
+DESCRIPTION     "Entry in input9 table."
+INDEX        { input9Index }
+::= { input9Table 1 }
+
+Input9Entry ::= SEQUENCE {
+input9Index	Unsigned32,
+input9Name	DisplayString,
+input9Zone	DisplayString,
+input9Value	Integer32,
+input9Alarm	Unsigned32}
+
+input9Index OBJECT-TYPE
+SYNTAX          Unsigned32
+MAX-ACCESS      read-write
+STATUS          current
+DESCRIPTION     "Table Index."
+::= { input9Entry 1}
+
+input9Name OBJECT-TYPE
+SYNTAX          DisplayString
+MAX-ACCESS      read-write
+STATUS          current
+DESCRIPTION     "Name of the input."
+::= { input9Entry 2}
+
+input9Zone OBJECT-TYPE
+SYNTAX          DisplayString
+MAX-ACCESS      read-write
+STATUS          current
+DESCRIPTION     "Alarmzone of the input."
+::= { input9Entry 3}
+
+input9Value OBJECT-TYPE
+SYNTAX          Integer32
+MAX-ACCESS      read-write
+STATUS          current
+DESCRIPTION     "Value of the input."
+::= { input9Entry 4}
+
+input9Alarm OBJECT-TYPE
+SYNTAX          Unsigned32
+MAX-ACCESS      read-write
+STATUS          current
+DESCRIPTION     "Alarmstate of the input."
+::= { input9Entry 5}
+
+
+-------------------------------------------------------------------------------------------
+-- Input 10.
+-------------------------------------------------------------------------------------------
+
+input10Table OBJECT-TYPE
+SYNTAX          SEQUENCE OF Input10Entry
+MAX-ACCESS      not-accessible
+STATUS          current
+DESCRIPTION     "Input10 values."
+::= { inputs 10 }
+
+input10Entry OBJECT-TYPE
+SYNTAX          Input10Entry
+MAX-ACCESS      not-accessible
+STATUS          current
+DESCRIPTION     "Entry in input10 table."
+INDEX        { input10Index }
+::= { input10Table 1 }
+
+Input10Entry ::= SEQUENCE {
+input10Index	Unsigned32,
+input10Name	DisplayString,
+input10Zone	DisplayString,
+input10Value	Integer32,
+input10Alarm	Unsigned32}
+
+input10Index OBJECT-TYPE
+SYNTAX          Unsigned32
+MAX-ACCESS      read-write
+STATUS          current
+DESCRIPTION     "Table Index."
+::= { input10Entry 1}
+
+input10Name OBJECT-TYPE
+SYNTAX          DisplayString
+MAX-ACCESS      read-write
+STATUS          current
+DESCRIPTION     "Name of the input."
+::= { input10Entry 2}
+
+input10Zone OBJECT-TYPE
+SYNTAX          DisplayString
+MAX-ACCESS      read-write
+STATUS          current
+DESCRIPTION     "Alarmzone of the input."
+::= { input10Entry 3}
+
+input10Value OBJECT-TYPE
+SYNTAX          Integer32
+MAX-ACCESS      read-write
+STATUS          current
+DESCRIPTION     "Value of the input."
+::= { input10Entry 4}
+
+input10Alarm OBJECT-TYPE
+SYNTAX          Unsigned32
+MAX-ACCESS      read-write
+STATUS          current
+DESCRIPTION     "Alarmstate of the input."
+::= { input10Entry 5}
+
+
+-------------------------------------------------------------------------------------------
+-- Input 11.
+-------------------------------------------------------------------------------------------
+
+input11Table OBJECT-TYPE
+SYNTAX          SEQUENCE OF Input11Entry
+MAX-ACCESS      not-accessible
+STATUS          current
+DESCRIPTION     "Input11 values."
+::= { inputs 11 }
+
+input11Entry OBJECT-TYPE
+SYNTAX          Input11Entry
+MAX-ACCESS      not-accessible
+STATUS          current
+DESCRIPTION     "Entry in input11 table."
+INDEX        { input11Index }
+::= { input11Table 1 }
+
+Input11Entry ::= SEQUENCE {
+input11Index	Unsigned32,
+input11Name	DisplayString,
+input11Zone	DisplayString,
+input11Value	Integer32,
+input11Alarm	Unsigned32}
+
+input11Index OBJECT-TYPE
+SYNTAX          Unsigned32
+MAX-ACCESS      read-write
+STATUS          current
+DESCRIPTION     "Table Index."
+::= { input11Entry 1}
+
+input11Name OBJECT-TYPE
+SYNTAX          DisplayString
+MAX-ACCESS      read-write
+STATUS          current
+DESCRIPTION     "Name of the input."
+::= { input11Entry 2}
+
+input11Zone OBJECT-TYPE
+SYNTAX          DisplayString
+MAX-ACCESS      read-write
+STATUS          current
+DESCRIPTION     "Alarmzone of the input."
+::= { input11Entry 3}
+
+input11Value OBJECT-TYPE
+SYNTAX          Integer32
+MAX-ACCESS      read-write
+STATUS          current
+DESCRIPTION     "Value of the input."
+::= { input11Entry 4}
+
+input11Alarm OBJECT-TYPE
+SYNTAX          Unsigned32
+MAX-ACCESS      read-write
+STATUS          current
+DESCRIPTION     "Alarmstate of the input."
+::= { input11Entry 5}
+
+
+-------------------------------------------------------------------------------------------
+-- Input 12.
+-------------------------------------------------------------------------------------------
+
+input12Table OBJECT-TYPE
+SYNTAX          SEQUENCE OF Input12Entry
+MAX-ACCESS      not-accessible
+STATUS          current
+DESCRIPTION     "Input12 values."
+::= { inputs 12 }
+
+input12Entry OBJECT-TYPE
+SYNTAX          Input12Entry
+MAX-ACCESS      not-accessible
+STATUS          current
+DESCRIPTION     "Entry in input12 table."
+INDEX        { input12Index }
+::= { input12Table 1 }
+
+Input12Entry ::= SEQUENCE {
+input12Index	Unsigned32,
+input12Name	DisplayString,
+input12Zone	DisplayString,
+input12Value	Integer32,
+input12Alarm	Unsigned32}
+
+input12Index OBJECT-TYPE
+SYNTAX          Unsigned32
+MAX-ACCESS      read-write
+STATUS          current
+DESCRIPTION     "Table Index."
+::= { input12Entry 1}
+
+input12Name OBJECT-TYPE
+SYNTAX          DisplayString
+MAX-ACCESS      read-write
+STATUS          current
+DESCRIPTION     "Name of the input."
+::= { input12Entry 2}
+
+input12Zone OBJECT-TYPE
+SYNTAX          DisplayString
+MAX-ACCESS      read-write
+STATUS          current
+DESCRIPTION     "Alarmzone of the input."
+::= { input12Entry 3}
+
+input12Value OBJECT-TYPE
+SYNTAX          Integer32
+MAX-ACCESS      read-write
+STATUS          current
+DESCRIPTION     "Value of the input."
+::= { input12Entry 4}
+
+input12Alarm OBJECT-TYPE
+SYNTAX          Unsigned32
+MAX-ACCESS      read-write
+STATUS          current
+DESCRIPTION     "Alarmstate of the input."
+::= { input12Entry 5}
+
+
+-------------------------------------------------------------------------------------------
+-- Input 13.
+-------------------------------------------------------------------------------------------
+
+input13Table OBJECT-TYPE
+SYNTAX          SEQUENCE OF Input13Entry
+MAX-ACCESS      not-accessible
+STATUS          current
+DESCRIPTION     "Input13 values."
+::= { inputs 13 }
+
+input13Entry OBJECT-TYPE
+SYNTAX          Input13Entry
+MAX-ACCESS      not-accessible
+STATUS          current
+DESCRIPTION     "Entry in input13 table."
+INDEX        { input13Index }
+::= { input13Table 1 }
+
+Input13Entry ::= SEQUENCE {
+input13Index	Unsigned32,
+input13Name	DisplayString,
+input13Zone	DisplayString,
+input13Value	Integer32,
+input13Alarm	Unsigned32}
+
+input13Index OBJECT-TYPE
+SYNTAX          Unsigned32
+MAX-ACCESS      read-write
+STATUS          current
+DESCRIPTION     "Table Index."
+::= { input13Entry 1}
+
+input13Name OBJECT-TYPE
+SYNTAX          DisplayString
+MAX-ACCESS      read-write
+STATUS          current
+DESCRIPTION     "Name of the input."
+::= { input13Entry 2}
+
+input13Zone OBJECT-TYPE
+SYNTAX          DisplayString
+MAX-ACCESS      read-write
+STATUS          current
+DESCRIPTION     "Alarmzone of the input."
+::= { input13Entry 3}
+
+input13Value OBJECT-TYPE
+SYNTAX          Integer32
+MAX-ACCESS      read-write
+STATUS          current
+DESCRIPTION     "Value of the input."
+::= { input13Entry 4}
+
+input13Alarm OBJECT-TYPE
+SYNTAX          Unsigned32
+MAX-ACCESS      read-write
+STATUS          current
+DESCRIPTION     "Alarmstate of the input."
+::= { input13Entry 5}
+
+
+-------------------------------------------------------------------------------------------
+-- Input 14.
+-------------------------------------------------------------------------------------------
+
+input14Table OBJECT-TYPE
+SYNTAX          SEQUENCE OF Input14Entry
+MAX-ACCESS      not-accessible
+STATUS          current
+DESCRIPTION     "Input14 values."
+::= { inputs 14 }
+
+input14Entry OBJECT-TYPE
+SYNTAX          Input14Entry
+MAX-ACCESS      not-accessible
+STATUS          current
+DESCRIPTION     "Entry in input14 table."
+INDEX        { input14Index }
+::= { input14Table 1 }
+
+Input14Entry ::= SEQUENCE {
+input14Index	Unsigned32,
+input14Name	DisplayString,
+input14Zone	DisplayString,
+input14Value	Integer32,
+input14Alarm	Unsigned32}
+
+input14Index OBJECT-TYPE
+SYNTAX          Unsigned32
+MAX-ACCESS      read-write
+STATUS          current
+DESCRIPTION     "Table Index."
+::= { input14Entry 1}
+
+input14Name OBJECT-TYPE
+SYNTAX          DisplayString
+MAX-ACCESS      read-write
+STATUS          current
+DESCRIPTION     "Name of the input."
+::= { input14Entry 2}
+
+input14Zone OBJECT-TYPE
+SYNTAX          DisplayString
+MAX-ACCESS      read-write
+STATUS          current
+DESCRIPTION     "Alarmzone of the input."
+::= { input14Entry 3}
+
+input14Value OBJECT-TYPE
+SYNTAX          Integer32
+MAX-ACCESS      read-write
+STATUS          current
+DESCRIPTION     "Value of the input."
+::= { input14Entry 4}
+
+input14Alarm OBJECT-TYPE
+SYNTAX          Unsigned32
+MAX-ACCESS      read-write
+STATUS          current
+DESCRIPTION     "Alarmstate of the input."
+::= { input14Entry 5}
+
+
+-------------------------------------------------------------------------------------------
+-- Input 15.
+-------------------------------------------------------------------------------------------
+
+input15Table OBJECT-TYPE
+SYNTAX          SEQUENCE OF Input15Entry
+MAX-ACCESS      not-accessible
+STATUS          current
+DESCRIPTION     "Input15 values."
+::= { inputs 15 }
+
+input15Entry OBJECT-TYPE
+SYNTAX          Input15Entry
+MAX-ACCESS      not-accessible
+STATUS          current
+DESCRIPTION     "Entry in input15 table."
+INDEX        { input15Index }
+::= { input15Table 1 }
+
+Input15Entry ::= SEQUENCE {
+input15Index	Unsigned32,
+input15Name	DisplayString,
+input15Zone	DisplayString,
+input15Value	Integer32,
+input15Alarm	Unsigned32}
+
+input15Index OBJECT-TYPE
+SYNTAX          Unsigned32
+MAX-ACCESS      read-write
+STATUS          current
+DESCRIPTION     "Table Index."
+::= { input15Entry 1}
+
+input15Name OBJECT-TYPE
+SYNTAX          DisplayString
+MAX-ACCESS      read-write
+STATUS          current
+DESCRIPTION     "Name of the input."
+::= { input15Entry 2}
+
+input15Zone OBJECT-TYPE
+SYNTAX          DisplayString
+MAX-ACCESS      read-write
+STATUS          current
+DESCRIPTION     "Alarmzone of the input."
+::= { input15Entry 3}
+
+input15Value OBJECT-TYPE
+SYNTAX          Integer32
+MAX-ACCESS      read-write
+STATUS          current
+DESCRIPTION     "Value of the input."
+::= { input15Entry 4}
+
+input15Alarm OBJECT-TYPE
+SYNTAX          Unsigned32
+MAX-ACCESS      read-write
+STATUS          current
+DESCRIPTION     "Alarmstate of the input."
+::= { input15Entry 5}
+
+
+-------------------------------------------------------------------------------------------
+-- Input 16.
+-------------------------------------------------------------------------------------------
+
+input16Table OBJECT-TYPE
+SYNTAX          SEQUENCE OF Input16Entry
+MAX-ACCESS      not-accessible
+STATUS          current
+DESCRIPTION     "Input16 values."
+::= { inputs 16 }
+
+input16Entry OBJECT-TYPE
+SYNTAX          Input16Entry
+MAX-ACCESS      not-accessible
+STATUS          current
+DESCRIPTION     "Entry in input16 table."
+INDEX        { input16Index }
+::= { input16Table 1 }
+
+Input16Entry ::= SEQUENCE {
+input16Index	Unsigned32,
+input16Name	DisplayString,
+input16Zone	DisplayString,
+input16Value	Integer32,
+input16Alarm	Unsigned32}
+
+input16Index OBJECT-TYPE
+SYNTAX          Unsigned32
+MAX-ACCESS      read-write
+STATUS          current
+DESCRIPTION     "Table Index."
+::= { input16Entry 1}
+
+input16Name OBJECT-TYPE
+SYNTAX          DisplayString
+MAX-ACCESS      read-write
+STATUS          current
+DESCRIPTION     "Name of the input."
+::= { input16Entry 2}
+
+input16Zone OBJECT-TYPE
+SYNTAX          DisplayString
+MAX-ACCESS      read-write
+STATUS          current
+DESCRIPTION     "Alarmzone of the input."
+::= { input16Entry 3}
+
+input16Value OBJECT-TYPE
+SYNTAX          Integer32
+MAX-ACCESS      read-write
+STATUS          current
+DESCRIPTION     "Value of the input."
+::= { input16Entry 4}
+
+input16Alarm OBJECT-TYPE
+SYNTAX          Unsigned32
+MAX-ACCESS      read-write
+STATUS          current
+DESCRIPTION     "Alarmstate of the input."
+::= { input16Entry 5}
+
+-------------------------------------------------------------------------------------------
+-- Sensor outputs
+-------------------------------------------------------------------------------------------
+
+-------------------------------------------------------------------------------------------
+-- Output 1.
+-------------------------------------------------------------------------------------------
+
+output1Table OBJECT-TYPE
+SYNTAX          SEQUENCE OF Output1Entry
+MAX-ACCESS      not-accessible
+STATUS          current
+DESCRIPTION     "Output1 values."
+::= { outputs 1 }
+
+output1Entry OBJECT-TYPE
+SYNTAX          Output1Entry
+MAX-ACCESS      not-accessible
+STATUS          current
+DESCRIPTION     "Entry in output1 table."
+INDEX        { output1Index }
+::= { output1Table 1 }
+
+Output1Entry ::= SEQUENCE {
+output1Index	Unsigned32,
+output1Name	DisplayString,
+output1Value	TruthValue}
+
+output1Index OBJECT-TYPE
+SYNTAX          Unsigned32
+MAX-ACCESS      read-write
+STATUS          current
+DESCRIPTION     "Table Index."
+::= { output1Entry 1}
+
+output1Name OBJECT-TYPE
+SYNTAX          DisplayString
+MAX-ACCESS      read-write
+STATUS          current
+DESCRIPTION     "Name of the output."
+::= { output1Entry 2}
+
+output1Value OBJECT-TYPE
+SYNTAX          TruthValue
+MAX-ACCESS      read-write
+STATUS          current
+DESCRIPTION     "Value of the output."
+::= { output1Entry 3}
+
+
+-------------------------------------------------------------------------------------------
+-- Output 2.
+-------------------------------------------------------------------------------------------
+
+output2Table OBJECT-TYPE
+SYNTAX          SEQUENCE OF Output2Entry
+MAX-ACCESS      not-accessible
+STATUS          current
+DESCRIPTION     "Output2 values."
+::= { outputs 2 }
+
+output2Entry OBJECT-TYPE
+SYNTAX          Output2Entry
+MAX-ACCESS      not-accessible
+STATUS          current
+DESCRIPTION     "Entry in output2 table."
+INDEX        { output2Index }
+::= { output2Table 1 }
+
+Output2Entry ::= SEQUENCE {
+output2Index	Unsigned32,
+output2Name	DisplayString,
+output2Value	TruthValue}
+
+output2Index OBJECT-TYPE
+SYNTAX          Unsigned32
+MAX-ACCESS      read-write
+STATUS          current
+DESCRIPTION     "Table Index."
+::= { output2Entry 1}
+
+output2Name OBJECT-TYPE
+SYNTAX          DisplayString
+MAX-ACCESS      read-write
+STATUS          current
+DESCRIPTION     "Name of the output."
+::= { output2Entry 2}
+
+output2Value OBJECT-TYPE
+SYNTAX          TruthValue
+MAX-ACCESS      read-write
+STATUS          current
+DESCRIPTION     "Value of the output."
+::= { output2Entry 3}
+
+
+-------------------------------------------------------------------------------------------
+-- Output 3.
+-------------------------------------------------------------------------------------------
+
+output3Table OBJECT-TYPE
+SYNTAX          SEQUENCE OF Output3Entry
+MAX-ACCESS      not-accessible
+STATUS          current
+DESCRIPTION     "Output3 values."
+::= { outputs 3 }
+
+output3Entry OBJECT-TYPE
+SYNTAX          Output3Entry
+MAX-ACCESS      not-accessible
+STATUS          current
+DESCRIPTION     "Entry in output3 table."
+INDEX        { output3Index }
+::= { output3Table 1 }
+
+Output3Entry ::= SEQUENCE {
+output3Index	Unsigned32,
+output3Name	DisplayString,
+output3Value	TruthValue}
+
+output3Index OBJECT-TYPE
+SYNTAX          Unsigned32
+MAX-ACCESS      read-write
+STATUS          current
+DESCRIPTION     "Table Index."
+::= { output3Entry 1}
+
+output3Name OBJECT-TYPE
+SYNTAX          DisplayString
+MAX-ACCESS      read-write
+STATUS          current
+DESCRIPTION     "Name of the output."
+::= { output3Entry 2}
+
+output3Value OBJECT-TYPE
+SYNTAX          TruthValue
+MAX-ACCESS      read-write
+STATUS          current
+DESCRIPTION     "Value of the output."
+::= { output3Entry 3}
+
+
+-------------------------------------------------------------------------------------------
+-- Output 4.
+-------------------------------------------------------------------------------------------
+
+output4Table OBJECT-TYPE
+SYNTAX          SEQUENCE OF Output4Entry
+MAX-ACCESS      not-accessible
+STATUS          current
+DESCRIPTION     "Output4 values."
+::= { outputs 4 }
+
+output4Entry OBJECT-TYPE
+SYNTAX          Output4Entry
+MAX-ACCESS      not-accessible
+STATUS          current
+DESCRIPTION     "Entry in output4 table."
+INDEX        { output4Index }
+::= { output4Table 1 }
+
+Output4Entry ::= SEQUENCE {
+output4Index	Unsigned32,
+output4Name	DisplayString,
+output4Value	TruthValue}
+
+output4Index OBJECT-TYPE
+SYNTAX          Unsigned32
+MAX-ACCESS      read-write
+STATUS          current
+DESCRIPTION     "Table Index."
+::= { output4Entry 1}
+
+output4Name OBJECT-TYPE
+SYNTAX          DisplayString
+MAX-ACCESS      read-write
+STATUS          current
+DESCRIPTION     "Name of the output."
+::= { output4Entry 2}
+
+output4Value OBJECT-TYPE
+SYNTAX          TruthValue
+MAX-ACCESS      read-write
+STATUS          current
+DESCRIPTION     "Value of the output."
+::= { output4Entry 3}
+
+
+-------------------------------------------------------------------------------------------
+-- Output 5.
+-------------------------------------------------------------------------------------------
+
+output5Table OBJECT-TYPE
+SYNTAX          SEQUENCE OF Output5Entry
+MAX-ACCESS      not-accessible
+STATUS          current
+DESCRIPTION     "Output5 values."
+::= { outputs 5 }
+
+output5Entry OBJECT-TYPE
+SYNTAX          Output5Entry
+MAX-ACCESS      not-accessible
+STATUS          current
+DESCRIPTION     "Entry in output5 table."
+INDEX        { output5Index }
+::= { output5Table 1 }
+
+Output5Entry ::= SEQUENCE {
+output5Index	Unsigned32,
+output5Name	DisplayString,
+output5Value	TruthValue}
+
+output5Index OBJECT-TYPE
+SYNTAX          Unsigned32
+MAX-ACCESS      read-write
+STATUS          current
+DESCRIPTION     "Table Index."
+::= { output5Entry 1}
+
+output5Name OBJECT-TYPE
+SYNTAX          DisplayString
+MAX-ACCESS      read-write
+STATUS          current
+DESCRIPTION     "Name of the output."
+::= { output5Entry 2}
+
+output5Value OBJECT-TYPE
+SYNTAX          TruthValue
+MAX-ACCESS      read-write
+STATUS          current
+DESCRIPTION     "Value of the output."
+::= { output5Entry 3}
+
+
+-------------------------------------------------------------------------------------------
+-- Output 6.
+-------------------------------------------------------------------------------------------
+
+output6Table OBJECT-TYPE
+SYNTAX          SEQUENCE OF Output6Entry
+MAX-ACCESS      not-accessible
+STATUS          current
+DESCRIPTION     "Output6 values."
+::= { outputs 6 }
+
+output6Entry OBJECT-TYPE
+SYNTAX          Output6Entry
+MAX-ACCESS      not-accessible
+STATUS          current
+DESCRIPTION     "Entry in output6 table."
+INDEX        { output6Index }
+::= { output6Table 1 }
+
+Output6Entry ::= SEQUENCE {
+output6Index	Unsigned32,
+output6Name	DisplayString,
+output6Value	TruthValue}
+
+output6Index OBJECT-TYPE
+SYNTAX          Unsigned32
+MAX-ACCESS      read-write
+STATUS          current
+DESCRIPTION     "Table Index."
+::= { output6Entry 1}
+
+output6Name OBJECT-TYPE
+SYNTAX          DisplayString
+MAX-ACCESS      read-write
+STATUS          current
+DESCRIPTION     "Name of the output."
+::= { output6Entry 2}
+
+output6Value OBJECT-TYPE
+SYNTAX          TruthValue
+MAX-ACCESS      read-write
+STATUS          current
+DESCRIPTION     "Value of the output."
+::= { output6Entry 3}
+
+
+-------------------------------------------------------------------------------------------
+-- Output 7.
+-------------------------------------------------------------------------------------------
+
+output7Table OBJECT-TYPE
+SYNTAX          SEQUENCE OF Output7Entry
+MAX-ACCESS      not-accessible
+STATUS          current
+DESCRIPTION     "Output7 values."
+::= { outputs 7 }
+
+output7Entry OBJECT-TYPE
+SYNTAX          Output7Entry
+MAX-ACCESS      not-accessible
+STATUS          current
+DESCRIPTION     "Entry in output7 table."
+INDEX        { output7Index }
+::= { output7Table 1 }
+
+Output7Entry ::= SEQUENCE {
+output7Index	Unsigned32,
+output7Name	DisplayString,
+output7Value	TruthValue}
+
+output7Index OBJECT-TYPE
+SYNTAX          Unsigned32
+MAX-ACCESS      read-write
+STATUS          current
+DESCRIPTION     "Table Index."
+::= { output7Entry 1}
+
+output7Name OBJECT-TYPE
+SYNTAX          DisplayString
+MAX-ACCESS      read-write
+STATUS          current
+DESCRIPTION     "Name of the output."
+::= { output7Entry 2}
+
+output7Value OBJECT-TYPE
+SYNTAX          TruthValue
+MAX-ACCESS      read-write
+STATUS          current
+DESCRIPTION     "Value of the output."
+::= { output7Entry 3}
+
+
+-------------------------------------------------------------------------------------------
+-- Output 8.
+-------------------------------------------------------------------------------------------
+
+output8Table OBJECT-TYPE
+SYNTAX          SEQUENCE OF Output8Entry
+MAX-ACCESS      not-accessible
+STATUS          current
+DESCRIPTION     "Output8 values."
+::= { outputs 8 }
+
+output8Entry OBJECT-TYPE
+SYNTAX          Output8Entry
+MAX-ACCESS      not-accessible
+STATUS          current
+DESCRIPTION     "Entry in output8 table."
+INDEX        { output8Index }
+::= { output8Table 1 }
+
+Output8Entry ::= SEQUENCE {
+output8Index	Unsigned32,
+output8Name	DisplayString,
+output8Value	TruthValue}
+
+output8Index OBJECT-TYPE
+SYNTAX          Unsigned32
+MAX-ACCESS      read-write
+STATUS          current
+DESCRIPTION     "Table Index."
+::= { output8Entry 1}
+
+output8Name OBJECT-TYPE
+SYNTAX          DisplayString
+MAX-ACCESS      read-write
+STATUS          current
+DESCRIPTION     "Name of the output."
+::= { output8Entry 2}
+
+output8Value OBJECT-TYPE
+SYNTAX          TruthValue
+MAX-ACCESS      read-write
+STATUS          current
+DESCRIPTION     "Value of the output."
+::= { output8Entry 3}
+
+-------------------------------------------------------------------------------------------
+-- Sensor pdus
+-------------------------------------------------------------------------------------------
+
+-------------------------------------------------------------------------------------------
+-- Sensor pdu1
+-------------------------------------------------------------------------------------------
+
+-------------------------------------------------------------------------------------------
+-- pdu1 General
+-------------------------------------------------------------------------------------------
+
+pdu1GeneralTable OBJECT-TYPE
+SYNTAX          SEQUENCE OF Pdu1GeneralEntry
+MAX-ACCESS      not-accessible
+STATUS          current
+DESCRIPTION     "Pdu1General values."
+::= { pdu1 1 }
+
+pdu1GeneralEntry OBJECT-TYPE
+SYNTAX          Pdu1GeneralEntry
+MAX-ACCESS      not-accessible
+STATUS          current
+DESCRIPTION     "Entry in pdu1General table."
+INDEX        { pdu1GeneralIndex }
+::= { pdu1GeneralTable 1 }
+
+Pdu1GeneralEntry ::= SEQUENCE {
+pdu1GeneralIndex	Unsigned32,
+pdu1GeneralName	DisplayString,
+pdu1GeneralVoltage	Integer32,
+pdu1GeneralFrequency	Integer32,
+pdu1GeneralConsumptionValue	Integer32,
+pdu1GeneralConsumptionValueLastRecord	Integer32}
+
+pdu1GeneralIndex OBJECT-TYPE
+SYNTAX          Unsigned32
+MAX-ACCESS      read-write
+STATUS          current
+DESCRIPTION     "Table Index."
+::= { pdu1GeneralEntry 1}
+
+pdu1GeneralName OBJECT-TYPE
+SYNTAX          DisplayString
+MAX-ACCESS      read-write
+STATUS          current
+DESCRIPTION     "Name of pdu1."
+::= { pdu1GeneralEntry 2}
+
+pdu1GeneralVoltage OBJECT-TYPE
+SYNTAX          Integer32
+MAX-ACCESS      read-write
+STATUS          current
+DESCRIPTION     "Supply voltage level of the pdu."
+::= { pdu1GeneralEntry 3}
+
+pdu1GeneralFrequency OBJECT-TYPE
+SYNTAX          Integer32
+MAX-ACCESS      read-write
+STATUS          current
+DESCRIPTION     "Supply frequency level of the pdu."
+::= { pdu1GeneralEntry 4}
+
+pdu1GeneralConsumptionValue OBJECT-TYPE
+SYNTAX          Integer32
+MAX-ACCESS      read-write
+STATUS          current
+DESCRIPTION     "Consumption value of the pdu."
+::= { pdu1GeneralEntry 5}
+
+pdu1GeneralConsumptionValueLastRecord OBJECT-TYPE
+SYNTAX          Integer32
+MAX-ACCESS      read-write
+STATUS          current
+DESCRIPTION     "Last record of the consumtion Value."
+::= { pdu1GeneralEntry 6}
+
+-------------------------------------------------------------------------------------------
+-- Sensor PDU1 Voltage
+-------------------------------------------------------------------------------------------
+
+pdu1VoltageTable OBJECT-TYPE
+SYNTAX          SEQUENCE OF Pdu1VoltageEntry
+MAX-ACCESS      not-accessible
+STATUS          current
+DESCRIPTION     "Pdu1Voltage values."
+::= { pdu1 2 }
+
+pdu1VoltageEntry OBJECT-TYPE
+SYNTAX          Pdu1VoltageEntry
+MAX-ACCESS      not-accessible
+STATUS          current
+DESCRIPTION     "Entry in pdu1Voltage table."
+INDEX        { pdu1VoltageIndex }
+::= { pdu1VoltageTable 1 }
+
+Pdu1VoltageEntry ::= SEQUENCE {
+pdu1VoltageIndex	Unsigned32,
+pdu1VoltageValue	Integer32,
+pdu1VoltageAlarm	Unsigned32,
+pdu1VoltageMin	Integer32,
+pdu1VoltageMax	Integer32}
+
+pdu1VoltageIndex OBJECT-TYPE
+SYNTAX          Unsigned32
+MAX-ACCESS      read-write
+STATUS          current
+DESCRIPTION     "Table Index."
+::= { pdu1VoltageEntry 1}
+
+pdu1VoltageValue OBJECT-TYPE
+SYNTAX          Integer32
+MAX-ACCESS      read-write
+STATUS          current
+DESCRIPTION     "Current value."
+::= { pdu1VoltageEntry 2}
+
+pdu1VoltageAlarm OBJECT-TYPE
+SYNTAX          Unsigned32
+MAX-ACCESS      read-write
+STATUS          current
+DESCRIPTION     "Alarmstate of this value."
+::= { pdu1VoltageEntry 3}
+
+pdu1VoltageMin OBJECT-TYPE
+SYNTAX          Integer32
+MAX-ACCESS      read-write
+STATUS          current
+DESCRIPTION     "Min. threshold of this value."
+::= { pdu1VoltageEntry 4}
+
+pdu1VoltageMax OBJECT-TYPE
+SYNTAX          Integer32
+MAX-ACCESS      read-write
+STATUS          current
+DESCRIPTION     "Max. threshold of this value."
+::= { pdu1VoltageEntry 5}
+
+-------------------------------------------------------------------------------------------
+-- Sensor PDU1 Current
+-------------------------------------------------------------------------------------------
+
+pdu1CurrentTable OBJECT-TYPE
+SYNTAX          SEQUENCE OF Pdu1CurrentEntry
+MAX-ACCESS      not-accessible
+STATUS          current
+DESCRIPTION     "Pdu1Current values."
+::= { pdu1 3 }
+
+pdu1CurrentEntry OBJECT-TYPE
+SYNTAX          Pdu1CurrentEntry
+MAX-ACCESS      not-accessible
+STATUS          current
+DESCRIPTION     "Entry in pdu1Current table."
+INDEX        { pdu1CurrentIndex }
+::= { pdu1CurrentTable 1 }
+
+Pdu1CurrentEntry ::= SEQUENCE {
+pdu1CurrentIndex	Unsigned32,
+pdu1CurrentValue	Integer32,
+pdu1CurrentAlarm	Unsigned32,
+pdu1CurrentMax	Integer32}
+
+pdu1CurrentIndex OBJECT-TYPE
+SYNTAX          Unsigned32
+MAX-ACCESS      read-write
+STATUS          current
+DESCRIPTION     "Table Index."
+::= { pdu1CurrentEntry 1}
+
+pdu1CurrentValue OBJECT-TYPE
+SYNTAX          Integer32
+MAX-ACCESS      read-write
+STATUS          current
+DESCRIPTION     "Current value."
+::= { pdu1CurrentEntry 2}
+
+pdu1CurrentAlarm OBJECT-TYPE
+SYNTAX          Unsigned32
+MAX-ACCESS      read-write
+STATUS          current
+DESCRIPTION     "Alarmstate of this value."
+::= { pdu1CurrentEntry 3}
+
+pdu1CurrentMax OBJECT-TYPE
+SYNTAX          Integer32
+MAX-ACCESS      read-write
+STATUS          current
+DESCRIPTION     "Max. threshold of this value."
+::= { pdu1CurrentEntry 5}
+
+-------------------------------------------------------------------------------------------
+-- Sensor PDU1 Activepower
+-------------------------------------------------------------------------------------------
+
+pdu1ActivepowerTable OBJECT-TYPE
+SYNTAX          SEQUENCE OF Pdu1ActivepowerEntry
+MAX-ACCESS      not-accessible
+STATUS          current
+DESCRIPTION     "Pdu1Activepower values."
+::= { pdu1 4 }
+
+pdu1ActivepowerEntry OBJECT-TYPE
+SYNTAX          Pdu1ActivepowerEntry
+MAX-ACCESS      not-accessible
+STATUS          current
+DESCRIPTION     "Entry in pdu1Activepower table."
+INDEX        { pdu1ActivepowerIndex }
+::= { pdu1ActivepowerTable 1 }
+
+Pdu1ActivepowerEntry ::= SEQUENCE {
+pdu1ActivepowerIndex	Unsigned32,
+pdu1ActivepowerValue	Integer32,
+pdu1ActivepowerAlarm	Unsigned32,
+pdu1ActivepowerMax	Integer32}
+
+pdu1ActivepowerIndex OBJECT-TYPE
+SYNTAX          Unsigned32
+MAX-ACCESS      read-write
+STATUS          current
+DESCRIPTION     "Table Index."
+::= { pdu1ActivepowerEntry 1}
+
+pdu1ActivepowerValue OBJECT-TYPE
+SYNTAX          Integer32
+MAX-ACCESS      read-write
+STATUS          current
+DESCRIPTION     "Activepower value."
+::= { pdu1ActivepowerEntry 2}
+
+pdu1ActivepowerAlarm OBJECT-TYPE
+SYNTAX          Unsigned32
+MAX-ACCESS      read-write
+STATUS          current
+DESCRIPTION     "Alarmstate of this value."
+::= { pdu1ActivepowerEntry 3}
+
+pdu1ActivepowerMax OBJECT-TYPE
+SYNTAX          Integer32
+MAX-ACCESS      read-write
+STATUS          current
+DESCRIPTION     "Max. threshold of this value."
+::= { pdu1ActivepowerEntry 5}
+
+-------------------------------------------------------------------------------------------
+-- Sensor PDU1Reactivepower
+-------------------------------------------------------------------------------------------
+
+pdu1ReactivepowerTable OBJECT-TYPE
+SYNTAX          SEQUENCE OF Pdu1ReactivepowerEntry
+MAX-ACCESS      not-accessible
+STATUS          current
+DESCRIPTION     "Pdu1Reactivepower values."
+::= { pdu1 5 }
+
+pdu1ReactivepowerEntry OBJECT-TYPE
+SYNTAX          Pdu1ReactivepowerEntry
+MAX-ACCESS      not-accessible
+STATUS          current
+DESCRIPTION     "Entry in pdu1Reactivepower table."
+INDEX        { pdu1ReactivepowerIndex }
+::= { pdu1ReactivepowerTable 1 }
+
+Pdu1ReactivepowerEntry ::= SEQUENCE {
+pdu1ReactivepowerIndex	Unsigned32,
+pdu1ReactivepowerValue	Integer32,
+pdu1ReactivepowerAlarm	Unsigned32,
+pdu1ReactivepowerMax	Integer32}
+
+pdu1ReactivepowerIndex OBJECT-TYPE
+SYNTAX          Unsigned32
+MAX-ACCESS      read-write
+STATUS          current
+DESCRIPTION     "Table Index."
+::= { pdu1ReactivepowerEntry 1}
+
+pdu1ReactivepowerValue OBJECT-TYPE
+SYNTAX          Integer32
+MAX-ACCESS      read-write
+STATUS          current
+DESCRIPTION     "Reactivepower value."
+::= { pdu1ReactivepowerEntry 2}
+
+pdu1ReactivepowerAlarm OBJECT-TYPE
+SYNTAX          Unsigned32
+MAX-ACCESS      read-write
+STATUS          current
+DESCRIPTION     "Alarmstate of this value."
+::= { pdu1ReactivepowerEntry 3}
+
+pdu1ReactivepowerMax OBJECT-TYPE
+SYNTAX          Integer32
+MAX-ACCESS      read-write
+STATUS          current
+DESCRIPTION     "Max. threshold of this value."
+::= { pdu1ReactivepowerEntry 5}
+
+-------------------------------------------------------------------------------------------
+-- Sensor PDU1Apparentpower
+-------------------------------------------------------------------------------------------
+
+pdu1ApparentpowerTable OBJECT-TYPE
+SYNTAX          SEQUENCE OF Pdu1ApparentpowerEntry
+MAX-ACCESS      not-accessible
+STATUS          current
+DESCRIPTION     "Pdu1Apparentpower values."
+::= { pdu1 6 }
+
+pdu1ApparentpowerEntry OBJECT-TYPE
+SYNTAX          Pdu1ApparentpowerEntry
+MAX-ACCESS      not-accessible
+STATUS          current
+DESCRIPTION     "Entry in pdu1Apparentpower table."
+INDEX        { pdu1ApparentpowerIndex }
+::= { pdu1ApparentpowerTable 1 }
+
+Pdu1ApparentpowerEntry ::= SEQUENCE {
+pdu1ApparentpowerIndex	Unsigned32,
+pdu1ApparentpowerValue	Integer32,
+pdu1ApparentpowerAlarm	Unsigned32,
+pdu1ApparentpowerMax	Integer32}
+
+pdu1ApparentpowerIndex OBJECT-TYPE
+SYNTAX          Unsigned32
+MAX-ACCESS      read-write
+STATUS          current
+DESCRIPTION     "Table Index."
+::= { pdu1ApparentpowerEntry 1}
+
+pdu1ApparentpowerValue OBJECT-TYPE
+SYNTAX          Integer32
+MAX-ACCESS      read-write
+STATUS          current
+DESCRIPTION     "Apparentpower value."
+::= { pdu1ApparentpowerEntry 2}
+
+pdu1ApparentpowerAlarm OBJECT-TYPE
+SYNTAX          Unsigned32
+MAX-ACCESS      read-write
+STATUS          current
+DESCRIPTION     "Alarmstate of this value."
+::= { pdu1ApparentpowerEntry 3}
+
+pdu1ApparentpowerMax OBJECT-TYPE
+SYNTAX          Integer32
+MAX-ACCESS      read-write
+STATUS          current
+DESCRIPTION     "Max. threshold of this value."
+::= { pdu1ApparentpowerEntry 5}
+
+-------------------------------------------------------------------------------------------
+-- Sensor PDU1Frequency
+-------------------------------------------------------------------------------------------
+
+pdu1FrequencyTable OBJECT-TYPE
+SYNTAX          SEQUENCE OF Pdu1FrequencyEntry
+MAX-ACCESS      not-accessible
+STATUS          current
+DESCRIPTION     "Pdu1Frequency values."
+::= { pdu1 7 }
+
+pdu1FrequencyEntry OBJECT-TYPE
+SYNTAX          Pdu1FrequencyEntry
+MAX-ACCESS      not-accessible
+STATUS          current
+DESCRIPTION     "Entry in pdu1Frequency table."
+INDEX        { pdu1FrequencyIndex }
+::= { pdu1FrequencyTable 1 }
+
+Pdu1FrequencyEntry ::= SEQUENCE {
+pdu1FrequencyIndex	Unsigned32,
+pdu1FrequencyValue	Integer32,
+pdu1FrequencyAlarm	Unsigned32,
+pdu1FrequencyMax	Integer32}
+
+pdu1FrequencyIndex OBJECT-TYPE
+SYNTAX          Unsigned32
+MAX-ACCESS      read-write
+STATUS          current
+DESCRIPTION     "Table Index."
+::= { pdu1FrequencyEntry 1}
+
+pdu1FrequencyValue OBJECT-TYPE
+SYNTAX          Integer32
+MAX-ACCESS      read-write
+STATUS          current
+DESCRIPTION     "Frequency value."
+::= { pdu1FrequencyEntry 2}
+
+pdu1FrequencyAlarm OBJECT-TYPE
+SYNTAX          Unsigned32
+MAX-ACCESS      read-write
+STATUS          current
+DESCRIPTION     "Alarmstate of this value."
+::= { pdu1FrequencyEntry 3}
+
+pdu1FrequencyMax OBJECT-TYPE
+SYNTAX          Integer32
+MAX-ACCESS      read-write
+STATUS          current
+DESCRIPTION     "Max. hysterese of this value."
+::= { pdu1FrequencyEntry 5}
+
+-------------------------------------------------------------------------------------------
+-- Sensor PDU1Peak
+-------------------------------------------------------------------------------------------
+
+pdu1PeakTable OBJECT-TYPE
+SYNTAX          SEQUENCE OF Pdu1PeakEntry
+MAX-ACCESS      not-accessible
+STATUS          current
+DESCRIPTION     "Pdu1Peak values."
+::= { pdu1 8 }
+
+pdu1PeakEntry OBJECT-TYPE
+SYNTAX          Pdu1PeakEntry
+MAX-ACCESS      not-accessible
+STATUS          current
+DESCRIPTION     "Entry in pdu1Peak table."
+INDEX        { pdu1PeakIndex }
+::= { pdu1PeakTable 1 }
+
+Pdu1PeakEntry ::= SEQUENCE {
+pdu1PeakIndex	Unsigned32,
+pdu1PeakValue	Integer32,
+pdu1PeakAlarm	Unsigned32,
+pdu1PeakMax	Integer32}
+
+pdu1PeakIndex OBJECT-TYPE
+SYNTAX          Unsigned32
+MAX-ACCESS      read-write
+STATUS          current
+DESCRIPTION     "Table Index."
+::= { pdu1PeakEntry 1}
+
+pdu1PeakValue OBJECT-TYPE
+SYNTAX          Integer32
+MAX-ACCESS      read-write
+STATUS          current
+DESCRIPTION     "Peak value."
+::= { pdu1PeakEntry 2}
+
+pdu1PeakAlarm OBJECT-TYPE
+SYNTAX          Unsigned32
+MAX-ACCESS      read-write
+STATUS          current
+DESCRIPTION     "Alarmstate of this value."
+::= { pdu1PeakEntry 3}
+
+pdu1PeakMax OBJECT-TYPE
+SYNTAX          Integer32
+MAX-ACCESS      read-write
+STATUS          current
+DESCRIPTION     "Max. threshold of this value."
+::= { pdu1PeakEntry 5}
+
+-------------------------------------------------------------------------------------------
+-- Sensor PDU1Flicker
+-------------------------------------------------------------------------------------------
+
+pdu1FlickerTable OBJECT-TYPE
+SYNTAX          SEQUENCE OF Pdu1FlickerEntry
+MAX-ACCESS      not-accessible
+STATUS          current
+DESCRIPTION     "Pdu1Flicker values."
+::= { pdu1 9 }
+
+pdu1FlickerEntry OBJECT-TYPE
+SYNTAX          Pdu1FlickerEntry
+MAX-ACCESS      not-accessible
+STATUS          current
+DESCRIPTION     "Entry in pdu1Flicker table."
+INDEX        { pdu1FlickerIndex }
+::= { pdu1FlickerTable 1 }
+
+Pdu1FlickerEntry ::= SEQUENCE {
+pdu1FlickerIndex	Unsigned32,
+pdu1FlickerValue	Integer32,
+pdu1FlickerAlarm	Unsigned32,
+pdu1FlickerHalfwaves Integer32}
+
+pdu1FlickerIndex OBJECT-TYPE
+SYNTAX          Unsigned32
+MAX-ACCESS      read-write
+STATUS          current
+DESCRIPTION     "Table Index."
+::= { pdu1FlickerEntry 1}
+
+pdu1FlickerValue OBJECT-TYPE
+SYNTAX          Integer32
+MAX-ACCESS      read-write
+STATUS          current
+DESCRIPTION     "Flicker value."
+::= { pdu1FlickerEntry 2}
+
+pdu1FlickerAlarm OBJECT-TYPE
+SYNTAX          Unsigned32
+MAX-ACCESS      read-write
+STATUS          current
+DESCRIPTION     "Alarmstate of this value."
+::= { pdu1FlickerEntry 3}
+
+pdu1FlickerHalfwaves OBJECT-TYPE
+SYNTAX          Integer32
+MAX-ACCESS      read-write
+STATUS          current
+DESCRIPTION     "Min. Halfwaves to rise an alarm."
+::= { pdu1FlickerEntry 4}
+
+-------------------------------------------------------------------------------------------
+-- Sensor PDU1Surge
+-------------------------------------------------------------------------------------------
+
+pdu1SurgeTable OBJECT-TYPE
+SYNTAX          SEQUENCE OF Pdu1SurgeEntry
+MAX-ACCESS      not-accessible
+STATUS          current
+DESCRIPTION     "Pdu1Surge values."
+::= { pdu1 10 }
+
+pdu1SurgeEntry OBJECT-TYPE
+SYNTAX          Pdu1SurgeEntry
+MAX-ACCESS      not-accessible
+STATUS          current
+DESCRIPTION     "Entry in pdu1Surge table."
+INDEX        { pdu1SurgeIndex }
+::= { pdu1SurgeTable 1 }
+
+Pdu1SurgeEntry ::= SEQUENCE {
+pdu1SurgeIndex	Unsigned32,
+pdu1SurgeValue	Integer32,
+pdu1SurgeAlarm	Unsigned32,
+pdu1SurgeHalfwaves	Integer32}
+
+pdu1SurgeIndex OBJECT-TYPE
+SYNTAX          Unsigned32
+MAX-ACCESS      read-write
+STATUS          current
+DESCRIPTION     "Table Index."
+::= { pdu1SurgeEntry 1}
+
+pdu1SurgeValue OBJECT-TYPE
+SYNTAX          Integer32
+MAX-ACCESS      read-write
+STATUS          current
+DESCRIPTION     "Surge value."
+::= { pdu1SurgeEntry 2}
+
+pdu1SurgeAlarm OBJECT-TYPE
+SYNTAX          Unsigned32
+MAX-ACCESS      read-write
+STATUS          current
+DESCRIPTION     "Alarmstate of this value."
+::= { pdu1SurgeEntry 3}
+
+pdu1SurgeHalfwaves OBJECT-TYPE
+SYNTAX          Integer32
+MAX-ACCESS      read-write
+STATUS          current
+DESCRIPTION     "Min. Halfwaves to rise an alarm."
+::= { pdu1SurgeEntry 4}
+
+-------------------------------------------------------------------------------------------
+-- Sensor pdu2
+-------------------------------------------------------------------------------------------
+
+-------------------------------------------------------------------------------------------
+-- pdu2 General
+-------------------------------------------------------------------------------------------
+
+pdu2GeneralTable OBJECT-TYPE
+SYNTAX          SEQUENCE OF Pdu2GeneralEntry
+MAX-ACCESS      not-accessible
+STATUS          current
+DESCRIPTION     "Pdu2General values."
+::= { pdu2 1 }
+
+pdu2GeneralEntry OBJECT-TYPE
+SYNTAX          Pdu2GeneralEntry
+MAX-ACCESS      not-accessible
+STATUS          current
+DESCRIPTION     "Entry in pdu2General table."
+INDEX        { pdu2GeneralIndex }
+::= { pdu2GeneralTable 1 }
+
+Pdu2GeneralEntry ::= SEQUENCE {
+pdu2GeneralIndex	Unsigned32,
+pdu2GeneralName	DisplayString,
+pdu2GeneralVoltage	Integer32,
+pdu2GeneralFrequency	Integer32,
+pdu2GeneralConsumptionValue	Integer32,
+pdu2GeneralConsumptionValueLastRecord Integer32}
+
+pdu2GeneralIndex OBJECT-TYPE
+SYNTAX          Unsigned32
+MAX-ACCESS      read-write
+STATUS          current
+DESCRIPTION     "Table Index."
+::= { pdu2GeneralEntry 1}
+
+pdu2GeneralName OBJECT-TYPE
+SYNTAX          DisplayString
+MAX-ACCESS      read-write
+STATUS          current
+DESCRIPTION     "Name of pdu2."
+::= { pdu2GeneralEntry 2}
+
+pdu2GeneralVoltage OBJECT-TYPE
+SYNTAX          Integer32
+MAX-ACCESS      read-write
+STATUS          current
+DESCRIPTION     "Supply voltage level of the pdu."
+::= { pdu2GeneralEntry 3}
+
+pdu2GeneralFrequency OBJECT-TYPE
+SYNTAX          Integer32
+MAX-ACCESS      read-write
+STATUS          current
+DESCRIPTION     "Supply frequency level of the pdu."
+::= { pdu2GeneralEntry 4}
+
+pdu2GeneralConsumptionValue OBJECT-TYPE
+SYNTAX          Integer32
+MAX-ACCESS      read-write
+STATUS          current
+DESCRIPTION     "Consumption value of the pdu."
+::= { pdu2GeneralEntry 5}
+
+pdu2GeneralConsumptionValueLastRecord OBJECT-TYPE
+SYNTAX          Integer32
+MAX-ACCESS      read-write
+STATUS          current
+DESCRIPTION     "Last record of the consumtion Value."
+::= { pdu2GeneralEntry 6}
+
+-------------------------------------------------------------------------------------------
+-- Sensor PDU2 Voltage
+-------------------------------------------------------------------------------------------
+
+pdu2VoltageTable OBJECT-TYPE
+SYNTAX          SEQUENCE OF Pdu2VoltageEntry
+MAX-ACCESS      not-accessible
+STATUS          current
+DESCRIPTION     "Pdu1Voltage values."
+::= { pdu2 2 }
+
+pdu2VoltageEntry OBJECT-TYPE
+SYNTAX          Pdu2VoltageEntry
+MAX-ACCESS      not-accessible
+STATUS          current
+DESCRIPTION     "Entry in pdu2Voltage table."
+INDEX        { pdu2VoltageIndex }
+::= { pdu2VoltageTable 1 }
+
+Pdu2VoltageEntry ::= SEQUENCE {
+pdu2VoltageIndex	Unsigned32,
+pdu2VoltageValue	Integer32,
+pdu2VoltageAlarm	Unsigned32,
+pdu2VoltageMin	Integer32,
+pdu2VoltageMax	Integer32}
+
+pdu2VoltageIndex OBJECT-TYPE
+SYNTAX          Unsigned32
+MAX-ACCESS      read-write
+STATUS          current
+DESCRIPTION     "Table Index."
+::= { pdu2VoltageEntry 1}
+
+pdu2VoltageValue OBJECT-TYPE
+SYNTAX          Integer32
+MAX-ACCESS      read-write
+STATUS          current
+DESCRIPTION     "Current value."
+::= { pdu2VoltageEntry 2}
+
+pdu2VoltageAlarm OBJECT-TYPE
+SYNTAX          Unsigned32
+MAX-ACCESS      read-write
+STATUS          current
+DESCRIPTION     "Alarmstate of this value."
+::= { pdu2VoltageEntry 3}
+
+pdu2VoltageMin OBJECT-TYPE
+SYNTAX          Integer32
+MAX-ACCESS      read-write
+STATUS          current
+DESCRIPTION     "Min. threshold of this value."
+::= { pdu2VoltageEntry 4}
+
+pdu2VoltageMax OBJECT-TYPE
+SYNTAX          Integer32
+MAX-ACCESS      read-write
+STATUS          current
+DESCRIPTION     "Max. threshold of this value."
+::= { pdu2VoltageEntry 5}
+
+-------------------------------------------------------------------------------------------
+-- Sensor PDU2 Current
+-------------------------------------------------------------------------------------------
+
+pdu2CurrentTable OBJECT-TYPE
+SYNTAX          SEQUENCE OF Pdu2CurrentEntry
+MAX-ACCESS      not-accessible
+STATUS          current
+DESCRIPTION     "Pdu1Current values."
+::= { pdu2 3 }
+
+pdu2CurrentEntry OBJECT-TYPE
+SYNTAX          Pdu2CurrentEntry
+MAX-ACCESS      not-accessible
+STATUS          current
+DESCRIPTION     "Entry in pdu2Current table."
+INDEX        { pdu2CurrentIndex }
+::= { pdu2CurrentTable 1 }
+
+Pdu2CurrentEntry ::= SEQUENCE {
+pdu2CurrentIndex	Unsigned32,
+pdu2CurrentValue	Integer32,
+pdu2CurrentAlarm	Unsigned32,
+pdu2CurrentMax	Integer32}
+
+pdu2CurrentIndex OBJECT-TYPE
+SYNTAX          Unsigned32
+MAX-ACCESS      read-write
+STATUS          current
+DESCRIPTION     "Table Index."
+::= { pdu2CurrentEntry 1}
+
+pdu2CurrentValue OBJECT-TYPE
+SYNTAX          Integer32
+MAX-ACCESS      read-write
+STATUS          current
+DESCRIPTION     "Current value."
+::= { pdu2CurrentEntry 2}
+
+pdu2CurrentAlarm OBJECT-TYPE
+SYNTAX          Unsigned32
+MAX-ACCESS      read-write
+STATUS          current
+DESCRIPTION     "Alarmstate of this value."
+::= { pdu2CurrentEntry 3}
+
+pdu2CurrentMax OBJECT-TYPE
+SYNTAX          Integer32
+MAX-ACCESS      read-write
+STATUS          current
+DESCRIPTION     "Max. threshold of this value."
+::= { pdu2CurrentEntry 5}
+
+-------------------------------------------------------------------------------------------
+-- Sensor PDU2 Activepower
+-------------------------------------------------------------------------------------------
+
+pdu2ActivepowerTable OBJECT-TYPE
+SYNTAX          SEQUENCE OF Pdu2ActivepowerEntry
+MAX-ACCESS      not-accessible
+STATUS          current
+DESCRIPTION     "Pdu2Activepower values."
+::= { pdu2 4 }
+
+pdu2ActivepowerEntry OBJECT-TYPE
+SYNTAX          Pdu2ActivepowerEntry
+MAX-ACCESS      not-accessible
+STATUS          current
+DESCRIPTION     "Entry in pdu2Activepower table."
+INDEX        { pdu2ActivepowerIndex }
+::= { pdu2ActivepowerTable 1 }
+
+Pdu2ActivepowerEntry ::= SEQUENCE {
+pdu2ActivepowerIndex	Unsigned32,
+pdu2ActivepowerValue	Integer32,
+pdu2ActivepowerAlarm	Unsigned32,
+pdu2ActivepowerMax	Integer32}
+
+pdu2ActivepowerIndex OBJECT-TYPE
+SYNTAX          Unsigned32
+MAX-ACCESS      read-write
+STATUS          current
+DESCRIPTION     "Table Index."
+::= { pdu2ActivepowerEntry 1}
+
+pdu2ActivepowerValue OBJECT-TYPE
+SYNTAX          Integer32
+MAX-ACCESS      read-write
+STATUS          current
+DESCRIPTION     "Activepower value."
+::= { pdu2ActivepowerEntry 2}
+
+pdu2ActivepowerAlarm OBJECT-TYPE
+SYNTAX          Unsigned32
+MAX-ACCESS      read-write
+STATUS          current
+DESCRIPTION     "Alarmstate of this value."
+::= { pdu2ActivepowerEntry 3}
+
+pdu2ActivepowerMax OBJECT-TYPE
+SYNTAX          Integer32
+MAX-ACCESS      read-write
+STATUS          current
+DESCRIPTION     "Max. threshold of this value."
+::= { pdu2ActivepowerEntry 5}
+
+-------------------------------------------------------------------------------------------
+-- Sensor PDU2Reactivepower
+-------------------------------------------------------------------------------------------
+
+pdu2ReactivepowerTable OBJECT-TYPE
+SYNTAX          SEQUENCE OF Pdu2ReactivepowerEntry
+MAX-ACCESS      not-accessible
+STATUS          current
+DESCRIPTION     "Pdu1Reactivepower values."
+::= { pdu2 5 }
+
+pdu2ReactivepowerEntry OBJECT-TYPE
+SYNTAX          Pdu2ReactivepowerEntry
+MAX-ACCESS      not-accessible
+STATUS          current
+DESCRIPTION     "Entry in pdu2Reactivepower table."
+INDEX        { pdu2ReactivepowerIndex }
+::= { pdu2ReactivepowerTable 1 }
+
+Pdu2ReactivepowerEntry ::= SEQUENCE {
+pdu2ReactivepowerIndex	Unsigned32,
+pdu2ReactivepowerValue	Integer32,
+pdu2ReactivepowerAlarm	Unsigned32,
+pdu2ReactivepowerMax	Integer32}
+
+pdu2ReactivepowerIndex OBJECT-TYPE
+SYNTAX          Unsigned32
+MAX-ACCESS      read-write
+STATUS          current
+DESCRIPTION     "Table Index."
+::= { pdu2ReactivepowerEntry 1}
+
+pdu2ReactivepowerValue OBJECT-TYPE
+SYNTAX          Integer32
+MAX-ACCESS      read-write
+STATUS          current
+DESCRIPTION     "Reactivepower value."
+::= { pdu2ReactivepowerEntry 2}
+
+pdu2ReactivepowerAlarm OBJECT-TYPE
+SYNTAX          Unsigned32
+MAX-ACCESS      read-write
+STATUS          current
+DESCRIPTION     "Alarmstate of this value."
+::= { pdu2ReactivepowerEntry 3}
+
+pdu2ReactivepowerMax OBJECT-TYPE
+SYNTAX          Integer32
+MAX-ACCESS      read-write
+STATUS          current
+DESCRIPTION     "Max. threshold of this value."
+::= { pdu2ReactivepowerEntry 5}
+
+-------------------------------------------------------------------------------------------
+-- Sensor PDU2Apparentpower
+-------------------------------------------------------------------------------------------
+
+pdu2ApparentpowerTable OBJECT-TYPE
+SYNTAX          SEQUENCE OF Pdu2ApparentpowerEntry
+MAX-ACCESS      not-accessible
+STATUS          current
+DESCRIPTION     "Pdu2Apparentpower values."
+::= { pdu2 6 }
+
+pdu2ApparentpowerEntry OBJECT-TYPE
+SYNTAX          Pdu2ApparentpowerEntry
+MAX-ACCESS      not-accessible
+STATUS          current
+DESCRIPTION     "Entry in pdu2Apparentpower table."
+INDEX        { pdu2ApparentpowerIndex }
+::= { pdu2ApparentpowerTable 1 }
+
+Pdu2ApparentpowerEntry ::= SEQUENCE {
+pdu2ApparentpowerIndex	Unsigned32,
+pdu2ApparentpowerValue	Integer32,
+pdu2ApparentpowerAlarm	Unsigned32,
+pdu2ApparentpowerMax	Integer32}
+
+pdu2ApparentpowerIndex OBJECT-TYPE
+SYNTAX          Unsigned32
+MAX-ACCESS      read-write
+STATUS          current
+DESCRIPTION     "Table Index."
+::= { pdu2ApparentpowerEntry 1}
+
+pdu2ApparentpowerValue OBJECT-TYPE
+SYNTAX          Integer32
+MAX-ACCESS      read-write
+STATUS          current
+DESCRIPTION     "Apparentpower value."
+::= { pdu2ApparentpowerEntry 2}
+
+pdu2ApparentpowerAlarm OBJECT-TYPE
+SYNTAX          Unsigned32
+MAX-ACCESS      read-write
+STATUS          current
+DESCRIPTION     "Alarmstate of this value."
+::= { pdu2ApparentpowerEntry 3}
+
+pdu2ApparentpowerMax OBJECT-TYPE
+SYNTAX          Integer32
+MAX-ACCESS      read-write
+STATUS          current
+DESCRIPTION     "Max. threshold of this value."
+::= { pdu2ApparentpowerEntry 5}
+
+-------------------------------------------------------------------------------------------
+-- Sensor PDU2Frequency
+-------------------------------------------------------------------------------------------
+
+pdu2FrequencyTable OBJECT-TYPE
+SYNTAX          SEQUENCE OF Pdu2FrequencyEntry
+MAX-ACCESS      not-accessible
+STATUS          current
+DESCRIPTION     "Pdu1Frequency values."
+::= { pdu2 7 }
+
+pdu2FrequencyEntry OBJECT-TYPE
+SYNTAX          Pdu2FrequencyEntry
+MAX-ACCESS      not-accessible
+STATUS          current
+DESCRIPTION     "Entry in pdu2Frequency table."
+INDEX        { pdu2FrequencyIndex }
+::= { pdu2FrequencyTable 1 }
+
+Pdu2FrequencyEntry ::= SEQUENCE {
+pdu2FrequencyIndex	Unsigned32,
+pdu2FrequencyValue	Integer32,
+pdu2FrequencyAlarm	Unsigned32,
+pdu2FrequencyMax	Integer32}
+
+pdu2FrequencyIndex OBJECT-TYPE
+SYNTAX          Unsigned32
+MAX-ACCESS      read-write
+STATUS          current
+DESCRIPTION     "Table Index."
+::= { pdu2FrequencyEntry 1}
+
+pdu2FrequencyValue OBJECT-TYPE
+SYNTAX          Integer32
+MAX-ACCESS      read-write
+STATUS          current
+DESCRIPTION     "Frequency value."
+::= { pdu2FrequencyEntry 2}
+
+pdu2FrequencyAlarm OBJECT-TYPE
+SYNTAX          Unsigned32
+MAX-ACCESS      read-write
+STATUS          current
+DESCRIPTION     "Alarmstate of this value."
+::= { pdu2FrequencyEntry 3}
+
+pdu2FrequencyMax OBJECT-TYPE
+SYNTAX          Integer32
+MAX-ACCESS      read-write
+STATUS          current
+DESCRIPTION     "Max. hysterese of this value."
+::= { pdu2FrequencyEntry 5}
+
+-------------------------------------------------------------------------------------------
+-- Sensor PDU2Peak
+-------------------------------------------------------------------------------------------
+
+pdu2PeakTable OBJECT-TYPE
+SYNTAX          SEQUENCE OF Pdu2PeakEntry
+MAX-ACCESS      not-accessible
+STATUS          current
+DESCRIPTION     "Pdu2Peak values."
+::= { pdu2 8 }
+
+pdu2PeakEntry OBJECT-TYPE
+SYNTAX          Pdu2PeakEntry
+MAX-ACCESS      not-accessible
+STATUS          current
+DESCRIPTION     "Entry in pdu2Peak table."
+INDEX        { pdu2PeakIndex }
+::= { pdu2PeakTable 1 }
+
+Pdu2PeakEntry ::= SEQUENCE {
+pdu2PeakIndex	Unsigned32,
+pdu2PeakValue	Integer32,
+pdu2PeakAlarm	Unsigned32,
+pdu2PeakMax	Integer32}
+
+pdu2PeakIndex OBJECT-TYPE
+SYNTAX          Unsigned32
+MAX-ACCESS      read-write
+STATUS          current
+DESCRIPTION     "Table Index."
+::= { pdu2PeakEntry 1}
+
+pdu2PeakValue OBJECT-TYPE
+SYNTAX          Integer32
+MAX-ACCESS      read-write
+STATUS          current
+DESCRIPTION     "Peak value."
+::= { pdu2PeakEntry 2}
+
+pdu2PeakAlarm OBJECT-TYPE
+SYNTAX          Unsigned32
+MAX-ACCESS      read-write
+STATUS          current
+DESCRIPTION     "Alarmstate of this value."
+::= { pdu2PeakEntry 3}
+
+pdu2PeakMax OBJECT-TYPE
+SYNTAX          Integer32
+MAX-ACCESS      read-write
+STATUS          current
+DESCRIPTION     "Max. threshold of this value."
+::= { pdu2PeakEntry 5}
+
+-------------------------------------------------------------------------------------------
+-- Sensor PDU2Flicker
+-------------------------------------------------------------------------------------------
+
+pdu2FlickerTable OBJECT-TYPE
+SYNTAX          SEQUENCE OF Pdu2FlickerEntry
+MAX-ACCESS      not-accessible
+STATUS          current
+DESCRIPTION     "Pdu1Flicker values."
+::= { pdu2 9 }
+
+pdu2FlickerEntry OBJECT-TYPE
+SYNTAX          Pdu2FlickerEntry
+MAX-ACCESS      not-accessible
+STATUS          current
+DESCRIPTION     "Entry in pdu2Flicker table."
+INDEX        { pdu2FlickerIndex }
+::= { pdu2FlickerTable 1 }
+
+Pdu2FlickerEntry ::= SEQUENCE {
+pdu2FlickerIndex	Unsigned32,
+pdu2FlickerValue	Integer32,
+pdu2FlickerAlarm	Unsigned32,
+pdu2FlickerHalfwaves Integer32}
+
+pdu2FlickerIndex OBJECT-TYPE
+SYNTAX          Unsigned32
+MAX-ACCESS      read-write
+STATUS          current
+DESCRIPTION     "Table Index."
+::= { pdu2FlickerEntry 1}
+
+pdu2FlickerValue OBJECT-TYPE
+SYNTAX          Integer32
+MAX-ACCESS      read-write
+STATUS          current
+DESCRIPTION     "Flicker value."
+::= { pdu2FlickerEntry 2}
+
+pdu2FlickerAlarm OBJECT-TYPE
+SYNTAX          Unsigned32
+MAX-ACCESS      read-write
+STATUS          current
+DESCRIPTION     "Alarmstate of this value."
+::= { pdu2FlickerEntry 3}
+
+pdu2FlickerHalfwaves OBJECT-TYPE
+SYNTAX          Integer32
+MAX-ACCESS      read-write
+STATUS          current
+DESCRIPTION     "Min. Halfwaves to rise an alarm."
+::= { pdu2FlickerEntry 4}
+
+-------------------------------------------------------------------------------------------
+-- Sensor PDU2Surge
+-------------------------------------------------------------------------------------------
+
+pdu2SurgeTable OBJECT-TYPE
+SYNTAX          SEQUENCE OF Pdu2SurgeEntry
+MAX-ACCESS      not-accessible
+STATUS          current
+DESCRIPTION     "Pdu2Surge values."
+::= { pdu2 10 }
+
+pdu2SurgeEntry OBJECT-TYPE
+SYNTAX          Pdu2SurgeEntry
+MAX-ACCESS      not-accessible
+STATUS          current
+DESCRIPTION     "Entry in pdu2Surge table."
+INDEX        { pdu2SurgeIndex }
+::= { pdu2SurgeTable 1 }
+
+Pdu2SurgeEntry ::= SEQUENCE {
+pdu2SurgeIndex	Unsigned32,
+pdu2SurgeValue	Integer32,
+pdu2SurgeAlarm	Unsigned32,
+pdu2SurgeHalfwaves	Integer32}
+
+pdu2SurgeIndex OBJECT-TYPE
+SYNTAX          Unsigned32
+MAX-ACCESS      read-write
+STATUS          current
+DESCRIPTION     "Table Index."
+::= { pdu2SurgeEntry 1}
+
+pdu2SurgeValue OBJECT-TYPE
+SYNTAX          Integer32
+MAX-ACCESS      read-write
+STATUS          current
+DESCRIPTION     "Surge value."
+::= { pdu2SurgeEntry 2}
+
+pdu2SurgeAlarm OBJECT-TYPE
+SYNTAX          Unsigned32
+MAX-ACCESS      read-write
+STATUS          current
+DESCRIPTION     "Alarmstate of this value."
+::= { pdu2SurgeEntry 3}
+
+pdu2SurgeHalfwaves OBJECT-TYPE
+SYNTAX          Integer32
+MAX-ACCESS      read-write
+STATUS          current
+DESCRIPTION     "Min. Halfwaves to rise an alarm."
+::= { pdu2SurgeEntry 4}
+
+-------------------------------------------------------------------------------------------
+-- Sensor pdu3
+-------------------------------------------------------------------------------------------
+
+-------------------------------------------------------------------------------------------
+-- pdu3 General
+-------------------------------------------------------------------------------------------
+
+pdu3GeneralTable OBJECT-TYPE
+SYNTAX          SEQUENCE OF Pdu3GeneralEntry
+MAX-ACCESS      not-accessible
+STATUS          current
+DESCRIPTION     "Pdu1General values."
+::= { pdu3 1 }
+
+pdu3GeneralEntry OBJECT-TYPE
+SYNTAX          Pdu3GeneralEntry
+MAX-ACCESS      not-accessible
+STATUS          current
+DESCRIPTION     "Entry in pdu3General table."
+INDEX        { pdu3GeneralIndex }
+::= { pdu3GeneralTable 1 }
+
+Pdu3GeneralEntry ::= SEQUENCE {
+pdu3GeneralIndex	Unsigned32,
+pdu3GeneralName	DisplayString,
+pdu3GeneralVoltage	Integer32,
+pdu3GeneralFrequency	Integer32,
+pdu3GeneralConsumptionValue	Integer32,
+pdu3GeneralConsumptionValueLastRecord	Integer32}
+
+pdu3GeneralIndex OBJECT-TYPE
+SYNTAX          Unsigned32
+MAX-ACCESS      read-write
+STATUS          current
+DESCRIPTION     "Table Index."
+::= { pdu3GeneralEntry 1}
+
+
+pdu3GeneralName OBJECT-TYPE
+SYNTAX          DisplayString
+MAX-ACCESS      read-write
+STATUS          current
+DESCRIPTION     "Name of pdu3."
+::= { pdu3GeneralEntry 2}
+
+pdu3GeneralVoltage OBJECT-TYPE
+SYNTAX          Integer32
+MAX-ACCESS      read-write
+STATUS          current
+DESCRIPTION     "Supply voltage level of the pdu."
+::= { pdu3GeneralEntry 3}
+
+pdu3GeneralFrequency OBJECT-TYPE
+SYNTAX          Integer32
+MAX-ACCESS      read-write
+STATUS          current
+DESCRIPTION     "Supply frequency level of the pdu."
+::= { pdu3GeneralEntry 4}
+
+pdu3GeneralConsumptionValue OBJECT-TYPE
+SYNTAX          Integer32
+MAX-ACCESS      read-write
+STATUS          current
+DESCRIPTION     "Consumption value of the pdu."
+::= { pdu3GeneralEntry 5}
+
+pdu3GeneralConsumptionValueLastRecord OBJECT-TYPE
+SYNTAX          Integer32
+MAX-ACCESS      read-write
+STATUS          current
+DESCRIPTION     "Last record of the consumtion Value."
+::= { pdu3GeneralEntry 6}
+
+-------------------------------------------------------------------------------------------
+-- Sensor PDU3 Voltage
+-------------------------------------------------------------------------------------------
+
+pdu3VoltageTable OBJECT-TYPE
+SYNTAX          SEQUENCE OF Pdu3VoltageEntry
+MAX-ACCESS      not-accessible
+STATUS          current
+DESCRIPTION     "Pdu3Voltage values."
+::= { pdu3 2 }
+
+pdu3VoltageEntry OBJECT-TYPE
+SYNTAX          Pdu3VoltageEntry
+MAX-ACCESS      not-accessible
+STATUS          current
+DESCRIPTION     "Entry in pdu3Voltage table."
+INDEX        { pdu3VoltageIndex }
+::= { pdu3VoltageTable 1 }
+
+Pdu3VoltageEntry ::= SEQUENCE {
+pdu3VoltageIndex	Unsigned32,
+pdu3VoltageValue	Integer32,
+pdu3VoltageAlarm	Unsigned32,
+pdu3VoltageMin	Integer32,
+pdu3VoltageMax	Integer32}
+
+pdu3VoltageIndex OBJECT-TYPE
+SYNTAX          Unsigned32
+MAX-ACCESS      read-write
+STATUS          current
+DESCRIPTION     "Table Index."
+::= { pdu3VoltageEntry 1}
+
+pdu3VoltageValue OBJECT-TYPE
+SYNTAX          Integer32
+MAX-ACCESS      read-write
+STATUS          current
+DESCRIPTION     "Current value."
+::= { pdu3VoltageEntry 2}
+
+pdu3VoltageAlarm OBJECT-TYPE
+SYNTAX          Unsigned32
+MAX-ACCESS      read-write
+STATUS          current
+DESCRIPTION     "Alarmstate of this value."
+::= { pdu3VoltageEntry 3}
+
+pdu3VoltageMin OBJECT-TYPE
+SYNTAX          Integer32
+MAX-ACCESS      read-write
+STATUS          current
+DESCRIPTION     "Min. threshold of this value."
+::= { pdu3VoltageEntry 4}
+
+pdu3VoltageMax OBJECT-TYPE
+SYNTAX          Integer32
+MAX-ACCESS      read-write
+STATUS          current
+DESCRIPTION     "Max. threshold of this value."
+::= { pdu3VoltageEntry 5}
+
+-------------------------------------------------------------------------------------------
+-- Sensor PDU3 Current
+-------------------------------------------------------------------------------------------
+
+pdu3CurrentTable OBJECT-TYPE
+SYNTAX          SEQUENCE OF Pdu3CurrentEntry
+MAX-ACCESS      not-accessible
+STATUS          current
+DESCRIPTION     "Pdu3Current values."
+::= { pdu3 3 }
+
+pdu3CurrentEntry OBJECT-TYPE
+SYNTAX          Pdu3CurrentEntry
+MAX-ACCESS      not-accessible
+STATUS          current
+DESCRIPTION     "Entry in pdu3Current table."
+INDEX        { pdu3CurrentIndex }
+::= { pdu3CurrentTable 1 }
+
+Pdu3CurrentEntry ::= SEQUENCE {
+pdu3CurrentIndex	Unsigned32,
+pdu3CurrentValue	Integer32,
+pdu3CurrentAlarm	Unsigned32,
+pdu3CurrentMax	Integer32}
+
+pdu3CurrentIndex OBJECT-TYPE
+SYNTAX          Unsigned32
+MAX-ACCESS      read-write
+STATUS          current
+DESCRIPTION     "Table Index."
+::= { pdu3CurrentEntry 1}
+
+pdu3CurrentValue OBJECT-TYPE
+SYNTAX          Integer32
+MAX-ACCESS      read-write
+STATUS          current
+DESCRIPTION     "Current value."
+::= { pdu3CurrentEntry 2}
+
+pdu3CurrentAlarm OBJECT-TYPE
+SYNTAX          Unsigned32
+MAX-ACCESS      read-write
+STATUS          current
+DESCRIPTION     "Alarmstate of this value."
+::= { pdu3CurrentEntry 3}
+
+pdu3CurrentMax OBJECT-TYPE
+SYNTAX          Integer32
+MAX-ACCESS      read-write
+STATUS          current
+DESCRIPTION     "Max. threshold of this value."
+::= { pdu3CurrentEntry 5}
+
+-------------------------------------------------------------------------------------------
+-- Sensor PDU3 Activepower
+-------------------------------------------------------------------------------------------
+
+pdu3ActivepowerTable OBJECT-TYPE
+SYNTAX          SEQUENCE OF Pdu3ActivepowerEntry
+MAX-ACCESS      not-accessible
+STATUS          current
+DESCRIPTION     "Pdu3Activepower values."
+::= { pdu3 4 }
+
+pdu3ActivepowerEntry OBJECT-TYPE
+SYNTAX          Pdu3ActivepowerEntry
+MAX-ACCESS      not-accessible
+STATUS          current
+DESCRIPTION     "Entry in pdu3Activepower table."
+INDEX        { pdu3ActivepowerIndex }
+::= { pdu3ActivepowerTable 1 }
+
+Pdu3ActivepowerEntry ::= SEQUENCE {
+pdu3ActivepowerIndex	Unsigned32,
+pdu3ActivepowerValue	Integer32,
+pdu3ActivepowerAlarm	Unsigned32,
+pdu3ActivepowerMax	Integer32}
+
+pdu3ActivepowerIndex OBJECT-TYPE
+SYNTAX          Unsigned32
+MAX-ACCESS      read-write
+STATUS          current
+DESCRIPTION     "Table Index."
+::= { pdu3ActivepowerEntry 1}
+
+pdu3ActivepowerValue OBJECT-TYPE
+SYNTAX          Integer32
+MAX-ACCESS      read-write
+STATUS          current
+DESCRIPTION     "Activepower value."
+::= { pdu3ActivepowerEntry 2}
+
+pdu3ActivepowerAlarm OBJECT-TYPE
+SYNTAX          Unsigned32
+MAX-ACCESS      read-write
+STATUS          current
+DESCRIPTION     "Alarmstate of this value."
+::= { pdu3ActivepowerEntry 3}
+
+pdu3ActivepowerMax OBJECT-TYPE
+SYNTAX          Integer32
+MAX-ACCESS      read-write
+STATUS          current
+DESCRIPTION     "Max. threshold of this value."
+::= { pdu3ActivepowerEntry 5}
+
+-------------------------------------------------------------------------------------------
+-- Sensor PDU3Reactivepower
+-------------------------------------------------------------------------------------------
+
+pdu3ReactivepowerTable OBJECT-TYPE
+SYNTAX          SEQUENCE OF Pdu3ReactivepowerEntry
+MAX-ACCESS      not-accessible
+STATUS          current
+DESCRIPTION     "Pdu3Reactivepower values."
+::= { pdu3 5 }
+
+pdu3ReactivepowerEntry OBJECT-TYPE
+SYNTAX          Pdu3ReactivepowerEntry
+MAX-ACCESS      not-accessible
+STATUS          current
+DESCRIPTION     "Entry in pdu3Reactivepower table."
+INDEX        { pdu3ReactivepowerIndex }
+::= { pdu3ReactivepowerTable 1 }
+
+Pdu3ReactivepowerEntry ::= SEQUENCE {
+pdu3ReactivepowerIndex	Unsigned32,
+pdu3ReactivepowerValue	Integer32,
+pdu3ReactivepowerAlarm	Unsigned32,
+pdu3ReactivepowerMax	Integer32}
+
+pdu3ReactivepowerIndex OBJECT-TYPE
+SYNTAX          Unsigned32
+MAX-ACCESS      read-write
+STATUS          current
+DESCRIPTION     "Table Index."
+::= { pdu3ReactivepowerEntry 1}
+
+pdu3ReactivepowerValue OBJECT-TYPE
+SYNTAX          Integer32
+MAX-ACCESS      read-write
+STATUS          current
+DESCRIPTION     "Reactivepower value."
+::= { pdu3ReactivepowerEntry 2}
+
+pdu3ReactivepowerAlarm OBJECT-TYPE
+SYNTAX          Unsigned32
+MAX-ACCESS      read-write
+STATUS          current
+DESCRIPTION     "Alarmstate of this value."
+::= { pdu3ReactivepowerEntry 3}
+
+pdu3ReactivepowerMax OBJECT-TYPE
+SYNTAX          Integer32
+MAX-ACCESS      read-write
+STATUS          current
+DESCRIPTION     "Max. threshold of this value."
+::= { pdu3ReactivepowerEntry 5}
+
+-------------------------------------------------------------------------------------------
+-- Sensor PDU3Apparentpower
+-------------------------------------------------------------------------------------------
+
+pdu3ApparentpowerTable OBJECT-TYPE
+SYNTAX          SEQUENCE OF Pdu3ApparentpowerEntry
+MAX-ACCESS      not-accessible
+STATUS          current
+DESCRIPTION     "Pdu3Apparentpower values."
+::= { pdu3 6 }
+
+pdu3ApparentpowerEntry OBJECT-TYPE
+SYNTAX          Pdu3ApparentpowerEntry
+MAX-ACCESS      not-accessible
+STATUS          current
+DESCRIPTION     "Entry in pdu3Apparentpower table."
+INDEX        { pdu3ApparentpowerIndex }
+::= { pdu3ApparentpowerTable 1 }
+
+Pdu3ApparentpowerEntry ::= SEQUENCE {
+pdu3ApparentpowerIndex	Unsigned32,
+pdu3ApparentpowerValue	Integer32,
+pdu3ApparentpowerAlarm	Unsigned32,
+pdu3ApparentpowerMax	Integer32}
+
+pdu3ApparentpowerIndex OBJECT-TYPE
+SYNTAX          Unsigned32
+MAX-ACCESS      read-write
+STATUS          current
+DESCRIPTION     "Table Index."
+::= { pdu3ApparentpowerEntry 1}
+
+pdu3ApparentpowerValue OBJECT-TYPE
+SYNTAX          Integer32
+MAX-ACCESS      read-write
+STATUS          current
+DESCRIPTION     "Apparentpower value."
+::= { pdu3ApparentpowerEntry 2}
+
+pdu3ApparentpowerAlarm OBJECT-TYPE
+SYNTAX          Unsigned32
+MAX-ACCESS      read-write
+STATUS          current
+DESCRIPTION     "Alarmstate of this value."
+::= { pdu3ApparentpowerEntry 3}
+
+pdu3ApparentpowerMax OBJECT-TYPE
+SYNTAX          Integer32
+MAX-ACCESS      read-write
+STATUS          current
+DESCRIPTION     "Max. threshold of this value."
+::= { pdu3ApparentpowerEntry 5}
+
+-------------------------------------------------------------------------------------------
+-- Sensor PDU3Frequency
+-------------------------------------------------------------------------------------------
+
+pdu3FrequencyTable OBJECT-TYPE
+SYNTAX          SEQUENCE OF Pdu3FrequencyEntry
+MAX-ACCESS      not-accessible
+STATUS          current
+DESCRIPTION     "Pdu3Frequency values."
+::= { pdu3 7 }
+
+pdu3FrequencyEntry OBJECT-TYPE
+SYNTAX          Pdu3FrequencyEntry
+MAX-ACCESS      not-accessible
+STATUS          current
+DESCRIPTION     "Entry in pdu3Frequency table."
+INDEX        { pdu3FrequencyIndex }
+::= { pdu3FrequencyTable 1 }
+
+Pdu3FrequencyEntry ::= SEQUENCE {
+pdu3FrequencyIndex	Unsigned32,
+pdu3FrequencyValue	Integer32,
+pdu3FrequencyAlarm	Unsigned32,
+pdu3FrequencyMax	Integer32}
+
+pdu3FrequencyIndex OBJECT-TYPE
+SYNTAX          Unsigned32
+MAX-ACCESS      read-write
+STATUS          current
+DESCRIPTION     "Table Index."
+::= { pdu3FrequencyEntry 1}
+
+pdu3FrequencyValue OBJECT-TYPE
+SYNTAX          Integer32
+MAX-ACCESS      read-write
+STATUS          current
+DESCRIPTION     "Frequency value."
+::= { pdu3FrequencyEntry 2}
+
+pdu3FrequencyAlarm OBJECT-TYPE
+SYNTAX          Unsigned32
+MAX-ACCESS      read-write
+STATUS          current
+DESCRIPTION     "Alarmstate of this value."
+::= { pdu3FrequencyEntry 3}
+
+pdu3FrequencyMax OBJECT-TYPE
+SYNTAX          Integer32
+MAX-ACCESS      read-write
+STATUS          current
+DESCRIPTION     "Max. hysterese of this value."
+::= { pdu3FrequencyEntry 5}
+
+-------------------------------------------------------------------------------------------
+-- Sensor PDU3Peak
+-------------------------------------------------------------------------------------------
+
+pdu3PeakTable OBJECT-TYPE
+SYNTAX          SEQUENCE OF Pdu3PeakEntry
+MAX-ACCESS      not-accessible
+STATUS          current
+DESCRIPTION     "Pdu3Peak values."
+::= { pdu3 8 }
+
+pdu3PeakEntry OBJECT-TYPE
+SYNTAX          Pdu3PeakEntry
+MAX-ACCESS      not-accessible
+STATUS          current
+DESCRIPTION     "Entry in pdu3Peak table."
+INDEX        { pdu3PeakIndex }
+::= { pdu3PeakTable 1 }
+
+Pdu3PeakEntry ::= SEQUENCE {
+pdu3PeakIndex	Unsigned32,
+pdu3PeakValue	Integer32,
+pdu3PeakAlarm	Unsigned32,
+pdu3PeakMax	Integer32}
+
+pdu3PeakIndex OBJECT-TYPE
+SYNTAX          Unsigned32
+MAX-ACCESS      read-write
+STATUS          current
+DESCRIPTION     "Table Index."
+::= { pdu3PeakEntry 1}
+
+pdu3PeakValue OBJECT-TYPE
+SYNTAX          Integer32
+MAX-ACCESS      read-write
+STATUS          current
+DESCRIPTION     "Peak value."
+::= { pdu3PeakEntry 2}
+
+pdu3PeakAlarm OBJECT-TYPE
+SYNTAX          Unsigned32
+MAX-ACCESS      read-write
+STATUS          current
+DESCRIPTION     "Alarmstate of this value."
+::= { pdu3PeakEntry 3}
+
+pdu3PeakMax OBJECT-TYPE
+SYNTAX          Integer32
+MAX-ACCESS      read-write
+STATUS          current
+DESCRIPTION     "Max. threshold of this value."
+::= { pdu3PeakEntry 5}
+
+-------------------------------------------------------------------------------------------
+-- Sensor PDU3Flicker
+-------------------------------------------------------------------------------------------
+
+pdu3FlickerTable OBJECT-TYPE
+SYNTAX          SEQUENCE OF Pdu3FlickerEntry
+MAX-ACCESS      not-accessible
+STATUS          current
+DESCRIPTION     "Pdu3Flicker values."
+::= { pdu3 9 }
+
+pdu3FlickerEntry OBJECT-TYPE
+SYNTAX          Pdu3FlickerEntry
+MAX-ACCESS      not-accessible
+STATUS          current
+DESCRIPTION     "Entry in pdu3Flicker table."
+INDEX        { pdu3FlickerIndex }
+::= { pdu3FlickerTable 1 }
+
+Pdu3FlickerEntry ::= SEQUENCE {
+pdu3FlickerIndex	Unsigned32,
+pdu3FlickerValue	Integer32,
+pdu3FlickerAlarm	Unsigned32,
+pdu3FlickerHalfwaves Integer32}
+
+pdu3FlickerIndex OBJECT-TYPE
+SYNTAX          Unsigned32
+MAX-ACCESS      read-write
+STATUS          current
+DESCRIPTION     "Table Index."
+::= { pdu3FlickerEntry 1}
+
+pdu3FlickerValue OBJECT-TYPE
+SYNTAX          Integer32
+MAX-ACCESS      read-write
+STATUS          current
+DESCRIPTION     "Flicker value."
+::= { pdu3FlickerEntry 2}
+
+pdu3FlickerAlarm OBJECT-TYPE
+SYNTAX          Unsigned32
+MAX-ACCESS      read-write
+STATUS          current
+DESCRIPTION     "Alarmstate of this value."
+::= { pdu3FlickerEntry 3}
+
+pdu3FlickerHalfwaves OBJECT-TYPE
+SYNTAX          Integer32
+MAX-ACCESS      read-write
+STATUS          current
+DESCRIPTION     "Min. Halfwaves to rise an alarm."
+::= { pdu3FlickerEntry 4}
+
+-------------------------------------------------------------------------------------------
+-- Sensor PDU3Surge
+-------------------------------------------------------------------------------------------
+
+pdu3SurgeTable OBJECT-TYPE
+SYNTAX          SEQUENCE OF Pdu3SurgeEntry
+MAX-ACCESS      not-accessible
+STATUS          current
+DESCRIPTION     "Pdu3Surge values."
+::= { pdu3 10 }
+
+pdu3SurgeEntry OBJECT-TYPE
+SYNTAX          Pdu3SurgeEntry
+MAX-ACCESS      not-accessible
+STATUS          current
+DESCRIPTION     "Entry in pdu3Surge table."
+INDEX        { pdu3SurgeIndex }
+::= { pdu3SurgeTable 1 }
+
+Pdu3SurgeEntry ::= SEQUENCE {
+pdu3SurgeIndex	Unsigned32,
+pdu3SurgeValue	Integer32,
+pdu3SurgeAlarm	Unsigned32,
+pdu3SurgeHalfwaves	Integer32}
+
+pdu3SurgeIndex OBJECT-TYPE
+SYNTAX          Unsigned32
+MAX-ACCESS      read-write
+STATUS          current
+DESCRIPTION     "Table Index."
+::= { pdu3SurgeEntry 1}
+
+pdu3SurgeValue OBJECT-TYPE
+SYNTAX          Integer32
+MAX-ACCESS      read-write
+STATUS          current
+DESCRIPTION     "Surge value."
+::= { pdu3SurgeEntry 2}
+
+pdu3SurgeAlarm OBJECT-TYPE
+SYNTAX          Unsigned32
+MAX-ACCESS      read-write
+STATUS          current
+DESCRIPTION     "Alarmstate of this value."
+::= { pdu3SurgeEntry 3}
+
+pdu3SurgeHalfwaves OBJECT-TYPE
+SYNTAX          Integer32
+MAX-ACCESS      read-write
+STATUS          current
+DESCRIPTION     "Min. Halfwaves to rise an alarm."
+::= { pdu3SurgeEntry 4}
+
+-------------------------------------------------------------------------------------------
+-- Sensor pdu4
+-------------------------------------------------------------------------------------------
+
+-------------------------------------------------------------------------------------------
+-- pdu4 General
+-------------------------------------------------------------------------------------------
+
+pdu4GeneralTable OBJECT-TYPE
+SYNTAX          SEQUENCE OF Pdu4GeneralEntry
+MAX-ACCESS      not-accessible
+STATUS          current
+DESCRIPTION     "Pdu4General values."
+::= { pdu4 1 }
+
+pdu4GeneralEntry OBJECT-TYPE
+SYNTAX          Pdu4GeneralEntry
+MAX-ACCESS      not-accessible
+STATUS          current
+DESCRIPTION     "Entry in pdu4General table."
+INDEX        { pdu4GeneralIndex }
+::= { pdu4GeneralTable 1 }
+
+Pdu4GeneralEntry ::= SEQUENCE {
+pdu4GeneralIndex	Unsigned32,
+pdu4GeneralName	DisplayString,
+pdu4GeneralVoltage	Integer32,
+pdu4GeneralFrequency	Integer32,
+pdu4GeneralConsumptionValue	Integer32,
+pdu4GeneralConsumptionValueLastRecord Integer32}
+
+pdu4GeneralIndex OBJECT-TYPE
+SYNTAX          Unsigned32
+MAX-ACCESS      read-write
+STATUS          current
+DESCRIPTION     "Table Index."
+::= { pdu4GeneralEntry 1}
+
+pdu4GeneralName OBJECT-TYPE
+SYNTAX          DisplayString
+MAX-ACCESS      read-write
+STATUS          current
+DESCRIPTION     "Name of pdu4."
+::= { pdu4GeneralEntry 2}
+
+pdu4GeneralVoltage OBJECT-TYPE
+SYNTAX          Integer32
+MAX-ACCESS      read-write
+STATUS          current
+DESCRIPTION     "Supply voltage level of the pdu."
+::= { pdu4GeneralEntry 3}
+
+pdu4GeneralFrequency OBJECT-TYPE
+SYNTAX          Integer32
+MAX-ACCESS      read-write
+STATUS          current
+DESCRIPTION     "Supply frequency level of the pdu."
+::= { pdu4GeneralEntry 4}
+
+pdu4GeneralConsumptionValue OBJECT-TYPE
+SYNTAX          Integer32
+MAX-ACCESS      read-write
+STATUS          current
+DESCRIPTION     "Consumption value of the pdu."
+::= { pdu4GeneralEntry 5}
+
+pdu4GeneralConsumptionValueLastRecord OBJECT-TYPE
+SYNTAX          Integer32
+MAX-ACCESS      read-write
+STATUS          current
+DESCRIPTION     "Last record of the consumtion Value."
+::= { pdu4GeneralEntry 6}
+
+-------------------------------------------------------------------------------------------
+-- Sensor pdu5
+-------------------------------------------------------------------------------------------
+
+-------------------------------------------------------------------------------------------
+-- pdu5 General
+-------------------------------------------------------------------------------------------
+
+pdu5GeneralTable OBJECT-TYPE
+SYNTAX          SEQUENCE OF Pdu5GeneralEntry
+MAX-ACCESS      not-accessible
+STATUS          current
+DESCRIPTION     "Pdu5General values."
+::= { pdu5 1 }
+
+pdu5GeneralEntry OBJECT-TYPE
+SYNTAX          Pdu5GeneralEntry
+MAX-ACCESS      not-accessible
+STATUS          current
+DESCRIPTION     "Entry in pdu5General table."
+INDEX        { pdu5GeneralIndex }
+::= { pdu5GeneralTable 1 }
+
+Pdu5GeneralEntry ::= SEQUENCE {
+pdu5GeneralIndex	Unsigned32,
+pdu5GeneralName	DisplayString,
+pdu5GeneralVoltage	Integer32,
+pdu5GeneralFrequency	Integer32,
+pdu5GeneralConsumptionValue	Integer32,
+pdu5GeneralConsumptionValueLastRecord Integer32}
+
+pdu5GeneralIndex OBJECT-TYPE
+SYNTAX          Unsigned32
+MAX-ACCESS      read-write
+STATUS          current
+DESCRIPTION     "Table Index."
+::= { pdu5GeneralEntry 1}
+
+pdu5GeneralName OBJECT-TYPE
+SYNTAX          DisplayString
+MAX-ACCESS      read-write
+STATUS          current
+DESCRIPTION     "Name of pdu5."
+::= { pdu5GeneralEntry 2}
+
+pdu5GeneralVoltage OBJECT-TYPE
+SYNTAX          Integer32
+MAX-ACCESS      read-write
+STATUS          current
+DESCRIPTION     "Supply voltage level of the pdu."
+::= { pdu5GeneralEntry 3}
+
+pdu5GeneralFrequency OBJECT-TYPE
+SYNTAX          Integer32
+MAX-ACCESS      read-write
+STATUS          current
+DESCRIPTION     "Supply frequency level of the pdu."
+::= { pdu5GeneralEntry 4}
+
+pdu5GeneralConsumptionValue OBJECT-TYPE
+SYNTAX          Integer32
+MAX-ACCESS      read-write
+STATUS          current
+DESCRIPTION     "Consumption value of the pdu."
+::= { pdu5GeneralEntry 5}
+
+pdu5GeneralConsumptionValueLastRecord OBJECT-TYPE
+SYNTAX          Integer32
+MAX-ACCESS      read-write
+STATUS          current
+DESCRIPTION     "Last record of the consumtion Value."
+::= { pdu5GeneralEntry 6}
+
+-------------------------------------------------------------------------------------------
+-- Sensor pdu6
+-------------------------------------------------------------------------------------------
+
+-------------------------------------------------------------------------------------------
+-- pdu6 General
+-------------------------------------------------------------------------------------------
+
+pdu6GeneralTable OBJECT-TYPE
+SYNTAX          SEQUENCE OF Pdu6GeneralEntry
+MAX-ACCESS      not-accessible
+STATUS          current
+DESCRIPTION     "Pdu6General values."
+::= { pdu6 1 }
+
+pdu6GeneralEntry OBJECT-TYPE
+SYNTAX          Pdu6GeneralEntry
+MAX-ACCESS      not-accessible
+STATUS          current
+DESCRIPTION     "Entry in pdu6General table."
+INDEX        { pdu6GeneralIndex }
+::= { pdu6GeneralTable 1 }
+
+Pdu6GeneralEntry ::= SEQUENCE {
+pdu6GeneralIndex	Unsigned32,
+pdu6GeneralName	DisplayString,
+pdu6GeneralVoltage	Integer32,
+pdu6GeneralFrequency	Integer32,
+pdu6GeneralConsumptionValue	Integer32,
+pdu6GeneralConsumptionValueLastRecord Integer32}
+
+pdu6GeneralIndex OBJECT-TYPE
+SYNTAX          Unsigned32
+MAX-ACCESS      read-write
+STATUS          current
+DESCRIPTION     "Table Index."
+::= { pdu6GeneralEntry 1}
+
+pdu6GeneralName OBJECT-TYPE
+SYNTAX          DisplayString
+MAX-ACCESS      read-write
+STATUS          current
+DESCRIPTION     "Name of pdu6."
+::= { pdu6GeneralEntry 2}
+
+pdu6GeneralVoltage OBJECT-TYPE
+SYNTAX          Integer32
+MAX-ACCESS      read-write
+STATUS          current
+DESCRIPTION     "Supply voltage level of the pdu."
+::= { pdu6GeneralEntry 3}
+
+pdu6GeneralFrequency OBJECT-TYPE
+SYNTAX          Integer32
+MAX-ACCESS      read-write
+STATUS          current
+DESCRIPTION     "Supply frequency level of the pdu."
+::= { pdu6GeneralEntry 4}
+
+pdu6GeneralConsumptionValue OBJECT-TYPE
+SYNTAX          Integer32
+MAX-ACCESS      read-write
+STATUS          current
+DESCRIPTION     "Consumption value of the pdu."
+::= { pdu6GeneralEntry 5}
+
+pdu6GeneralConsumptionValueLastRecord OBJECT-TYPE
+SYNTAX          Integer32
+MAX-ACCESS      read-write
+STATUS          current
+DESCRIPTION     "Last record of the consumtion Value."
+::= { pdu6GeneralEntry 6}
+
+-------------------------------------------------------------------------------------------
+-- Sensor pdu7
+-------------------------------------------------------------------------------------------
+
+-------------------------------------------------------------------------------------------
+-- pdu7 General
+-------------------------------------------------------------------------------------------
+
+pdu7GeneralTable OBJECT-TYPE
+SYNTAX          SEQUENCE OF Pdu7GeneralEntry
+MAX-ACCESS      not-accessible
+STATUS          current
+DESCRIPTION     "Pdu7General values."
+::= { pdu7 1 }
+
+pdu7GeneralEntry OBJECT-TYPE
+SYNTAX          Pdu7GeneralEntry
+MAX-ACCESS      not-accessible
+STATUS          current
+DESCRIPTION     "Entry in pdu7General table."
+INDEX        { pdu7GeneralIndex }
+::= { pdu7GeneralTable 1 }
+
+Pdu7GeneralEntry ::= SEQUENCE {
+pdu7GeneralIndex	Unsigned32,
+pdu7GeneralName	DisplayString,
+pdu7GeneralVoltage	Integer32,
+pdu7GeneralFrequency	Integer32,
+pdu7GeneralConsumptionValue	Integer32,
+pdu7GeneralConsumptionValueLastRecord Integer32}
+
+pdu7GeneralIndex OBJECT-TYPE
+SYNTAX          Unsigned32
+MAX-ACCESS      read-write
+STATUS          current
+DESCRIPTION     "Table Index."
+::= { pdu7GeneralEntry 1}
+
+pdu7GeneralName OBJECT-TYPE
+SYNTAX          DisplayString
+MAX-ACCESS      read-write
+STATUS          current
+DESCRIPTION     "Name of pdu7."
+::= { pdu7GeneralEntry 2}
+
+pdu7GeneralVoltage OBJECT-TYPE
+SYNTAX          Integer32
+MAX-ACCESS      read-write
+STATUS          current
+DESCRIPTION     "Supply voltage level of the pdu."
+::= { pdu7GeneralEntry 3}
+
+pdu7GeneralFrequency OBJECT-TYPE
+SYNTAX          Integer32
+MAX-ACCESS      read-write
+STATUS          current
+DESCRIPTION     "Supply frequency level of the pdu."
+::= { pdu7GeneralEntry 4}
+
+pdu7GeneralConsumptionValue OBJECT-TYPE
+SYNTAX          Integer32
+MAX-ACCESS      read-write
+STATUS          current
+DESCRIPTION     "Consumption value of the pdu."
+::= { pdu7GeneralEntry 5}
+
+pdu7GeneralConsumptionValueLastRecord OBJECT-TYPE
+SYNTAX          Integer32
+MAX-ACCESS      read-write
+STATUS          current
+DESCRIPTION     "Last record of the consumtion Value."
+::= { pdu7GeneralEntry 6}
+
+-------------------------------------------------------------------------------------------
+-- Sensor pdu8
+-------------------------------------------------------------------------------------------
+
+-------------------------------------------------------------------------------------------
+-- pdu8 General
+-------------------------------------------------------------------------------------------
+
+pdu8GeneralTable OBJECT-TYPE
+SYNTAX          SEQUENCE OF Pdu8GeneralEntry
+MAX-ACCESS      not-accessible
+STATUS          current
+DESCRIPTION     "Pdu8General values."
+::= { pdu8 1 }
+
+pdu8GeneralEntry OBJECT-TYPE
+SYNTAX          Pdu8GeneralEntry
+MAX-ACCESS      not-accessible
+STATUS          current
+DESCRIPTION     "Entry in pdu8General table."
+INDEX        { pdu8GeneralIndex }
+::= { pdu8GeneralTable 1 }
+
+Pdu8GeneralEntry ::= SEQUENCE {
+pdu8GeneralIndex	Unsigned32,
+pdu8GeneralName	DisplayString,
+pdu8GeneralVoltage	Integer32,
+pdu8GeneralFrequency	Integer32,
+pdu8GeneralConsumptionValue	Integer32,
+pdu8GeneralConsumptionValueLastRecord Integer32}
+
+pdu8GeneralIndex OBJECT-TYPE
+SYNTAX          Unsigned32
+MAX-ACCESS      read-write
+STATUS          current
+DESCRIPTION     "Table Index."
+::= { pdu8GeneralEntry 1}
+
+pdu8GeneralName OBJECT-TYPE
+SYNTAX          DisplayString
+MAX-ACCESS      read-write
+STATUS          current
+DESCRIPTION     "Name of pdu8."
+::= { pdu8GeneralEntry 2}
+
+pdu8GeneralVoltage OBJECT-TYPE
+SYNTAX          Integer32
+MAX-ACCESS      read-write
+STATUS          current
+DESCRIPTION     "Supply voltage level of the pdu."
+::= { pdu8GeneralEntry 3}
+
+pdu8GeneralFrequency OBJECT-TYPE
+SYNTAX          Integer32
+MAX-ACCESS      read-write
+STATUS          current
+DESCRIPTION     "Supply frequency level of the pdu."
+::= { pdu8GeneralEntry 4}
+
+pdu8GeneralConsumptionValue OBJECT-TYPE
+SYNTAX          Integer32
+MAX-ACCESS      read-write
+STATUS          current
+DESCRIPTION     "Consumption value of the pdu."
+::= { pdu8GeneralEntry 5}
+
+pdu8GeneralConsumptionValueLastRecord OBJECT-TYPE
+SYNTAX          Integer32
+MAX-ACCESS      read-write
+STATUS          current
+DESCRIPTION     "Last record of the consumtion Value."
+::= { pdu8GeneralEntry 6}
+
+-------------------------------------------------------------------------------------------
+-- Sensor pdu9
+-------------------------------------------------------------------------------------------
+
+-------------------------------------------------------------------------------------------
+-- pdu9 General
+-------------------------------------------------------------------------------------------
+
+pdu9GeneralTable OBJECT-TYPE
+SYNTAX          SEQUENCE OF Pdu9GeneralEntry
+MAX-ACCESS      not-accessible
+STATUS          current
+DESCRIPTION     "Pdu9General values."
+::= { pdu9 1 }
+
+pdu9GeneralEntry OBJECT-TYPE
+SYNTAX          Pdu9GeneralEntry
+MAX-ACCESS      not-accessible
+STATUS          current
+DESCRIPTION     "Entry in pdu9General table."
+INDEX        { pdu9GeneralIndex }
+::= { pdu9GeneralTable 1 }
+
+Pdu9GeneralEntry ::= SEQUENCE {
+pdu9GeneralIndex	Unsigned32,
+pdu9GeneralName	DisplayString,
+pdu9GeneralVoltage	Integer32,
+pdu9GeneralFrequency	Integer32,
+pdu9GeneralConsumptionValue	Integer32,
+pdu9GeneralConsumptionValueLastRecord Integer32}
+
+pdu9GeneralIndex OBJECT-TYPE
+SYNTAX          Unsigned32
+MAX-ACCESS      read-write
+STATUS          current
+DESCRIPTION     "Table Index."
+::= { pdu9GeneralEntry 1}
+
+pdu9GeneralName OBJECT-TYPE
+SYNTAX          DisplayString
+MAX-ACCESS      read-write
+STATUS          current
+DESCRIPTION     "Name of pdu9."
+::= { pdu9GeneralEntry 2}
+
+pdu9GeneralVoltage OBJECT-TYPE
+SYNTAX          Integer32
+MAX-ACCESS      read-write
+STATUS          current
+DESCRIPTION     "Supply voltage level of the pdu."
+::= { pdu9GeneralEntry 3}
+
+pdu9GeneralFrequency OBJECT-TYPE
+SYNTAX          Integer32
+MAX-ACCESS      read-write
+STATUS          current
+DESCRIPTION     "Supply frequency level of the pdu."
+::= { pdu9GeneralEntry 4}
+
+pdu9GeneralConsumptionValue OBJECT-TYPE
+SYNTAX          Integer32
+MAX-ACCESS      read-write
+STATUS          current
+DESCRIPTION     "Consumption value of the pdu."
+::= { pdu9GeneralEntry 5}
+
+pdu9GeneralConsumptionValueLastRecord OBJECT-TYPE
+SYNTAX          Integer32
+MAX-ACCESS      read-write
+STATUS          current
+DESCRIPTION     "Last record of the consumtion Value."
+::= { pdu9GeneralEntry 6}
+
+-------------------------------------------------------------------------------------------
+-- Sensor pdu10
+-------------------------------------------------------------------------------------------
+
+-------------------------------------------------------------------------------------------
+-- pdu10 General
+-------------------------------------------------------------------------------------------
+
+pdu10GeneralTable OBJECT-TYPE
+SYNTAX          SEQUENCE OF Pdu10GeneralEntry
+MAX-ACCESS      not-accessible
+STATUS          current
+DESCRIPTION     "Pdu10General values."
+::= { pdu10 1 }
+
+pdu10GeneralEntry OBJECT-TYPE
+SYNTAX          Pdu10GeneralEntry
+MAX-ACCESS      not-accessible
+STATUS          current
+DESCRIPTION     "Entry in pdu10General table."
+INDEX        { pdu10GeneralIndex }
+::= { pdu10GeneralTable 1 }
+
+Pdu10GeneralEntry ::= SEQUENCE {
+pdu10GeneralIndex	Unsigned32,
+pdu10GeneralName	DisplayString,
+pdu10GeneralVoltage	Integer32,
+pdu10GeneralFrequency	Integer32,
+pdu10GeneralConsumptionValue	Integer32,
+pdu10GeneralConsumptionValueLastRecord Integer32}
+
+pdu10GeneralIndex OBJECT-TYPE
+SYNTAX          Unsigned32
+MAX-ACCESS      read-write
+STATUS          current
+DESCRIPTION     "Table Index."
+::= { pdu10GeneralEntry 1}
+
+pdu10GeneralName OBJECT-TYPE
+SYNTAX          DisplayString
+MAX-ACCESS      read-write
+STATUS          current
+DESCRIPTION     "Name of pdu10."
+::= { pdu10GeneralEntry 2}
+
+pdu10GeneralVoltage OBJECT-TYPE
+SYNTAX          Integer32
+MAX-ACCESS      read-write
+STATUS          current
+DESCRIPTION     "Supply voltage level of the pdu."
+::= { pdu10GeneralEntry 3}
+
+pdu10GeneralFrequency OBJECT-TYPE
+SYNTAX          Integer32
+MAX-ACCESS      read-write
+STATUS          current
+DESCRIPTION     "Supply frequency level of the pdu."
+::= { pdu10GeneralEntry 4}
+
+pdu10GeneralConsumptionValue OBJECT-TYPE
+SYNTAX          Integer32
+MAX-ACCESS      read-write
+STATUS          current
+DESCRIPTION     "Consumption value of the pdu."
+::= { pdu10GeneralEntry 5}
+
+pdu10GeneralConsumptionValueLastRecord OBJECT-TYPE
+SYNTAX          Integer32
+MAX-ACCESS      read-write
+STATUS          current
+DESCRIPTION     "Last record of the consumtion Value."
+::= { pdu10GeneralEntry 6}
+
+-------------------------------------------------------------------------------------------
+-- Sensor pdu11
+-------------------------------------------------------------------------------------------
+
+-------------------------------------------------------------------------------------------
+-- pdu11 General
+-------------------------------------------------------------------------------------------
+
+pdu11GeneralTable OBJECT-TYPE
+SYNTAX          SEQUENCE OF Pdu11GeneralEntry
+MAX-ACCESS      not-accessible
+STATUS          current
+DESCRIPTION     "Pdu11General values."
+::= { pdu11 1 }
+
+pdu11GeneralEntry OBJECT-TYPE
+SYNTAX          Pdu11GeneralEntry
+MAX-ACCESS      not-accessible
+STATUS          current
+DESCRIPTION     "Entry in pdu11General table."
+INDEX        { pdu11GeneralIndex }
+::= { pdu11GeneralTable 1 }
+
+Pdu11GeneralEntry ::= SEQUENCE {
+pdu11GeneralIndex	Unsigned32,
+pdu11GeneralName	DisplayString,
+pdu11GeneralVoltage	Integer32,
+pdu11GeneralFrequency	Integer32,
+pdu11GeneralConsumptionValue	Integer32,
+pdu11GeneralConsumptionValueLastRecord Integer32}
+
+pdu11GeneralIndex OBJECT-TYPE
+SYNTAX          Unsigned32
+MAX-ACCESS      read-write
+STATUS          current
+DESCRIPTION     "Table Index."
+::= { pdu11GeneralEntry 1}
+
+pdu11GeneralName OBJECT-TYPE
+SYNTAX          DisplayString
+MAX-ACCESS      read-write
+STATUS          current
+DESCRIPTION     "Name of pdu11."
+::= { pdu11GeneralEntry 2}
+
+pdu11GeneralVoltage OBJECT-TYPE
+SYNTAX          Integer32
+MAX-ACCESS      read-write
+STATUS          current
+DESCRIPTION     "Supply voltage level of the pdu."
+::= { pdu11GeneralEntry 3}
+
+pdu11GeneralFrequency OBJECT-TYPE
+SYNTAX          Integer32
+MAX-ACCESS      read-write
+STATUS          current
+DESCRIPTION     "Supply frequency level of the pdu."
+::= { pdu11GeneralEntry 4}
+
+pdu11GeneralConsumptionValue OBJECT-TYPE
+SYNTAX          Integer32
+MAX-ACCESS      read-write
+STATUS          current
+DESCRIPTION     "Consumption value of the pdu."
+::= { pdu11GeneralEntry 5}
+
+pdu11GeneralConsumptionValueLastRecord OBJECT-TYPE
+SYNTAX          Integer32
+MAX-ACCESS      read-write
+STATUS          current
+DESCRIPTION     "Last record of the consumtion Value."
+::= { pdu11GeneralEntry 6}
+
+-------------------------------------------------------------------------------------------
+-- Sensor pdu12
+-------------------------------------------------------------------------------------------
+
+-------------------------------------------------------------------------------------------
+-- pdu12 General
+-------------------------------------------------------------------------------------------
+
+pdu12GeneralTable OBJECT-TYPE
+SYNTAX          SEQUENCE OF Pdu12GeneralEntry
+MAX-ACCESS      not-accessible
+STATUS          current
+DESCRIPTION     "Pdu12General values."
+::= { pdu12 1 }
+
+pdu12GeneralEntry OBJECT-TYPE
+SYNTAX          Pdu12GeneralEntry
+MAX-ACCESS      not-accessible
+STATUS          current
+DESCRIPTION     "Entry in pdu12General table."
+INDEX        { pdu12GeneralIndex }
+::= { pdu12GeneralTable 1 }
+
+Pdu12GeneralEntry ::= SEQUENCE {
+pdu12GeneralIndex	Unsigned32,
+pdu12GeneralName	DisplayString,
+pdu12GeneralVoltage	Integer32,
+pdu12GeneralFrequency	Integer32,
+pdu12GeneralConsumptionValue	Integer32,
+pdu12GeneralConsumptionValueLastRecord Integer32}
+
+pdu12GeneralIndex OBJECT-TYPE
+SYNTAX          Unsigned32
+MAX-ACCESS      read-write
+STATUS          current
+DESCRIPTION     "Table Index."
+::= { pdu12GeneralEntry 1}
+
+pdu12GeneralName OBJECT-TYPE
+SYNTAX          DisplayString
+MAX-ACCESS      read-write
+STATUS          current
+DESCRIPTION     "Name of pdu12."
+::= { pdu12GeneralEntry 2}
+
+pdu12GeneralVoltage OBJECT-TYPE
+SYNTAX          Integer32
+MAX-ACCESS      read-write
+STATUS          current
+DESCRIPTION     "Supply voltage level of the pdu."
+::= { pdu12GeneralEntry 3}
+
+pdu12GeneralFrequency OBJECT-TYPE
+SYNTAX          Integer32
+MAX-ACCESS      read-write
+STATUS          current
+DESCRIPTION     "Supply frequency level of the pdu."
+::= { pdu12GeneralEntry 4}
+
+pdu12GeneralConsumptionValue OBJECT-TYPE
+SYNTAX          Integer32
+MAX-ACCESS      read-write
+STATUS          current
+DESCRIPTION     "Consumption value of the pdu."
+::= { pdu12GeneralEntry 5}
+
+pdu12GeneralConsumptionValueLastRecord OBJECT-TYPE
+SYNTAX          Integer32
+MAX-ACCESS      read-write
+STATUS          current
+DESCRIPTION     "Last record of the consumtion Value."
+::= { pdu12GeneralEntry 6}
+
+-------------------------------------------------------------------------------------------
+-- Sensor pdu13
+-------------------------------------------------------------------------------------------
+
+-------------------------------------------------------------------------------------------
+-- pdu13 General
+-------------------------------------------------------------------------------------------
+
+pdu13GeneralTable OBJECT-TYPE
+SYNTAX          SEQUENCE OF Pdu13GeneralEntry
+MAX-ACCESS      not-accessible
+STATUS          current
+DESCRIPTION     "Pdu13General values."
+::= { pdu13 1 }
+
+pdu13GeneralEntry OBJECT-TYPE
+SYNTAX          Pdu13GeneralEntry
+MAX-ACCESS      not-accessible
+STATUS          current
+DESCRIPTION     "Entry in pdu13General table."
+INDEX        { pdu13GeneralIndex }
+::= { pdu13GeneralTable 1 }
+
+Pdu13GeneralEntry ::= SEQUENCE {
+pdu13GeneralIndex	Unsigned32,
+pdu13GeneralName	DisplayString,
+pdu13GeneralVoltage	Integer32,
+pdu13GeneralFrequency	Integer32,
+pdu13GeneralConsumptionValue	Integer32,
+pdu13GeneralConsumptionValueLastRecord Integer32}
+
+pdu13GeneralIndex OBJECT-TYPE
+SYNTAX          Unsigned32
+MAX-ACCESS      read-write
+STATUS          current
+DESCRIPTION     "Table Index."
+::= { pdu13GeneralEntry 1}
+
+pdu13GeneralName OBJECT-TYPE
+SYNTAX          DisplayString
+MAX-ACCESS      read-write
+STATUS          current
+DESCRIPTION     "Name of pdu13."
+::= { pdu13GeneralEntry 2}
+
+pdu13GeneralVoltage OBJECT-TYPE
+SYNTAX          Integer32
+MAX-ACCESS      read-write
+STATUS          current
+DESCRIPTION     "Supply voltage level of the pdu."
+::= { pdu13GeneralEntry 3}
+
+pdu13GeneralFrequency OBJECT-TYPE
+SYNTAX          Integer32
+MAX-ACCESS      read-write
+STATUS          current
+DESCRIPTION     "Supply frequency level of the pdu."
+::= { pdu13GeneralEntry 4}
+
+pdu13GeneralConsumptionValue OBJECT-TYPE
+SYNTAX          Integer32
+MAX-ACCESS      read-write
+STATUS          current
+DESCRIPTION     "Consumption value of the pdu."
+::= { pdu13GeneralEntry 5}
+
+pdu13GeneralConsumptionValueLastRecord OBJECT-TYPE
+SYNTAX          Integer32
+MAX-ACCESS      read-write
+STATUS          current
+DESCRIPTION     "Last record of the consumtion Value."
+::= { pdu13GeneralEntry 6}
+
+-------------------------------------------------------------------------------------------
+-- Sensor pdu14
+-------------------------------------------------------------------------------------------
+
+-------------------------------------------------------------------------------------------
+-- pdu14 General
+-------------------------------------------------------------------------------------------
+
+pdu14GeneralTable OBJECT-TYPE
+SYNTAX          SEQUENCE OF Pdu14GeneralEntry
+MAX-ACCESS      not-accessible
+STATUS          current
+DESCRIPTION     "Pdu14General values."
+::= { pdu14 1 }
+
+pdu14GeneralEntry OBJECT-TYPE
+SYNTAX          Pdu14GeneralEntry
+MAX-ACCESS      not-accessible
+STATUS          current
+DESCRIPTION     "Entry in pdu14General table."
+INDEX        { pdu14GeneralIndex }
+::= { pdu14GeneralTable 1 }
+
+Pdu14GeneralEntry ::= SEQUENCE {
+pdu14GeneralIndex	Unsigned32,
+pdu14GeneralName	DisplayString,
+pdu14GeneralVoltage	Integer32,
+pdu14GeneralFrequency	Integer32,
+pdu14GeneralConsumptionValue	Integer32,
+pdu14GeneralConsumptionValueLastRecord Integer32}
+
+pdu14GeneralIndex OBJECT-TYPE
+SYNTAX          Unsigned32
+MAX-ACCESS      read-write
+STATUS          current
+DESCRIPTION     "Table Index."
+::= { pdu14GeneralEntry 1}
+
+pdu14GeneralName OBJECT-TYPE
+SYNTAX          DisplayString
+MAX-ACCESS      read-write
+STATUS          current
+DESCRIPTION     "Name of pdu14."
+::= { pdu14GeneralEntry 2}
+
+pdu14GeneralVoltage OBJECT-TYPE
+SYNTAX          Integer32
+MAX-ACCESS      read-write
+STATUS          current
+DESCRIPTION     "Supply voltage level of the pdu."
+::= { pdu14GeneralEntry 3}
+
+pdu14GeneralFrequency OBJECT-TYPE
+SYNTAX          Integer32
+MAX-ACCESS      read-write
+STATUS          current
+DESCRIPTION     "Supply frequency level of the pdu."
+::= { pdu14GeneralEntry 4}
+
+pdu14GeneralConsumptionValue OBJECT-TYPE
+SYNTAX          Integer32
+MAX-ACCESS      read-write
+STATUS          current
+DESCRIPTION     "Consumption value of the pdu."
+::= { pdu14GeneralEntry 5}
+
+pdu14GeneralConsumptionValueLastRecord OBJECT-TYPE
+SYNTAX          Integer32
+MAX-ACCESS      read-write
+STATUS          current
+DESCRIPTION     "Last record of the consumtion Value."
+::= { pdu14GeneralEntry 6}
+
+-------------------------------------------------------------------------------------------
+-- Sensor pdu15
+-------------------------------------------------------------------------------------------
+
+-------------------------------------------------------------------------------------------
+-- pdu15 General
+-------------------------------------------------------------------------------------------
+
+pdu15GeneralTable OBJECT-TYPE
+SYNTAX          SEQUENCE OF Pdu15GeneralEntry
+MAX-ACCESS      not-accessible
+STATUS          current
+DESCRIPTION     "Pdu15General values."
+::= { pdu15 1 }
+
+pdu15GeneralEntry OBJECT-TYPE
+SYNTAX          Pdu15GeneralEntry
+MAX-ACCESS      not-accessible
+STATUS          current
+DESCRIPTION     "Entry in pdu15General table."
+INDEX        { pdu15GeneralIndex }
+::= { pdu15GeneralTable 1 }
+
+Pdu15GeneralEntry ::= SEQUENCE {
+pdu15GeneralIndex	Unsigned32,
+pdu15GeneralName	DisplayString,
+pdu15GeneralVoltage	Integer32,
+pdu15GeneralFrequency	Integer32,
+pdu15GeneralConsumptionValue	Integer32,
+pdu15GeneralConsumptionValueLastRecord Integer32}
+
+pdu15GeneralIndex OBJECT-TYPE
+SYNTAX          Unsigned32
+MAX-ACCESS      read-write
+STATUS          current
+DESCRIPTION     "Table Index."
+::= { pdu15GeneralEntry 1}
+
+pdu15GeneralName OBJECT-TYPE
+SYNTAX          DisplayString
+MAX-ACCESS      read-write
+STATUS          current
+DESCRIPTION     "Name of pdu15."
+::= { pdu15GeneralEntry 2}
+
+pdu15GeneralVoltage OBJECT-TYPE
+SYNTAX          Integer32
+MAX-ACCESS      read-write
+STATUS          current
+DESCRIPTION     "Supply voltage level of the pdu."
+::= { pdu15GeneralEntry 3}
+
+pdu15GeneralFrequency OBJECT-TYPE
+SYNTAX          Integer32
+MAX-ACCESS      read-write
+STATUS          current
+DESCRIPTION     "Supply frequency level of the pdu."
+::= { pdu15GeneralEntry 4}
+
+pdu15GeneralConsumptionValue OBJECT-TYPE
+SYNTAX          Integer32
+MAX-ACCESS      read-write
+STATUS          current
+DESCRIPTION     "Consumption value of the pdu."
+::= { pdu15GeneralEntry 5}
+
+pdu15GeneralConsumptionValueLastRecord OBJECT-TYPE
+SYNTAX          Integer32
+MAX-ACCESS      read-write
+STATUS          current
+DESCRIPTION     "Last record of the consumtion Value."
+::= { pdu15GeneralEntry 6}
+
+-------------------------------------------------------------------------------------------
+-- Sensor pdu16
+-------------------------------------------------------------------------------------------
+
+-------------------------------------------------------------------------------------------
+-- pdu16 General
+-------------------------------------------------------------------------------------------
+
+pdu16GeneralTable OBJECT-TYPE
+SYNTAX          SEQUENCE OF Pdu16GeneralEntry
+MAX-ACCESS      not-accessible
+STATUS          current
+DESCRIPTION     "Pdu16General values."
+::= { pdu16 1 }
+
+pdu16GeneralEntry OBJECT-TYPE
+SYNTAX          Pdu16GeneralEntry
+MAX-ACCESS      not-accessible
+STATUS          current
+DESCRIPTION     "Entry in pdu16General table."
+INDEX        { pdu16GeneralIndex }
+::= { pdu16GeneralTable 1 }
+
+Pdu16GeneralEntry ::= SEQUENCE {
+pdu16GeneralIndex	Unsigned32,
+pdu16GeneralName	DisplayString,
+pdu16GeneralVoltage	Integer32,
+pdu16GeneralFrequency	Integer32,
+pdu16GeneralConsumptionValue	Integer32,
+pdu16GeneralConsumptionValueLastRecord Integer32}
+
+pdu16GeneralIndex OBJECT-TYPE
+SYNTAX          Unsigned32
+MAX-ACCESS      read-write
+STATUS          current
+DESCRIPTION     "Table Index."
+::= { pdu16GeneralEntry 1}
+
+pdu16GeneralName OBJECT-TYPE
+SYNTAX          DisplayString
+MAX-ACCESS      read-write
+STATUS          current
+DESCRIPTION     "Name of pdu16."
+::= { pdu16GeneralEntry 2}
+
+pdu16GeneralVoltage OBJECT-TYPE
+SYNTAX          Integer32
+MAX-ACCESS      read-write
+STATUS          current
+DESCRIPTION     "Supply voltage level of the pdu."
+::= { pdu16GeneralEntry 3}
+
+pdu16GeneralFrequency OBJECT-TYPE
+SYNTAX          Integer32
+MAX-ACCESS      read-write
+STATUS          current
+DESCRIPTION     "Supply frequency level of the pdu."
+::= { pdu16GeneralEntry 4}
+
+pdu16GeneralConsumptionValue OBJECT-TYPE
+SYNTAX          Integer32
+MAX-ACCESS      read-write
+STATUS          current
+DESCRIPTION     "Consumption value of the pdu."
+::= { pdu16GeneralEntry 5}
+
+pdu16GeneralConsumptionValueLastRecord OBJECT-TYPE
+SYNTAX          Integer32
+MAX-ACCESS      read-write
+STATUS          current
+DESCRIPTION     "Last record of the consumtion Value."
+::= { pdu16GeneralEntry 6}
+
+
+-------------------------------------------------------------------------------------------
+-- Zones
+-------------------------------------------------------------------------------------------
+
+zoneTable OBJECT-TYPE
+SYNTAX          SEQUENCE OF ZoneEntry
+MAX-ACCESS      not-accessible
+STATUS          current
+DESCRIPTION     "Zone state."
+::= { zones 1 }
+
+zoneEntry OBJECT-TYPE
+SYNTAX          ZoneEntry
+MAX-ACCESS      not-accessible
+STATUS          current
+DESCRIPTION     "Entry in zone table."
+INDEX        { zoneIndex }
+::= { zoneTable 1 }
+
+ZoneEntry ::= SEQUENCE {
+zoneIndex	Unsigned32,
+zoneName	DisplayString,
+zoneArmedState	TruthValue}
+
+zoneIndex OBJECT-TYPE
+SYNTAX          Unsigned32
+MAX-ACCESS      read-write
+STATUS          current
+DESCRIPTION     "Table Index."
+::= { zoneEntry 1}
+
+zoneName OBJECT-TYPE
+SYNTAX          DisplayString
+MAX-ACCESS      read-write
+STATUS          current
+DESCRIPTION     "Zone name."
+::= { zoneEntry 2}
+
+zoneArmedState OBJECT-TYPE
+SYNTAX          TruthValue
+MAX-ACCESS      read-write
+STATUS          current
+DESCRIPTION     "Zone arm/disarm state."
+::= { zoneEntry 3}
+
+-------------------------------------------------------------------------------------------
+-- Logbooks
+-------------------------------------------------------------------------------------------
+
+-------------------------------------------------------------------------------------------
+-- System-Logbook
+-------------------------------------------------------------------------------------------
+
+systemLogbookTable OBJECT-TYPE
+SYNTAX          SEQUENCE OF SystemLogbookEntry
+MAX-ACCESS      not-accessible
+STATUS          current
+DESCRIPTION     "SystemLogbook Entrys."
+::= { logbook 1 }
+
+systemLogbookEntry OBJECT-TYPE
+SYNTAX          SystemLogbookEntry
+MAX-ACCESS      not-accessible
+STATUS          current
+DESCRIPTION     "Entry in SystemLogboo table."
+INDEX        { systemLogbookIndex }
+::= { systemLogbookTable 1 }
+
+SystemLogbookEntry ::= SEQUENCE {
+systemLogbookIndex      Unsigned32,
+systemLogbookDate       DisplayString,
+systemLogbookFunction   DisplayString,
+systemLogbookDetail     DisplayString,
+systemLogbookType       Unsigned32}
+
+systemLogbookIndex OBJECT-TYPE
+SYNTAX          Unsigned32
+MAX-ACCESS      read-write
+STATUS          current
+DESCRIPTION     "Table Index."
+::= { systemLogbookEntry 1}
+
+systemLogbookDate OBJECT-TYPE
+SYNTAX          DisplayString
+MAX-ACCESS      read-write
+STATUS          current
+DESCRIPTION     "Date as UNIX timestamp."
+::= { systemLogbookEntry 2}
+
+systemLogbookFunction OBJECT-TYPE
+SYNTAX          DisplayString
+MAX-ACCESS      read-write
+STATUS          current
+DESCRIPTION     "Category of the logbook entry."
+::= { systemLogbookEntry 3}
+
+systemLogbookDetail OBJECT-TYPE
+SYNTAX          DisplayString
+MAX-ACCESS      read-write
+STATUS          current
+DESCRIPTION     "Detail field."
+::= { systemLogbookEntry 4}
+
+systemLogbookType OBJECT-TYPE
+SYNTAX          Unsigned32
+MAX-ACCESS      read-write
+STATUS          current
+DESCRIPTION     "Type Of the logbook entry."
+::= { systemLogbookEntry 5}
+
+-------------------------------------------------------------------------------------------
+-- Access-Logbook
+-------------------------------------------------------------------------------------------
+
+accessLogbookTable OBJECT-TYPE
+SYNTAX          SEQUENCE OF AccessLogbookEntry
+MAX-ACCESS      not-accessible
+STATUS          current
+DESCRIPTION     "AccessLogbook Entrys."
+::= { logbook 2 }
+
+accessLogbookEntry OBJECT-TYPE
+SYNTAX          AccessLogbookEntry
+MAX-ACCESS      not-accessible
+STATUS          current
+DESCRIPTION     "Entry in AccessLogbook table."
+INDEX        { accessLogbookIndex }
+::= { accessLogbookTable 1 }
+
+AccessLogbookEntry ::= SEQUENCE {
+accessLogbookIndex      Unsigned32,
+accessLogbookDate       DisplayString,
+accessLogbookDoor       DisplayString,
+accessLogbookUser       DisplayString,
+accessLogbookState      Unsigned32,
+accessLogbookDetail     DisplayString}
+
+accessLogbookIndex OBJECT-TYPE
+SYNTAX          Unsigned32
+MAX-ACCESS      read-write
+STATUS          current
+DESCRIPTION     "Table Index."
+::= { accessLogbookEntry 1}
+
+accessLogbookDate OBJECT-TYPE
+SYNTAX          DisplayString
+MAX-ACCESS      read-write
+STATUS          current
+DESCRIPTION     "Date as UNIX timestamp."
+::= { accessLogbookEntry 2}
+
+accessLogbookDoor OBJECT-TYPE
+SYNTAX          DisplayString
+MAX-ACCESS      read-write
+STATUS          current
+DESCRIPTION     "Name of the door."
+::= { accessLogbookEntry 3}
+
+accessLogbookUser OBJECT-TYPE
+SYNTAX          DisplayString
+MAX-ACCESS      read-write
+STATUS          current
+DESCRIPTION     "Name of the user."
+::= { accessLogbookEntry 4}
+
+accessLogbookState OBJECT-TYPE
+SYNTAX          Unsigned32
+MAX-ACCESS      read-write
+STATUS          current
+DESCRIPTION     "State (0 = closed, 1 = open) ."
+::= { accessLogbookEntry 5}
+
+accessLogbookDetail OBJECT-TYPE
+SYNTAX          DisplayString
+MAX-ACCESS      read-write
+STATUS          current
+DESCRIPTION     "Detail field."
+::= { accessLogbookEntry 6}
+
+-------------------------------------------------------------------------------------------
+-- Event-Logbook
+-------------------------------------------------------------------------------------------
+
+eventLogbookTable OBJECT-TYPE
+SYNTAX          SEQUENCE OF EventLogbookEntry
+MAX-ACCESS      not-accessible
+STATUS          current
+DESCRIPTION     "EventLogbook Entrys."
+::= { logbook 3 }
+
+eventLogbookEntry OBJECT-TYPE
+SYNTAX          EventLogbookEntry
+MAX-ACCESS      not-accessible
+STATUS          current
+DESCRIPTION     "Entry in EventLogbook table."
+INDEX        { eventLogbookIndex }
+::= { eventLogbookTable 1 }
+
+EventLogbookEntry ::= SEQUENCE {
+eventLogbookIndex      Unsigned32,
+eventLogbookDate       DisplayString,
+eventLogbookFunction   DisplayString,
+eventLogbookUser       DisplayString,
+eventLogbookDetail     DisplayString}
+
+eventLogbookIndex OBJECT-TYPE
+SYNTAX          Unsigned32
+MAX-ACCESS      read-write
+STATUS          current
+DESCRIPTION     "Table Index."
+::= { eventLogbookEntry 1}
+
+eventLogbookDate OBJECT-TYPE
+SYNTAX          DisplayString
+MAX-ACCESS      read-write
+STATUS          current
+DESCRIPTION     "Date as UNIX timestamp."
+::= { eventLogbookEntry 2}
+
+eventLogbookFunction OBJECT-TYPE
+SYNTAX          DisplayString
+MAX-ACCESS      read-write
+STATUS          current
+DESCRIPTION     "Category of the logbook entry."
+::= { eventLogbookEntry 3}
+
+eventLogbookUser OBJECT-TYPE
+SYNTAX          DisplayString
+MAX-ACCESS      read-write
+STATUS          current
+DESCRIPTION     "Username field."
+::= { eventLogbookEntry 4}
+
+eventLogbookDetail OBJECT-TYPE
+SYNTAX          DisplayString
+MAX-ACCESS      read-write
+STATUS          current
+DESCRIPTION     "Detail field."
+::= { eventLogbookEntry 5}
+
+-------------------------------------------------------------------------------------------
+-- Notification
+-------------------------------------------------------------------------------------------
+
+event NOTIFICATION-TYPE
+	STATUS current
+	DESCRIPTION "SNMP Trap for each device EVENT"
+	::= { kentixdevices 100 }
+
+END

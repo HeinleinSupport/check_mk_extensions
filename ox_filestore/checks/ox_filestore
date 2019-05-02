@@ -48,7 +48,7 @@ def check_ox_filestore(item, params, info):
                 percent = 0
 
             perfdata = [ ( 'reserved', reserved, size * params['reserved'][0] / 100.0, size * params['reserved'][1] / 100.0, 0, size ),
-                         ( 'used', used, size * params['used'][0] / 100.0, size * params['used'][1] / 100.0, 0, size ),
+                         ( 'used', percused, params['used'][0], params['used'][1], 0, 100 ),
                          ( 'entities', curent, maxent * params['ent'][0] / 100.0, maxent * params['ent'][1] / 100.0, 0, maxent ) ]
             msg = ''
             state = 0

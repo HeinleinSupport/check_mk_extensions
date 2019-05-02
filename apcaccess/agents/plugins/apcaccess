@@ -3,9 +3,9 @@
 APCACCESS=$(which apcaccess)
 
 if [ -x "$APCACCESS" ]; then
-  echo "<<<apcaccess:sep(35)>>>"
+  echo "<<<apcaccess:sep(58)>>>"
   for conf in /etc/apcupsd/apcupsd*.conf; do
     echo "[[$(basename $conf)]]"
-    $APCACCESS -f $conf status|sed -e 's/ *: /#/'
+    $APCACCESS -f $conf status
   done
 fi

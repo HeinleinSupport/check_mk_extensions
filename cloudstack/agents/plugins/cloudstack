@@ -65,8 +65,8 @@ if __name__ == "__main__":
                     config[key] = cfg.get(args.profile, key)
     for key in config.keys():
         try:
-        if args.__dict__[key]:
-            config[key] = args.__dict__[key]
+            if args.__dict__[key]:
+                config[key] = args.__dict__[key]
         except KeyError:
             # values ony present in args.config …
             pass
@@ -96,18 +96,18 @@ if __name__ == "__main__":
                                                   host['hypervisor'].replace(' ', '_'),
                                                   host['resourcestate'],
                                                   host['state'])
-        if host['resourcestate'] == 'Enabled':
+        if host['resourcestate'] == 'Enabled' and 'cpuused' in host:
             print 'P %s_CPU used=%s;90;95;0;100|allocated=%s CPU' % (host['hypervisor'].replace(' ', '_'),
-                                                                     host['cpuused'].replace(',', '.').replace('%', ''),
+                                                                     float(host['cpuused'].replace(',', '.').replace('%', '')) * 100.0,
                                                                      host['cpuallocated'].replace(',', '.').replace('%', ''))
-            print '0 %s_Memory used=%dB;;;0;%d|allocated=%dB Memory' % (host['hypervisor'].replace(' ', '_'),
+            print '0 %s_Memory mem_used=%d;;;0;%d|allocated_size=%d Memory' % (host['hypervisor'].replace(' ', '_'),
                                                                         host['memoryused'],
                                                                         host['memorytotal'],
                                                                         host['memoryallocated'])
         else:
             print '0 %s_CPU used=0;90;95;0;100|allocated=%s CPU' % (host['hypervisor'].replace(' ', '_'),
                                                                     host['cpuallocated'].replace(',', '.').replace('%', ''))
-            print '0 %s_Memory used=0B;;;0;%d|allocated=%dB Memory' % (host['hypervisor'].replace(' ', '_'),
+            print '0 %s_Memory mem_used=0;;;0;%d|allocated_size=%d Memory' % (host['hypervisor'].replace(' ', '_'),
                                                                        host['memorytotal'],
                                                                        host['memoryallocated'])
         print '<<<<>>>>'

@@ -12,15 +12,18 @@ from pprint import pprint
 import requests
 import warnings
 
+def check_mk_url(url):
+    if url[-1] == '/':
+        if not url.endswith('check_mk/'):
+            url += 'check_mk/'
+    else:
+        if not url.endswith('check_mk'):
+            url += '/check_mk/'
+    return url
+
 class WATOAPI():
     def __init__(self, site_url, api_user, api_secret):
-        if site_url[-1] == '/':
-            if not site_url.endswith('check_mk/'):
-                site_url += 'check_mk/'
-        else:
-            if not site_url.endswith('check_mk'):
-                site_url += '/check_mk/'
-        self.api_url = '%s/webapi.py' % site_url
+        self.api_url = '%s/webapi.py' % check_mk_url(site_url)
         self.api_creds = {'_username': api_user, '_secret': api_secret, 'request_format': 'python', 'output_format': 'python'}
 
     def api_request(self, params, data=None, errmsg='Error', fail=True):
@@ -110,15 +113,14 @@ class WATOAPI():
         else:
             return self.api_request(params=api_activate)
 
+    def bake_agents(self):
+        api_bake_agents = { 'action': 'bake_agents' }
+        api_bake_agents.update(self.api_creds)
+        return self.api_request(params=api_bake_agents)
+
 class MultisiteAPI():
     def __init__(self, site_url, api_user, api_secret):
-        if site_url[-1] == '/':
-            if not site_url.endswith('check_mk/'):
-                site_url += 'check_mk/'
-        else:
-            if not site_url.endswith('check_mk'):
-                site_url += '/check_mk/'
-        self.site_url = site_url
+        self.site_url = check_mk_url(site_url)
         self.api_creds = {'_username': api_user, '_secret': api_secret, 'request_format': 'python', 'output_format': 'python', '_transid': '-1'}
 
     def api_request(self, api_url, params, data=None, errmsg='Error', fail=True):

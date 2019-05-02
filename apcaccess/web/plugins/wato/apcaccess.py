@@ -64,7 +64,7 @@ register_check_parameters(
 register_rule("agents/" + _("Agent Plugins"),
     "agent_config:apcaccess",
     DropdownChoice(
-        title = _("APC UPS via apcaccess (Linux)"),
+        title = _("APC UPS via apcaccess (Linux, Windows)"),
         help = _("This will deploy the agent plugin <tt>apcaccess</tt> to check various APC UPS stats."),
         choices = [
             ( True, _("Deploy plugin for APC UPS") ),

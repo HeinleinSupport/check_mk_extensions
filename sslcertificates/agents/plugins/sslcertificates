@@ -35,13 +35,18 @@ fi
 get_cert_info() {
     certfile="$1"
     single="$2"
-    if [ -f "$certfile" -a \( ! -L "$certfile" -o "$single" \) ] && ! [[ $certfile =~ .*~$ ]] && grep -q -- '-----BEGIN CERTIFICATE-----' "$certfile"; then
+    if [ -f "$certfile" -a -r "$certfile" -a \( ! -L "$certfile" -o "$single" \) ] && ! [[ $certfile =~ .*~$ ]]; then
+	inform='DER'
+	if grep -q -- '-----BEGIN CERTIFICATE-----' "$certfile"; then
+	    inform='PEM'
+	fi
 
-	cert_subject=$($OPENSSL x509 -noout -subject -in "$certfile" | cut -d "=" -f 2-)
+	cert_subject=$($OPENSSL x509 -inform $inform -noout -subject -in "$certfile" 2> /dev/null) || continue
+	cert_subject=$(cut -d "=" -f 2- <<<"$cert_subject")
         if ! grep -q '@snakeoil.dom' <<<"$cert_subject"; then
-            cert_enddate=$($OPENSSL x509 -noout -enddate -in "$certfile" | cut -d "=" -f 2 )
+            cert_enddate=$($OPENSSL x509 -inform $inform -noout -enddate -in "$certfile" | cut -d "=" -f 2 )
             cert_enddate_epoch=$(date --date "$cert_enddate" '+%s')
-            cert_algosign=$($OPENSSL x509 -noout -text -in "$certfile" | awk '/Signature Algorithm: / { print $3; exit;}' )
+            cert_algosign=$($OPENSSL x509 -inform $inform -noout -text -in "$certfile" | awk '/Signature Algorithm: / { print $3; exit;}' )
 
             echo "$certfile $cert_enddate_epoch $cert_algosign $cert_subject"
         fi

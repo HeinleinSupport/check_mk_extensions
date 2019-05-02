@@ -42,7 +42,7 @@ def check_xe_cpu_util(_no_item, params, info):
             state, text, perflevel = check_levels(average, 'xe_cpu_util_average', params['util'], unit='%')
         else:
             state, text, perflevel = 0, '', []
-        yield state, 'Average CPU utilisation%s' % text, perfdata + perflevel
+        yield state, 'Average CPU utilisation: %s%s' % (get_percent_human_readable(average), text), perfdata + perflevel
         if 'levels_single' or 'core_util_graph' in params:
             for cpuid in sorted(cpus.keys()):
                 if 'core_util_graph' in params:

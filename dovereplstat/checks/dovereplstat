@@ -55,18 +55,19 @@ def check_dovereplstat(item, params, info):
             val = saveint(line[2])
             current_users = val
         text = "%d %s" % (val, " ".join(line[:-1]))
-        if key in params:
-            if val > params[key][1]:
-                res = 2
-                text += '(!!)'
-            elif val > params[key][0]:
-                res = 1
-                text += '(!)'
-            if res > rc:
-                rc = res
-            perfdata.append((key, val, params[key][0], params[key][1]))
-        else:
-            perfdata.append((key, val))
+        if key:
+            if params and key in params:
+                if val > params[key][1]:
+                    res = 2
+                    text += '(!!)'
+                elif val > params[key][0]:
+                    res = 1
+                    text += '(!)'
+                if res > rc:
+                    rc = res
+                perfdata.append((key, val, params[key][0], params[key][1]))
+            else:
+                perfdata.append((key, val))
         msg.append(text)
     if total_users:
         perc_users = current_users * 100.0 / total_users

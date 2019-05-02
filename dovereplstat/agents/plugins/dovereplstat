@@ -3,6 +3,9 @@
 if [ -x /usr/bin/doveadm ]; then
 
     echo '<<<dovereplstat>>>'
-    /usr/bin/doveadm replicator status
+    /usr/bin/doveadm replicator status 2> /dev/null
+    if [ $? -ne 0 ]; then
+        echo 'Total number of known users' $(/usr/bin/doveadm user '*' 2> /dev/null | wc -l)
+    fi
     echo 'Current users' $(/usr/bin/doveadm who 2> /dev/null | wc -l)
 fi

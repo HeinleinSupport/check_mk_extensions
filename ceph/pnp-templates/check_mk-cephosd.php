@@ -41,19 +41,8 @@ foreach ($NAME as $i => $n) {
 # RRDtool Options
 #$servicedes=$NAGIOS_SERVICEDESC
 
-if (substr($servicedesc, 0, 3) == 'fs_') {
-    $fsname = str_replace("_", "/", substr($servicedesc,3));
-} else {
-    $fsname = str_replace("_", "/", substr($servicedesc,11));
-}
-
+$fsname = str_replace("_", " ", substr($servicedesc,5));
 $fstitle = $fsname;
-
-# Hack for windows: replace C// with C:\
-if (strlen($fsname) == 3 && substr($fsname, 1, 2) == '//') {
-    $fsname = $fsname[0] . "\:\\\\";
-    $fstitle = $fsname[0] . ":\\";
-}
 
 $sizegb = sprintf("%.1f", $MAX[1] / 1024.0);
 $maxgb = $MAX[1] / 1024.0;
@@ -62,7 +51,7 @@ $critgb = $CRIT[1] / 1024.0;
 $warngbtxt = sprintf("%.1f", $warngb);
 $critgbtxt = sprintf("%.1f", $critgb);
 
-$opt[1] = "--vertical-label GB -l 0 -u $maxgb --title '$hostname: Filesystem $fstitle ($sizegb GB)' ";
+$opt[1] = "--vertical-label GB -l 0 -u $maxgb --title '$hostname: $fstitle ($sizegb GB)' ";
 
 # First graph show current filesystem usage. If there is a "reserved" RRD
 # then substract that and show as extra area
