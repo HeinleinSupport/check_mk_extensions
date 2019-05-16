@@ -98,7 +98,7 @@ def inventory_apcaccess_temp(parsed):
         yield instance, {}    
 
 def check_apcaccess_temp(item, params, parsed):
-    if item in parsed:
+    if item in parsed and 'ITEMP' in parsed[item]:
         return check_temperature(savefloat(parsed[item].get('ITEMP').split(' ')[0]),
                                  params,
                                  'apcaccess_temp.%s' % item,
