@@ -95,7 +95,8 @@ factory_settings["apcaccess_temp_default"] = {
 
 def inventory_apcaccess_temp(parsed):
     for instance in parsed:
-        yield instance, {}    
+        if 'ITEMP' in parsed['instance']:
+            yield instance, {}
 
 def check_apcaccess_temp(item, params, parsed):
     if item in parsed and 'ITEMP' in parsed[item]:
