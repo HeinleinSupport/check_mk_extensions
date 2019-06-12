@@ -32,6 +32,7 @@ def check_cephstatus(item, params, parsed):
                       'active+recovering+degraded+inconsistent',
                       'active+recovering+degraded+remapped',
                       'active+recovering+remapped',
+                      'active+recovering+undersized+degraded+remapped',
                       'active+recovery_wait',
                       'active+recovery_wait+degraded',
                       'active+recovery_wait+degraded+inconsistent',
