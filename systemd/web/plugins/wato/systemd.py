@@ -32,8 +32,8 @@ register_rule("checkparams" + '/' + subgroup_inventory,
                 title = _("Create check if unit is active or not"),
             )),
         ],
-        help = _('This rule can be used to configure the inventory of the windows services check. '
-                 'You can configure specific windows services to be monitored by the windows check by '
+        help = _('This rule can be used to configure the inventory of the Linux systemd services check. '
+                 'You can configure specific systemd services to be monitored by the systemd check by '
                  'selecting them by name, current state during the inventory, or start mode.'),
     ),
 
