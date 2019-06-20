@@ -31,14 +31,14 @@ def check_huawei_fan(item, params, info):
             rpm = saveint(line[3])
             msg = '%d RPM' % rpm
             perfdata = [ ( 'rpm', rpm ) ]
-            msg += '; health %s' % huawei_health_states[line[1]]
+            msg += '; health %s' % huawei_health_states.get(line[1], 'unknown')
             if line[1] != '1':
                 res = 2
                 msg += '(!!)'
-            msg += '; state %s' % huawei_running_states[line[2]]
+            msg += '; state %s' % huawei_running_states.get(line[2], 'unknown')
             if line[2] != params['runningStatus']:
                 res = 2
-                msg += ', changed from %s(!!)' % huawei_running_states[params['runningStatus']]                
+                msg += ', changed from %s(!!)' % huawei_running_states[params['runningStatus']]
             return res, msg, perfdata
 
 check_info['huawei_fan'] = {
