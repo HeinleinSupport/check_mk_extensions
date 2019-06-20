@@ -32,7 +32,7 @@ def check_huawei_info(item, params, info):
                                                           huawei_running_states[info[0][2]])
         res = 0
         if info[0][2] != params['state']:
-            msg += ', changed from %s(!!)' % huawei_running_states[params['state']]
+            msg += ', changed from %s(!!)' % huawei_running_states.get(params['state'], 'unknown')
             res = 2
         return (res, msg)
 

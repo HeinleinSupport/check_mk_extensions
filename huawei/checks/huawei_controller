@@ -28,14 +28,14 @@ def check_huawei_controller(item, params, info):
     for name, location, healthStatus, runningStatus, softVer, isMaster, BIOSVer in info:
         if name == item:
             res = 0
-            msg = 'Location: %s; software version %s; BIOS version %s; health is %s' % (location, softVer, BIOSVer, huawei_health_states[healthStatus])
+            msg = 'Location: %s; software version %s; BIOS version %s; health is %s' % (location, softVer, BIOSVer, huawei_health_states.get(healthStatus, 'unknown'))
             if healthStatus in ['2', '9']:
                 res = 2
                 msg += '(!!)'
             elif healthStatus != '1':
                 res = 1
                 msg += '(!)'
-            msg += '; running status is %s' % huawei_running_states[runningStatus]
+            msg += '; running status is %s' % huawei_running_states.get(runningStatus, 'unknown')
             if runningStatus != params['runningStatus']:
                 res = 2
                 msg += ', changed from %s(!!)' % huawei_running_states[params['runningStatus']]
