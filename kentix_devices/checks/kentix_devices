@@ -18,18 +18,23 @@
 
 def parse_kentix_devices(info):
     parsed = {'multiplier': map(lambda x: savefloat(x[0]), info[0]),
-              'sensors': {} }
-    meta = { 2: 'temp',
-             3: 'humidity',
-             ## 4: 'dewpoint',
-             ## 5: 'co',
-             ## 6: 'motion',
-             ## 7: 'vibration',
-             ## 8: 'latency'
+              'sensors': {},
+              'zones': {} }
+    meta = { 3: 'temp',
+             4: 'humidity',
+             ## 5: 'dewpoint',
+             ## 6: 'co',
+             ## 7: 'motion',
+             ## 8: 'vibration',
+             ## 9: 'latency'
            }
     for line in info[1]:
+        parsed['zones'][line[0]] = {'name': line[1], 'armed': line[2]}
+    for line in info[2]:
         sid = line[0]
         sensor = { 'info': line }
+        sensor['type'] = line[2]
+        sensor['zone'] = line[6]
         for key, val in meta.iteritems():
             for subline in info[key]:
                 if subline[0] == sid:
@@ -55,7 +60,8 @@ def inventory_kentix_devices(parsed, params, stype, sfunc):
 
 def check_kentix_devices_temperature(item, params, parsed):
     if item in parsed['sensors']:
-        return check_temperature(savefloat(parsed['sensors'][item]['temp'][1]) / parsed['multiplier'][0], params, "kentix_devices_%s" % item)
+        state, text, perfdata = check_temperature(savefloat(parsed['sensors'][item]['temp'][1]) / parsed['multiplier'][0], params, "kentix_devices_%s" % item)
+        return state, "%s in zone %s" % (text, parsed['zones'][parsed['sensors'][item]['zone']]['name']), perfdata
 
 check_info['kentix_devices'] = {
     'parse_function'            : parse_kentix_devices,
@@ -66,6 +72,10 @@ check_info['kentix_devices'] = {
     'group'                     : 'temperature',
     'snmp_info'                 : [
         ( ".1.3.6.1.4.1.37954.5.1.1", [ "" ] ),
+        ( ".1.3.6.1.4.1.37954.5.3.1.1", [ "1",      # zoneIndex
+                                          "2",      # zoneName
+                                          "3",      # zoneArmedState
+                                         ] ),
         ( ".1.3.6.1.4.1.37954.5.2", [ "1.1.1",      # generalIndex
                                       "1.1.2",      # sensorName
                                       "1.1.3",      # sensorType
@@ -118,7 +128,7 @@ check_info['kentix_devices'] = {
         ##                               "8.1.5",      # latMax
         ##                             ] ),
         ],
-    'snmp_scan_function'        : lambda oid: oid(".1.3.6.1.4.1.37954.5.2.1.1.1.1"),
+    'snmp_scan_function'        : lambda oid: 'kentix' in oid(".1.3.6.1.2.1.1.1.0") or oid(".1.3.6.1.4.1.37954.5.1.1.1.0"),
     'includes'                  : [ "temperature.include" ],
 }
 
@@ -135,7 +145,8 @@ check_info['kentix_devices'] = {
 
 def check_kentix_devices_humidity(item, params, parsed):
     if item in parsed['sensors']:
-        return check_humidity(savefloat(parsed['sensors'][item]['humidity'][1]) / parsed['multiplier'][1], params)
+        state, text, perfdata = check_humidity(savefloat(parsed['sensors'][item]['humidity'][1]) / parsed['multiplier'][1], params)
+        return state, "%s in zone %s" % (text, parsed['zones'][parsed['sensors'][item]['zone']]['name']), perfdata
 
 check_info['kentix_devices.humidity'] = {
     'inventory_function'        : lambda parsed: inventory_kentix_devices(parsed, {}, '102', 'humidity'),
