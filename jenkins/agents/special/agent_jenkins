@@ -17,12 +17,17 @@
 # to the Free Software Foundation, Inc., 51 Franklin St,  Fifth Floor,
 # Boston, MA 02110-1301 USA.
 
+import argparse
 import requests
 import urllib
-import argparse
-import pprint
 import cPickle
 import base64
+import re
+import pprint
+
+def debug_output(var):
+    if params['debug']:
+        pprint.pprint(var)
 
 class JenkinsAPI(requests.Session):
     def get_build_artifacts(self, build):
@@ -48,12 +53,12 @@ class JenkinsAPI(requests.Session):
         return a
             
     def get_job_data(self, url):
-        print(url)
-
         resp = self.get(url)
 
         if resp.status_code == 200:
             job = resp.json()
+
+            return job
 
             pprint.pprint(job)
 
@@ -73,24 +78,50 @@ class JenkinsAPI(requests.Session):
             return {'failed': numFailedBuilds, 'build': d}
         return None
 
+    def get_jobs(self, hostname, servicespecs):
+        jobres = {}
+        for host in servicespecs['hosts']:
+            for job in host['jobs']:
+                jobres[re.compile(job)] = host['hostname']
+
+        pprint.pprint(jobres)
+
+        resp = self.get(servicespecs['url'] + '/api/json')
+        if resp.status_code == 200:
+            data = resp.json()
+
+            if 'jobs' in data:
+                for job in data['jobs']:
+                    for jobre, host in jobres.iteritems():
+                        if jobre.match(job['name']):
+                            if host and hostname != host:
+                                print '<<<<%s>>>>' % host
+                            print '<<<jenkinsjobs>>>'
+                            job[u'data'] = self.get_job_data(job['url'] + '/api/json')
+                            pprint.pprint(job)
+                            if host and hostname != host:
+                                print '<<<<>>>>'
+
 if __name__ == '__main__':
+
     parser = argparse.ArgumentParser()
-    parser.add_argument('-l', '--url', required=True, help='Jenkins base URL')
     parser.add_argument('-u', '--username')
     parser.add_argument('-p', '--password')
-    parser.add_argument('-j', '--job', required=True, help='Jenkins job name')
-
+    parser.add_argument('params', nargs='+', help='base64 encoded cPickled Python dictionary')
     args = parser.parse_args()
 
     pprint.pprint(args)
-
-    s = JenkinsAPI()
     
+    # Parameters are base64 encoded cPickle data
+    params = cPickle.loads(base64.decodestring('\n'.join(args.params)))
+
+    pprint.pprint(params)
+
+            
+    s = JenkinsAPI()
+
     if args.username and args.password:
         s.auth = (args.username, args.password)
 
-    jobstatusurl = "%s/job/%s/api/json" % (args.url, urllib.quote(args.job))
+    s.get_jobs(params['hostname'], params['servicespecs'])
 
-    res = s.get_job_data(jobstatusurl)
-    if res:
-        print res

@@ -6,14 +6,23 @@
 # Robert Sander <r.sander@heinlein-support.de>
 #
 
-def agent_jenkins_arguments(servicespecs, hostname, ipaddress):
+def agent_jenkins_arguments(servicespecs, hostname, ipaddress):    
     params = {'servicespecs': servicespecs,
-              'debug': cmk.debug.enabled()}
+              'hostname': hostname,
+              'ipadress': ipaddress}
 
     import cPickle
     import base64
 
-    cmd = '%s' % ' '.join(base64.encodestring(cPickle.dumps(params)).split('\n'))
-    return cmd
+    cmd = []
+
+    if "auth" in servicespecs:
+        username, password = servicespecs["auth"]
+        cmd += ["-u", username]
+        cmd += ["-p", password]
+
+    cmd += base64.encodestring(cPickle.dumps(params)).split('\n')
+
+    return " ".join(cmd)
 
 special_agent_info['jenkins'] = agent_jenkins_arguments

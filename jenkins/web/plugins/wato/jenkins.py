@@ -33,10 +33,27 @@ register_rule('datasource_programs',
     Dictionary(
         title = _("Jenkins"),
         elements = [
+            ('url', HTTPUrl(title=_('Jenkins URL'))),
+            ('auth', Tuple(title = _("Authentication"),
+                elements = [
+                    TextAscii(title=_("Username")),
+                    Password(title=_("Password")),
+                ])),
+            ('hosts', ListOf(
+                Dictionary(
+                    elements = [
+                        ('hostname', MonitoredHostname(title=_('Hostname'), from_active_config=True)),
+                        ('jobs', ListOf(RegExp('prefix', label=_('RegExp for job name')),
+                                        title=_('List of Regular Expressions'))),
+                    ],
+                    optional_keys = [],
+                ),
+                title = _('Jobs to query for monitored hosts.'),
+                )),
         ],
-        optional_keys = [ 'hosttags', 'host' ],
+        optional_keys = [ 'auth' ],
     ),
-    title = _("Query Jenkins for Jobs"),
+    title = _("Jenkins Jobs"),
     help  = _(''),
     match = 'first'
 )
