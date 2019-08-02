@@ -28,6 +28,42 @@ register_check_parameters(
     match_type = "first",
 )
 
+register_rule("agents/" + _("Agent Plugins"),
+    "agent_config:jenkins",
+    Alternative(
+        title = _("Jenkins Jobs (Linux)"),
+        help = _("This will deploy the agent plugin <tt>jenkins</tt> to check Jenkins Jobs."),
+        style = 'dropdown',
+        elements = [
+            Dictionary(
+                title = _('Deploy the Jenkins Jobs plugin.'),
+                elements = [
+                    ('url', HTTPUrl(title=_('Jenkins URL'))),
+                    ('auth', Tuple(title = _("Authentication"),
+                        elements = [
+                            TextAscii(title=_("Username")),
+                            Password(title=_("Password")),
+                        ])),
+                    ('hosts', ListOf(
+                        Dictionary(
+                            elements = [
+                                ('hostname', MonitoredHostname(title=_('Hostname'), from_active_config=True)),
+                                ('jobs', ListOf(RegExp('prefix', label=_('RegExp for job name')),
+                                                title=_('List of Jobs'))),
+                            ],
+                            optional_keys = [],
+                        ),
+                        title = _('Jobs to query for monitored hosts.'),
+                        )),
+                ],
+                optional_keys = [ 'auth' ],
+                ),
+            FixedValue( None, title = _("Do not deploy plugin for Jenkins Jobs"), totext = _("(disabled)") ),
+        ]
+    )
+)
+
+
 register_rule('datasource_programs',
     "special_agents:jenkins",
     Dictionary(

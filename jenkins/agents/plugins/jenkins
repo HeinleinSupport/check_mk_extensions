@@ -17,12 +17,11 @@
 # to the Free Software Foundation, Inc., 51 Franklin St,  Fifth Floor,
 # Boston, MA 02110-1301 USA.
 
-import argparse
 import requests
 import urllib
-import cPickle
-import base64
 import re
+import os
+import socket
 import pprint
 
 class JenkinsAPI(requests.Session):
@@ -51,15 +50,15 @@ class JenkinsAPI(requests.Session):
             job['lastCompletedBuild'][u'data'] = self.get_build_data(job['lastCompletedBuild']['url'])
         return job
 
-    def get_host_jobs(self, servicespecs):
+    def get_host_jobs(self, url, hostjobs):
         jobres = {}
         hosts = {}
-        for host in servicespecs['hosts']:
+        for host in hostjobs:
             hosts[host['hostname']] = {}
             for job in host['jobs']:
                 jobres[re.compile(job)] = host['hostname']
 
-        resp = self.get(servicespecs['url'] + '/api/json')
+        resp = self.get(url + '/api/json')
         if resp.status_code == 200:
             data = resp.json()
 
@@ -72,26 +71,24 @@ class JenkinsAPI(requests.Session):
         return hosts
 
 if __name__ == '__main__':
-    parser = argparse.ArgumentParser()
-    parser.add_argument('-u', '--username')
-    parser.add_argument('-p', '--password')
-    parser.add_argument('params', nargs='+', help='base64 encoded cPickled Python dictionary')
-    args = parser.parse_args()
 
-    # Parameters are base64 encoded cPickle data
-    params = cPickle.loads(base64.decodestring('\n'.join(args.params)))
+    config_file=os.path.join(os.environ.get("MK_CONFDIR", "/etc/check_mk"), "jenkins.cfg")
+
+    if os.path.exists(config_file):
+        execfile(config_file)
 
     s = JenkinsAPI()
 
-    if args.username and args.password:
-        s.auth = (args.username, args.password)
+    if 'auth' in params:
+        s.auth = params['auth']
 
-    hosts = s.get_host_jobs(params['servicespecs'])
+    hosts = s.get_host_jobs(params['url'], params['hosts'])
+    hostname = socket.gethostname()
     for host, jobs in hosts.iteritems():
-        if host and params['hostname'] != host:
+        if host and hostname != host:
             print '<<<<%s>>>>' % host
         print '<<<jenkinsjobs>>>'
         pprint.pprint(jobs)
-        if host and params['hostname'] != host:
+        if host and hostname != host:
             print '<<<<>>>>'
 
