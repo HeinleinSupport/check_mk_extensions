@@ -25,66 +25,39 @@ import base64
 import re
 import pprint
 
-def debug_output(var):
-    if params['debug']:
-        pprint.pprint(var)
-
 class JenkinsAPI(requests.Session):
     def get_build_artifacts(self, build):
         c = {}
         for a in build['artifacts']:
-            resp = self.get("%s/artifact/%s" % (build['url'], a['relativePath']))
-            if resp.status_code == 200:
-                c[a['fileName']] = resp.text
+            if a['fileName'] == 'checkmk.txt':
+                resp = self.get("%s/artifact/%s" % (build['url'], a['relativePath']))
+                if resp.status_code == 200:
+                    c[a['fileName']] = resp.json()
         return c
-    
+
     def get_build_data(self, url):
-        print(url)
-
-        resp = self.get(url)
-        a = None
-
+        resp = self.get(url + '/api/json')
+        build = {}
         if resp.status_code == 200:
             build = resp.json()
+            build['artifacts'] = self.get_build_artifacts(build)
+        return build
 
-            pprint.pprint(build)
-
-            a = self.get_build_artifacts(build)
-        return a
-            
     def get_job_data(self, url):
-        resp = self.get(url)
-
+        resp = self.get(url + '/api/json')
+        job = {}
         if resp.status_code == 200:
             job = resp.json()
+            job['lastCompletedBuild'][u'data'] = self.get_build_data(job['lastCompletedBuild']['url'])
+        return job
 
-            return job
-
-            pprint.pprint(job)
-
-            buildname = job['name']
-            lastUnsuccessfulBuild = job.get('lastUnsuccessfulBuild', {'number': 0}).get('number', 0)
-            lastStableBuild = job.get('lastStableBuild', {'number': 0}).get('number', 0)
-            numFailedBuilds = 0
-            if lastUnsuccessfulBuild > 0:
-                numFailedBuilds = lastUnsuccessfulBuild - lastStableBuild
-            if numFailedBuilds < 0:
-                numFailedBuilds = 0
-
-            d = None
-            if job['lastCompletedBuild']['number'] == job['lastSuccessfulBuild']['number']:
-                d = self.get_build_data(job['lastCompletedBuild']['url'] + 'api/json')
-            
-            return {'failed': numFailedBuilds, 'build': d}
-        return None
-
-    def get_jobs(self, hostname, servicespecs):
+    def get_host_jobs(self, servicespecs):
         jobres = {}
+        hosts = {}
         for host in servicespecs['hosts']:
+            hosts[host['hostname']] = {}
             for job in host['jobs']:
                 jobres[re.compile(job)] = host['hostname']
-
-        pprint.pprint(jobres)
 
         resp = self.get(servicespecs['url'] + '/api/json')
         if resp.status_code == 200:
@@ -94,34 +67,31 @@ class JenkinsAPI(requests.Session):
                 for job in data['jobs']:
                     for jobre, host in jobres.iteritems():
                         if jobre.match(job['name']):
-                            if host and hostname != host:
-                                print '<<<<%s>>>>' % host
-                            print '<<<jenkinsjobs>>>'
-                            job[u'data'] = self.get_job_data(job['url'] + '/api/json')
-                            pprint.pprint(job)
-                            if host and hostname != host:
-                                print '<<<<>>>>'
+                            job[u'data'] = self.get_job_data(job['url'])
+                            hosts[host][job['name']] = job
+        return hosts
 
 if __name__ == '__main__':
-
     parser = argparse.ArgumentParser()
     parser.add_argument('-u', '--username')
     parser.add_argument('-p', '--password')
     parser.add_argument('params', nargs='+', help='base64 encoded cPickled Python dictionary')
     args = parser.parse_args()
 
-    pprint.pprint(args)
-    
     # Parameters are base64 encoded cPickle data
     params = cPickle.loads(base64.decodestring('\n'.join(args.params)))
 
-    pprint.pprint(params)
-
-            
     s = JenkinsAPI()
 
     if args.username and args.password:
         s.auth = (args.username, args.password)
 
-    s.get_jobs(params['hostname'], params['servicespecs'])
+    hosts = s.get_host_jobs(params['servicespecs'])
+    for host, jobs in hosts.iteritems():
+        if host and params['hostname'] != host:
+            print '<<<<%s>>>>' % host
+        print '<<<jenkinsjobs>>>'
+        pprint.pprint(jobs)
+        if host and paramas['hostname'] != host:
+            print '<<<<>>>>'
 
