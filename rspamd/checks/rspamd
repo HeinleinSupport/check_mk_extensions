@@ -33,35 +33,39 @@ def check_rspamd(_no_item, params, info):
             }
     rate = {}
     now = time.time()
-    for key, value in data.iteritems():
-        if type(value) == int:
-            if key in info:
-                data[key] = info[key]
-                rate[key] = get_rate('rspamd.%s' % key, now, data[key])
-            else:
-                rate[key] = 0.0
-        elif type(value) == dict:
-            if key not in rate:
-                rate[key] = {}
-            for key2, value2 in data[key].iteritems():
-                if type(value2) == int:
-                    if key2 in info[key]:
-                        data[key][key2] = info[key][key2]
-                        rate[key][key2] = get_rate('rspamd.%s.%s' % (key, key2), now, data[key][key2])
-                    else:
-                        rate[key][key2] = 0.0
 
-    total = data['scanned']
-    total_rate = rate['scanned']
+    if 'scanned' not in info:
+        yield 3, "No data received"
+    else:
+        for key, value in data.iteritems():
+            if type(value) == int:
+                if key in info:
+                    data[key] = info[key]
+                    rate[key] = get_rate('rspamd.%s' % key, now, data[key])
+                else:
+                    rate[key] = 0.0
+            elif type(value) == dict:
+                if key not in rate:
+                    rate[key] = {}
+                for key2, value2 in data[key].iteritems():
+                    if type(value2) == int:
+                        if key2 in info[key]:
+                            data[key][key2] = info[key][key2]
+                            rate[key][key2] = get_rate('rspamd.%s.%s' % (key, key2), now, data[key][key2])
+                        else:
+                            rate[key][key2] = 0.0
 
-    for key, value in data.iteritems():
-        if type(value) == int:
-            yield 0, '%d %s (%0.2f%%)' % (value, key, value*100.0/total), [ ('rspamd_%s_rate' % key, rate[key]) ]
-        elif type(value) == dict:
-            for key2, value2 in data[key].iteritems():
-                if type(value2) == int:
-                    yield ( 0, '%d %s (%0.2f%%)' % (value2, key2, value2*100.0/total),
-                            [ ('rspamd_%s_%s_rate' % (key, key2.replace(' ', '_')), rate[key][key2]) ] )
+        total = data['scanned']
+        total_rate = rate['scanned']
+
+        for key, value in data.iteritems():
+            if type(value) == int:
+                yield 0, '%d %s (%0.2f%%)' % (value, key, value*100.0/total), [ ('rspamd_%s_rate' % key, rate[key]) ]
+            elif type(value) == dict:
+                for key2, value2 in data[key].iteritems():
+                    if type(value2) == int:
+                        yield ( 0, '%d %s (%0.2f%%)' % (value2, key2, value2*100.0/total),
+                                [ ('rspamd_%s_%s_rate' % (key, key2.replace(' ', '_')), rate[key][key2]) ] )
     
 check_info['rspamd'] = {
     'parse_function'         : parse_json,

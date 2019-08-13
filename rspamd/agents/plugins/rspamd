@@ -2,7 +2,7 @@
 
 rspamc=$(which rspamc)
 
-if [ -x "$rspamc" ]; then
+if [ -x "$rspamc" -a -n "$(pidof rspamd)" ]; then
     echo '<<<rspamd>>>'
     $rspamc --compact stat
 fi
