@@ -17,6 +17,8 @@
 # to the Free Software Foundation, Inc., 51 Franklin St,  Fifth Floor,
 # Boston, MA 02110-1301 USA.
 
+from cmk.gui.plugins.metrics.check_mk import df_translation
+
 metric_info['num_objects'] = {
     'title' : _('Number of Objects'),
     'unit'  : 'count',
