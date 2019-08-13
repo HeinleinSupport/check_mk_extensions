@@ -178,7 +178,7 @@ def check_redis_info(item, params, info):
     check_string_crit = False
     # ### DEBUGGING
     # just tried something - some interesting variables
-    # print(str(get_info_for_check(host_name(), lookup_ip_address(host_name()), 'redis_info')))
+    # print(str(get_info_for_check(g_hostname, lookup_ip_address(g_hostname), 'redis_info')))
     # print(str(extra_service_conf))
     # debug warn and crit
     # print(str(warn))
