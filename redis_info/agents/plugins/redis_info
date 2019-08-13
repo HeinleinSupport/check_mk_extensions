@@ -105,7 +105,8 @@ for server in instances:
     print '+++ %s:%s +++' % (address, port)
     try:
         sys.stdout.flush()
-        del(os.environ['REDISCLI_AUTH'])
+        if 'REDISCLI_AUTH' in os.environ:
+            del(os.environ['REDISCLI_AUTH'])
         if serverpw:
             os.environ['REDISCLI_AUTH'] = serverpw
         elif password:
