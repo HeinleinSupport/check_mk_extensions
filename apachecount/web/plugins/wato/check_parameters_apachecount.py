@@ -17,7 +17,7 @@ register_check_parameters(
         elements = [
             ('sum', Checkbox(
                 title = _('Status Code Summarization'),
-                help = _('When checked the plugin will summarize the status codes in blocks of hundreds (100-199, 200-299, 300-399, 400-499, 500-599…). When checked levels have to be set on the hundreds (100, 200, 300, 400, 500…).'),
+                help = _(u'When checked the plugin will summarize the status codes in blocks of hundreds (100-199, 200-299, 300-399, 400-499, 500-599…). When checked levels have to be set on the hundreds (100, 200, 300, 400, 500…).'),
                 label = _('Summarize Status Codes'),
             )),
             ('codes', ListOf(
@@ -41,4 +41,3 @@ register_check_parameters(
     False,
     match_type = "dict",
 )
-
