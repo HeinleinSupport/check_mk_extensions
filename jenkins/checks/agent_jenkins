@@ -16,14 +16,6 @@ def agent_jenkins_arguments(servicespecs, hostname, ipaddress):
 
     cmd = []
 
-    if "auth" in servicespecs:
-        if type(servicespecs["auth"]) == tuple:
-            username, password = servicespecs["auth"]
-            cmd += ["-u", username]
-            cmd += ["-p", password]
-        else:
-            cmd += ["-a", servicespecs["auth"]]
-
     cmd += base64.encodestring(cPickle.dumps(params)).split('\n')
 
     return " ".join(cmd)

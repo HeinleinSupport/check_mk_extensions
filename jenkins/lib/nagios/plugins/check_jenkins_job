@@ -89,7 +89,7 @@ if __name__ == '__main__':
         s.auth = (args.username, args.password)
 
     if args.authtoken:
-        s.headers.update({'Authorization': args.authtoken})
+        s.headers.update({'Authorization': "Bearer %s" % args.authtoken})
 
     jobstatusurl = "%s/job/%s/api/json" % (args.url, urllib.quote(args.job))
 

@@ -83,7 +83,7 @@ if __name__ == '__main__':
         if type(params["auth"]) == tuple:
             s.auth = params['auth']
         else:
-            s.headers.update({'Authorization': params["auth"]})
+            s.headers.update({'Authorization': "Bearer %s" % params["auth"]})
 
     hosts = s.get_host_jobs(params['url'], params['hosts'])
     hostname = socket.gethostname()

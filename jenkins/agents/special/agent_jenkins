@@ -77,20 +77,29 @@ if __name__ == '__main__':
     parser.add_argument('-u', '--username')
     parser.add_argument('-p', '--password')
     parser.add_argument('-a', '--authtoken')
+    parser.add_argument('-d', '--debug', action="store_true")
     parser.add_argument('params', nargs='+', help='base64 encoded cPickled Python dictionary')
     args = parser.parse_args()
 
     # Parameters are base64 encoded cPickle data
     params = cPickle.loads(base64.decodestring('\n'.join(args.params)))
 
+    if args.debug:
+        pprint.pprint(args)
+        pprint.pprint(params)
+
     s = JenkinsAPI()
 
-    if args.username and args.password:
-        s.auth = (args.username, args.password)
+    if 'auth' in params['servicespecs']:
+        if type(params['servicespecs']["auth"]) == tuple:
+            s.auth = params['servicespecs']['auth']
+        else:
+            s.headers.update({'Authorization': "Bearer %s" % params['servicespecs']["auth"]})
 
-    if args.authtoken:
-        s.headers.update({'Authorization': args.authtoken})
-
+    if args.debug:
+        pprint.pprint(s)
+        pprint.pprint(s.headers)
+            
     hosts = s.get_host_jobs(params['servicespecs'])
     for host, jobs in hosts.iteritems():
         if host and params['hostname'] != host:
