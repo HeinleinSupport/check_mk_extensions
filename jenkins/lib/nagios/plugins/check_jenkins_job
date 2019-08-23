@@ -76,6 +76,7 @@ if __name__ == '__main__':
     parser.add_argument('-l', '--url', required=True, help='Jenkins base URL')
     parser.add_argument('-u', '--username')
     parser.add_argument('-p', '--password')
+    parser.add_argument('-a', '--authtoken')
     parser.add_argument('-j', '--job', required=True, help='Jenkins job name')
 
     args = parser.parse_args()
@@ -86,6 +87,9 @@ if __name__ == '__main__':
     
     if args.username and args.password:
         s.auth = (args.username, args.password)
+
+    if args.authtoken:
+        s.headers.update({'Authorization': args.authtoken})
 
     jobstatusurl = "%s/job/%s/api/json" % (args.url, urllib.quote(args.job))
 

@@ -39,10 +39,15 @@ register_rule("agents/" + _("Agent Plugins"),
                 title = _('Deploy the Jenkins Jobs plugin.'),
                 elements = [
                     ('url', HTTPUrl(title=_('Jenkins URL'))),
-                    ('auth', Tuple(title = _("Authentication"),
+                    ('auth', Alternative(title = _("Authentication"),
+                        style = 'dropdown',
                         elements = [
-                            TextAscii(title=_("Username")),
-                            Password(title=_("Password")),
+                            Password(title=_("OAuth Token")),
+                            Tuple(title=_("Credentials"),
+                                elements = [
+                                    TextAscii(title=_("Username")),
+                                    Password(title=_("Password")),
+                                ])
                         ])),
                     ('hosts', ListOf(
                         Dictionary(
@@ -70,10 +75,15 @@ register_rule('datasource_programs',
         title = _("Jenkins"),
         elements = [
             ('url', HTTPUrl(title=_('Jenkins URL'))),
-            ('auth', Tuple(title = _("Authentication"),
+            ('auth', Alternative(title = _("Authentication"),
+                style = 'dropdown',
                 elements = [
-                    TextAscii(title=_("Username")),
-                    Password(title=_("Password")),
+                    Password(title=_("OAuth Token")),
+                    Tuple(title=_("Credentials"),
+                        elements = [
+                            TextAscii(title=_("Username")),
+                            Password(title=_("Password")),
+                        ])
                 ])),
             ('hosts', ListOf(
                 Dictionary(

@@ -75,6 +75,7 @@ if __name__ == '__main__':
     parser = argparse.ArgumentParser()
     parser.add_argument('-u', '--username')
     parser.add_argument('-p', '--password')
+    parser.add_argument('-a', '--authtoken')
     parser.add_argument('params', nargs='+', help='base64 encoded cPickled Python dictionary')
     args = parser.parse_args()
 
@@ -85,6 +86,9 @@ if __name__ == '__main__':
 
     if args.username and args.password:
         s.auth = (args.username, args.password)
+
+    if args.authtoken:
+        s.headers.update({'Authorization': args.authtoken})
 
     hosts = s.get_host_jobs(params['servicespecs'])
     for host, jobs in hosts.iteritems():

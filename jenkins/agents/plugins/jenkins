@@ -80,7 +80,10 @@ if __name__ == '__main__':
     s = JenkinsAPI()
 
     if 'auth' in params:
-        s.auth = params['auth']
+        if type(params["auth"]) == tuple:
+            s.auth = params['auth']
+        else:
+            s.headers.update({'Authorization': params["auth"]})
 
     hosts = s.get_host_jobs(params['url'], params['hosts'])
     hostname = socket.gethostname()
