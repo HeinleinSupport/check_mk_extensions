@@ -48,7 +48,8 @@ class JenkinsAPI(requests.Session):
         job = {}
         if resp.status_code == 200:
             job = resp.json()
-            job['lastCompletedBuild'][u'data'] = self.get_build_data(job['lastCompletedBuild']['url'])
+            if 'lastCompletedBuild' in job:
+                job['lastCompletedBuild'][u'data'] = self.get_build_data(job['lastCompletedBuild']['url'])
         return job
 
     def get_host_jobs(self, servicespecs):
