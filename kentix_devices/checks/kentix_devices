@@ -67,7 +67,10 @@ def check_kentix_devices_temperature(item, params, parsed):
                                                   "kentix_devices_%s" % item,
                                                   dev_levels=(tempMax, tempMax),
                                                   dev_levels_lower=(tempMin, tempMin))
-        return state, "%s in zone %s" % (text, parsed['zones'][parsed['sensors'][item]['zone']]['name']), perfdata
+        zone = ""
+        if parsed['sensors'][item]['zone'] in parsed['zones']:
+            zone = " in zone %s" % parsed['zones'][parsed['sensors'][item]['zone']]['name']
+        return state, "%s%s" % (text, zone), perfdata
 
 check_info['kentix_devices'] = {
     'parse_function'            : parse_kentix_devices,
@@ -147,7 +150,10 @@ check_info['kentix_devices'] = {
 def check_kentix_devices_humidity(item, params, parsed):
     if item in parsed['sensors']:
         state, text, perfdata = check_humidity(savefloat(parsed['sensors'][item]['humidity'][1]) / parsed['multiplier'][1], params)
-        return state, "%s in zone %s" % (text, parsed['zones'][parsed['sensors'][item]['zone']]['name']), perfdata
+        zone = ""
+        if parsed['sensors'][item]['zone'] in parsed['zones']:
+            zone = " in zone %s" % parsed['zones'][parsed['sensors'][item]['zone']]['name']
+        return state, "%s%s" % (text, zone), perfdata
 
 check_info['kentix_devices.humidity'] = {
     'inventory_function'        : lambda parsed: inventory_kentix_devices(parsed, {}, ['101', '102'], 'humidity'),
@@ -184,7 +190,10 @@ def check_kentix_devices_co(item, params, parsed):
         state = 0
         if coValue > coMax:
             state = 2
-        return state, "%d ppm in zone %s" % (coValue, parsed['zones'][parsed['sensors'][item]['zone']]['name']), [ ( 'parts_per_million', coValue, 0, coMax ) ]
+        zone = ""
+        if parsed['sensors'][item]['zone'] in parsed['zones']:
+            zone = " in zone %s" % parsed['zones'][parsed['sensors'][item]['zone']]['name']
+        return state, "%d ppm%s" % (coValue, zone), [ ( 'parts_per_million', coValue, 0, coMax ) ]
 
 check_info['kentix_devices.co'] = {
     'inventory_function'        : lambda parsed: inventory_kentix_devices(parsed, {}, ['101', '102'], 'co'),
@@ -227,11 +236,14 @@ def check_kentix_devices_motion(item, params, parsed):
         else:
             periods = [((0, 0), (24, 0))]
 
+        zone = ""
+        if parsed['sensors'][item]['zone'] in parsed['zones']:
+            zone = " in zone %s" % parsed['zones'][parsed['sensors'][item]['zone']]['name']
         if motionValue >= motionMax:
             state = test_in_period((today.tm_hour, today.tm_min), periods) and 1 or 0
-            return status, 'Motion detected in zone %s' % parsed['zones'][parsed['sensors'][item]['zone']]['name'], [('motion', motionValue, motionMax, None, 0, 100)]
+            return status, 'Motion detected%s' % zone, [('motion', motionValue, motionMax, None, 0, 100)]
         else:
-            return 0, "No motion in zone %s detected" % parsed['zones'][parsed['sensors'][item]['zone']]['name'], [('motion', motionValue, motionMax, None, 0, 100)]
+            return 0, "No motion%s detected" % zone, [('motion', motionValue, motionMax, None, 0, 100)]
 
 check_info['kentix_devices.motion'] = {
     'inventory_function'        : lambda parsed: inventory_kentix_devices(parsed, {}, ['101', '102'], 'motion'),
@@ -261,7 +273,10 @@ def check_kentix_devices_vibration(item, params, parsed):
         state = 0
         if vibrationValue > vibrationMax:
             state = 2
-        return state, "%d in zone %s" % (vibrationValue, parsed['zones'][parsed['sensors'][item]['zone']]['name']), [ ( 'vibration', vibrationValue, 0, vibrationMax ) ]
+        zone = ""
+        if parsed['sensors'][item]['zone'] in parsed['zones']:
+            zone = " in zone %s" % parsed['zones'][parsed['sensors'][item]['zone']]['name']
+        return state, "%d%s" % (vibrationValue, zone), [ ( 'vibration', vibrationValue, 0, vibrationMax ) ]
 
 check_info['kentix_devices.vibration'] = {
     'inventory_function'        : lambda parsed: inventory_kentix_devices(parsed, {}, ['101', '102'], 'vibration'),
