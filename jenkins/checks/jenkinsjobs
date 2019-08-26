@@ -53,6 +53,12 @@ def check_jenkinsjobs(_no_item, _no_params, data):
         yield 0, "completed at %s" % time.strftime('%Y-%m-%d %H:%M:%S', time.localtime((lastCompletedBuild['timestamp']+lastCompletedBuild['duration'])/1000.0))
         if lastCompletedBuild.get('result') != u'SUCCESS':
             yield 2, lastCompletedBuild.get('result')
+        art = lastCompletedBuild.get('artifacts', {})
+        checkmkart = art.get('checkmk.txt', {})
+        for error in checkmkart.get('error', []):
+            yield 2, error
+        for metric, value in checkmkart.get('perfdata', {}).iteritems():
+            yield 0, None, [(metric, value)]
     else:
         yield 1, "no completed build"
 
