@@ -75,8 +75,9 @@ class JenkinsAPI(requests.Session):
                             hosts[host][job['name']] = job
                             if u'jobs' in job[u'data']:
                                 for subjob in job[u'data'][u'jobs']:
-                                    subjob[u'data'] = self.get_job_data(subjob['url'])
-                                    hosts[host]["%s/%s" % (job['name'], subjob['name'])] = subjob
+                                    sj = subjob.copy()
+                                    sj[u'data'] = self.get_job_data(subjob['url'])
+                                    hosts[host]["%s/%s" % (job['name'], subjob['name'])] = sj
         return hosts
 
 if __name__ == '__main__':

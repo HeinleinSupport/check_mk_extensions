@@ -24,18 +24,23 @@ def parse_jenkinsjobs(info):
 
 def inventory_jenkinsjobs(parsed):
     for name, job in parsed.iteritems():
-        yield name, {}
+        if job['data'].get('buildable', False):
+            yield name, {}
 
 @get_parsed_item_data
 def check_jenkinsjobs(_no_item, _no_params, data):
-    import cmk.debug
-
     job = data['data']
 
     yield 0, job['description']
 
-    lastUnsuccessfulBuild = job.get('lastUnsuccessfulBuild', {'number': 0}).get('number', 0)
-    lastStableBuild = job.get('lastStableBuild', {'number': 0}).get('number', 0)
+    lastUnsuccessfulBuild = job.get('lastUnsuccessfulBuild', {'number': 0})
+    if not lastUnsuccessfulBuild:
+        lastUnsuccessfulBuild = {'number': 0}
+    lastUnsuccessfulBuild = lastUnsuccessfulBuild.get('number', 0)
+    lastStableBuild = job.get('lastStableBuild', {'number': 0})
+    if not lastStableBuild:
+        lastStableBuild = {'number': 0}
+    lastStableBuild = lastStableBuild.get('number', 0)
     numFailedBuilds = 0
     if lastUnsuccessfulBuild > 0:
         numFailedBuilds = lastUnsuccessfulBuild - lastStableBuild
