@@ -31,7 +31,7 @@ def inventory_jenkinsjobs(parsed):
 def check_jenkinsjobs(_no_item, _no_params, data):
     job = data['data']
 
-    yield 0, job['description']
+    yield 0, job['displayName']
 
     lastUnsuccessfulBuild = job.get('lastUnsuccessfulBuild', {'number': 0})
     if not lastUnsuccessfulBuild:
