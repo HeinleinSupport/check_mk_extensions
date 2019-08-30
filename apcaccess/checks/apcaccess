@@ -39,45 +39,63 @@ def inventory_apcaccess(parsed):
 def check_apcaccess(item, params, parsed):
     if item in parsed:
         data = parsed[item]
-        perfdata = []
+        yield 0, ", ".join([data.get('UPSNAME'), data.get('MODEL'), data.get('SERIALNO'), data.get('FIRMWARE')])
         metrics = { 'voltage': ('OUTPUTV', 'Output Voltage'),
                     'output_load': ('LOADPCT', 'Output Load'),
                     'battery_capacity': ('BCHARGE', 'Battery Capacity'),
                     'timeleft': ('TIMELEFT', 'Time Left') }
+        human_readable = {'voltage': lambda x: "%0.0fV" % x,
+                          'output_load': get_percent_human_readable,
+                          'battery_capacity': get_percent_human_readable,
+                          'timeleft': get_age_human_readable }
         factors = { 'timeleft': 60.0 }
-        status = {}
         for metric, (key, text) in metrics.iteritems():
             if key in data:
-                status[metric] = 0
-                data[metric] = savefloat(data.get(key).split(' ')[0]) * factors.get(metric, 1.0)
+                value = savefloat(data.get(key).split(' ')[0]) * factors.get(metric, 1.0)
                 if metric in params:
                     if len(params[metric]) == 2:
                         warn, crit = map(lambda x: x * factors.get(metric, 1.0), params[metric])
+                        msg = "%s: %s (%s, %s)" % (text,
+                                                   human_readable[metric](value),
+                                                   human_readable[metric](warn),
+                                                   human_readable[metric](crit))
+                        perfdata = [(metric, value, warn, crit)]
                         if warn < crit:
-                            if data[metric] > crit:
-                                status[metric] = 2
-                            elif data[metric] > warn:
-                                status[metric] = 1
+                            if value > crit:
+                                yield 2, msg, perfdata
+                            elif value > warn:
+                                yield 1, msg, perfdata
+                            else:
+                                yield 0, msg, perfdata
                         else:
-                            if data[metric] < crit:
-                                status[metric] = 2
-                            elif data[metric] < warn:
-                                status[metric] = 1
+                            if value < crit:
+                                yield 2, msg, perfdata
+                            elif value < warn:
+                                yield 1, msg, perfdata
+                            else:
+                                yield 0, msg, perfdata
                     elif len(params[metric]) == 4:
                         low_warn, low_crit, warn, crit = map(lambda x: x * factors.get(metric, 1.0), params[metric])
-                        if data[metric] < low_crit or data[metric] > crit:
-                            status[metric] = 2
-                        elif data[metric] < low_warn or data[metric] > warn:
-                            status[metric] = 1
-                    perfdata.append((metric, data[metric], warn, crit))
+                        msg = "%s: %s (lower: %s, %s; upper: %s, %s)" % (text,
+                                                                         human_readable[metric](value),
+                                                                         human_readable[metric](low_crit),
+                                                                         human_readable[metric](low_warn),
+                                                                         human_readable[metric](warn),
+                                                                         human_readable[metric](crit))
+                        if value < low_crit:
+                            yield 2, msg, [(metric, value, low_warn, low_crit)]
+                        elif value > crit:
+                            yield 2, msg, [(metric, value, warn, crit)]
+                        elif value < low_warn:
+                            yield 1, msg, [(metric, value, low_warn, low_crit)]
+                        elif value > warn:
+                            yield 1, msg, [(metric, value, warn, crit)]
+                        else:
+                            yield 0, msg, [(metric, value, warn, crit)]
                 else:
-                    perfdata.append((metric, data[metric]))
-        yield 0, ", ".join([data.get('UPSNAME'), data.get('MODEL'), data.get('SERIALNO'), data.get('FIRMWARE')]), perfdata
+                    yield 0, "%s: %s" % (text, human_readable[metric](value)), [(metric, value)]
         if data.get('STATUS') != 'ONLINE' and data.get('SELFTEST') == 'NO':
             yield 2, 'Status is ' + data.get('STATUS')
-        for metric, s in status.iteritems():
-            if s > 0:
-                yield s, '%s is outside limits' % metrics[metric][1]
 
 check_info["apcaccess"] = {
     "parse_function"          : parse_apcaccess,
