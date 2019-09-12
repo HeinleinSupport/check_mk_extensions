@@ -21,9 +21,6 @@
 #
 
 def inventory_huawei_logicalport(info):
-    import cmk.utils.debug
-    if cmk.utils.debug.enabled():
-        pprint.pprint(info)
     for line in info:
         yield ("%s %s" % (line[1], line[0]), { 'runningStatus': line[2] })
 
