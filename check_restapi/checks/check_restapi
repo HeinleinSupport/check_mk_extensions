@@ -1,0 +1,111 @@
+#!/usr/bin/python
+# -*- encoding: utf-8; py-indent-offset: 4 -*-
+
+#
+# (c) 2019 Heinlein Support GmbH
+#          Robert Sander <r.sander@heinlein-support.de>
+#
+
+# This is free software;  you can redistribute it and/or modify it
+# under the  terms of the  GNU General Public License  as published by
+# the Free Software Foundation in version 2.  check_mk is  distributed
+# in the hope that it will be useful, but WITHOUT ANY WARRANTY;  with-
+# out even the implied warranty of  MERCHANTABILITY  or  FITNESS FOR A
+# PARTICULAR PURPOSE. See the  GNU General Public License for more de-
+# tails. You should have  received  a copy of the  GNU  General Public
+# License along with GNU Make; see the file  COPYING.  If  not,  write
+# to the Free Software Foundation, Inc., 51 Franklin St,  Fifth Floor,
+# Boston, MA 02110-1301 USA.
+
+
+def _restapi_get_family_and_address(settings):
+    # Use the address family of the monitored host by default
+    family = settings.get("address_family")
+    if family is None:
+        family = "ipv6" if is_ipv6_primary(host_name()) else "ipv4"
+
+    if family == "ipv6":
+        address = "$_HOSTADDRESS_6$"
+    else:
+        address = "$_HOSTADDRESS_4$"
+
+    return family, address
+
+
+def _restapi_url_args(address_family, address, settings):
+    args = []
+
+    if "method" in settings:
+        args += ['-j', settings["method"]]
+
+    vhost, omit_ip = settings.get("virthost", (False, False))
+
+    if not omit_ip:
+        args += ["-I", address]
+
+    if vhost:
+        args += ["-H", vhost]
+
+    if "port" in settings:
+        args += ['-p', settings["port"]]
+
+    ssl = settings.get("ssl")
+    if ssl:
+        args += ['--ssl', '--sni']
+
+    if address_family == 'ipv6':
+        args += ['-6']
+
+    if "uri" in settings:
+        args += ['-u', settings["uri"]]
+
+    if "auth" in settings:
+        username, password = settings["auth"]
+        if type(password) == tuple:
+            args += ["-a", passwordstore_get_cmdline("%s:%%s" % username, password)]
+        else:
+            args += ['-k', passwordstore_get_cmdline("Authorization: Bearer %s", settings["auth"])]
+
+    for headername, headervalue in settings.get("header", []):
+        args += ['-k', '%s: %s' % (headername, headervalue)]
+
+    if "expect_response_header" in settings:
+        args += ['-d', settings["expect_response_header"]]
+
+    if "expect_regex" in settings:
+        if len(settings['expect_regex']) >= 4 and settings['expect_regex'][3]:
+            args += ['-l']
+        if settings['expect_regex'][1]:
+            args += ['-R']
+        else:
+            args += ['-r']
+        args += [settings['expect_regex'][0]]
+        if settings['expect_regex'][2]:
+            args += ['--invert-regex']
+    return args
+
+
+def check_restapi_arguments(params):
+    args = []
+
+    address_family, address = _restapi_get_family_and_address(params)
+
+    args += _restapi_url_args(address_family, address, params)
+
+    return args
+
+
+def check_restapi_description(params):
+    description = params['name']
+
+    if description.startswith("^"):
+        return description[1:]
+
+    return "REST API %s" % description
+
+active_check_info['restapi'] = {
+    "command_line": '$USER1$/check_http $ARG1$',
+    "argument_function": check_restapi_arguments,
+    "service_description": check_restapi_description,
+    "has_perfdata": True,
+}

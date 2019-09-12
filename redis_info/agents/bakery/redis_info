@@ -23,10 +23,15 @@ def bake_redis_info(opsys, conf, conf_dir, plugins_dir):
     if type(conf) == str and conf == '_no_deploy':
         res = False
     elif type(conf) == tuple:
+        f = file(conf_dir + "/redis_info.cfg", "w")
+        f.write(agent_file_header)
         if conf[0] == "static":
-            f = file(conf_dir + "/redis_info.cfg", "w")
-            f.write(agent_file_header)
-            f.write("instances = %r\n" % conf[1])
+            f.write("instances = %r\n" % conf[1][0])
+            f.write("password = %r\n" % conf[1][1])
+        if conf[0] == "autodetect":
+            if conf[1]:
+                f.write("password = %r\n" % conf[1])
+        f.close()
     if res:
         shutil.copy2(cmk.paths.local_agents_dir + "/plugins/redis_info", plugins_dir + "/redis_info")
 

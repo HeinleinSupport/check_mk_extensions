@@ -28,19 +28,19 @@ def check_huawei_disk(item, params, info):
     for line in info:
         if line[0] == item:
             res = 0
-            msg = "%s %s %s %s %s" % (get_bytes_human_readable(saveint(line[4])*1024*1024), huawei_disk_types[line[3]], line[11], line[9], line[12])
+            msg = "%s %s %s %s %s" % (get_bytes_human_readable(saveint(line[4])*1024*1024), huawei_disk_types.get(line[3], 'unknown'), line[11], line[9], line[12])
             if line[12] != params['serial']:
                 res = 1
                 msg += '(!)'
             msg += " %s" % line[10]
-            msg += "; health %s" % huawei_health_states[line[1]]
+            msg += "; health %s" % huawei_health_states.get(line[1], 'unknown')
             if line[1] in [ '3', '6', '8', '12']:
                 res = 1
                 msg += '(!)'
             elif line[1] != '1':
                 res = 2
                 msg += '(!!)'
-            msg += '; %s' % huawei_running_states[line[2]]
+            msg += '; %s' % huawei_running_states.get(line[2], 'unknown')
             if line[2] != params['runningStatus']:
                 res = 2
                 msg += ', changed from %s(!!)' % huawei_running_states[params['runningStatus']]

@@ -28,17 +28,22 @@ from subprocess import call
 
 # sample configuration:
 # instances = [
-#  ("localhost", 11211),
-#  ("localhost", 11212)
+#  ("localhost", 11211, "password"),
+#  ("localhost", 11212, None)
 # ]
+# password = "password"
 
 config_file=os.path.join(os.environ.get("MK_CONFDIR", "/etc/check_mk"), "redis_info.cfg")
 
 # None or list of (ipaddress, port) tuples.
 instances = None
+password = None
 
 if os.path.exists(config_file):
     execfile(config_file)
+
+if password:
+    os.environ['REDISCLI_AUTH'] = password
 
 def try_detect_servers():
     pids    = []
@@ -77,7 +82,7 @@ def try_detect_servers():
         elif address == '::':
             address = '::1'
 
-        results.append((address, port))
+        results.append((address, port, None))
 
     return results
 
@@ -90,15 +95,22 @@ if not instances:
 print '<<<redis_info>>>'
 for server in instances:
     if isinstance(server, tuple):
-        address, port = server
+        address, port, serverpw = server
     else:
         address = server['address']
         port = server['port']
+        serverpw = password
     if not port:
         port = 6379
     print '+++ %s:%s +++' % (address, port)
     try:
         sys.stdout.flush()
+        if 'REDISCLI_AUTH' in os.environ:
+            del(os.environ['REDISCLI_AUTH'])
+        if serverpw:
+            os.environ['REDISCLI_AUTH'] = serverpw
+        elif password:
+            os.environ['REDISCLI_AUTH'] = password
         call(["waitmax", "2", "redis-cli", "-h", address, "-p", str(port), "info"])
     except Exception, e:
         sys.stderr.write('Exception (%s:%s): %s\n' % (address, port, e))

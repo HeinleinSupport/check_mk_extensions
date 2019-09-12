@@ -101,13 +101,13 @@ def check_huawei_port(item, params, parsed):
                 if res == 0:
                     res = 1
                 msg += ', has changed from %s(!)' % huawei_port_rates[params['configRate']]
-            msg += '; speed: %s' % huawei_port_rates[portinfo[14]]
+            msg += '; speed: %s' % huawei_port_rates.get(portinfo[14], 'unknown')
             if portinfo[14] != params['speedRate']:
                 if res == 0:
                     res = 1
                 msg += ', has changed from %s(!)' % huawei_port_rates[params['speedRate']]
             if portinfo[0] == 'FC':
-                msg += '; port mode: %s' % huawei_port_modes[portinfo[16]]
+                msg += '; port mode: %s' % huawei_port_modes.get(portinfo[16], 'unknown')
                 if portinfo[16] != params['mode']:
                     res = 2
                     msg += ', has changed from %s(!!)' % huawei_port_modes[params['mode']]
@@ -122,7 +122,7 @@ def check_huawei_port(item, params, parsed):
                 msg += '(!!)'
             if portinfo[9] != '':
                 msg += ' %s' % portinfo[9]
-        msg += '; state is %s' % huawei_port_states[portinfo[11]]
+        msg += '; state is %s' % huawei_port_states.get(portinfo[11], 'unknown')
         if portinfo[11] == '2':
             res = 2
             msg += '(!!)'

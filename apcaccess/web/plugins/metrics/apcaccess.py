@@ -6,3 +6,15 @@ metric_info["timeleft"] = {
     "unit"  : "s",
     "color" : "#80f000",
 }
+
+graph_info["battery_capacity"] = {
+    "metrics" : [
+        ( "battery_capacity", "area" ),
+    ],
+    "scalars" : [
+        ( "battery_capacity:crit",     _("Critical")),
+        ( "battery_capacity:warn",     _("Warning")),
+    ],
+    "range" : (0,100),
+}
+

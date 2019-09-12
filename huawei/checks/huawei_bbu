@@ -40,11 +40,11 @@ def check_huawei_bbu(item, params, info):
                 res = 1
                 msg = 'unable to get delivery date from %s(!)' % line[3]
                 perfdata = []
-            msg += '; health %s' % huawei_health_states[line[1]]
+            msg += '; health %s' % huawei_health_states.get(line[1], 'unknown')
             if line[1] != '1':
                 res = 2
                 msg += '(!!)'
-            msg += '; state %s' % huawei_running_states[line[2]]
+            msg += '; state %s' % huawei_running_states.get(line[2], 'unknown')
             if line[2] != params['runningStatus']:
                 res = 2
                 msg += ', changed from %s(!!)' % huawei_running_states[params['runningStatus']]                
