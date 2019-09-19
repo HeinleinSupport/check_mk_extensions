@@ -9,7 +9,7 @@ def bake_mh_hpsa(opsys, conf, conf_dir, plugins_dir):
             if not os.path.exists(target_dir):
                 os.makedirs(target_dir)
 
-        shutil.copy2(cmk.paths.local_agents_dir + "/plugins/mh_hpsa", target_dir + "/mh_hpsa")
+        shutil.copy2(cmk.utils.paths.local_agents_dir + "/plugins/mh_hpsa", target_dir + "/mh_hpsa")
 
 bakery_info["mh_hpsa"] = {
     "bake_function" : bake_mh_hpsa,
