@@ -17,6 +17,9 @@
 # to the Free Software Foundation, Inc., 51 Franklin St,  Fifth Floor,
 # Boston, MA 02110-1301 USA.
 
+from cmk.gui.plugins.wato.active_checks import _ip_address_family_element
+from cmk.gui.plugins.wato.utils import IndividualOrStoredPassword
+
 register_rule("activechecks",
               "active_checks:restapi",
               Dictionary(
@@ -72,7 +75,7 @@ register_rule("activechecks",
                           label = _('Use SSL and SNI'),
                           default_value = True,
                           )),
-                      ip_address_family_element,
+                      _ip_address_family_element(),
                       ('uri', TextAscii(
                           title = _("URI to fetch (default is <tt>/</tt>)"),
                           allow_empty = False,
