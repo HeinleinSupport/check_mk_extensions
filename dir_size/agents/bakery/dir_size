@@ -18,7 +18,7 @@
 # Boston, MA 02110-1301 USA.
 
 def bake_dir_size(opsys, conf, conf_dir, plugins_dir):
-    shutil.copy2(cmk.paths.local_agents_dir + "/plugins/dir_size", plugins_dir + "/dir_size")
+    shutil.copy2(cmk.utils.paths.local_agents_dir + "/plugins/dir_size", plugins_dir + "/dir_size")
     f = file(conf_dir + "/dir_size.cfg", "w")
     f.write(agent_file_header)
 
