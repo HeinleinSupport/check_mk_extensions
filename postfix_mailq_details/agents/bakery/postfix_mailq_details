@@ -2,7 +2,7 @@
 # -*- encoding: utf-8; py-indent-offset: 4 -*-
 
 def bake_postfix_mailq_details(opsys, conf, conf_dir, plugins_dir):
-    shutil.copy2(cmk.paths.local_agents_dir + "/plugins/postfix_mailq_details", plugins_dir + "/postfix_mailq_details")
+    shutil.copy2(cmk.utils.paths.local_agents_dir + "/plugins/postfix_mailq_details", plugins_dir + "/postfix_mailq_details")
 
     f = file(conf_dir + "/postfix_mailq_details", "w")
     f.write(agent_file_header)
