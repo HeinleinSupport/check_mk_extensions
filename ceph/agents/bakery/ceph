@@ -6,7 +6,7 @@ def bake_ceph(opsys, conf, conf_dir, plugins_dir):
         target_dir = plugins_dir + "/30"
         if not os.path.exists(target_dir):
             os.makedirs(target_dir)
-        shutil.copy2(cmk.paths.local_agents_dir + "/plugins/ceph", target_dir + "/ceph")
+        shutil.copy2(cmk.utils.paths.local_agents_dir + "/plugins/ceph", target_dir + "/ceph")
 
 bakery_info["ceph"] = {
     "bake_function" : bake_ceph,
