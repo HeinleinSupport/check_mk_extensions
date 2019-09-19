@@ -3,9 +3,9 @@
 
 def bake_apcaccess(opsys, conf, conf_dir, plugins_dir):
     if opsys == "linux":
-        shutil.copy2(cmk.paths.local_agents_dir + "/plugins/apcaccess", plugins_dir + "/apcaccess")
+        shutil.copy2(cmk.utils.paths.local_agents_dir + "/plugins/apcaccess", plugins_dir + "/apcaccess")
     elif opsys == "windows":
-        shutil.copy2(cmk.paths.local_agents_dir + "/windows/plugins/apcaccess.bat", plugins_dir + "/apcaccess.bat")
+        shutil.copy2(cmk.utils.paths.local_agents_dir + "/windows/plugins/apcaccess.bat", plugins_dir + "/apcaccess.bat")
 
 bakery_info["apcaccess"] = {
     "bake_function" : bake_apcaccess,
