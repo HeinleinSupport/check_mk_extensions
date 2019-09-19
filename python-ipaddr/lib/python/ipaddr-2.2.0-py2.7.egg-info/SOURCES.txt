@@ -1,5 +1,6 @@
 README
 ipaddr.py
+setup.py
 ipaddr.egg-info/PKG-INFO
 ipaddr.egg-info/SOURCES.txt
 ipaddr.egg-info/dependency_links.txt
