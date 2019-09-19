@@ -2,7 +2,7 @@
 # -*- encoding: utf-8; py-indent-offset: 4 -*-
 
 def bake_ox_filestore(opsys, conf, conf_dir, plugins_dir):
-    shutil.copy2(cmk.paths.local_agents_dir + "/plugins/ox_filestore", plugins_dir + "/ox_filestore")
+    shutil.copy2(cmk.utils.paths.local_agents_dir + "/plugins/ox_filestore", plugins_dir + "/ox_filestore")
     if conf and 'username' in conf[0] and 'password' in conf[0]:
         f = file(conf_dir + "/ox_filestore", "w")
         f.write(agent_file_header)
