@@ -2,7 +2,7 @@
 # -*- encoding: utf-8; py-indent-offset: 4 -*-
 
 def bake_puppet(opsys, conf, conf_dir, plugins_dir):
-    shutil.copy2(cmk.paths.local_agents_dir + "/plugins/linux/mk_puppet", plugins_dir + "/mk_puppet")
+    shutil.copy2(cmk.utils.paths.local_agents_dir + "/plugins/linux/mk_puppet", plugins_dir + "/mk_puppet")
 
 bakery_info["puppet"] = {
     "bake_function" : bake_puppet,
