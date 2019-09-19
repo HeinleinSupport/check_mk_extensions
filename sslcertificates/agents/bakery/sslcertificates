@@ -3,7 +3,7 @@
 
 def bake_sslcertificates(opsys, conf, conf_dir, plugins_dir):
     if opsys == "linux":
-        shutil.copy2(cmk.paths.local_agents_dir + "/plugins/sslcertificates", plugins_dir + "/sslcertificates")
+        shutil.copy2(cmk.utils.paths.local_agents_dir + "/plugins/sslcertificates", plugins_dir + "/sslcertificates")
         f = file(conf_dir + "/sslcertificates", "w")
         f.write(agent_file_header)
 
@@ -17,7 +17,7 @@ def bake_sslcertificates(opsys, conf, conf_dir, plugins_dir):
         if dirs:
             f.write("CERT_DIRS=\"%s\"\n" % " ".join(dirs))
     elif opsys == "windows":
-        shutil.copy2(cmk.paths.local_agents_dir + "/windows/plugins/sslcertificates.ps1", plugins_dir + "/sslcertificates.ps1")
+        shutil.copy2(cmk.utils.paths.local_agents_dir + "/windows/plugins/sslcertificates.ps1", plugins_dir + "/sslcertificates.ps1")
 
 bakery_info["sslcertificates"] = {
     "bake_function" : bake_sslcertificates,
