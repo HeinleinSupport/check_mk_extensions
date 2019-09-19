@@ -8,7 +8,7 @@ def bake_lsbrelease(opsys, conf, conf_dir, plugins_dir):
             os.makedirs(target_dir)
     else:
         target_dir = plugins_dir
-    shutil.copy2(cmk.paths.local_agents_dir + "/plugins/lsbrelease", target_dir + "/lsbrelease")
+    shutil.copy2(cmk.utils.paths.local_agents_dir + "/plugins/lsbrelease", target_dir + "/lsbrelease")
 
 bakery_info["lsbrelease"] = {
     "bake_function" : bake_lsbrelease,
