@@ -17,6 +17,8 @@
 # to the Free Software Foundation, Inc., 51 Franklin St,  Fifth Floor,
 # Boston, MA 02110-1301 USA.
 
+from cmk.gui.plugins.metrics.check_mk import df_translation
+
 check_metrics["check_mk-huawei_capacity"] = df_translation
 check_metrics["check_mk-huawei_nasfs"]    = df_translation
 
