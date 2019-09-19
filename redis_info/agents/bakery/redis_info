@@ -33,7 +33,7 @@ def bake_redis_info(opsys, conf, conf_dir, plugins_dir):
                 f.write("password = %r\n" % conf[1])
         f.close()
     if res:
-        shutil.copy2(cmk.paths.local_agents_dir + "/plugins/redis_info", plugins_dir + "/redis_info")
+        shutil.copy2(cmk.utils.paths.local_agents_dir + "/plugins/redis_info", plugins_dir + "/redis_info")
 
 bakery_info["redis_info"] = {
     "bake_function": bake_redis_info,
