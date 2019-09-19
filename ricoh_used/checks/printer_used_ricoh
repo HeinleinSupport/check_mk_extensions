@@ -22,10 +22,6 @@ _ricoh_used = {
     }
 
 def inventory_printer_used_ricoh(info):
-    import cmk.debug
-    if cmk.debug.enabled():
-        pprint.pprint(info)
-    
     counter = [
         u'Counter: Machine Total',
         u'Counter: Black & White',
