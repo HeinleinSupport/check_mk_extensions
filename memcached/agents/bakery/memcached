@@ -11,7 +11,7 @@ def bake_memcached(opsys, conf, conf_dir, plugins_dir):
             f.write(agent_file_header)
             f.write("instances = %r\n" % conf[1])
     if res:
-        shutil.copy2(cmk.paths.local_agents_dir + "/plugins/mk_memcached", plugins_dir + "/mk_memcached")
+        shutil.copy2(cmk.utils.paths.local_agents_dir + "/plugins/mk_memcached", plugins_dir + "/mk_memcached")
 
 
 bakery_info["memcached"] = {
