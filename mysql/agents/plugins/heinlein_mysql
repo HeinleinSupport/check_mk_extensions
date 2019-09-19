@@ -25,56 +25,39 @@
 
 # gets optional socket as argument
 function do_query() {
-  INSTANCE=$(echo $1|awk -v FS="=" '{print $2}')
-  COUNT=$(ps -efww | grep [/]usr/sbin/mysqld | grep socket | wc -l)
-  if [ $COUNT -gt 1 ]
-  then
-      INSTANCE_NAME=$(ps -efww|grep socket|grep "${INSTANCE}"|grep "[u]ser" | sed -ne 's/.*socket=\([^.]*\).*/\1/p')
-      INSTANCE_NAME="[[${INSTANCE_NAME##*/}]]"
-  else
-      INSTANCE_NAME="[[$(ps -efww|grep socket|grep "${INSTANCE}"|grep "[u]ser" | sed -ne 's/.*user=\([^ ]*\).*/\1/p')]]"
-  fi
 
-
+  # we use the sockets full name as instance name:
+  INSTANCE_HEADER="[[$1]]"
 
   # Check if mysqld is running and root password setup
   echo "<<<mysql_ping>>>"
-  echo $INSTANCE_NAME
-  mysqladmin --defaults-extra-file=$MK_CONFDIR/mysql.cfg $1 ping 2>&1
+  echo "$INSTANCE_HEADER"
+  mysqladmin --defaults-extra-file="$MK_CONFDIR"/mysql.cfg ${1:+--socket="$1"} ping 2>&1 || return
 
-  if [ $? -eq 0 ]; then
-
-    echo "<<<mysql>>>"
-    echo $INSTANCE_NAME
-    mysql --defaults-extra-file=$MK_CONFDIR/mysql.cfg $1 -sN \
+  echo "<<<mysql>>>"
+  echo "$INSTANCE_HEADER"
+  mysql --defaults-extra-file="$MK_CONFDIR"/mysql.cfg ${1:+--socket="$1"} -sN \
      -e "show global status ; show global variables ;"
 
-    echo "<<<mysql_slave>>>"
-    echo $INSTANCE_NAME
-    mysql --defaults-extra-file=$MK_CONFDIR/mysql.cfg $1 -s \
+  echo "<<<mysql_slave>>>"
+  echo "$INSTANCE_HEADER"
+  mysql --defaults-extra-file="$MK_CONFDIR"/mysql.cfg ${1:+--socket="$1"} -s \
      -e "show slave status\G"
-
-  fi
 
 }
 
-if which mysqladmin >/dev/null
+if type mysqladmin >/dev/null
 then
-  mysql_sockets=$(fgrep socket $MK_CONFDIR/mysql.cfg|sed -ne 's/.*socket=\([^ ]*\).*/\1/p')
+  mysql_sockets=$(fgrep -h socket "$MK_CONFDIR"/mysql{.local,}.cfg | sed -ne 's/.*socket=\([^ ]*\).*/\1/p')
   if [ -z "$mysql_sockets" ] ; then
-    mysql_sockets=$(ps -efww | grep mysqld | grep "[s]ocket" | sed -ne 's/.*socket=\([^ ]*\).*/\1/p')
+    mysql_sockets=$(ps -fww -C mysqld | grep "socket" | sed -ne 's/.*socket=\([^ ]*\).*/\1/p')
   fi
   if [ -z "$mysql_sockets" ] ; then
     do_query ""
   else
     for socket in $mysql_sockets ; do
-      do_query "--socket="$socket
+      do_query "$socket"
     done
   fi
-  echo "<<<mysql_version>>>"
-  mysql -V
-
-  echo "<<<mysql_port>>>"
-  ps -efww|grep mysqld|while read LINE; do echo $LINE|grep "[u]ser" | sed -ne 's/.*user=\([^ ]*\).*/\1/p'; echo $LINE|grep mysqld | grep "[p]ort"|sed -ne 's/.*port=\([^ ]*\).*/\1/p' ; done|xargs -n2
 
 fi
