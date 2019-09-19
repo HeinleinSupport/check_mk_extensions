@@ -3,7 +3,7 @@
 
 def bake_ox_runtimestats(opsys, conf, conf_dir, plugins_dir):
     if conf:
-        shutil.copy2(cmk.paths.local_agents_dir + "/plugins/ox_runtimestats", plugins_dir + "/ox_runtimestats")
+        shutil.copy2(cmk.utils.paths.local_agents_dir + "/plugins/ox_runtimestats", plugins_dir + "/ox_runtimestats")
 
 bakery_info["ox_runtimestats"] = {
     "bake_function" : bake_ox_runtimestats,
