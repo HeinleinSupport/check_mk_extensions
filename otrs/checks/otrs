@@ -30,7 +30,7 @@ def otrs_data(info):
         otrs[line[0]][saveint(line[1])] = {'total': saveint(line[2]), 'state': " ".join(line[3:])}
     return otrs
 
-def inventory_otrs(checkname, info):
+def inventory_otrs(info):
     inventory = []
     otrs = otrs_data(info)
     for queue in otrs.keys():

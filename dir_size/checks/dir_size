@@ -40,7 +40,7 @@ factory_settings['dir_size_default_levels'] = {
     'crit': 0,
     }
 
-def inventory_dir_size(checkname,info):
+def inventory_dir_size(info):
     inventory = []
     for size, path in info:
         inventory.append((path,None))

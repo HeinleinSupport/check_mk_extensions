@@ -23,7 +23,7 @@ factory_settings['sslcertificates_default_levels'] = {
 def sslcertificates_name(line):
     return line[0]
 
-def inventory_sslcertificates(checkname, info):
+def inventory_sslcertificates(info):
     for line in info:
         yield sslcertificates_name(line), {}
 

@@ -20,7 +20,7 @@ factory_settings["entropy_avail_default_levels"] = {
     "absolute" : (200, 100),
 }
 
-def inventory_entropy_avail(checkname, info):
+def inventory_entropy_avail(info):
     inventory = []
     if len(info) > 0:
         inventory.append( ( None, {} ) )

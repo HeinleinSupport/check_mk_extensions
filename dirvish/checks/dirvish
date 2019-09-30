@@ -18,7 +18,7 @@
 def item_name(line):
 	return line[0] + "_" + line[1] + "_" + line[2]
 
-def inventory_dirvish(checkname, info):
+def inventory_dirvish(info):
 	inventory = []
 	for line in info:
 		inventory.append( ( item_name(line), "", None ) )

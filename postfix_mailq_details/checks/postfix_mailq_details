@@ -20,7 +20,7 @@ postfix_mailq_details_default_values = ( 1000, 1500 )
 def postfix_mailq_details_name(line):
     return line[0] + "_" + line[1]
 
-def inventory_postfix_mailq_details(checkname, info):
+def inventory_postfix_mailq_details(info):
     inventory = []
     for line in info:
         inventory.append( ( postfix_mailq_details_name(line), "postfix_mailq_details_default_values" ) )

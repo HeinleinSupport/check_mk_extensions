@@ -20,7 +20,7 @@ mailman_queues_default_values = ( 5000, 10000 )
 def mailman_queues_name(line):
     return line[0]
 
-def inventory_mailman_queues(checkname, info):
+def inventory_mailman_queues(info):
     inventory = []
     for line in info:
         inventory.append( ( mailman_queues_name(line), "mailman_queues_default_values" ) )

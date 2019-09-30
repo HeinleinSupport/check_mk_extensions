@@ -20,7 +20,7 @@ postconf_default_values = [ ( 'soft_bounce', 'no' ) ]
 def postconf_name(line):
     return line[0]
 
-def inventory_postconf(checkname, info):
+def inventory_postconf(info):
     inventory = []
     if len(info) > 0:
         inventory = [ ( None, None ) ]

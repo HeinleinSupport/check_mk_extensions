@@ -26,7 +26,7 @@
 # Total number of known users   38993
 # Current users 3177
 
-def inventory_dovereplstat(checkname, info):
+def inventory_dovereplstat(info):
     if len(info) > 1:
         return [(None, None)]
 

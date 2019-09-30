@@ -106,7 +106,7 @@ ox_counters = [
     'com.openexchange.threadpool:name=ThreadPoolInformation,CompletedTaskCount'
     ]
 
-def inventory_ox_attributes(checkname, info):
+def inventory_ox_attributes(info):
     for line in info:
         line = ' '.join(line).split(' = ')
         if line[0] in ox_attributes:
