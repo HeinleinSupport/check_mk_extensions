@@ -16,25 +16,15 @@
 # Boston, MA 02110-1301 USA.
 
 def inventory_xe_cpu_util(info):
-    import cmk.debug
-    if cmk.debug.enabled():
-        pprint.pprint(info)
     if len(info) > 0:
         yield None, {}
 
 def check_xe_cpu_util(_no_item, params, info):
-    import cmk.debug
-    if cmk.debug.enabled():
-        pprint.pprint(params)
-        pprint.pprint(info)
     cpus = {}
     for line in info:
         cpus[saveint(line[0])] = round(savefloat(line[2]) * 100.0, 1)
     if cpus:
         average = sum(cpus.values()) / len(cpus)
-        if cmk.debug.enabled():
-            pprint.pprint(cpus)
-            print average
         perfdata = [ ('cpu_util_guest', average) ]
         if 'util' in params:
             if type(params['util']) == tuple:
