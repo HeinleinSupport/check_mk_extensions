@@ -17,7 +17,7 @@
 
 def bake_filehandles(opsys, conf, conf_dir, plugins_dir):
     if conf:
-        shutil.copy2(cmk.paths.local_agents_dir + "/plugins/filehandles", plugins_dir + "/filehandles")
+        shutil.copy2(cmk.utils.paths.local_agents_dir + "/plugins/filehandles", plugins_dir + "/filehandles")
 
 bakery_info["filehandles"] = {
     "bake_function" : bake_filehandles,
