@@ -41,7 +41,7 @@ get_cert_info() {
 	    inform='PEM'
 	fi
 
-	cert_subject=$($OPENSSL x509 -inform $inform -noout -subject -in "$certfile" 2> /dev/null) || continue
+	cert_subject=$($OPENSSL x509 -inform $inform -noout -subject -in "$certfile" 2> /dev/null) || return
 	cert_subject=$(cut -d "=" -f 2- <<<"$cert_subject")
         if ! grep -q '@snakeoil.dom' <<<"$cert_subject"; then
             cert_enddate=$($OPENSSL x509 -inform $inform -noout -enddate -in "$certfile" | cut -d "=" -f 2 )
