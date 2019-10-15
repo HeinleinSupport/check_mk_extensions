@@ -84,8 +84,10 @@ if [ -e  /proc/driver/cciss -o  -e /sys/bus/cciss -o -e /sys/bus/pci/drivers/hps
         read -a ary <<< ${x[*]}
         if [[ "$RAID_CHECK_TOOL" = "hpacucli" ]]; then
           echo "${controllers[$c]}:${cary[1]} ${ary[16]} ${ary[10]} ${ary[13]} ${ary[14]}"
-        else
+        elif [[ "$RAID_CHECK_TOOL" = "hpssacli" ]]; then
           echo "${controllers[$c]}:${cary[1]} ${ary[22]} ${ary[10]} ${ary[13]} ${ary[14]}"
+        else
+          echo "${controllers[$c]}:${cary[1]} ${ary[24]} ${ary[10]} ${ary[15]} ${ary[16]}"
         fi
         arrays[$ac]=${cary[1]}
       fi
@@ -100,7 +102,7 @@ if [ -e  /proc/driver/cciss -o  -e /sys/bus/cciss -o -e /sys/bus/pci/drivers/hps
       CMD="$RAID_CHECK_TOOL controller slot=${controllers[$c]} array ${arrays[$a]} physicaldrive all show"
       while read -a pdrv; do
         if [ "X${pdrv[0]}X" = "XphysicaldriveX" ]; then
-          if [ "X${pdrv[7]}X" = "XHDD,X" ]; then
+          if [ "X${pdrv[7]}X" = "XHDD,X" ] || [ "X${pdrv[7]}X" = "XSSD,X" ]; then
             echo -n "${controllers[$c]}:${arrays[$a]}:${pdrv[1]} ${pdrv[10]/[),]/} ${pdrv[6]/,/} ${pdrv[8]} ${pdrv[9]/,/} "
             if [ ${pdrv[11]} ]; then
               echo ${pdrv[11]/)/}
