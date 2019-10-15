@@ -15,7 +15,7 @@
 # to the Free Software Foundation, Inc., 51 Franklin St,  Fifth Floor,
 # Boston, MA 02110-1301 USA.
 
-def inventory_hpsa_array(checkname, info):
+def inventory_hpsa_array(info):
     return [ ( line[0], None ) for line in info ]
 
 def check_hpsa_array(item, params, info):
