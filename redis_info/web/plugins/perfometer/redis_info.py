@@ -18,6 +18,7 @@
 
 
 def float_or_int(value):
+    from cmk.gui.utils import saveint, savefloat
     if isinstance(value, int):
         return saveint(value)
 
