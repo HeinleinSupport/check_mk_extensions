@@ -64,3 +64,5 @@ for dir in $CERT_DIRS; do
 	get_cert_info "$dir" 1
     fi
 done
+
+exit 0
