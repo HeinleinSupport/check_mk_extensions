@@ -3,24 +3,32 @@
 
 def bake_sslcertificates(opsys, conf, conf_dir, plugins_dir):
     if opsys == "linux":
-        shutil.copy2(cmk.utils.paths.local_agents_dir + "/plugins/sslcertificates", plugins_dir + "/sslcertificates")
+        target_dir = plugins_dir
+        if 'interval' in conf:
+            target_dir = plugins_dir + "/%d" % conf["interval"]
+            if not os.path.exists(target_dir):
+                os.makedirs(target_dir)
+        shutil.copy2(cmk.utils.paths.local_agents_dir + "/plugins/sslcertificates", target_dir + "/sslcertificates")
         f = file(conf_dir + "/sslcertificates", "w")
         f.write(agent_file_header)
 
         dirs = []
 
-        for entry in conf:
-            dirs.extend(entry["directories"])
+        if 'directories' in conf:
+            dirs.extend(conf["directories"])
 
         f.write("\n")
 
         if dirs:
             f.write("CERT_DIRS=\"%s\"\n" % " ".join(dirs))
     elif opsys == "windows":
+        if 'interval' in conf:
+            f = file(conf_dir + "/check_mk.ini.plugins.sslcertificates", "w")
+            f.write("    cache_age sslcertificates.ps1 = %d\r\n" % conf['interval'])
+            f.close()
         shutil.copy2(cmk.utils.paths.local_agents_dir + "/windows/plugins/sslcertificates.ps1", plugins_dir + "/sslcertificates.ps1")
 
 bakery_info["sslcertificates"] = {
     "bake_function" : bake_sslcertificates,
     "os"            : [ "linux", "windows" ],
-    "matchtype"     : "all",
 }

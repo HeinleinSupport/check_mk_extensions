@@ -35,7 +35,7 @@ fi
 get_cert_info() {
     certfile="$1"
     single="$2"
-    if [ -f "$certfile" -a -r "$certfile" -a \( ! -L "$certfile" -o "$single" \) ] && ! [[ $certfile =~ .*~$ ]]; then
+    if [ -f "$certfile" -a -r "$certfile" -a \( ! -L "$certfile" -o "$single" \) ] && ! [[ $certfile =~ .*~$ ]] && ! [[ $certfile =~ .*_CA.crt$ ]]; then
 	inform='DER'
 	if grep -q -- '-----BEGIN CERTIFICATE-----' "$certfile"; then
 	    inform='PEM'
