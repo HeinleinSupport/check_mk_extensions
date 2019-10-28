@@ -32,7 +32,8 @@ class WATOAPI():
         with warnings.catch_warnings():
             warnings.simplefilter('ignore')
             if data:
-                resp = requests.post(self.api_url, verify=False, params=params, data='request=%s' % repr(data))
+                resp = requests.post(self.api_url, verify=False, params=params,
+                                     headers={'content-type': 'application/x-www-form-urlencoded'}, data='request=%s' % repr(data))
             else:
                 resp = requests.get(self.api_url, verify=False, params=params)
             if resp.status_code == 200:
