@@ -56,6 +56,7 @@ def check_cephstatus(item, params, parsed):
                       'active+undersized+degraded+remapped+inconsistent+backfill_wait',
                       'active+undersized+remapped',
                       'active+undersized+remapped+backfill_wait',
+                      'incomplete',
                       'peering',
                       'remapped+peering',
                       'stale+active+clean',
