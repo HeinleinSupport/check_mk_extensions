@@ -38,24 +38,13 @@ def inventory_cephdf(parsed):
             yield pool['name'], {}
 
 def check_cephdf(item, params, parsed):
-    if 'stats' in parsed:
-        total_bytes = parsed['stats'].get('total_bytes', 0) / 1048576.0
     if 'pools' in parsed:
         for pool in parsed['pools']:
             if pool['name'] == item:
                 stats = pool['stats']
 
-                if 'stored_raw' in stats:
-                    used_mb = stats['stored_raw'] / 1048576.0
-                elif 'raw_bytes_used' in stats:
-                    used_mb = stats['raw_bytes_used'] / 1048576.0
-                else:
-                    used_mb = stats['bytes_used'] / 1048576.0
-                if stats['percent_used'] == 0.0:
-                    size_mb = total_bytes
-                else:
-                    size_mb = used_mb / stats['percent_used']
-                avail_mb = size_mb - used_mb
+                avail_mb = stats['max_avail'] / 1048576.0
+                size_mb = avail_mb + stats['bytes_used'] / 1048576.0
                 yield df_check_filesystem_list(item, params, [ (item, size_mb, avail_mb, 0) ])
 
                 yield 0, '%d Objects' % stats['objects'], [ ( 'num_objects', stats['objects'], 0 ) ]
