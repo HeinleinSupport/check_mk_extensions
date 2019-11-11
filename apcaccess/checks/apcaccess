@@ -39,7 +39,10 @@ def inventory_apcaccess(parsed):
 def check_apcaccess(item, params, parsed):
     if item in parsed:
         data = parsed[item]
-        yield 0, ", ".join([data.get('UPSNAME'), data.get('MODEL'), data.get('SERIALNO'), data.get('FIRMWARE')])
+        if 'UPSNAME' in data and 'MODEL' in data and 'SERIALNO' in data and 'FIRMWARE' in data:
+            yield 0, ", ".join([data['UPSNAME'], data.get('MODEL'), data.get('SERIALNO'), data.get('FIRMWARE')])
+        else:
+            yield 3, 'Unkown UPS / no data'
         metrics = { 'voltage': ('OUTPUTV', 'Output Voltage'),
                     'output_load': ('LOADPCT', 'Output Load'),
                     'battery_capacity': ('BCHARGE', 'Battery Capacity'),
