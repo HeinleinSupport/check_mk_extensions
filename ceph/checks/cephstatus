@@ -15,6 +15,13 @@
 # to the Free Software Foundation, Inc., 51 Franklin St,  Fifth Floor,
 # Boston, MA 02110-1301 USA.
 
+def parse_cephstatus(info):
+    import json
+    try:
+        return json.loads(" ".join([item for sublist in info for item in sublist]))
+    except ValueError:
+        return {}
+    
 def inventory_cephstatus(parsed):
     if 'health' in parsed:
         yield 'Status', {}
@@ -148,12 +155,12 @@ def check_cephstatus(item, params, parsed):
                 yield 0, 'Dashboard: %s' % parsed['mgrmap']['services']['dashboard']
 
 check_info["cephstatus"] = {
-    'parse_function'        : parse_json,
+    'parse_function'        : parse_cephstatus,
     'check_function'        : check_cephstatus,
     'inventory_function'    : inventory_cephstatus,
     'service_description'   : 'Ceph %s',
     'has_perfdata'          : True,
     'group'                  : 'filesystem',
     'default_levels_variable': 'filesystem_default_levels',
-    'includes'               : [ 'size_trend.include', 'df.include', 'json.include'],
+    'includes'               : [ 'size_trend.include', 'df.include' ],
 }

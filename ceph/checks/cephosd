@@ -57,6 +57,13 @@
 #            "ceph02":[3,4,5,12,13,14,20,21],
 #            "ceph03":[6,7,8,15,16,17,22,23]}}
 
+def parse_cephosd(info):
+    import json
+    try:
+        return json.loads(" ".join([item for sublist in info for item in sublist]))
+    except ValueError:
+        return {}
+
 def inventory_cephosd(parsed):
     import cmk_base.config
     nodes = {host_name(): []}
@@ -83,12 +90,12 @@ def check_cephosd(item, params, parsed):
                 yield (0, 'Apply Latency: %dms, Commit Latency: %dms' % ( apply_latency, commit_latency) , [ ( 'apply_latency', apply_latency / 1000.0), ( 'commit_latency', commit_latency / 1000.0) ] )
 
 check_info["cephosd"] = {
-    'parse_function'         : parse_json,
+    'parse_function'         : parse_cephosd,
     'check_function'         : check_cephosd,
     'inventory_function'     : inventory_cephosd,
     'service_description'    : 'Ceph %s',
     'has_perfdata'           : True,
     'group'                  : 'filesystem',
     'default_levels_variable': 'filesystem_default_levels',
-    'includes'               : [ 'size_trend.include', 'df.include', 'json.include' ],
+    'includes'               : [ 'size_trend.include', 'df.include' ],
 }
