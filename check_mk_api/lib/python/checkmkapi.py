@@ -140,7 +140,6 @@ class MultisiteAPI():
             if resp.status_code == 200 and command:
                 if("MESSAGE: " in resp.text):                   
                     msg = resp.text[resp.text.find("\n")+1:]                   
-                    #resp.text.split("MESSAGE: Successfully sent 1 commands.\n")
                     return eval(msg)
                 else:   
                     return eval(resp.text)
