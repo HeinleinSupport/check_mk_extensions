@@ -47,6 +47,8 @@ else:
     changes = False
     hosts = wato.get_all_hosts()
     for info in resp:
+        if info['host'] not in hosts:
+            continue
         print info['host']
         tags = {}
         for attr, patterns in conf_tagmap.iteritems():
