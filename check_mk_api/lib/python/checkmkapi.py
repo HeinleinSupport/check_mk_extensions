@@ -125,15 +125,25 @@ class MultisiteAPI():
     def __init__(self, site_url, api_user, api_secret):
         self.site_url = check_mk_url(site_url)
         self.api_creds = {'_username': api_user, '_secret': api_secret, 'request_format': 'python', 'output_format': 'python', '_transid': '-1'}
+        self.down_from_now = {'_down_from_now': "from+for+now"}
+        self.do_actions = {'_do_actions': "yes"}
+        self.do_confirm = {'_do_confirm': "yes"}
+        self.down_remove ={'_down_remove': "Remove"}
 
-    def api_request(self, api_url, params, data=None, errmsg='Error', fail=True):
+    def api_request(self, api_url, params, data=None, errmsg='Error', fail=True, command=False):
         with warnings.catch_warnings():
             warnings.simplefilter('ignore')
             if data:
                 resp = requests.post(api_url, verify=False, params=params, data='request=%s' % repr(data))
             else:
                 resp = requests.get(api_url, verify=False, params=params)
-            if resp.status_code == 200:
+            if resp.status_code == 200 and command:
+                if("MESSAGE: " in resp.text):                   
+                    msg = resp.text[resp.text.find("\n")+1:]                   
+                    return eval(msg)
+                else:   
+                    return eval(resp.text)
+            elif resp.status_code == 200:
                 return eval(resp.text)
             else:
                 raise resp.text
@@ -149,6 +159,40 @@ class MultisiteAPI():
         for data in resp[1:]:
             item = {}
             for i in xrange(len(header)):
+                item[header[i]] = data[i]
+            result.append(item)
+        return result
+
+    def set_downtime(self, view_name, site, host, _down_comment, _down_minutes, **kwargs):
+        result = []
+        request = {'view_name': view_name, 'site': site, 'host': host, '_down_comment': _down_comment, '_down_minutes': _down_minutes}
+        request.update(self.api_creds)
+        request.update(self.down_from_now)
+        request.update(self.do_actions)
+        request.update(self.do_confirm)
+        request.update(kwargs)
+        resp = self.api_request(self.site_url + 'view.py', request, errmsg='Cannot get view data', command=True)
+        header = resp[0]
+        for data in resp[1:]:
+            item = {}
+            for i in range(len(header)):
+                item[header[i]] = data[i]
+            result.append(item)
+        return result
+
+    def revoke_downtime(self, view_name, site, host, _down_comment, **kwargs):
+        result = []
+        request = {'view_name': view_name, 'site': site, 'host': host}
+        request.update(self.api_creds)
+        request.update(self.do_actions)
+        request.update(self.do_confirm)
+        request.update(self.down_remove)
+        request.update(kwargs)
+        resp = self.api_request(self.site_url + 'view.py', request, errmsg='Cannot get view data', command=True)
+        header = resp[0]
+        for data in resp[1:]:
+            item = {}
+            for i in range(len(header)):
                 item[header[i]] = data[i]
             result.append(item)
         return result
