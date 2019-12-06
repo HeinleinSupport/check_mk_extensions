@@ -19,5 +19,5 @@ if [ -x /usr/sbin/amavisd-agent ]; then
   echo '[ps]'
   /bin/ps ax | /bin/grep '[a]mavisd'
   echo '[agent]'
-  /usr/sbin/amavisd-agent -c 1 | grep -v ^$
+  waitmax 5 /usr/sbin/amavisd-agent -c 1 | grep -v ^$
 fi
