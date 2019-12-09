@@ -49,8 +49,14 @@ def check_cephdf(item, params, parsed):
             if pool['name'] == item:
                 stats = pool['stats']
 
-                avail_mb = stats['max_avail'] / 1048576.0
-                size_mb = avail_mb + stats['bytes_used'] / 1048576.0
+                if stats['max_avail'] > 0:
+                    avail_mb = stats['max_avail'] / 1048576.0
+                    size_mb = avail_mb + stats['bytes_used'] / 1048576.0
+                else:
+                    used_mb = stats['bytes_used'] / 1048576.0
+                    size_mb = used_mb / stats['percent_used']
+                    avail_mb = size_mb - used_mb
+
                 yield df_check_filesystem_list(item, params, [ (item, size_mb, avail_mb, 0) ])
 
                 yield 0, '%d Objects' % stats['objects'], [ ( 'num_objects', stats['objects'], 0 ) ]
