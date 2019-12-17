@@ -107,14 +107,18 @@ class WATOAPI():
                                 errmsg='Error discovering host %s' % hostname,
                                 fail=fail)
 
-    def activate(self, sites=[]):
+    def activate(self, sites=[], allow_foreign_changes=False, comment=False):
         api_activate = { u'action': u'activate_changes'}
         api_activate.update(self.api_creds)
+        data = {}
+        if allow_foreign_changes:
+            data[u'allow_foreign_changes'] = u'1'
+        if comment:
+            data[u'comment'] = comment
         if sites:
-            api_activate[u'mode'] = u'specific'
-            return self.api_request(params=api_activate, data={u'sites': sites})
-        else:
-            return self.api_request(params=api_activate)
+            data[u'mode'] = u'specific'
+            data[u'sites'] = sites
+        return self.api_request(params=api_activate, data=data)
 
     def bake_agents(self):
         api_bake_agents = { u'action': u'bake_agents' }
