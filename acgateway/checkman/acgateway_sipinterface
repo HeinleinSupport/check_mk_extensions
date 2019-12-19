@@ -1,0 +1,11 @@
+title: AudioCodes Gateway SIP Interface
+agents: snmp
+catalog: hw/network/audiocodes
+license: GPL
+distribution: heinlein
+description:
+ Monitor the SIP interfaces on AudioCodes gateways.
+ When a status changes the check will become critical.
+
+inventory:
+ One item per SIP interface will be created

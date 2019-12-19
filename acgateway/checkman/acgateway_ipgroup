@@ -1,0 +1,11 @@
+title: AudioCodes Gateway IP group
+agents: snmp
+catalog: hw/network/audiocodes
+license: GPL
+distribution: heinlein
+description:
+ Monitor the IP groups on AudioCodes gateways.
+ When a status changes the check will become critical.
+
+inventory:
+ One item per IP group will be created
