@@ -53,7 +53,7 @@ if [ -e  /proc/driver/cciss -o  -e /sys/bus/cciss -o -e /sys/bus/pci/drivers/hps
 		fi
 	done
 
-	echo '<<<hpsa_controller>>>'
+	echo '<<<hpsa>>>'
 	if [ -n "$RAID_CHECK_TOOL" ]; then
 		$RAID_CHECK_TOOL controller all show config
 	else
