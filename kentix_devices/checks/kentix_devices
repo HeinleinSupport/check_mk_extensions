@@ -180,6 +180,56 @@ check_info['kentix_devices.humidity'] = {
     'includes'                  : [ "humidity.include" ],
 }
 
+#   .--Dew Point-----------------------------------------------------------.
+#   |            ____                  ____       _       _                |
+#   |           |  _ \  _____      __ |  _ \ ___ (_)_ __ | |_              |
+#   |           | | | |/ _ \ \ /\ / / | |_) / _ \| | '_ \| __|             |
+#   |           | |_| |  __/\ V  V /  |  __/ (_) | | | | | |_              |
+#   |           |____/ \___| \_/\_/   |_|   \___/|_|_| |_|\__|             |
+#   |                                                                      |
+#   +----------------------------------------------------------------------+
+#   |                                                                      |
+#   '----------------------------------------------------------------------'
+#.
+
+def check_kentix_devices_dewpoint(item, params, parsed):
+    if item in parsed['sensors']:
+        dewValue = savefloat(parsed['sensors'][item]['dewpoint'][1]) / parsed['multiplier'][2]
+        dewMax = savefloat(parsed['sensors'][item]['dewpoint'][2])
+        alarm = parsed['sensors'][item]['dewpoint'][3]
+        dev_status = 0
+        if alarm == '1':
+            dev_status = 2
+        if alarm == '2':
+            dev_status = 1
+        if 'temp' in parsed['sensors'][item]:
+            tempValue = savefloat(parsed['sensors'][item]['temp'][1]) / parsed['multiplier'][0]
+            state, text, perfdata = check_temperature(dewValue,
+                                                      params,
+                                                      "kentix_devices_dewpoint_%s" % item,
+                                                      dev_levels=(tempValue - dewMax, tempValue - dewMax),
+                                                      dev_status=dev_status,
+            )
+        else:
+            state, text, perfdata = check_temperature(dewValue,
+                                                      params,
+                                                      "kentix_devices_dewpoint_%s" % item,
+                                                      dev_status=dev_status,
+            )
+        zone = ""
+        if parsed['sensors'][item]['zone'] in parsed['zones']:
+            zone = " in zone %s" % parsed['zones'][parsed['sensors'][item]['zone']]['name']
+        return state, "%s%s" % (text, zone), perfdata
+
+check_info['kentix_devices.dewpoint'] = {
+    'inventory_function'        : lambda parsed: inventory_kentix_devices(parsed, {}, 'dewpoint'),
+    'check_function'            : check_kentix_devices_dewpoint,
+    'service_description'       : 'Dewpoint %s',
+    'has_perfdata'              : True,
+    'group'                     : 'temperature',
+    'includes'                  : [ 'temperature.include' ],
+}
+
 #.
 #   .--CO - carbon monoxide------------------------------------------------.
 #   |         ____ ___                           _                         |
