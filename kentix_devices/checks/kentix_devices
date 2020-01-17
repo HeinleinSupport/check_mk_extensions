@@ -62,11 +62,19 @@ def check_kentix_devices_temperature(item, params, parsed):
     if item in parsed['sensors']:
         tempMin = savefloat(parsed['sensors'][item]['temp'][2])
         tempMax = savefloat(parsed['sensors'][item]['temp'][3])
+        alarm = parsed['sensors'][item]['temp'][4]
+        dev_status = 0
+        if alarm == '1':
+            dev_status = 2
+        if alarm == '2':
+            dev_status = 1
         state, text, perfdata = check_temperature(savefloat(parsed['sensors'][item]['temp'][1]) / parsed['multiplier'][0],
                                                   params,
                                                   "kentix_devices_%s" % item,
                                                   dev_levels=(tempMax, tempMax),
-                                                  dev_levels_lower=(tempMin, tempMin))
+                                                  dev_levels_lower=(tempMin, tempMin),
+                                                  dev_status=dev_status,
+        )
         zone = ""
         if parsed['sensors'][item]['zone'] in parsed['zones']:
             zone = " in zone %s" % parsed['zones'][parsed['sensors'][item]['zone']]['name']
@@ -84,52 +92,52 @@ check_info['kentix_devices'] = {
         ( ".1.3.6.1.4.1.37954.5.3.1.1", [ "1",      # zoneIndex
                                           "2",      # zoneName
                                           "3",      # zoneArmedState
-                                         ] ),
-        ( ".1.3.6.1.4.1.37954.5.2", [ "1.1.1",      # generalIndex
-                                      "1.1.2",      # sensorName
-                                      "1.1.3",      # sensorType
-                                      "1.1.4",      # sensorVersion
-                                      "1.1.5",      # sensorAddress
-                                      "1.1.6",      # sensorPort
-                                      "1.1.7",      # sensorZone
-                                      "1.1.8",      # sensorCommunication
-                                      "1.1.9",      # sensorBatteryLevel (only used for battery sensors)
-                                    ] ),
-        ( ".1.3.6.1.4.1.37954.5.2", [ "2.1.1",      # temperatureIndex
-                                      "2.1.2",      # tempValue
-                                      # "2.1.3",      # tempAlarm
-                                      "2.1.4",      # tempMin
-                                      "2.1.5",      # tempMax
-                                    ] ),
-        ( ".1.3.6.1.4.1.37954.5.2", [ "3.1.1",      # humidityIndex
-                                      "3.1.2",      # humValue
-                                      # "3.1.3",      # humAlarm
-                                      # "3.1.5",      # humMax
-                                    ] ),
-        ( ".1.3.6.1.4.1.37954.5.2", [ "4.1.1",      # dewpointIndex
-                                      "4.1.2",      # dewValue
-                                      # "4.1.3",      # dewAlarm
-                                      "4.1.5",      # dewMax
-                                    ] ),
-        ( ".1.3.6.1.4.1.37954.5.2", [ "5.1.1",      # coIndex
-                                      "5.1.2",      # coValue
-                                      # "5.1.3",      # coAlarm
-                                      "5.1.5",      # coMax
-                                    ] ),
-        ( ".1.3.6.1.4.1.37954.5.2", [ "6.1.1",      # motionIndex
-                                      "6.1.2",      # motValue
-                                      # "6.1.3",      # motAlarm
-                                      "6.1.5",      # motMax
-                                    ] ),
-        ( ".1.3.6.1.4.1.37954.5.2", [ "7.1.1",      # vibrationIndex
-                                      "7.1.2",      # vibValue
-                                      # "7.1.3",      # vibAlarm
-                                      "7.1.5",      # vibMax
-                                    ] ),
-#        ( ".1.3.6.1.4.1.37954.5.2", [ "8.1.1",      # latencyIndex
-#                                      "8.1.2",      # latValue
-#                                      # "8.1.3",      # latAlarm
-#                                      "8.1.5",      # latMax
+        ] ),
+        ( ".1.3.6.1.4.1.37954.5.2.1.1", [ "1",      # generalIndex
+                                          "2",      # sensorName
+                                          "3",      # sensorType
+                                          "4",      # sensorVersion
+                                          "5",      # sensorAddress
+                                          "6",      # sensorPort
+                                          "7",      # sensorZone
+                                          "8",      # sensorCommunication
+                                          "9",      # sensorBatteryLevel (only used for battery sensors)
+        ] ),
+        ( ".1.3.6.1.4.1.37954.5.2.2.1", [ "1",      # temperatureIndex
+                                          "2",      # tempValue
+                                          "4",      # tempMin
+                                          "5",      # tempMax
+                                          "3",      # tempAlarm
+        ] ),
+        ( ".1.3.6.1.4.1.37954.5.2.3.1", [ "1",      # humidityIndex
+                                          "2",      # humValue
+                                          "5",      # humMax
+                                          "3",      # humAlarm
+        ] ),
+        ( ".1.3.6.1.4.1.37954.5.2.4.1", [ "1",      # dewpointIndex
+                                          "2",      # dewValue
+                                          "5",      # dewMax
+                                          "3",      # dewAlarm
+        ] ),
+        ( ".1.3.6.1.4.1.37954.5.2.5.1", [ "1",      # coIndex
+                                          "2",      # coValue
+                                          "5",      # coMax
+                                          "3",      # coAlarm
+        ] ),
+        ( ".1.3.6.1.4.1.37954.5.2.6.1", [ "1",      # motionIndex
+                                          "2",      # motValue
+                                          "5",      # motMax
+                                          "3",      # motAlarm
+        ] ),
+        ( ".1.3.6.1.4.1.37954.5.2.7.1", [ "1",      # vibrationIndex
+                                          "2",      # vibValue
+                                          "5",      # vibMax
+                                          "3",      # vibAlarm
+        ] ),
+#        ( ".1.3.6.1.4.1.37954.5.2.8.1", [ "1",      # latencyIndex
+#                                      "2",      # latValue
+#                                      # "3",      # latAlarm
+#                                      "5",      # latMax
 #                                    ] ),
         ],
     'snmp_scan_function'        : lambda oid: 'kentix' in oid(".1.3.6.1.2.1.1.1.0") or oid(".1.3.6.1.4.1.37954.5.1.1.1.0"),
@@ -149,11 +157,19 @@ check_info['kentix_devices'] = {
 
 def check_kentix_devices_humidity(item, params, parsed):
     if item in parsed['sensors']:
+        alarm = parsed['sensors'][item]['humidity'][3]
+        dev_status = 0
+        if alarm == '1':
+            dev_status = 2
+        if alarm == '2':
+            dev_status = 1
+        if not params:
+            params = { 'levels': ( savefloat(parsed['sensors'][item]['humidity'][2]), 101 ) }
         state, text, perfdata = check_humidity(savefloat(parsed['sensors'][item]['humidity'][1]) / parsed['multiplier'][1], params)
         zone = ""
         if parsed['sensors'][item]['zone'] in parsed['zones']:
             zone = " in zone %s" % parsed['zones'][parsed['sensors'][item]['zone']]['name']
-        return state, "%s%s" % (text, zone), perfdata
+        return max(state, dev_status), "%s%s" % (text, zone), perfdata
 
 check_info['kentix_devices.humidity'] = {
     'inventory_function'        : lambda parsed: inventory_kentix_devices(parsed, {}, 'humidity'),
@@ -187,13 +203,19 @@ def check_kentix_devices_co(item, params, parsed):
     if item in parsed['sensors']:
         coValue = saveint(parsed['sensors'][item]['co'][1])
         coMax = saveint(parsed['sensors'][item]['co'][2])
+        alarm = parsed['sensors'][item]['co'][3]
+        dev_status = 0
+        if alarm == '1':
+            dev_status = 2
+        if alarm == '2':
+            dev_status = 1
         state = 0
         if coValue > coMax:
             state = 2
         zone = ""
         if parsed['sensors'][item]['zone'] in parsed['zones']:
             zone = " in zone %s" % parsed['zones'][parsed['sensors'][item]['zone']]['name']
-        return state, "%d ppm%s" % (coValue, zone), [ ( 'parts_per_million', coValue, 0, coMax ) ]
+        return max(state, dev_status), "%d ppm%s" % (coValue, zone), [ ( 'parts_per_million', coValue, 0, coMax ) ]
 
 check_info['kentix_devices.co'] = {
     'inventory_function'        : lambda parsed: inventory_kentix_devices(parsed, {}, 'co'),
@@ -228,6 +250,12 @@ def check_kentix_devices_motion(item, params, parsed):
     if item in parsed['sensors']:
         motionValue = saveint(parsed['sensors'][item]['motion'][1])
         motionMax = saveint(parsed['sensors'][item]['motion'][2])
+        alarm = parsed['sensors'][item]['motion'][3]
+        dev_status = 0
+        if alarm == '1':
+            dev_status = 2
+        if alarm == '2':
+            dev_status = 1
 
         weekdays = ['monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday', 'sunday']
         today = time.localtime()
@@ -241,9 +269,9 @@ def check_kentix_devices_motion(item, params, parsed):
             zone = " in zone %s" % parsed['zones'][parsed['sensors'][item]['zone']]['name']
         if motionValue >= motionMax:
             state = test_in_period((today.tm_hour, today.tm_min), periods) and 1 or 0
-            return status, 'Motion detected%s' % zone, [('motion', motionValue, motionMax, None, 0, 100)]
+            return max(state, dev_status), 'Motion detected%s' % zone, [('motion', motionValue, motionMax, None, 0, 100)]
         else:
-            return 0, "No motion%s detected" % zone, [('motion', motionValue, motionMax, None, 0, 100)]
+            return dev_status, "No motion%s detected" % zone, [('motion', motionValue, motionMax, None, 0, 100)]
 
 check_info['kentix_devices.motion'] = {
     'inventory_function'        : lambda parsed: inventory_kentix_devices(parsed, {}, 'motion'),
@@ -270,13 +298,19 @@ def check_kentix_devices_vibration(item, params, parsed):
     if item in parsed['sensors']:
         vibrationValue = saveint(parsed['sensors'][item]['vibration'][1])
         vibrationMax = saveint(parsed['sensors'][item]['vibration'][2])
+        alarm = parsed['sensors'][item]['vibration'][3]
+        dev_status = 0
+        if alarm == '1':
+            dev_status = 2
+        if alarm == '2':
+            dev_status = 1
         state = 0
         if vibrationValue > vibrationMax:
             state = 2
         zone = ""
         if parsed['sensors'][item]['zone'] in parsed['zones']:
             zone = " in zone %s" % parsed['zones'][parsed['sensors'][item]['zone']]['name']
-        return state, "%d%s" % (vibrationValue, zone), [ ( 'vibration', vibrationValue, 0, vibrationMax ) ]
+        return max(state, dev_status), "%d%s" % (vibrationValue, zone), [ ( 'vibration', vibrationValue, 0, vibrationMax ) ]
 
 check_info['kentix_devices.vibration'] = {
     'inventory_function'        : lambda parsed: inventory_kentix_devices(parsed, {}, 'vibration'),
