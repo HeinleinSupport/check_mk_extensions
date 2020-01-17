@@ -140,7 +140,7 @@ check_info['kentix_devices'] = {
 #                                      "5",      # latMax
 #                                    ] ),
         ],
-    'snmp_scan_function'        : lambda oid: 'kentix' in oid(".1.3.6.1.2.1.1.1.0") or oid(".1.3.6.1.4.1.37954.5.1.1.1.0"),
+    'snmp_scan_function'        : lambda oid: oid(".1.3.6.1.2.1.1.2.0") == ".1.3.6.1.4.1.37954.5",
     'includes'                  : [ "temperature.include" ],
 }
 
