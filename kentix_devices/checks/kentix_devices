@@ -42,9 +42,9 @@ def parse_kentix_devices(info):
         parsed['sensors']["%s %s" % (line[1], sid)] = sensor
     return parsed
 
-def inventory_kentix_devices(parsed, params, stypes, sfunc):
+def inventory_kentix_devices(parsed, params, sfunc):
     for sensoritem, sensordata in parsed['sensors'].iteritems():
-        if sensordata['info'][2] in stypes and sfunc in sensordata:
+        if sfunc in sensordata:
             yield sensoritem, params
 
 #   .--temperature---------------------------------------------------------.
@@ -74,7 +74,7 @@ def check_kentix_devices_temperature(item, params, parsed):
 
 check_info['kentix_devices'] = {
     'parse_function'            : parse_kentix_devices,
-    'inventory_function'        : lambda parsed: inventory_kentix_devices(parsed, {}, ['101', '102'], 'temp'),
+    'inventory_function'        : lambda parsed: inventory_kentix_devices(parsed, {}, 'temp'),
     'check_function'            : check_kentix_devices_temperature,
     'service_description'       : 'Temperature %s',
     'has_perfdata'              : True,
@@ -156,7 +156,7 @@ def check_kentix_devices_humidity(item, params, parsed):
         return state, "%s%s" % (text, zone), perfdata
 
 check_info['kentix_devices.humidity'] = {
-    'inventory_function'        : lambda parsed: inventory_kentix_devices(parsed, {}, ['101', '102'], 'humidity'),
+    'inventory_function'        : lambda parsed: inventory_kentix_devices(parsed, {}, 'humidity'),
     'check_function'            : check_kentix_devices_humidity,
     'service_description'       : 'Humidity %s',
     'has_perfdata'              : True,
@@ -196,7 +196,7 @@ def check_kentix_devices_co(item, params, parsed):
         return state, "%d ppm%s" % (coValue, zone), [ ( 'parts_per_million', coValue, 0, coMax ) ]
 
 check_info['kentix_devices.co'] = {
-    'inventory_function'        : lambda parsed: inventory_kentix_devices(parsed, {}, ['101', '102'], 'co'),
+    'inventory_function'        : lambda parsed: inventory_kentix_devices(parsed, {}, 'co'),
     'check_function'            : check_kentix_devices_co,
     'service_description'       : 'CO %s',
     'has_perfdata'              : True,
@@ -246,7 +246,7 @@ def check_kentix_devices_motion(item, params, parsed):
             return 0, "No motion%s detected" % zone, [('motion', motionValue, motionMax, None, 0, 100)]
 
 check_info['kentix_devices.motion'] = {
-    'inventory_function'        : lambda parsed: inventory_kentix_devices(parsed, {}, ['101', '102'], 'motion'),
+    'inventory_function'        : lambda parsed: inventory_kentix_devices(parsed, {}, 'motion'),
     'check_function'            : check_kentix_devices_motion,
     'service_description'       : 'Motion %s',
     'has_perfdata'              : True,
@@ -279,7 +279,7 @@ def check_kentix_devices_vibration(item, params, parsed):
         return state, "%d%s" % (vibrationValue, zone), [ ( 'vibration', vibrationValue, 0, vibrationMax ) ]
 
 check_info['kentix_devices.vibration'] = {
-    'inventory_function'        : lambda parsed: inventory_kentix_devices(parsed, {}, ['101', '102'], 'vibration'),
+    'inventory_function'        : lambda parsed: inventory_kentix_devices(parsed, {}, 'vibration'),
     'check_function'            : check_kentix_devices_vibration,
     'service_description'       : 'Vibration %s',
     'has_perfdata'              : True,
