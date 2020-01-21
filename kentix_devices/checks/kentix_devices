@@ -15,6 +15,11 @@
 # to the Free Software Foundation, Inc., 51 Franklin St,  Fifth Floor,
 # Boston, MA 02110-1301 USA.
 
+def _get_dev_status_kentix_devices(alarm):
+    alarm_state_map = { "1": 2,
+                        "2": 1,
+    }
+    return alarm_state_map.get(alarm, 0)
 
 def parse_kentix_devices(info):
     parsed = {'multiplier': map(lambda x: savefloat(x[0]), info[0]),
@@ -66,12 +71,7 @@ def check_kentix_devices_temperature(item, params, parsed):
         sensordata = parsed['sensors'][item]
         tempMin = savefloat(sensordata['temp'][2])
         tempMax = savefloat(sensordata['temp'][3])
-        alarm = sensordata['temp'][4]
-        dev_status = 0
-        if alarm == '1':
-            dev_status = 2
-        if alarm == '2':
-            dev_status = 1
+        dev_status = _get_dev_status_kentix_devices(sensordata['temp'][4])
         state, text, perfdata = check_temperature(savefloat(sensordata['temp'][1]) / parsed['multiplier'][0],
                                                   params,
                                                   "kentix_devices_%s" % item,
@@ -162,12 +162,7 @@ check_info['kentix_devices'] = {
 def check_kentix_devices_humidity(item, params, parsed):
     if item in parsed['sensors']:
         sensordata = parsed['sensors'][item]
-        alarm = sensordata['humidity'][3]
-        dev_status = 0
-        if alarm == '1':
-            dev_status = 2
-        if alarm == '2':
-            dev_status = 1
+        dev_status = _get_dev_status_kentix_devices(sensordata['humidity'][3])
         if not params:
             params = { 'levels': ( savefloat(sensordata['humidity'][2]), 101 ) }
         state, text, perfdata = check_humidity(savefloat(sensordata['humidity'][1]) / parsed['multiplier'][1], params)
@@ -202,12 +197,7 @@ def check_kentix_devices_dewpoint(item, params, parsed):
         sensordata = parsed['sensors'][item]
         dewValue = savefloat(sensordata['dewpoint'][1]) / parsed['multiplier'][2]
         dewMax = savefloat(sensordata['dewpoint'][2])
-        alarm = sensordata['dewpoint'][3]
-        dev_status = 0
-        if alarm == '1':
-            dev_status = 2
-        if alarm == '2':
-            dev_status = 1
+        dev_status = _get_dev_status_kentix_devices(sensordata['dewpoint'][3])
         if 'temp' in sensordata:
             tempValue = savefloat(sensordata['temp'][1]) / parsed['multiplier'][0]
             state, text, perfdata = check_temperature(dewValue,
@@ -260,12 +250,7 @@ def check_kentix_devices_co(item, params, parsed):
         sensordata = parsed['sensors'][item]
         coValue = saveint(sensordata['co'][1])
         coMax = saveint(sensordata['co'][2])
-        alarm = sensordata['co'][3]
-        dev_status = 0
-        if alarm == '1':
-            dev_status = 2
-        if alarm == '2':
-            dev_status = 1
+        dev_status = _get_dev_status_kentix_devices(sensordata['co'][3])
         state = 0
         if coValue > coMax:
             state = 2
@@ -308,12 +293,7 @@ def check_kentix_devices_motion(item, params, parsed):
         sensordata = parsed['sensors'][item]
         motionValue = saveint(sensordata['motion'][1])
         motionMax = saveint(sensordata['motion'][2])
-        alarm = sensordata['motion'][3]
-        dev_status = 0
-        if alarm == '1':
-            dev_status = 2
-        if alarm == '2':
-            dev_status = 1
+        dev_status = _get_dev_status_kentix_devices(sensordata['motion'][3])
 
         weekdays = ['monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday', 'sunday']
         today = time.localtime()
@@ -361,12 +341,7 @@ def check_kentix_devices_vibration(item, params, parsed):
         sensordata = parsed['sensors'][item]
         vibrationValue = saveint(sensordata['vibration'][1])
         vibrationMax = saveint(sensordata['vibration'][2])
-        alarm = sensordata['vibration'][3]
-        dev_status = 0
-        if alarm == '1':
-            dev_status = 2
-        if alarm == '2':
-            dev_status = 1
+        dev_status = _get_dev_status_kentix_devices(sensordata['vibration'][3])
         state = 0
         if vibrationValue > vibrationMax:
             state = 2
