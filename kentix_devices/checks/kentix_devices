@@ -28,8 +28,8 @@ def parse_kentix_devices(info):
              8: 'vibration',
              # 9: 'latency'
            }
-    armed = { 0: False,
-              1: True,
+    armed = { '0': False,
+              '1': True,
             }
     for line in info[1]:
         parsed['zones'][line[0]] = {'name': line[1], 'armed': armed.get(line[2], False)}
