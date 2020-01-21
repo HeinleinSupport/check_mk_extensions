@@ -405,7 +405,7 @@ def check_kentix_devices_zone(item, params, parsed):
         state = 0
         text = "armed = %s" % zoneinfo['armed']
         if params['armed'] != zoneinfo['armed']:
-            state = 2
+            state = 1
             text += ', was %s at discovery' % params['armed']
         return state, text
 
