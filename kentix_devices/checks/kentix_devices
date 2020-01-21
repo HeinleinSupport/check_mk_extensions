@@ -63,15 +63,16 @@ def inventory_kentix_devices(parsed, params, sfunc):
 
 def check_kentix_devices_temperature(item, params, parsed):
     if item in parsed['sensors']:
-        tempMin = savefloat(parsed['sensors'][item]['temp'][2])
-        tempMax = savefloat(parsed['sensors'][item]['temp'][3])
-        alarm = parsed['sensors'][item]['temp'][4]
+        sensordata = parsed['sensors'][item]
+        tempMin = savefloat(sensordata['temp'][2])
+        tempMax = savefloat(sensordata['temp'][3])
+        alarm = sensordata['temp'][4]
         dev_status = 0
         if alarm == '1':
             dev_status = 2
         if alarm == '2':
             dev_status = 1
-        state, text, perfdata = check_temperature(savefloat(parsed['sensors'][item]['temp'][1]) / parsed['multiplier'][0],
+        state, text, perfdata = check_temperature(savefloat(sensordata['temp'][1]) / parsed['multiplier'][0],
                                                   params,
                                                   "kentix_devices_%s" % item,
                                                   dev_levels=(tempMax, tempMax),
@@ -79,8 +80,8 @@ def check_kentix_devices_temperature(item, params, parsed):
                                                   dev_status=dev_status,
         )
         zone = ""
-        if parsed['sensors'][item]['zone'] in parsed['zones']:
-            zone = " in zone %s" % parsed['zones'][parsed['sensors'][item]['zone']]['name']
+        if sensordata['zone'] in parsed['zones']:
+            zone = " in zone %s" % parsed['zones'][sensordata['zone']]['name']
         return state, "%s%s" % (text, zone), perfdata
 
 check_info['kentix_devices'] = {
@@ -160,18 +161,19 @@ check_info['kentix_devices'] = {
 
 def check_kentix_devices_humidity(item, params, parsed):
     if item in parsed['sensors']:
-        alarm = parsed['sensors'][item]['humidity'][3]
+        sensordata = parsed['sensors'][item]
+        alarm = sensordata['humidity'][3]
         dev_status = 0
         if alarm == '1':
             dev_status = 2
         if alarm == '2':
             dev_status = 1
         if not params:
-            params = { 'levels': ( savefloat(parsed['sensors'][item]['humidity'][2]), 101 ) }
-        state, text, perfdata = check_humidity(savefloat(parsed['sensors'][item]['humidity'][1]) / parsed['multiplier'][1], params)
+            params = { 'levels': ( savefloat(sensordata['humidity'][2]), 101 ) }
+        state, text, perfdata = check_humidity(savefloat(sensordata['humidity'][1]) / parsed['multiplier'][1], params)
         zone = ""
-        if parsed['sensors'][item]['zone'] in parsed['zones']:
-            zone = " in zone %s" % parsed['zones'][parsed['sensors'][item]['zone']]['name']
+        if sensordata['zone'] in parsed['zones']:
+            zone = " in zone %s" % parsed['zones'][sensordata['zone']]['name']
         return max(state, dev_status), "%s%s" % (text, zone), perfdata
 
 check_info['kentix_devices.humidity'] = {
@@ -197,16 +199,17 @@ check_info['kentix_devices.humidity'] = {
 
 def check_kentix_devices_dewpoint(item, params, parsed):
     if item in parsed['sensors']:
-        dewValue = savefloat(parsed['sensors'][item]['dewpoint'][1]) / parsed['multiplier'][2]
-        dewMax = savefloat(parsed['sensors'][item]['dewpoint'][2])
-        alarm = parsed['sensors'][item]['dewpoint'][3]
+        sensordata = parsed['sensors'][item]
+        dewValue = savefloat(sensordata['dewpoint'][1]) / parsed['multiplier'][2]
+        dewMax = savefloat(sensordata['dewpoint'][2])
+        alarm = sensordata['dewpoint'][3]
         dev_status = 0
         if alarm == '1':
             dev_status = 2
         if alarm == '2':
             dev_status = 1
-        if 'temp' in parsed['sensors'][item]:
-            tempValue = savefloat(parsed['sensors'][item]['temp'][1]) / parsed['multiplier'][0]
+        if 'temp' in sensordata:
+            tempValue = savefloat(sensordata['temp'][1]) / parsed['multiplier'][0]
             state, text, perfdata = check_temperature(dewValue,
                                                       params,
                                                       "kentix_devices_dewpoint_%s" % item,
@@ -220,8 +223,8 @@ def check_kentix_devices_dewpoint(item, params, parsed):
                                                       dev_status=dev_status,
             )
         zone = ""
-        if parsed['sensors'][item]['zone'] in parsed['zones']:
-            zone = " in zone %s" % parsed['zones'][parsed['sensors'][item]['zone']]['name']
+        if sensordata['zone'] in parsed['zones']:
+            zone = " in zone %s" % parsed['zones'][sensordata['zone']]['name']
         return state, "%s%s" % (text, zone), perfdata
 
 check_info['kentix_devices.dewpoint'] = {
@@ -254,9 +257,10 @@ check_info['kentix_devices.dewpoint'] = {
 
 def check_kentix_devices_co(item, params, parsed):
     if item in parsed['sensors']:
-        coValue = saveint(parsed['sensors'][item]['co'][1])
-        coMax = saveint(parsed['sensors'][item]['co'][2])
-        alarm = parsed['sensors'][item]['co'][3]
+        sensordata = parsed['sensors'][item]
+        coValue = saveint(sensordata['co'][1])
+        coMax = saveint(sensordata['co'][2])
+        alarm = sensordata['co'][3]
         dev_status = 0
         if alarm == '1':
             dev_status = 2
@@ -266,8 +270,8 @@ def check_kentix_devices_co(item, params, parsed):
         if coValue > coMax:
             state = 2
         zone = ""
-        if parsed['sensors'][item]['zone'] in parsed['zones']:
-            zone = " in zone %s" % parsed['zones'][parsed['sensors'][item]['zone']]['name']
+        if sensordata['zone'] in parsed['zones']:
+            zone = " in zone %s" % parsed['zones'][sensordata['zone']]['name']
         return max(state, dev_status), "%d ppm%s" % (coValue, zone), [ ( 'parts_per_million', coValue, 0, coMax ) ]
 
 check_info['kentix_devices.co'] = {
@@ -301,9 +305,10 @@ def check_kentix_devices_motion(item, params, parsed):
         return False
 
     if item in parsed['sensors']:
-        motionValue = saveint(parsed['sensors'][item]['motion'][1])
-        motionMax = saveint(parsed['sensors'][item]['motion'][2])
-        alarm = parsed['sensors'][item]['motion'][3]
+        sensordata = parsed['sensors'][item]
+        motionValue = saveint(sensordata['motion'][1])
+        motionMax = saveint(sensordata['motion'][2])
+        alarm = sensordata['motion'][3]
         dev_status = 0
         if alarm == '1':
             dev_status = 2
@@ -319,9 +324,9 @@ def check_kentix_devices_motion(item, params, parsed):
 
         zone = ""
         zoneArmed = True
-        if parsed['sensors'][item]['zone'] in parsed['zones']:
-            zone = " in zone %s" % parsed['zones'][parsed['sensors'][item]['zone']]['name']
-            zoneArmed = parsed['zones'][parsed['sensors'][item]['zone']]['armed']
+        if sensordata['zone'] in parsed['zones']:
+            zone = " in zone %s" % parsed['zones'][sensordata['zone']]['name']
+            zoneArmed = parsed['zones'][sensordata['zone']]['armed']
         if motionValue >= motionMax:
             state = 0
             if zoneArmed:
@@ -353,9 +358,10 @@ check_info['kentix_devices.motion'] = {
 
 def check_kentix_devices_vibration(item, params, parsed):
     if item in parsed['sensors']:
-        vibrationValue = saveint(parsed['sensors'][item]['vibration'][1])
-        vibrationMax = saveint(parsed['sensors'][item]['vibration'][2])
-        alarm = parsed['sensors'][item]['vibration'][3]
+        sensordata = parsed['sensors'][item]
+        vibrationValue = saveint(sensordata['vibration'][1])
+        vibrationMax = saveint(sensordata['vibration'][2])
+        alarm = sensordata['vibration'][3]
         dev_status = 0
         if alarm == '1':
             dev_status = 2
@@ -365,8 +371,8 @@ def check_kentix_devices_vibration(item, params, parsed):
         if vibrationValue > vibrationMax:
             state = 2
         zone = ""
-        if parsed['sensors'][item]['zone'] in parsed['zones']:
-            zone = " in zone %s" % parsed['zones'][parsed['sensors'][item]['zone']]['name']
+        if sensordata['zone'] in parsed['zones']:
+            zone = " in zone %s" % parsed['zones'][sensordata['zone']]['name']
         return max(state, dev_status), "%d%s" % (vibrationValue, zone), [ ( 'vibration', vibrationValue, 0, vibrationMax ) ]
 
 check_info['kentix_devices.vibration'] = {
