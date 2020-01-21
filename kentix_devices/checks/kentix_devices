@@ -28,8 +28,11 @@ def parse_kentix_devices(info):
              8: 'vibration',
              # 9: 'latency'
            }
+    armed = { 0: False,
+              1: True,
+            }
     for line in info[1]:
-        parsed['zones'][line[0]] = {'name': line[1], 'armed': line[2]}
+        parsed['zones'][line[0]] = {'name': line[1], 'armed': armed.get(line[2], False)}
     for line in info[2]:
         sid = line[0]
         sensor = { 'info': line }
@@ -315,10 +318,14 @@ def check_kentix_devices_motion(item, params, parsed):
             periods = [((0, 0), (24, 0))]
 
         zone = ""
+        zoneArmed = True
         if parsed['sensors'][item]['zone'] in parsed['zones']:
             zone = " in zone %s" % parsed['zones'][parsed['sensors'][item]['zone']]['name']
+            zoneArmed = parsed['zones'][parsed['sensors'][item]['zone']]['armed']
         if motionValue >= motionMax:
-            state = test_in_period((today.tm_hour, today.tm_min), periods) and 1 or 0
+            state = 0
+            if zoneArmed:
+                state = test_in_period((today.tm_hour, today.tm_min), periods) and 1 or 0
             return max(state, dev_status), 'Motion detected%s' % zone, [('motion', motionValue, motionMax, None, 0, 100)]
         else:
             return dev_status, "No motion%s detected" % zone, [('motion', motionValue, motionMax, None, 0, 100)]
