@@ -29,14 +29,39 @@ metric_info['num_pgs'] = {
     'color' : '52/a',
 }
 
+
+metric_info['degraded_objects'] = {
+    'title' : _('Degraded Objects'),
+    'unit'  : 'count',
+    'color' : '12/a',
+}
+
+metric_info['misplaced_objects'] = {
+    'title' : _('Misplaced Objects'),
+    'unit'  : 'count',
+    'color' : '14/a',
+}
+
+metric_info['recovering'] = {
+    'title' : _('Recovering'),
+    'unit'  : 'bytes/s',
+    'color' : '21/a',
+}
+
 _ceph_pgstates = ['pgstate_active_clean',
                   'pgstate_active_clean_inconsistent',
                   'pgstate_active_clean_remapped',
                   'pgstate_active_clean_scrubbing',
                   'pgstate_active_clean_scrubbing_deep',
+                  'pgstate_active_degraded',
                   'pgstate_active_recovering',
                   'pgstate_active_recovering_degraded',
                   'pgstate_active_recovering_degraded_inconsistent',
+                  'pgstate_active_recovering_degraded_remapped',
+                  'pgstate_active_recovering_remapped',
+                  'pgstate_active_recovering_undersized',
+                  'pgstate_active_recovering_undersized_degraded_remapped',
+                  'pgstate_active_recovering_undersized_remapped',
                   'pgstate_active_recovery_wait',
                   'pgstate_active_recovery_wait_degraded',
                   'pgstate_active_recovery_wait_degraded_inconsistent',
@@ -44,23 +69,28 @@ _ceph_pgstates = ['pgstate_active_clean',
                   'pgstate_active_recovery_wait_remapped',
                   'pgstate_active_recovery_wait_undersized_degraded',
                   'pgstate_active_recovery_wait_undersized_degraded_remapped',
+                  'pgstate_active_recovery_wait_undersized_remapped',
+                  'pgstate_active_remapped_backfill_wait',
+                  'pgstate_active_remapped_backfill_wait_backfill_toofull',
+                  'pgstate_active_remapped_backfilling',
                   'pgstate_active_remapped_inconsistent_backfill_wait',
                   'pgstate_active_remapped_inconsistent_backfilling',
                   'pgstate_active_undersized',
                   'pgstate_active_undersized_degraded',
                   'pgstate_active_undersized_degraded_inconsistent',
-                  'pgstate_active_undersized_remapped',
                   'pgstate_active_undersized_degraded_remapped_backfilling',
                   'pgstate_active_undersized_degraded_remapped_backfill_wait',
                   'pgstate_active_undersized_degraded_remapped_inconsistent_backfilling',
                   'pgstate_active_undersized_degraded_remapped_inconsistent_backfill_wait',
-                  'pgstate_active_remapped_backfill_wait',
-                  'pgstate_active_remapped_backfilling',
+                  'pgstate_active_undersized_remapped',
+                  'pgstate_active_undersized_remapped_backfill_wait',
+                  'pgstate_incomplete',
                   'pgstate_peering',
                   'pgstate_remapped_peering',
                   'pgstate_stale_active_clean',
                   'pgstate_stale_active_undersized_degraded',
                   'pgstate_undersized_degraded_peered',
+                  'pgstate_undersized_peered',
                   'pgstate_unknown',
                  ]
 
@@ -84,6 +114,7 @@ metric_info['pgstates'] = {
     'color' : '53/a',
 }
 
+
 check_metrics["check_mk-cephstatus"] = {
     "Status"  : { "name"  : "fs_used", "scale" : MB },
     "fs_size" : { "scale" : MB },
@@ -93,6 +124,9 @@ check_metrics["check_mk-cephstatus"] = {
 
 check_metrics["check_mk-cephstatus"]['num_objects'] = {}
 check_metrics["check_mk-cephstatus"]['num_pgs'] = {}
+check_metrics["check_mk-cephstatus"]['degraded_objects'] = {}
+check_metrics["check_mk-cephstatus"]['misplaced_objects'] = {}
+check_metrics["check_mk-cephstatus"]['recovering'] = {}
 # check_metrics["check_mk-cephstatus"]['pgstates'] = { 'name': 'pgstates' }
 check_metrics["check_mk-cephstatus"]['~pgstate_.*'] = {}
 

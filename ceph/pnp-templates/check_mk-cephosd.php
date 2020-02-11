@@ -1,4 +1,14 @@
 <?php
+# This is free software;  you can redistribute it and/or modify it
+# under the  terms of the  GNU General Public License  as published by
+# the Free Software Foundation in version 2.  check_mk is  distributed
+# in the hope that it will be useful, but WITHOUT ANY WARRANTY;  with-
+# out even the implied warranty of  MERCHANTABILITY  or  FITNESS FOR A
+# PARTICULAR PURPOSE. See the  GNU General Public License for more de-
+# tails. You should have  received  a copy of the  GNU  General Public
+# License along with GNU Make; see the file  COPYING.  If  not,  write
+# to the Free Software Foundation, Inc., 51 Franklin St,  Fifth Floor,
+# Boston, MA 02110-1301 USA.
 
 setlocale(LC_ALL, "POSIX");
 
@@ -15,14 +25,11 @@ foreach ($NAME as $i => $n) {
     $ACT[$n]  = $ACT[$i];
 }
 
+# RRDtool Options
+#$servicedes=$NAGIOS_SERVICEDESC
+
 $fsname = str_replace("_", " ", substr($servicedesc,5));
 $fstitle = $fsname;
-
-# Hack for windows: replace C// with C:\
-if (strlen($fsname) == 3 && substr($fsname, 1, 2) == '//') {
-    $fsname = $fsname[0] . "\:\\\\";
-    $fstitle = $fsname[0] . ":\\";
-}
 
 $sizegb = sprintf("%.1f", $MAX[1] / 1024.0);
 $maxgb = $MAX[1] / 1024.0;

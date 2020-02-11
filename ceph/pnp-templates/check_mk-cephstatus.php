@@ -1,4 +1,15 @@
 <?php
+#
+# This is free software;  you can redistribute it and/or modify it
+# under the  terms of the  GNU General Public License  as published by
+# the Free Software Foundation in version 2.  check_mk is  distributed
+# in the hope that it will be useful, but WITHOUT ANY WARRANTY;  with-
+# out even the implied warranty of  MERCHANTABILITY  or  FITNESS FOR A
+# PARTICULAR PURPOSE. See the  GNU General Public License for more de-
+# tails. You should have  received  a copy of the  GNU  General Public
+# License along with GNU Make; see the file  COPYING.  If  not,  write
+# to the Free Software Foundation, Inc., 51 Franklin St,  Fifth Floor,
+# Boston, MA 02110-1301 USA.
 
 setlocale(LC_ALL, "POSIX");
 
@@ -167,14 +178,45 @@ if (isset($RRD['num_pgs'])) {
             $def[7] .= "DEF:${n}=${RRD[$n]} ";
         }
     }
+    $fac = 256 ** 3 / count($NAME);
     foreach ($NAME as $i => $n) {
         if (substr($n, 0, 8) == 'pgstate_') {
-            $def[7] .= "AREA:${n}#${i}${i}${i}:'${n}\: ':STACK ";
+            $def[7] .= "AREA:${n}#" . substr("000000".dechex($i * $fac),-6). ":'${n}\: ':STACK ";
             $def[7] .= "GPRINT:${n}:LAST:\"%6.2lf\\n\" ";
         }
     }
     $def[7] .= "LINE:num_pgs#000:'Total Placement Groups\: ' ";
     $def[7] .= "GPRINT:num_pgs:LAST:\"%6.2lf\" ";
 } 
+
+if (isset($RRD['degraded_objects'])) {
+    $opt[8] = "--vertical-label 'Objects' -l 0 --title '$hostname: Degraded Objects' ";
+    $def[8] = "DEF:degraded_objects=${RRD['degraded_objects']} ";
+    $def[8] .= "AREA:degraded_objects#a0608f:\"Degraded Objects\:\" ";
+    $def[8] .= "GPRINT:degraded_objects:LAST:\"%2.0lf\" ";
+    $def[8] .= "LINE1:degraded_objects#c00080:\"\" ";
+    $def[8] .= "GPRINT:degraded_objects:MAX:\"Max\: %2.0lf\" ";
+    $def[8] .= "GPRINT:degraded_objects:AVERAGE:\"Average\: %2.0lf\\n\" ";
+}
+
+if (isset($RRD['misplaced_objects'])) {
+    $opt[9] = "--vertical-label 'Objects' -l 0 --title '$hostname: Misplaced Objects' ";
+    $def[9] = "DEF:misplaced_objects=${RRD['misplaced_objects']} ";
+    $def[9] .= "AREA:misplaced_objects#a0608f:\"Misplaced Objects\:\" ";
+    $def[9] .= "GPRINT:misplaced_objects:LAST:\"%2.0lf\" ";
+    $def[9] .= "LINE1:misplaced_objects#c00080:\"\" ";
+    $def[9] .= "GPRINT:misplaced_objects:MAX:\"Max\: %2.0lf\" ";
+    $def[9] .= "GPRINT:misplaced_objects:AVERAGE:\"Average\: %2.0lf\\n\" ";
+}
+
+if (isset($RRD['recovering'])) {
+    $opt[10] = "--vertical-label 'Recovering (MB/s)' -X0  --title \"Ceph Recovering\" ";
+    $def[10]  = "DEF:recovering=$RRD[recovering] ".
+                "CDEF:recovering_mb=recovering,1048576,/ ".
+                "AREA:recovering_mb#40c080:\"Recovering \" ".
+                "GPRINT:recovering_mb:LAST:\"%8.1lf MB/s last\" ".
+                "GPRINT:recovering_mb:AVERAGE:\"%6.1lf MB/s avg\" ".
+                "GPRINT:recovering_mb:MAX:\"%6.1lf MB/s max\\n\" ";
+}
 
 ?>
