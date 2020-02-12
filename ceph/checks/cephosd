@@ -69,6 +69,8 @@ def inventory_cephosd(parsed):
     if 'nodes' in parsed:
         for node, osdlist in parsed['nodes'].iteritems():
             nodes[translate_piggyback_host(g_hostname, node)] = osdlist
+        if len(nodes[g_hostname]) == 0:
+            nodes[g_hostname] = parsed['nodes'].get(g_hostname.split('.', 1)[0], [])
     if 'df' in parsed and 'nodes' in parsed['df']:
         for osd in parsed['df']['nodes']:
             if osd['id'] in nodes[g_hostname] or 'nodes' not in parsed:
