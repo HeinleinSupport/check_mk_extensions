@@ -85,6 +85,10 @@ def check_cephosd(item, params, parsed):
                 size_mb = osd['kb'] / 1024.0
                 avail_mb = osd['kb_avail'] / 1024.0
                 yield df_check_filesystem_list(item, params, [ (item, size_mb, avail_mb, 0) ])
+                if 'pgs' in osd:
+                    yield 0, "%d PGs" % osd['pgs'], [ ( 'num_pgs', osd['pgs'] ) ]
+                if 'status' in osd and osd['status'] != 'up':
+                    yield 1, "Status is %s" % osd['status']
     if 'perf' in parsed and 'osd_perf_infos' in parsed['perf']:
         for osd in parsed['perf']['osd_perf_infos']:
             if 'OSD %d' % osd['id'] == item:

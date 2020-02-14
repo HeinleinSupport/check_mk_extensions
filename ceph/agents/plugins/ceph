@@ -38,5 +38,26 @@ if [ -x /usr/bin/ceph ]; then
     echo ', "nodes": '
     /usr/bin/ceph -f json node ls osd
     echo "}"
+
+    jq=$(which jq)
+    echo "<<<cephosdbluefs:cached($(date +%s),$INT)>>>"
+    echo '{'
+    for i in /var/lib/ceph/osd/*/type; do
+      if [ "$(cat $i)" = "bluestore" ]; then
+        dir=$(dirname $i)
+        osdid=$(cat $dir/whoami)
+        if [ -n "$osdid" ]; then
+          echo " \"$osdid\": "
+          if [ -n "$jq" ]; then
+             echo '{ "bluefs": '
+             ceph daemon osd.$osdid perf dump | $jq .bluefs
+             echo '},'
+           else
+             ceph daemon osd.$osdid perf dump
+           fi
+         fi
+      fi
+    done
+    echo '"end":{}}'
   fi
 fi
