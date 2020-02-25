@@ -42,7 +42,7 @@ for idx, prefix in enumerate([ 'tel2ip', 'ip2tel' ]):
         if key == 9:
             metric_info[metric_name] = {
                 'title' : "%s %s" % ( prefix,_(info[1])),
-                'unit'  : 'count',
+                'unit'  : 's',
                 'color' : indexed_color(idx*10 + key, 20),
                 }
             _acgateway_total_metrics.append( ( metric_name, '%sline' % switch, "%s %s" % ( prefix, _(info[1]) ) ) )
