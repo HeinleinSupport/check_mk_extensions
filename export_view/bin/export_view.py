@@ -70,8 +70,11 @@ resp = requests.get(args.url, params={'_username': args.automation,
                                       '_transid': '-1',
                                       'view_name': args.view})
 if resp.status_code == 200:
-    with open(args.output, 'w') as output:
-        output.write(resp.text)
-        output.write("\n")
+    if args.debug:
+        print resp.text.encode('utf-8')
+    else:
+        with open(args.output, 'w') as output:
+            output.write(resp.text.encode('utf-8'))
+            output.write("\n")
 else:
     raise resp.text
