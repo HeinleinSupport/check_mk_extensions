@@ -15,6 +15,13 @@
 # to the Free Software Foundation, Inc., 51 Franklin St,  Fifth Floor,
 # Boston, MA 02110-1301 USA.
 
+def parse_rspamd(info):
+    import json
+    try:
+        return json.loads(" ".join([item for sublist in info for item in sublist]))
+    except ValueError:
+        return {}
+
 def inventory_rspamd(info):
     if 'scanned' in info:
         yield None, {}
@@ -68,12 +75,11 @@ def check_rspamd(_no_item, params, info):
                                 [ ('rspamd_%s_%s_rate' % (key, key2.replace(' ', '_')), rate[key][key2]) ] )
     
 check_info['rspamd'] = {
-    'parse_function'         : parse_json,
+    'parse_function'         : parse_rspamd,
     'inventory_function'     : inventory_rspamd,
     'check_function'         : check_rspamd,
     'service_description'    : "Rspamd",
     'has_perfdata'           : True,
     'group'                  : 'rspamd',
     'default_levels_variable': 'rspamd_default_levels',
-    'includes'               : [ 'json.include' ],
 }
