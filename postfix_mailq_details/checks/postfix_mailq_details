@@ -31,7 +31,10 @@ def check_postfix_mailq_details(item, params, info):
     for line in info:
         if item == postfix_mailq_details_name(line):
             mails = int(line[3])
-            bytes = int(line[4])
+            try:
+                bytes = int(line[4])
+            except IndexError:
+                bytes = 0
             rc = 0
             if line[1] == 'age':
                 if line[2][0] == '+':
