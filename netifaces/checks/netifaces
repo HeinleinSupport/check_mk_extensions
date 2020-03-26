@@ -66,7 +66,7 @@ def check_netifaces_rbl(item, rbls, ifaces):
                     res = 0
                     count = 0
                     for level, levelres in levels.iteritems():
-                        for rbl in rbls[level]:
+                        for rbl in rbls.get(level, []):
                             ptr = "%s.%s." % (dns.reversename.from_address(address) - reverse_domain[family], rbl)
                             try:
                                 ip = socket.gethostbyname(ptr)
@@ -75,9 +75,6 @@ def check_netifaces_rbl(item, rbls, ifaces):
                                 count += 1
                                 msg.append('found in %s: %s %s' % (rbl, ip, levelres[1]))
                             except socket.gaierror, er:
-                                import cmk.debug
-                                if cmk.debug.enabled():
-                                    print 'error in %s): %s' % (ptr, er)
                                 if er.args[0] != socket.EAI_NONAME:
                                     res = 1
                                     msg.append('%s yields %s(!)' % (rbl, er))
