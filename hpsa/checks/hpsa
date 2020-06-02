@@ -15,17 +15,26 @@
 # to the Free Software Foundation, Inc., 51 Franklin St,  Fifth Floor,
 # Boston, MA 02110-1301 USA.
 
+def _hpsa_make_key(controller, key, line):
+    description = {'array': 'Array',
+                   'logicaldrive': 'Logical Drive',
+                   'physicaldrive': 'Physical Drive'}
+    return "%s %s %s" % (controller, description[key], line[1])
+
 def parse_hpsa(info):
     parsed = {'array': {}, 'logicaldrive': {}, 'physicaldrive': {}}
     currentarray = None
+    controller = None
     for line in info:
+        if line[0] == u'Smart' and line[1] == u'Array':
+            controller = " ".join(line[0:6])
         for key in parsed:
             if line[0].lower() == key:
-                parsed[key][line[1]] = {'info': (" ".join(line[2:]))[1:-1].split(', ')}
+                parsed[key][_hpsa_make_key(controller, key, line)] = {'info': (" ".join(line[2:]))[1:-1].split(', ')}
                 if key == 'array':
-                    currentarray = line[1]
+                    currentarray = _hpsa_make_key(controller, key, line)
                 if currentarray:
-                    parsed[key][line[1]]['array'] = currentarray
+                    parsed[key][_hpsa_make_key(controller, key, line)]['array'] = currentarray
         if " ".join(line) == "HP RAID check tool not installed.":
             parsed['not_installed'] = True
     return parsed
@@ -57,7 +66,7 @@ def check_hpsa_array(item, _no_params, parsed):
 check_info['hpsa.array'] = {
     'inventory_function':  inventory_hpsa_array,
     'check_function':      check_hpsa_array,
-    'service_description': "HP RAID Array %s",
+    'service_description': "HP RAID %s",
     'has_perfdata':        False,
 }
 
@@ -76,7 +85,7 @@ def check_hpsa_logicaldrive(item, _no_params, parsed):
 check_info['hpsa.logicaldrive'] = {
     'inventory_function':  inventory_hpsa_logicaldrive,
     'check_function':      check_hpsa_logicaldrive,
-    'service_description': "HP RAID Logical Drive %s",
+    'service_description': "HP RAID %s",
     'has_perfdata':        False,
 }
 
@@ -95,6 +104,6 @@ def check_hpsa_physicaldrive(item, _no_params, parsed):
 check_info['hpsa.physicaldrive'] = {
     'inventory_function':  inventory_hpsa_physicaldrive,
     'check_function':      check_hpsa_physicaldrive,
-    'service_description': "HP RAID Physical Drive %s",
+    'service_description': "HP RAID %s",
     'has_perfdata':        False,
 }
