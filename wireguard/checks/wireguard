@@ -16,10 +16,6 @@
 # Boston, MA 02110-1301 USA.
 
 def parse_wireguard(info):
-    import cmk.utils.debug
-    if cmk.utils.debug.enabled():
-        print "info = ",
-        pprint.pprint(info)
     parsed = {}
     interface = None
     for line in info:
@@ -36,9 +32,6 @@ def parse_wireguard(info):
                 'transfer-tx': int(line[4]),
                 'persistent-keepalive': line[5]
             }
-    if cmk.utils.debug.enabled():
-        print "parsed = ",
-        pprint.pprint(parsed)
     return parsed
 
 def inventory_wireguard(parsed):
