@@ -1,0 +1,76 @@
+#!/usr/bin/env python
+# -*- encoding: utf-8; py-indent-offset: 4 -*-
+
+# (c) 2020 Heinlein Support GmbH
+#          Robert Sander <r.sander@heinlein-support.de>
+
+# This is free software;  you can redistribute it and/or modify it
+# under the  terms of the  GNU General Public License  as published by
+# the Free Software Foundation in version 2.  This file is distributed
+# in the hope that it will be useful, but WITHOUT ANY WARRANTY;  with-
+# out even the implied warranty of  MERCHANTABILITY  or  FITNESS FOR A
+# PARTICULAR PURPOSE. See the  GNU General Public License for more de-
+# ails.  You should have  received  a copy of the  GNU  General Public
+# License along with GNU Make; see the file  COPYING.  If  not,  write
+# to the Free Software Foundation, Inc., 51 Franklin St,  Fifth Floor,
+# Boston, MA 02110-1301 USA.
+
+def parse_wireguard(info):
+    import cmk.utils.debug
+    if cmk.utils.debug.enabled():
+        print "info = ",
+        pprint.pprint(info)
+    parsed = {}
+    interface = None
+    for line in info:
+        if len(line) == 1 and line[0].startswith('[[') and line[0].endswith(']]'):
+            interface = line[0][2:-2]
+            parsed[interface] = {}
+        if len(line) == 2:
+            continue
+        if len(line) == 6:
+            parsed[interface][line[0]] = {
+                'allowed-ips': line[1],
+                'latest-handshake': int(line[2]),
+                'transfer-rx': int(line[3]),
+                'transfer-tx': int(line[4]),
+                'persistent-keepalive': line[5]
+            }
+    if cmk.utils.debug.enabled():
+        print "parsed = ",
+        pprint.pprint(parsed)
+    return parsed
+
+def inventory_wireguard(parsed):
+    for interface, peers in parsed.iteritems():
+        yield ('%s' % interface, {})
+        for peer, data in peers.iteritems():
+            yield ('%s Peer %s' % (interface, peer), {'allowed-ips': data['allowed-ips']})
+
+def check_wireguard(item, params, parsed):
+    if 'Peer' in item:
+        interface, x, peer = item.split(' ')
+        if interface in parsed:
+            peers = parsed[interface]
+            if peer in peers:
+                data = peers[peer]
+                now = time.time()
+                since = now - data['latest-handshake']
+                in_rate = get_rate('wireguard.%s.%s.in' % (interface, peer), now, data['transfer-rx'])
+                out_rate = get_rate('wireguard.%s.%s.out' % (interface, peer), now, data['transfer-tx'])
+                yield 0, "allowed IPs: %s" % data['allowed-ips']
+                yield 0, "", [ ( 'if_in_octets', in_rate ), ( 'if_out_octets', out_rate ) ]
+                yield 0, "latest handshake %s ago" % get_age_human_readable(since), [ ( 'last_updated', since ) ]
+    else:
+        if item in parsed:
+            numpeers = len(parsed[item])
+            yield 0, "%d Peer(s)" % numpeers, [ ( 'active_vpn_users', numpeers ) ] 
+
+check_info['wireguard'] = {
+    'parse_function':      parse_wireguard,
+    'inventory_function':  inventory_wireguard,
+    'check_function':      check_wireguard,
+    'service_description': "Wireguard %s",
+    'has_perfdata':        True,
+    'group':               'wireguard',
+}
