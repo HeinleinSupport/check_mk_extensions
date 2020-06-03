@@ -3,9 +3,9 @@
 wg=$(which wg)
 
 if [ -x $wg ]; then
-	echo '<<<wireguard:sep(9)>>>'
-    wg show interfaces | while read iface ; do
+    echo '<<<wireguard:sep(9)>>>'
+    $wg show interfaces | while read iface ; do
         echo "[[$iface]]"
-        wg show $iface dump | cut -f 3- -d '	'
+        $wg show $iface dump | tail -n +2 | cut -f 1,3- -d '	'
     done
 fi
