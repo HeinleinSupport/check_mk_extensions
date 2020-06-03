@@ -24,13 +24,14 @@ def parse_wireguard(info):
             parsed[interface] = {}
         if len(line) == 2:
             continue
-        if len(line) == 6:
+        if len(line) == 7:
             parsed[interface][line[0]] = {
-                'allowed-ips': line[1],
-                'latest-handshake': int(line[2]),
-                'transfer-rx': int(line[3]),
-                'transfer-tx': int(line[4]),
-                'persistent-keepalive': line[5]
+                'endpoint': line[1],
+                'allowed-ips': line[2],
+                'latest-handshake': int(line[3]),
+                'transfer-rx': int(line[4]),
+                'transfer-tx': int(line[5]),
+                'persistent-keepalive': line[6]
             }
     return parsed
 
@@ -41,23 +42,39 @@ def inventory_wireguard(parsed):
             yield ('%s Peer %s' % (interface, peer), {'allowed-ips': data['allowed-ips']})
 
 def check_wireguard(item, params, parsed):
+    timeout = 300 # from wireguard technical white paper Reject-After-Time + Rekey-Attempt-Time + 30s
     if 'Peer' in item:
         interface, x, peer = item.split(' ')
         if interface in parsed:
             peers = parsed[interface]
             if peer in peers:
-                data = peers[peer]
                 now = time.time()
+                data = peers[peer]
                 since = now - data['latest-handshake']
                 in_rate = get_rate('wireguard.%s.%s.in' % (interface, peer), now, data['transfer-rx'])
                 out_rate = get_rate('wireguard.%s.%s.out' % (interface, peer), now, data['transfer-tx'])
+                yield 0, "endpoint: %s" % data['endpoint']
                 yield 0, "allowed IPs: %s" % data['allowed-ips']
                 yield 0, "", [ ( 'if_in_octets', in_rate ), ( 'if_out_octets', out_rate ) ]
-                yield 0, "latest handshake %s ago" % get_age_human_readable(since), [ ( 'last_updated', since ) ]
+                if data['latest-handshake'] > 0:
+                    yield 0, "latest handshake %s ago" % get_age_human_readable(since), [ ( 'last_updated', since ) ]
+                    if since > timeout:
+                        yield 0, "inactive"
+                else:
+                    yield 0, "never connected"
     else:
         if item in parsed:
-            numpeers = len(parsed[item])
-            yield 0, "%d Peer(s)" % numpeers, [ ( 'active_vpn_users', numpeers ) ] 
+            peers = parsed[item]
+            numpeers = len(peers)
+            activepeers = 0
+            now = time.time()
+            for peer, data in peers.iteritems():
+                if data['latest-handshake'] > 0:
+                    since = now - data['latest-handshake']
+                    if since < timeout:
+                        activepeers += 1
+            yield 0, "%d configured peer(s)" % numpeers, [ ( 'configured_vpn_tunnels', numpeers ) ]
+            yield 0, "%d active peer(s)" % activepeers, [ ( 'active_vpn_tunnels', activepeers ) ]
 
 check_info['wireguard'] = {
     'parse_function':      parse_wireguard,
