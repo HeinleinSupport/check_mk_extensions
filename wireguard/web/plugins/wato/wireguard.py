@@ -4,11 +4,11 @@
 register_rule("agents/" + _("Agent Plugins"),
     "agent_config:wireguard",
     DropdownChoice(
-        title = _("Wireguard VPN (Linux)"),
-        help = _("This will deploy the agent plugin <tt>wireguard</tt> for monitoring the status of Wireguard VPNs."),
+        title = _("WireGuard VPN (Linux)"),
+        help = _("This will deploy the agent plugin <tt>wireguard</tt> for monitoring the status of WireGuard VPNs."),
         choices = [
-            ( True, _("Deploy plugin for Wireguard VPNs") ),
-            ( None, _("Do not deploy plugin for HP RAID controllers") ),
+            ( True, _("Deploy plugin for WireGuard VPNs") ),
+            ( None, _("Do not deploy plugin for WireGuard VPNs") ),
         ]
     )
 )
