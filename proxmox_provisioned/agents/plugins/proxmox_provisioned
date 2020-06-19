@@ -1,0 +1,57 @@
+#!/bin/bash
+
+# (c) 2020 Heinlein Support GmbH
+#          Robert Sander <r.sander@heinlein-support.de>
+
+# This is free software;  you can redistribute it and/or modify it
+# under the  terms of the  GNU General Public License  as published by
+# the Free Software Foundation in version 2.  This file is distributed
+# in the hope that it will be useful, but WITHOUT ANY WARRANTY;  with-
+# out even the implied warranty of  MERCHANTABILITY  or  FITNESS FOR A
+# PARTICULAR PURPOSE. See the  GNU General Public License for more de-
+# ails.  You should have  received  a copy of the  GNU  General Public
+# License along with GNU Make; see the file  COPYING.  If  not,  write
+# to the Free Software Foundation, Inc., 51 Franklin St,  Fifth Floor,
+# Boston, MA 02110-1301 USA.
+
+addNumbers () {
+    local IFS='+'
+    printf "%s\n" "$(( $* ))"
+}
+
+if [ -r /etc/pve/storage.cfg ]; then
+  echo '<<<esx_vsphere_datastores>>>'
+  cat /etc/pve/storage.cfg | while read key value; do
+    case "$key" in
+      "dir:"|"nfs:")
+        dsname=$value
+	;;
+      "*:")
+	dsname=""
+	;;
+    esac
+    if [ "$key" = "path" -a -n "$dsname" ]; then
+      dir=$value
+      if [ -d $dir/images ]; then
+        df=$(df -T -B 1 $dir | tail -1)
+        capacity=$(echo $df | awk '{ print $3; }')
+	total_used=$(echo $df | awk '{print $4; }')
+	typ=$(echo $df | awk '{ print $2 }' )
+        used=$(du -B 1 -s $dir/images | cut -f 1 -d "	")
+        prov=$(addNumbers $(ls --block-size=1 -l $dir/images/*/* 2> /dev/null | awk '{ print $5; }'))
+	total_cap=$(($capacity - $total_used + $used))
+        echo "[$dsname]"
+        echo "url $dir"
+        echo "accessible True"
+        echo "type $typ"
+        echo "capacity $total_cap"
+        echo "freeSpace $(($total_cap - $used))"
+        if [ $prov -gt 0 ]; then
+          echo "uncommitted $(($prov - $used))"
+	else
+	  echo "uncommitted 0"
+        fi
+      fi
+    fi
+  done
+fi
