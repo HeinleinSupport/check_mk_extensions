@@ -50,7 +50,11 @@
 #       ::= { upsAlarm 2 }
 
 def inventory_ups_alarms(info):
-    if info[0]:
+    import cmk.utils.debug
+    if cmk.utils.debug.enabled():
+        print "info = ",
+        pprint.pprint(info)
+    if info[0][0]:
         return [(None, {})]
 
 def check_ups_alarms(_no_item, _no_params, info):
@@ -79,11 +83,11 @@ def check_ups_alarms(_no_item, _no_params, info):
                       '.1.3.6.1.2.1.33.1.6.3.23': 'upsAlarmShutdownImminent',
                       '.1.3.6.1.2.1.33.1.6.3.24': 'upsAlarmTestInProgress',
     }
-    numAlarms = len(info[1])
+    numAlarms = len(info[0][1])
     if numAlarms > 0:
-        uptime = parse_snmp_uptime(info[2][0][0])
+        uptime = parse_snmp_uptime(info[1][0][0])
         alarms = []
-        for alarm in info[1]:
+        for alarm in info[0][1]:
             alarmtime = parse_snmp_uptime(alarm[1])
             alarms.append("%s (was %s ago)" % (transUpsAlarm.get(alarm[0], alarm[0]),
                                                get_age_human_readable(uptime - alarmtime)))
@@ -98,8 +102,8 @@ check_info['ups_alarms'] = {
     "snmp_info": [
         (".1.3.6.1.2.1.33.1.6", ["1.0"]),
         (".1.3.6.1.2.1.33.1.6.2.1", ["2", "3"]),
-        ('.1.3.6.1.2.1.1', ['3.0']),  # sysUptime
         ],
-    "snmp_scan_function": ups_generic_scan_function,
+    "snmp_scan_function": lambda oid: ups_generic_scan_function(oid) or oid(".1.3.6.1.2.1.1.2.0") == ".1.3.6.1.4.1.318.1.3.27",
     "includes": ["uptime.include", "ups_generic.include"],
+    "extra_sections": ["snmp_uptime"],
 }
