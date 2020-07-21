@@ -2,7 +2,10 @@
 # -*- encoding: utf-8; py-indent-offset: 4 -*-
 
 from cmk.gui.valuespec import DropdownChoice
-from cmk.gui.plugins.wato import HostRulespec
+from cmk.gui.plugins.wato import (
+    HostRulespec,
+    rulespec_registry,
+)
 from cmk.gui.cee.plugins.wato.agent_bakery import RulespecGroupMonitoringAgentsAgentPlugins
 
 def _valuespec_agent_config_proxmox_provisioned():
