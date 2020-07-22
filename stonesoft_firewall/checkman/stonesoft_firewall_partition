@@ -1,0 +1,15 @@
+title: Filesystem check for Stonesoft Firewalls
+agents: snmp
+author: Robert Sander <r.sander@heinlein-support.de>
+license: GPL
+distribution: heinlein
+description:
+ Stonesoft firewalls present the filesystem information on their own OIDs.
+
+perfdata:
+ size of filesystem and usage
+
+item:
+ the mountpoint path
+
+inventory:
