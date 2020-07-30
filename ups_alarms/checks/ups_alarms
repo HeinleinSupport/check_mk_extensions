@@ -83,7 +83,7 @@ def check_ups_alarms(_no_item, _no_params, info):
                       '.1.3.6.1.2.1.33.1.6.3.23': 'upsAlarmShutdownImminent',
                       '.1.3.6.1.2.1.33.1.6.3.24': 'upsAlarmTestInProgress',
     }
-    numAlarms = len(info[0][1])
+    numAlarms = saveint(info[0][0])
     if numAlarms > 0:
         uptime = parse_snmp_uptime(info[1][0][0])
         alarms = []
@@ -91,7 +91,7 @@ def check_ups_alarms(_no_item, _no_params, info):
             alarmtime = parse_snmp_uptime(alarm[1])
             alarms.append("%s (was %s ago)" % (transUpsAlarm.get(alarm[0], alarm[0]),
                                                get_age_human_readable(uptime - alarmtime)))
-        return 2, "%d Alarms present\n%s" % (numAlarms, "\n".join(alarms))
+        return 2, "%d Alarms present (see long output)\n%s" % (numAlarms, "\n".join(alarms))
     else:
         return 0, "No Alarms present"
 
