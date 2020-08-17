@@ -21,7 +21,7 @@ import json
 import os
 import sys
 
-api_url = "https://www.ecall.ch/ecallurl/ecallurl.asp"
+api_url = "https://url.ecall.ch/api/sms"
 
 def main():
     context = dict([ (var[7:], value.decode("utf-8"))
@@ -84,10 +84,8 @@ def get_text(context):
 
 def send_sms(username, password, text, context):
     data = {
-        'WCI': 'Interface',
-        'Function': 'SendPage',
-        'AccountName': username,
-        'AccountPassword': password,
+        'Username': username,
+        'Password': password,
         'Address': context['CONTACTPAGER'].replace(" ", ""),
         'Message': text
     }
