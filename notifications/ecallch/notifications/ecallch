@@ -20,6 +20,7 @@ import requests
 import json
 import os
 import sys
+import xml.etree.ElementTree as ET
 
 api_url = "https://url.ecall.ch/api/sms"
 
@@ -28,7 +29,7 @@ def main():
                       for (var, value) in os.environ.items()
                       if var.startswith("NOTIFY_")])
 
-    if context['CONTACTPAGER'] == "":
+    if not context.get('CONTACTPAGER'):
         sys.stderr.write("Contact's pager address is empty, not sending anything.\n")
         return 0
 
@@ -60,7 +61,7 @@ def get_text(context):
         if notification_type in [ "PROBLEM", "RECOVERY" ]:
             message += "is " + context['HOSTSTATE']
 
-    # Ouput the other State
+    # Output the other State
     if notification_type.startswith("FLAP"):
         if "START" in notification_type:
             message += " Started Flapping"
@@ -84,21 +85,35 @@ def get_text(context):
 
 def send_sms(username, password, text, context):
     data = {
-        'Username': username,
+        # 'CallBack': os.environ.get('OMD_SITE', 'checkMK'),
+        'UserName': username,
         'Password': password,
         'Address': context['CONTACTPAGER'].replace(" ", ""),
         'Message': text
     }
 
-    resp = requests.post(api_url, params=data)
+    resp = requests.post(api_url, data=data)
+    if resp.text.startswith('<Result '):
+        root = ET.fromstring(resp.text.encode('utf-8'))
+    else:
+        root = ET.fromstring('<empty />')
 
+    responsedata = { 'AdditionalInfo': None,
+                     'ResultCode': None,
+                     'ResultText': None, }
+
+    if root.tag == '{http://schemas.datacontract.org/2004/07/eCallHttp.Models}Result':
+        for child in root:
+            for key in responsedata.keys():
+                if child.tag.endswith(key):
+                    responsedata[key] = child.text
+                    
     if resp.status_code == 200:
-        result = resp.text.split("\t")
-        if result[1] == 'ResultCode:0':
+        if responsedata['ResultCode'] == '0':
             sys.stdout.write("SMS sucessfully sent\n")
             return 0
         
-    sys.stderr.write(resp.text)
+    sys.stderr.write("%s" % responsedata)
     return 2
 
 sys.exit(main())
