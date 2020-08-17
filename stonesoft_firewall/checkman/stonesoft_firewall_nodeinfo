@@ -1,0 +1,14 @@
+title: Cluster Node Information of Stonesoft Firewalls
+agents: snmp
+catalog: os/kernel
+license: GPL
+distribution: heinlein
+description:
+ The {STONESOFT-NETNODE-MIB} is a vendor specific MIB.
+ This check uses that MIB in order to monitor the
+ current cluster node status. If the status changes
+ the check may change its state depending on the new status.
+
+inventory:
+ One check is automatically created.
+
