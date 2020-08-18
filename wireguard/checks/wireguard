@@ -80,7 +80,7 @@ check_info['wireguard'] = {
     'parse_function':      parse_wireguard,
     'inventory_function':  inventory_wireguard,
     'check_function':      check_wireguard,
-    'service_description': "Wireguard %s",
+    'service_description': "WireGuard %s",
     'has_perfdata':        True,
     'group':               'wireguard',
 }
