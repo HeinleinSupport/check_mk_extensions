@@ -1,0 +1,13 @@
+title: Wagner Racksens2: Alarms Triggered
+agents: snmp
+catalog: hw/environment/wagner
+license: GPL
+distribution: heinlein
+description:
+ Checks if alarms have been triggered on an Wagner Racksens2 device.
+
+item:
+ The name of the alarm.
+
+inventory:
+ Creates one check for every alarm.

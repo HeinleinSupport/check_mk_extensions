@@ -1,0 +1,20 @@
+title: Wagner Racksens2: Smoke Detectors
+agents: snmp
+catalog: hw/environment/wagner
+license: GPL
+distribution: heinlein
+description:
+ Checks the Levels reported by Smoke Detectors of Wagner Racksens2 devices and the fire alarm detectors.
+
+ The check returns {CRIT} if the level is above 5.000000 %, {WARN} if the level is blow 5.000000 % and above 3.000000 %, {OK} otherwise.
+
+ The check returns {CRIT} if the fire alarm of the detector is on.
+
+ The check returns {WARN} if the action alarm of the detector is on.
+
+inventory:
+ Creates one check for every Smoke Detector.
+
+item:
+ The ID of the detector.
+
