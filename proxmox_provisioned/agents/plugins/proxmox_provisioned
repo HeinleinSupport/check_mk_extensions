@@ -15,8 +15,14 @@
 # Boston, MA 02110-1301 USA.
 
 addNumbers () {
-    local IFS='+'
-    printf "%s\n" "$(( $* ))"
+  local IFS='+'
+  printf "%s\n" "$(( $* ))"
+}
+
+provisionedSpace () {
+  addNumbers $( find "$1" -type f | while read image; do
+    qemu-img info $image | awk '/^virtual size: / { print substr($5, 2) }'
+  done )
 }
 
 if [ -r /etc/pve/storage.cfg ]; then
@@ -25,21 +31,21 @@ if [ -r /etc/pve/storage.cfg ]; then
     case "$key" in
       "dir:"|"nfs:")
         dsname=$value
-	;;
+        ;;
       "*:")
-	dsname=""
-	;;
+        dsname=""
+        ;;
     esac
     if [ "$key" = "path" -a -n "$dsname" ]; then
       dir=$value
       if [ -d $dir/images ]; then
         df=$(df -T -B 1 $dir | tail -1)
         capacity=$(echo $df | awk '{ print $3; }')
-	total_used=$(echo $df | awk '{print $4; }')
-	typ=$(echo $df | awk '{ print $2 }' )
+        total_used=$(echo $df | awk '{print $4; }')
+        typ=$(echo $df | awk '{ print $2 }' )
         used=$(du -B 1 -s $dir/images | cut -f 1 -d "	")
-        prov=$(addNumbers $(ls --block-size=1 -l $dir/images/*/* 2> /dev/null | awk '{ print $5; }'))
-	total_cap=$(($capacity - $total_used + $used))
+        prov=$(provisionedSpace $dir/images/)
+        total_cap=$(($capacity - $total_used + $used))
         echo "[$dsname]"
         echo "url $dir"
         echo "accessible True"
@@ -48,8 +54,8 @@ if [ -r /etc/pve/storage.cfg ]; then
         echo "freeSpace $(($total_cap - $used))"
         if [ $prov -gt 0 ]; then
           echo "uncommitted $(($prov - $used))"
-	else
-	  echo "uncommitted 0"
+        else
+          echo "uncommitted 0"
         fi
       fi
     fi
