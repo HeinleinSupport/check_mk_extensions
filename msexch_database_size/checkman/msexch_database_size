@@ -1,0 +1,12 @@
+title: Shows size of Exchange mailbox databases
+agents: windows
+author: Robert Sander <r.sander@heinlein-support.de>
+license: GPL
+distribution: heinlein
+description:
+ This check receives data from the agent plugin msexch_database_size.ps1
+ and shows the size of the databases.
+
+inventory:
+ One check for each mailbox database will be created.
+
