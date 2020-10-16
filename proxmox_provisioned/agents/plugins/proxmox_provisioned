@@ -28,15 +28,21 @@ provisionedSpace () {
 if [ -r /etc/pve/storage.cfg ]; then
   echo '<<<esx_vsphere_datastores>>>'
   cat /etc/pve/storage.cfg | while read key value; do
+    if [ "$key" = "disable" ]; then
+      enabled=""
+    fi
     case "$key" in
-      "dir:"|"nfs:")
+      "dir:"|"nfs:"|"lvmthin:")
         dsname=$value
+	enabled=true
+	thinpool=""
+	vgname=""
         ;;
       "*:")
         dsname=""
         ;;
     esac
-    if [ "$key" = "path" -a -n "$dsname" ]; then
+    if [ "$key" = "path" -a -n "$dsname" -a -n "$enabled" ]; then
       dir=$value
       if [ -d $dir/images ]; then
         df=$(df -T -B 1 $dir | tail -1)
@@ -57,6 +63,39 @@ if [ -r /etc/pve/storage.cfg ]; then
         else
           echo "uncommitted 0"
         fi
+      fi
+    fi
+    if [ "$key" = "thinpool" ]; then
+      thinpool=$value
+    fi
+    if [ "$key" = "vgname" -a -n "$dsname" -a -n "$enabled" ]; then
+      vgname=$value
+      capacity=0
+      total_used=0
+      used=0
+      prov=0
+
+      while read lv vg flags size pool percent; do
+        if [ $lv = $thinpool ]; then
+          capacity=$size
+	  total_used=$(echo "$size * $pool / 100" | bc)
+	elif [ -n "$percent" ]; then
+          lvused=$(echo "$size * $percent / 100" | bc)
+	  used=$(( $used + $lvused ))
+	  prov=$(( $prov + $size ))
+	fi
+      done <<<$( lvs --units b --no-suffix --no-heading $vgname )
+
+      echo "[$dsname]"
+      echo "url /dev/$vgname"
+      echo "accessible True"
+      echo "type lvmthin"
+      echo "capacity $capacity"
+      echo "freeSpace $(($capacity - $total_used))"
+      if [ $prov -gt 0 ]; then
+        echo "uncommitted $(($prov - $used))"
+      else
+        echo "uncommitted 0"
       fi
     fi
   done
