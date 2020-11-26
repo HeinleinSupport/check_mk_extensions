@@ -42,15 +42,15 @@ class WATOAPI():
                 raise RuntimeError(resp.text)
         if result['result_code'] == 1:
             if fail:
-                print params['action']
+                pprint(params['action'])
                 pprint(data)
-                print resp.request.headers
-                print resp.request.body
+                pprint(resp.request.headers)
+                pprint(resp.request.body)
                 import urllib
-                print "curl -v '%s?%s' -d \"request=%s\"" % (self.api_url, urllib.urlencode(params), repr(data))
+                print("curl -v '%s?%s' -d \"request=%s\"" % (self.api_url, urllib.urlencode(params), repr(data)))
                 raise RuntimeError('%s: %s' % ( errmsg, result['result'] ))
             else:
-                print '%s: %s' % ( errmsg, result['result'] )
+                print('%s: %s' % ( errmsg, result['result'] ))
         return result['result']
 
     def get_host(self, hostname, effective_attr=True):
