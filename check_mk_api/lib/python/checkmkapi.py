@@ -38,51 +38,32 @@ def _site_creds(username=None):
         password = open(os.path.join(os.environ['OMD_ROOT'], 'var', 'check_mk', 'web', username, 'automation.secret')).read().strip()
     return username, password
 
-class WATOAPI():
+class CMKRESTAPI():
     def __init__(self, site_url=None, api_user=None, api_secret=None):
         if not site_url:
             site_url = _site_url()
         if not api_secret:
             api_user, api_secret = _site_creds(api_user)
         self.api_url = '%s/api/v0' % check_mk_url(site_url)
-        
-        self.api_creds = {'_username': api_user, '_secret': api_secret, 'request_format': 'python', 'output_format': 'python'}
+        self.session = requests.session()
+        self.session.headers['Authorization'] = f"Bearer {api_user} {api_secret}"
+        self.session.headers['Accept'] = 'application/json'
 
-    def api_request(self, params, data=None, errmsg='Error', fail=True):
-        result = { 'result_code': 1,
-                   'result': None }
-        with warnings.catch_warnings():
-            warnings.simplefilter('ignore')
-            if data:
-                resp = requests.post(self.api_url, verify=False, params=params,
+    def api_request(self, action, etag=None):
+        if data:
+            resp = self.session.post(self.api_url, verify=False, params=params,
                                      headers={'content-type': 'application/x-www-form-urlencoded'}, data='request=%s' % repr(data))
-            else:
-                resp = requests.get(self.api_url, verify=False, params=params)
-            if resp.status_code == 200:
-                result = eval(resp.text)
-            else:
-                raise RuntimeError(resp.text)
-        if result['result_code'] == 1:
-            if fail:
-                pprint(params['action'])
-                pprint(data)
-                pprint(resp.request.headers)
-                pprint(resp.request.body)
-                import urllib
-                print("curl -v '%s?%s' -d \"request=%s\"" % (self.api_url, urllib.urlencode(params), repr(data)))
-                raise RuntimeError('%s: %s' % ( errmsg, result['result'] ))
-            else:
-                print('%s: %s' % ( errmsg, result['result'] ))
-        return result['result']
+        else:
+            resp = self.session.get(f"{self.api_url}/{action}")
+        resp.raise_for_status()
+        return resp.json()
 
     def get_host(self, hostname, effective_attr=True):
-        api_get_host = { u'action': u'get_host', u'effective_attributes': 1 }
-        api_get_host.update(self.api_creds)
-        if not effective_attr:
-            api_get_host[u'effective_attributes'] = 0
-        return self.api_request(params=api_get_host,
-                                data={u'hostname': hostname},
-                                errmsg='Error getting hostinfo for %s' % hostname)
+        resp = self.session.get(f"{self.api_url}/objects/host_config/{hostname}")
+        resp.raise_for_status()
+        data = resp.json()
+        etag = resp.headers.get('ETag')
+        return data, etag
 
     def get_all_hosts(self, effective_attr=True):
         api_get_all_hosts = { u'action': u'get_all_hosts', u'effective_attributes': 1 }
