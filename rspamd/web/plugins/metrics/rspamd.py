@@ -73,20 +73,20 @@ metric_info['rspamd_actions_add_header_rate'] = {
 
 graph_info.append({
     'title': _('Rspamd HAM/SPAM'),
-    'metrics': [ ( 'rspamd_ham_count_rate', 'stacked' ),
-                 ( 'rspamd_spam_count_rate', 'stacked' ),
+    'metrics': [ ( 'rspamd_ham_count_rate', 'stack' ),
+                 ( 'rspamd_spam_count_rate', 'stack' ),
                  ( 'rspamd_scanned_rate', 'line' ),
                ],
     })
 
 graph_info.append({
     'title': _('Rspamd Actions'),
-    'metrics': [ ( 'rspamd_actions_no_action_rate', 'stacked' ),
-                 ( 'rspamd_actions_reject_rate', 'stacked' ),
-                 ( 'rspamd_actions_soft_reject_rate', 'stacked' ),
-                 ( 'rspamd_actions_greylist_rate', 'stacked' ),
-                 ( 'rspamd_actions_rewrite_subject_rate', 'stacked' ),
-                 ( 'rspamd_actions_add_header_rate', 'stacked' ),
+    'metrics': [ ( 'rspamd_actions_no_action_rate', 'stack' ),
+                 ( 'rspamd_actions_reject_rate', 'stack' ),
+                 ( 'rspamd_actions_soft_reject_rate', 'stack' ),
+                 ( 'rspamd_actions_greylist_rate', 'stack' ),
+                 ( 'rspamd_actions_rewrite_subject_rate', 'stack' ),
+                 ( 'rspamd_actions_add_header_rate', 'stack' ),
                  ( 'rspamd_scanned_rate', 'line' ),
                ],
     })
