@@ -58,12 +58,15 @@ class CMKRESTAPI():
         resp.raise_for_status()
         return resp.json()
 
-    def get_host(self, hostname, effective_attr=True):
-        resp = self.session.get(f"{self.api_url}/objects/host_config/{hostname}")
+    def get_url(self, uri):
+        resp = self.session.get(f"{self.api_url}/{uri}")
         resp.raise_for_status()
         data = resp.json()
         etag = resp.headers.get('ETag')
         return data, etag
+
+    def get_host(self, hostname):
+        return self.get_url(f"/objects/host_config/{hostname}")
 
     def get_all_hosts(self, effective_attr=True):
         api_get_all_hosts = { u'action': u'get_all_hosts', u'effective_attributes': 1 }
