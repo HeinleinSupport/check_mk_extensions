@@ -6,7 +6,7 @@ data2tag queries a Multisite view (which has to contain at least a column with h
 
 # Prequisites #
 
-data2tag needs the [checkmkapi](https://github.com/HeinleinSupport/check_mk/tree/master/checkmkapi) Python module.
+data2tag needs the [checkmkapi](https://github.com/HeinleinSupport/check_mk_extensions/tree/master/checkmkapi) Python module.
 
 # Usage #
 
