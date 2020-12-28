@@ -25,7 +25,7 @@ register_check_parameters(
                 help = _('Set number of days after which an expired certificate is ignored. A reason has to be given.'),
                 elements = [
                     Integer(title = _('Ignore after'), unit = _('days'), default_value = 365),
-                    TextAscii(title = _('Reason'), allow_empty = False, size = 72, min_len = 5),
+                    TextAscii(title = _('Reason'), allow_empty = False, size = 72),
                 ])),
         ],
     ),
