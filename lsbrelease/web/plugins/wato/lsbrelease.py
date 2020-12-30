@@ -3,13 +3,8 @@
 
 from cmk.gui.i18n import _
 from cmk.gui.valuespec import (
-    CascadingDropdown,
     Dictionary,
-    FixedValue,
-    Float,
     ListOf,
-    ListOfStrings,
-    MonitoringState,
     TextAscii,
     Transform,
     Tuple,
