@@ -38,10 +38,10 @@ def check_entropy_avail(item, params, info):
         crit_abs  = 0
 
         if isinstance(params, dict):
-            if params.has_key('percentage'):
+            if 'percentage' in params:
                 warn_perc = entropy_info['poolsize'] / 100 * params['percentage'][0]
                 crit_perc = entropy_info['poolsize'] / 100 * params['percentage'][1]
-            if params.has_key('absolute'):
+            if 'absolute' in params:
                 warn_abs  = params['absolute'][0]
                 crit_abs  = params['absolute'][1]
         warn = warn_perc if warn_perc > warn_abs else warn_abs
