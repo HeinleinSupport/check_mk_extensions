@@ -68,9 +68,7 @@ def inventory_huawei_port(parsed):
 def check_huawei_port(item, params, parsed):
     if item in parsed:
         portinfo = parsed[item]
-        res = 0
         msg = "%s-Port" % portinfo[0]
-        perfdata = []
         #
         # portinfo:
         #
@@ -94,45 +92,36 @@ def check_huawei_port(item, params, parsed):
         #
         if portinfo[1] != '':
             msg += " @ %s" % portinfo[1]
+        yield (0, msg)
         if portinfo[0] in [ 'FC', 'SAS' ]:
-            msg += '; WWN: %s' % portinfo[15]
-            msg += '; configured rate: %s' % huawei_port_rates.get(portinfo[13], 'unknown')
+            yield (0, 'WWN: %s' % portinfo[15])
+            yield (0, 'configured rate: %s' % huawei_port_rates.get(portinfo[13], 'unknown'))
             if portinfo[13] != params['configRate']:
-                if res == 0:
-                    res = 1
-                msg += ', has changed from %s(!)' % huawei_port_rates[params['configRate']]
-            msg += '; speed: %s' % huawei_port_rates.get(portinfo[14], 'unknown')
+                yield (1, 'has changed from %s(!)' % huawei_port_rates[params['configRate']])
+            yield (0, 'speed: %s' % huawei_port_rates.get(portinfo[14], 'unknown'))
             if portinfo[14] != params['speedRate']:
-                if res == 0:
-                    res = 1
-                msg += ', has changed from %s(!)' % huawei_port_rates[params['speedRate']]
+                yield (1, 'has changed from %s(!)' % huawei_port_rates[params['speedRate']])
             if portinfo[0] == 'FC':
-                msg += '; port mode: %s' % huawei_port_modes.get(portinfo[16], 'unknown')
+                yield (0, 'port mode: %s' % huawei_port_modes.get(portinfo[16], 'unknown'))
                 if portinfo[16] != params['mode']:
-                    res = 2
-                    msg += ', has changed from %s(!!)' % huawei_port_modes[params['mode']]
+                    yield (2, 'has changed from %s(!!)' % huawei_port_modes[params['mode']])
         if portinfo[0] in [ 'iSCSI' ]:
-            msg += "; IP: %s" % portinfo[13]
+            yield (0, "IP: %s/%s" % (portinfo[13], portinfo[14]))
             if portinfo[13] != params['ip']:
-                res = 2
-                msg += '(!!)'
-            msg += '/%s' % portinfo[14]
+                yield (2, 'IP has changed from %s' % params['ip'])
             if portinfo[14] != params['netmask']:
-                res = 2
-                msg += '(!!)'
+                yield (2, 'Netmask has changed from %s' % params['netmask'])
             if portinfo[9] != '':
-                msg += ' %s' % portinfo[9]
-        msg += '; state is %s' % huawei_port_states.get(portinfo[11], 'unknown')
+                yield (0, ' %s' % portinfo[9])
+        res = 0
         if portinfo[11] == '2':
             res = 2
-            msg += '(!!)'
-        elif portinfo[11] != params['status']:
-            res = 1
-            msg += ', has changed from %s(!)' % huawei_port_states[params['status']]
-        msg += '; type is %s' % huawei_port_logictypes.get(portinfo[12], 'unknown')
+        yield (res, 'state is %s' % huawei_port_states.get(portinfo[11], 'unknown'))
+        if portinfo[11] != params['status']:
+            yield (1, 'has changed from %s(!)' % huawei_port_states[params['status']])
+        yield (0, 'type is %s' % huawei_port_logictypes.get(portinfo[12], 'unknown'))
         if portinfo[12] != params['logicType']:
-            res = 2
-            msg += ', has changed from %s(!!)' % huawei_port_logictypes[params['logicType']]
+            yield (2, 'has changed from %s(!!)' % huawei_port_logictypes[params['logicType']])
         if portinfo[2] != '':
             read_bytes_per_sec = saveint(portinfo[4]) * 1024 * 1024
             write_bytes_per_sec = saveint(portinfo[5]) * 1024 * 1024
@@ -141,10 +130,10 @@ def check_huawei_port(item, params, parsed):
                          ( 'write', write_bytes_per_sec ),
                          ( 'iops', iops ),
                          ]
-            msg += "; read %s/sec, write %s/sec, IOPS total %s/sec" % (get_bytes_human_readable(read_bytes_per_sec),
-                                                                       get_bytes_human_readable(write_bytes_per_sec),
-                                                                       iops)
-        return (res, msg, perfdata)
+            yield (0, "read %s/sec, write %s/sec, IOPS total %s/sec" % (get_bytes_human_readable(read_bytes_per_sec),
+                                                                        get_bytes_human_readable(write_bytes_per_sec),
+                                                                        iops),
+                   perfdata)
 
 check_info['huawei_port'] = {
     'inventory_function'    : inventory_huawei_port,

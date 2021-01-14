@@ -242,7 +242,7 @@ huawei_port_logictypes = {
 }
 
 def huawei_port_index(portid):
-    portid = saveint(portid)
+    portid = int(portid)
     return portid >> 16 & 0xF, portid >> 8 & 0xFF, portid >> 4 & 0xF, portid >> 24 & 0xF, portid & 0xF, portid >> 20 & 0xF
 
 def huawei_port_itemname(portid):
