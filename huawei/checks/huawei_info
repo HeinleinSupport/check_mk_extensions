@@ -26,15 +26,20 @@ def inventory_huawei_info(info):
 
 def check_huawei_info(item, params, info):
     if len(info):
-        msg = '%s; serial: %s; version: %s; state: %s' % (huawei_device_types[saveint(info[0][1])],
-                                                          info[0][0],
-                                                          info[0][3],
-                                                          huawei_running_states[info[0][2]])
-        res = 0
+        dev_type = int(info[0][1])
+        dev_state = info[0][2]
+        if dev_type in huawei_device_types:
+            yield (0, huawei_device_types[dev_type])
+        else:
+            yield (3, 'Unknown device type %d' % dev_type)
+        yield (0, 'serial: %s' % info[0][0])
+        yield (0, 'version: %s' % info[0][3])
+        if dev_state in huawei_running_states:
+            yield (0, 'state: %s' % huawei_running_states[dev_state])
+        else:
+            yield (3, 'unknown state: %s' % dev_state)
         if info[0][2] != params['state']:
-            msg += ', changed from %s(!!)' % huawei_running_states.get(params['state'], 'unknown')
-            res = 2
-        return (res, msg)
+            yield (2, 'changed from %s' % huawei_running_states.get(params['state'], 'unknown'))
 
 check_info['huawei_info'] = {
     'inventory_function'    : inventory_huawei_info,
