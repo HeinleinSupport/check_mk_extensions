@@ -25,19 +25,19 @@ def parse_huawei_port(info):
     for line in info:
         if line[10] != '':
             # FC-Port
-            portname = huawei_port_itemname(line[10])
+            portname = 'FC %s' % huawei_port_itemname(line[10])
             if portinfo.has_key(portname):
                 raise KeyError(portname)
             portinfo[portname] = ['FC'] + line[1:10] + line[10:17]
         elif line[17] != '':
             # SAS-Port
-            portname = huawei_port_itemname(line[17])
+            portname = 'SAS %s' % huawei_port_itemname(line[17])
             if portinfo.has_key(portname):
                 raise KeyError(portname)
             portinfo[portname] =  ['SAS'] + line[1:10] + line[17:23]
         elif line[23] != '':
             # iSCSI-Port
-            portname = huawei_port_itemname(line[23])
+            portname = 'iSCSI %s' % huawei_port_itemname(line[23])
             if portinfo.has_key(portname):
                 raise KeyError(portname)
             portinfo[portname] = ['iSCSI'] + line[1:10] + line[23:]
