@@ -59,10 +59,13 @@
 
 def parse_cephosd(info):
     import json
-    try:
-        return json.loads(" ".join([item for sublist in info for item in sublist]))
-    except ValueError:
-        return {}
+    parsed = {}
+    for line in info:
+        try:
+            parsed.update(json.loads("".join([item for item in line])))
+        except ValueError:
+            pass
+    return parsed
 
 def inventory_cephosd(parsed):
     import cmk_base.config
