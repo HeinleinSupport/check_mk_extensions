@@ -15,13 +15,15 @@
 # to the Free Software Foundation, Inc., 51 Franklin St,  Fifth Floor,
 # Boston, MA 02110-1301 USA.
 
-
 def parse_cephosdbluefs(info):
     import json
-    try:
-        return json.loads(" ".join([item for sublist in info for item in sublist]))
-    except ValueError:
-        return {}
+    parsed = {}
+    for line in info:
+        try:
+            parsed.update(json.loads("".join([item for item in line])))
+        except ValueError:
+            pass
+    return parsed
 
 def inventory_cephosdbluefs(area, parsed):
     for osdid, perf in parsed.items():

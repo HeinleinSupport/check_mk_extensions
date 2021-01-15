@@ -161,6 +161,10 @@ check_metrics["check_mk-cephosd"] = df_translation
 check_metrics["check_mk-cephosd"]["apply_latency"] = {}
 check_metrics["check_mk-cephosd"]["commit_latency"] = {}
 
+check_metrics["check_mk-cephosdbluefs"] = df_translation
+check_metrics["check_mk-cephosdbluefs.wal"] = df_translation
+check_metrics["check_mk-cephosdbluefs.slow"] = df_translation
+
 graph_info.append({
     'title'  : _('OSD Latency'),
     'metrics': [ ('apply_latency', 'line' ), ('commit_latency', 'line' ) ],

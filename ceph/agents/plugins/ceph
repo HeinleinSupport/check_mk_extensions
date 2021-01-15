@@ -1,6 +1,7 @@
-#!/bin/bash
+#!/usr/bin/env python
+# -*- encoding: utf-8; py-indent-offset: 4 -*-
 
-# (c) 2014 Heinlein Support GmbH
+# (c) 2021 Heinlein Support GmbH
 #          Robert Sander <r.sander@heinlein-support.de>
 
 # This is free software;  you can redistribute it and/or modify it
@@ -14,50 +15,72 @@
 # to the Free Software Foundation, Inc., 51 Franklin St,  Fifth Floor,
 # Boston, MA 02110-1301 USA.
 
-if [ -x /usr/bin/ceph ]; then
+import json
+import rados
+import os, os.path
+import subprocess
 
-  INT=30
+class RadosCMD(rados.Rados):
+    def command_mon(self, cmd, params=None):
+        data = {'prefix': cmd, 'format': 'json'}
+        if params:
+            data.update(params)
+        return self.mon_command(json.dumps(data), b'', timeout=5)
+    def command_mgr(self, cmd):
+        return self.mgr_command(json.dumps({'prefix': cmd, 'format': 'json'}), b'', timeout=5)
+    def command_osd(self, osdid, cmd):
+        return self.osd_command(osdid, json.dumps({'prefix': cmd, 'format': 'json'}), b'', timeout=5)
+    def command_pg(self, pgid, cmd):
+        return self.pg_command(pgid, json.dumps({'prefix': cmd, 'format': 'json'}), b'', timeout=5)
 
-  if [ $(ceph version | cut -f 3 -d " " | cut -f 1 -d .) -lt 10 ]; then
-    echo "<<<ceph:cached($(date +%s),$INT)>>>"
-    /usr/bin/ceph -s
-    echo "<<<cephpools:cached($(date +%s),$INT)>>>"
-    /usr/bin/ceph df
-  else
-    echo "<<<cephstatus:cached($(date +%s),$INT)>>>"
-    /usr/bin/ceph -f json status
+cluster = RadosCMD(conffile='/etc/ceph/ceph.conf')
+cluster.connect()
 
-    echo "<<<cephdf:cached($(date +%s),$INT)>>>"
-    /usr/bin/ceph -f json df detail
+if len(os.listdir('/var/lib/ceph/mon')) > 0:
+    # only on MON hosts
 
-    echo "<<<cephosd:cached($(date +%s),$INT)>>>"
-    echo '{ "df": '
-    /usr/bin/ceph -f json osd df
-    echo ', "perf": '
-    /usr/bin/ceph -f json osd perf
-    echo ', "nodes": '
-    /usr/bin/ceph -f json node ls osd
-    echo "}"
+    res = cluster.command_mon("status")
+    if res[0] == 0:
+        print "<<<cephstatus:sep(0)>>>"
+        print res[1],
 
-    jq=$(which jq)
-    echo "<<<cephosdbluefs:cached($(date +%s),$INT)>>>"
-    echo '{'
-    for i in /var/lib/ceph/osd/*/type; do
-      if [ "$(cat $i)" = "bluestore" ]; then
-        dir=$(dirname $i)
-        osdid=$(cat $dir/whoami)
-        if [ -n "$osdid" ]; then
-          echo " \"$osdid\": "
-          if [ -n "$jq" ]; then
-             echo '{ "bluefs": '
-             ceph daemon osd.$osdid perf dump | $jq .bluefs
-             echo '},'
-           else
-             ceph daemon osd.$osdid perf dump
-           fi
-         fi
-      fi
-    done
-    echo '"end":{}}'
-  fi
-fi
+    res = cluster.command_mon("df", params={'detail': 'detail'})
+    if res[0] == 0:
+        print "<<<cephdf:sep(0)>>>"
+        print res[1],
+
+localosds = []
+res = cluster.command_mon("osd metadata")
+if res[0] == 0:
+    print "<<<cephosdbluefs:sep(0)>>>"
+    out = {'end': {}}
+    for osd in json.loads(res[1]):
+        if os.path.exists(osd['osd_data']):
+            localosds.append(osd['id'])
+            out[osd['id']] = {'bluefs': json.loads(subprocess.check_output(['/usr/bin/ceph', 'daemon', 'osd.%d' % osd['id'], 'perf', 'dump']))['bluefs']}
+    print json.dumps(out)
+
+osddf_raw = cluster.command_mon("osd df")
+osdperf_raw = cluster.command_mon("osd perf")
+if osddf_raw[0] == 0 and osdperf_raw[0] == 0:
+    osddf = json.loads(osddf_raw[1])
+    osdperf = json.loads(osdperf_raw[1])
+    osds = []
+    for osd in osddf['nodes']:
+        if osd['id'] in localosds:
+            osds.append(osd)
+    summary = osddf['summary']
+    perfs = []
+    if 'osd_perf_infos' in osdperf:
+        for osd in osdperf['osd_perf_infos']:
+            if osd['id'] in localosds:
+                perfs.append(osd)
+    if 'osdstats' in osdperf and 'osd_perf_infos' in osdperf['osdstats']:
+        for osd in osdperf['osdstats']['osd_perf_infos']:
+            if osd['id'] in localosds:
+                perfs.append(osd)
+
+    print "<<<cephosd:sep(0)>>>"
+    data = {'df': {'nodes': osds},
+            'perf': {'osd_perf_infos': perfs}}
+    print json.dumps(data)
