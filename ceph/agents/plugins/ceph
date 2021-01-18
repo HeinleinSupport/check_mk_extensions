@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 # -*- encoding: utf-8; py-indent-offset: 4 -*-
 
 # (c) 2021 Heinlein Support GmbH
@@ -41,24 +41,27 @@ if len(os.listdir('/var/lib/ceph/mon')) > 0:
 
     res = cluster.command_mon("status")
     if res[0] == 0:
-        print "<<<cephstatus:sep(0)>>>"
-        print res[1],
+        print("<<<cephstatus:sep(0)>>>")
+        print(json.dumps(json.loads(res[1])))
 
     res = cluster.command_mon("df", params={'detail': 'detail'})
     if res[0] == 0:
-        print "<<<cephdf:sep(0)>>>"
-        print res[1],
+        print("<<<cephdf:sep(0)>>>")
+        print(json.dumps(json.loads(res[1])))
 
 localosds = []
 res = cluster.command_mon("osd metadata")
 if res[0] == 0:
-    print "<<<cephosdbluefs:sep(0)>>>"
+    print("<<<cephosdbluefs:sep(0)>>>")
     out = {'end': {}}
     for osd in json.loads(res[1]):
         if os.path.exists(osd['osd_data']):
-            localosds.append(osd['id'])
-            out[osd['id']] = {'bluefs': json.loads(subprocess.check_output(['/usr/bin/ceph', 'daemon', 'osd.%d' % osd['id'], 'perf', 'dump']))['bluefs']}
-    print json.dumps(out)
+            try:
+                out[osd['id']] = {'bluefs': json.loads(subprocess.check_output(['/usr/bin/ceph', 'daemon', 'osd.%d' % osd['id'], 'perf', 'dump']))['bluefs']}
+                localosds.append(osd['id'])
+            except subprocess.CalledProcessError:
+                pass
+    print(json.dumps(out))
 
 osddf_raw = cluster.command_mon("osd df")
 osdperf_raw = cluster.command_mon("osd perf")
@@ -80,7 +83,7 @@ if osddf_raw[0] == 0 and osdperf_raw[0] == 0:
             if osd['id'] in localosds:
                 perfs.append(osd)
 
-    print "<<<cephosd:sep(0)>>>"
-    data = {'df': {'nodes': osds},
-            'perf': {'osd_perf_infos': perfs}}
-    print json.dumps(data)
+    print("<<<cephosd:sep(0)>>>")
+    out = {'df': {'nodes': osds},
+           'perf': {'osd_perf_infos': perfs}}
+    print(json.dumps(out))
