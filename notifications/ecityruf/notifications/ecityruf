@@ -1,0 +1,76 @@
+#!/usr/bin/env python
+# e*CityRuf
+# Bulk: no
+
+# This script creates an email to e*CityRuf
+# It uses a custom user attribute "ecityruf" to store the pager id
+
+ecityruf_domain = "ecityruf.de"
+ecityruf_attr = 'CONTACT_ECITYRUF'
+
+from cmk.notification_plugins import utils
+from cmk.notification_plugins import mail
+from cmk.notification_plugins import asciimail
+from email.mime.text import MIMEText
+from email.utils import formatdate
+import sys
+import dns.resolver
+
+def main():
+    # gather all options from env
+    context = utils.collect_context()
+    content_txt = asciimail.construct_content(context)
+    if ecityruf_attr in context:
+        mailto = context[ecityruf_attr] + "@" + ecityruf_domain
+    else:
+        sys.stdout.write("Cannot send e*CityRuf: no ecityruf attribute\n")
+        sys.exit(2)
+    subject = context['SUBJECT']
+
+    # get MX, AAAA and A records and use it as SMTP_SMARTHOSTS
+    host_index = 1
+    mx = {}
+    context['PARAMETER_SMTP_PORT'] = 25
+    try:
+        for record in dns.resolver.query(ecityruf_domain, 'MX'):
+            if record.preference not in mx:
+                mx[record.preference] = []
+            mx[record.preference].append(record.exchange.to_text())
+    except dns.resolver.NoAnswer:
+        pass
+    for pref in sorted(mx.keys()):
+        for exch in mx[pref]:
+            context['PARAMETER_SMTP_SMARTHOSTS_%d' % host_index] = exch
+            host_index += 1
+    try:
+        for record in dns.resolver.query(ecityruf_domain, 'AAAA'):
+            context['PARAMETER_SMTP_SMARTHOSTS_%d' % host_index] = record.address
+            host_index += 1
+    except dns.resolver.NoAnswer:
+        pass
+    try:
+        for record in dns.resolver.query(ecityruf_domain, 'A'):
+            context['PARAMETER_SMTP_SMARTHOSTS_%d' % host_index] = record.address
+            host_index += 1
+    except dns.resolver.NoAnswer:
+        pass
+
+    # Create the mail and send it
+    from_address = context.get("PARAMETER_FROM")
+    reply_to = context.get("PARAMETER_REPLY_TO")
+    m = utils.set_mail_headers(mailto, subject, from_address, reply_to,
+                               MIMEText(content_txt, 'plain', _charset='utf-8'))
+    m['Date'] = formatdate(localtime=True)
+    res = mail.send_mail_smtp(m, mailto, from_address, context)
+    if res > 0:
+        try:
+            sys.exit(utils.send_mail_sendmail(m, mailto, from_address))
+        except Exception as e:
+            sys.stderr.write("Unhandled exception: %s\n" % e)
+            # unhandled exception, don't retry this...
+            sys.exit(2)
+
+if __name__ == "__main__":
+    main()
+
+# -*- encoding: utf-8; py-indent-offset: 4 -*-
