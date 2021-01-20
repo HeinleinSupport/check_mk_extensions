@@ -42,18 +42,20 @@ def main():
         for exch in mx[pref]:
             context['PARAMETER_SMTP_SMARTHOSTS_%d' % host_index] = exch
             host_index += 1
-    try:
-        for record in dns.resolver.query(ecityruf_domain, 'AAAA'):
-            context['PARAMETER_SMTP_SMARTHOSTS_%d' % host_index] = record.address
-            host_index += 1
-    except dns.resolver.NoAnswer:
-        pass
-    try:
-        for record in dns.resolver.query(ecityruf_domain, 'A'):
-            context['PARAMETER_SMTP_SMARTHOSTS_%d' % host_index] = record.address
-            host_index += 1
-    except dns.resolver.NoAnswer:
-        pass
+    if host_index == 1:
+        # no MX records found
+        try:
+            for record in dns.resolver.query(ecityruf_domain, 'AAAA'):
+                context['PARAMETER_SMTP_SMARTHOSTS_%d' % host_index] = record.address
+                host_index += 1
+        except dns.resolver.NoAnswer:
+            pass
+        try:
+            for record in dns.resolver.query(ecityruf_domain, 'A'):
+                context['PARAMETER_SMTP_SMARTHOSTS_%d' % host_index] = record.address
+                host_index += 1
+        except dns.resolver.NoAnswer:
+            pass
 
     # Create the mail and send it
     from_address = context.get("PARAMETER_FROM")
