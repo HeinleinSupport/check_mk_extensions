@@ -1,5 +1,9 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 # -*- encoding: utf-8; py-indent-offset: 4 -*-
+
+from cmk.gui.plugins.views.perfometers import (
+    perfometer_linear,
+)
 
 def perfometer_amavis(row, check_command, perf_data):
     for pd in perf_data:

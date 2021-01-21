@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 # -*- encoding: utf-8; py-indent-offset: 4 -*-
 
 # (c) 2016 Heinlein Support GmbH
@@ -15,15 +15,28 @@
 # to the Free Software Foundation, Inc., 51 Franklin St,  Fifth Floor,
 # Boston, MA 02110-1301 USA.
 
-factory_settings['amavis_default_levels'] = {
-    'busy_childs': (75, 95),
-    }
+from .agent_based_api.v1.type_defs import (
+    CheckResult,
+    DiscoveryResult,
+)
 
-def parse_amavis(info):
+from .agent_based_api.v1 import (
+    register,
+    Result,
+    Metric,
+    State,
+    Service,
+    get_rate,
+    get_value_store,
+    )
+
+import time
+
+def parse_amavis(string_table):
     parsed = {'ps': [], 'agent': {}}
     in_ps = False
     in_agent = False
-    for line in info:
+    for line in string_table:
         if len(line) == 1:
             if line[0] == u'[ps]':
                 in_ps = True
@@ -39,21 +52,20 @@ def parse_amavis(info):
             parsed['agent'][line[0]] = line[1:]
     return parsed
 
-def inventory_amavis(parsed):
-    if parsed['ps']:
-        yield None, None
+def discovery_amavis(section) -> DiscoveryResult:
+    if section and section['ps']:
+        yield Service()
 
-def check_amavis(_no_item, params, parsed):
-    if parsed['ps']:
+def check_amavis(params, section) -> CheckResult:
+    if section['ps']:
         perfdata = []
-        msg = []
-        state = 0
         this_time = int(time.time())
+        value_store = get_value_store()
         
         master_proc = 0
         child_procs = 0
         child_avail = 0
-        for proc in parsed['ps']:
+        for proc in section['ps']:
             if proc[1] == u'(master)':
                 master_proc += 1
             if proc[1] == u'(virgin child)':
@@ -64,38 +76,49 @@ def check_amavis(_no_item, params, parsed):
                 if proc[1].endswith(u'-avail)'):
                     child_avail += 1
         if master_proc > 1:
-            state = 2
-            msg.append('More than one amavisd master process running: %d(!!)' % master_proc)
+            yield Result(state=State.CRIT,
+                         summary='More than one amavisd master process running: %d' % master_proc)
         elif master_proc == 0:
-            state = 2
-            msg.append('No amavisd master process running(!!)')
+            yield Result(state=State.CRIT,
+                         summary='No amavisd master process running')
         else:
-            msg.append('Amavis master process running')
-        msg.append('%d child processes running' % child_procs)
-        avail_text = '%d child processes available' % child_avail
+            yield Result(state=State.OK,
+                         summary='Amavis master process running')
+        yield Result(state=State.OK,
+                     summary='%d child processes running' % child_procs)
+
+        state = State.OK
         if 'busy_childs' in params:
             warn = child_procs * (100.0 - params['busy_childs'][0]) / 100.0
             crit = child_procs * (100.0 - params['busy_childs'][1]) / 100.0
-            perfdata.append(('amavis_child_avail', child_avail, warn, crit, 0, child_procs ))
+            yield Metric('amavis_child_avail',
+                         child_avail,
+                         levels=(warn, crit),
+                         boundaries=(0, child_procs))
             if child_procs == 0:
-                perfdata.append(('amavis_child_busy', 0, params['busy_childs'][0], params['busy_childs'][1], 0, 100))
+                yield Metric('amavis_child_busy',
+                             0,
+                             levels=params['busy_childs'],
+                             boundaries=(0, 100))
             else:
-                perfdata.append(('amavis_child_busy', ( child_procs - child_avail ) * 100.0 / child_procs, params['busy_childs'][0], params['busy_childs'][1], 0, 100))
+                yield Metric('amavis_child_busy',
+                             ( child_procs - child_avail ) * 100.0 / child_procs,
+                             levels=params['busy_childs'],
+                             boundaries=(0, 100))
             if child_avail < crit:
-                if state < 2:
-                    state = 2
-                avail_text += '(!!)'
+                state=State.CRIT
             elif child_avail < warn:
-                if state < 1:
-                    state = 1
-                avail_text += '(!)'
+                state=State.WARN
         else:
             perfdata.append(('amavis_child_avail', child_avail, None, None, 0, child_procs ))
             if child_procs == 0:
-                perfdata.append(('amavis_child_busy', 0, None, None, 0, 100))
+                yield Metric('amavis_child_busy', 0, boundaries=(0, 100))
             else:
-                perfdata.append(('amavis_child_busy', ( child_procs - child_avail ) * 100.0 / child_procs, None, None, 0, 100))
-        msg.append(avail_text)
+                yield Metric('amavis_child_busy',
+                             ( child_procs - child_avail ) * 100.0 / child_procs,
+                             boundaries=(0, 100))
+        yield Result(state=state,
+                     summary='%d child processes available' % child_avail)
 
         metrics = [ 'ContentCleanMsgs',
                     'ContentSpamMsgs',
@@ -110,26 +133,34 @@ def check_amavis(_no_item, params, parsed):
                                  'ContentVirusMsgs': 0,
                                  'InMsgsStatusRejectedOriginating': 0 } }
         for metric in metrics:
-            if metric in parsed['agent']:
-                rate = get_rate('amavis.%s' % metric, this_time, saveint(parsed['agent'][metric][0]))
-                perfdata.append(('amavis_%s' % metric, rate))
+            if metric in section['agent']:
+                rate = get_rate(value_store, 'amavis.%s' % metric, this_time, int(section['agent'][metric][0]))
+                yield Metric('amavis_%s' % metric, rate)
                 if metric == percentage['total']:
                     percentage['total'] = rate
                 if metric in percentage['parts'].keys():
                     percentage['parts'][metric] = rate
-        for part, value in percentage['parts'].iteritems():
+        for part, value in percentage['parts'].items():
             if percentage['total'] > 0 and value > 0:
-                perfdata.append(('amavis_%s_percentage' % part, value * 100.0 / percentage['total']))
+                yield Metric('amavis_%s_percentage' % part,
+                             value * 100.0 / percentage['total'])
             else:
-                perfdata.append(('amavis_%s_percentage' % part, 0.0))
-        return (state, "; ".join(msg), perfdata)
+                yield Metric('amavis_%s_percentage' % part, 0.0)
 
-check_info['amavis'] = {
-    'parse_function':      parse_amavis,
-    'check_function':      check_amavis,
-    'service_description': "Amavis",
-    'has_perfdata':        True,
-    'inventory_function':  inventory_amavis,
-    'group':               'amavis',
-    'default_levels_variable': 'amavis_default_levels',
-}
+register.agent_section(
+    name="amavis",
+    parse_function=parse_amavis,
+)
+
+register.check_plugin(
+    name="amavis",
+    service_name="Amavis",
+    sections=["amavis"],
+    discovery_function=discovery_amavis,
+    check_function=check_amavis,
+    check_default_parameters={
+        'busy_childs': (75, 95),
+    },
+    check_ruleset_name="amavis",
+)
+
