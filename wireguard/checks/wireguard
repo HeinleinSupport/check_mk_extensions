@@ -36,9 +36,9 @@ def parse_wireguard(info):
     return parsed
 
 def inventory_wireguard(parsed):
-    for interface, peers in parsed.iteritems():
+    for interface, peers in parsed.items():
         yield ('%s' % interface, {})
-        for peer, data in peers.iteritems():
+        for peer, data in peers.items():
             yield ('%s Peer %s' % (interface, peer), {'allowed-ips': data['allowed-ips']})
 
 def check_wireguard(item, params, parsed):
@@ -68,7 +68,7 @@ def check_wireguard(item, params, parsed):
             numpeers = len(peers)
             activepeers = 0
             now = time.time()
-            for peer, data in peers.iteritems():
+            for peer, data in peers.items():
                 if data['latest-handshake'] > 0:
                     since = now - data['latest-handshake']
                     if since < timeout:
