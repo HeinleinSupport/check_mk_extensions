@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 # -*- encoding: utf-8; py-indent-offset: 4 -*-
 
 # (c) Robert Sander <r.sander@heinlein-support.de>
@@ -14,11 +14,22 @@
 # to the Free Software Foundation, Inc., 51 Franklin St,  Fifth Floor,
 # Boston, MA 02110-1301 USA.
 
-register_check_parameters(
-    subgroup_environment,
-    "apcaccess",
-    _("APC Power Supplies (directly connected)"),
-    Dictionary(
+from cmk.gui.i18n import _
+from cmk.gui.valuespec import (
+    Dictionary,
+    Tuple,
+    Integer,
+    TextAscii,
+)
+
+from cmk.gui.plugins.wato import (
+    rulespec_registry,
+    CheckParameterRulespecWithItem,
+    RulespecGroupCheckParametersEnvironment,
+)
+
+def _parameter_valuespec_apcaccess():
+    return Dictionary(
         title = _('UPS Status Values'),
         elements = [
             ( 'voltage',
@@ -56,20 +67,20 @@ register_check_parameters(
                 ],
             )),
         ],
-    ),
-    TextAscii(title = _("UPS instance")),
-    match_type = "dict",
-)
-
-register_rule("agents/" + _("Agent Plugins"),
-    "agent_config:apcaccess",
-    DropdownChoice(
-        title = _("APC UPS via apcaccess (Linux, Windows)"),
-        help = _("This will deploy the agent plugin <tt>apcaccess</tt> to check various APC UPS stats."),
-        choices = [
-            ( True, _("Deploy plugin for APC UPS") ),
-            ( None, _("Do not deploy plugin for APC UPS") ),
-        ]
     )
-)
 
+def _item_spec_apcaccess():
+    return TextAscii(
+        title = _("UPS instance"),
+        allow_empty = False,
+    )
+
+rulespec_registry.register(
+    CheckParameterRulespecWithItem(
+        check_group_name="apcaccess",
+        group=RulespecGroupCheckParametersEnvironment,
+        item_spec=_item_spec_apcaccess,
+        match_type="dict",
+        parameter_valuespec=_parameter_valuespec_apcaccess,
+        title=lambda: _("APC Power Supplies (directly connected)"),
+    ))
