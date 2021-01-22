@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 # -*- encoding: utf-8; py-indent-offset: 4 -*-
 
 #
@@ -17,7 +17,16 @@
 # to the Free Software Foundation, Inc., 51 Franklin St,  Fifth Floor,
 # Boston, MA 02110-1301 USA.
 
-from cmk.gui.plugins.metrics.check_mk import df_translation
+from cmk.gui.i18n import _
+
+from cmk.gui.plugins.metrics import (
+    check_metrics,
+    metric_info,
+    graph_info,
+    MB,
+)
+
+from cmk.gui.plugins.metrics.translation import df_translation
 
 metric_info['num_objects'] = {
     'title' : _('Number of Objects'),
@@ -30,7 +39,6 @@ metric_info['num_pgs'] = {
     'unit'  : 'count',
     'color' : '52/a',
 }
-
 
 metric_info['degraded_objects'] = {
     'title' : _('Degraded Objects'),
@@ -116,35 +124,6 @@ metric_info['pgstates'] = {
     'color' : '53/a',
 }
 
-
-check_metrics["check_mk-cephstatus"] = {
-    "Status"  : { "name"  : "fs_used", "scale" : MB },
-    "fs_size" : { "scale" : MB },
-    "growth"  : { "name"  : "fs_growth", "scale" : MB / 86400.0 },
-    "trend"   : { "name"  : "fs_trend", "scale" : MB / 86400.0 },
-}
-
-check_metrics["check_mk-cephstatus"]['num_objects'] = {}
-check_metrics["check_mk-cephstatus"]['num_pgs'] = {}
-check_metrics["check_mk-cephstatus"]['degraded_objects'] = {}
-check_metrics["check_mk-cephstatus"]['misplaced_objects'] = {}
-check_metrics["check_mk-cephstatus"]['recovering'] = {}
-# check_metrics["check_mk-cephstatus"]['pgstates'] = { 'name': 'pgstates' }
-check_metrics["check_mk-cephstatus"]['~pgstate_.*'] = {}
-
-check_metrics["check_mk-cephdf"] = {
-    "~(?!inodes_used|fs_size|growth|trend|fs_provisioning|"
-      "uncommitted|overprovisioned|num_|disk_).*$"   : { "name"  : "fs_used", "scale" : MB },
-    "fs_size" : { "scale" : MB },
-    "growth"  : { "name"  : "fs_growth", "scale" : MB / 86400.0 },
-    "trend"   : { "name"  : "fs_trend", "scale" : MB / 86400.0 },
-}
-check_metrics["check_mk-cephdf"]["num_objects"] = {}
-check_metrics["check_mk-cephdf"]["disk_read_ios"] = {}
-check_metrics["check_mk-cephdf"]["disk_write_ios"] = {}
-check_metrics["check_mk-cephdf"]["disk_read_throughput"] = {}
-check_metrics["check_mk-cephdf"]["disk_write_throughput"] = {}
-
 metric_info["apply_latency"] = {
     'title' : _('Apply Latency'),
     'unit'  : 's',
@@ -157,22 +136,32 @@ metric_info["commit_latency"] = {
     'color' : '24/a',
 }
 
-check_metrics["check_mk-cephosd"] = df_translation
-check_metrics["check_mk-cephosd"]["apply_latency"] = {}
-check_metrics["check_mk-cephosd"]["commit_latency"] = {}
+_ceph_df_translation = { "fs_used": { "scale": MB },
+                         "fs_size": { "scale": MB },
+                         "trend": {
+                             "name": "fs_trend",
+                             "scale": MB / 86400.0
+                         },
+                         "growth": {
+                             "name": "fs_growth",
+                             "scale": MB / 86400.0
+                         }}
 
-check_metrics["check_mk-cephosdbluefs"] = df_translation
-check_metrics["check_mk-cephosdbluefs.wal"] = df_translation
-check_metrics["check_mk-cephosdbluefs.slow"] = df_translation
+check_metrics["check_mk-cephstatus"] = _ceph_df_translation
+check_metrics["check_mk-cephdf"] = _ceph_df_translation
+check_metrics["check_mk-cephosd"] = _ceph_df_translation
+check_metrics["check_mk-cephosdbluefs"] = _ceph_df_translation
+check_metrics["check_mk-cephosdbluefs_wal"] = _ceph_df_translation
+check_metrics["check_mk-cephosdbluefs_slow"] = _ceph_df_translation
 
-graph_info.append({
+graph_info['osd_latency'] = {
     'title'  : _('OSD Latency'),
-    'metrics': [ ('apply_latency', 'line' ), ('commit_latency', 'line' ) ],
-})
+    'metrics': [ ('apply_latency', 'line' ), ('commit_latency', '-line' ) ],
+}
 
-graph_info.append({
+graph_info['pgs'] = {
     'title'  : _('Placement Groups'),
     'metrics': _ceph_pg_metrics,
     'optional_metrics': _ceph_pg_metrics_optional,
     'range'  : (0, 'num_pgs:max'),
-})
+}

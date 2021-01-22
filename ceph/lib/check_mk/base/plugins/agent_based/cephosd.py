@@ -57,55 +57,89 @@
 #            "ceph02":[3,4,5,12,13,14,20,21],
 #            "ceph03":[6,7,8,15,16,17,22,23]}}
 
-def parse_cephosd(info):
+from .agent_based_api.v1.type_defs import (
+    CheckResult,
+    DiscoveryResult,
+)
+
+from .agent_based_api.v1 import (
+    get_value_store,
+    register,
+    Metric,
+    Result,
+    State,
+    Service,
+    ServiceLabel,
+    )
+
+from .utils import df
+
+import json
+import time
+
+def parse_cephosd(string_table):
     import json
-    parsed = {}
-    for line in info:
+    section = {}
+    for line in string_table:
         try:
-            parsed.update(json.loads("".join([item for item in line])))
+            section.update(json.loads("".join([item for item in line])))
         except ValueError:
             pass
-    return parsed
+    return section
 
-def inventory_cephosd(parsed):
-    import cmk_base.config
-    g_hostname = host_name()
-    nodes = {g_hostname: []}
-    if 'nodes' in parsed:
-        for node, osdlist in parsed['nodes'].iteritems():
-            nodes[cmk_base.config.translate_piggyback_host(g_hostname, node)] = osdlist
-        if len(nodes[g_hostname]) == 0:
-            nodes[g_hostname] = parsed['nodes'].get(g_hostname.split('.', 1)[0], [])
-    if 'df' in parsed and 'nodes' in parsed['df']:
-        for osd in parsed['df']['nodes']:
-            if osd['id'] in nodes[g_hostname] or 'nodes' not in parsed:
-                yield 'OSD %d' % osd['id'], {}
+register.agent_section(
+    name="cephosd",
+    parse_function=parse_cephosd,
+)
 
-def check_cephosd(item, params, parsed):
-    if 'df' in parsed and 'nodes' in parsed['df']:
-        for osd in parsed['df']['nodes']:
+def discovery_cephosd(section) -> DiscoveryResult:
+    if 'df' in section and 'nodes' in section['df']:
+        for osd in section['df']['nodes']:
+            service_labels=[]
+            if 'device_class' in osd:
+                service_labels.append(ServiceLabel('cephosd/device_class', osd['device_class']))
+            yield Service(item='OSD %d' % osd['id'],
+                          labels=service_labels)
+
+def check_cephosd(item, params, section) -> CheckResult:
+    if 'df' in section and 'nodes' in section['df']:
+        value_store = get_value_store()
+        for osd in section['df']['nodes']:
             if 'OSD %d' % osd['id'] == item:
                 size_mb = osd['kb'] / 1024.0
                 avail_mb = osd['kb_avail'] / 1024.0
-                yield df_check_filesystem_list(item, params, [ (item, size_mb, avail_mb, 0) ])
+                yield from df.df_check_filesystem_single(value_store,
+                                                         item,
+                                                         size_mb,
+                                                         avail_mb,
+                                                         0,
+                                                         None,
+                                                         None,
+                                                         params=params)
                 if 'pgs' in osd:
-                    yield 0, "%d PGs" % osd['pgs'], [ ( 'num_pgs', osd['pgs'] ) ]
+                    yield Result(state=State.OK,
+                                 summary="%d PGs" % osd['pgs'])
+                    yield Metric('num_pgs', osd['pgs'])
                 if 'status' in osd and osd['status'] != 'up':
-                    yield 1, "Status is %s" % osd['status']
-    if 'perf' in parsed and 'osd_perf_infos' in parsed['perf']:
-        for osd in parsed['perf']['osd_perf_infos']:
+                    yield Result(state=State.WARN,
+                                 summary="Status is %s" % osd['status'])
+    if 'perf' in section and 'osd_perf_infos' in section['perf']:
+        for osd in section['perf']['osd_perf_infos']:
             if 'OSD %d' % osd['id'] == item:
                 apply_latency = osd['perf_stats']['apply_latency_ms']
                 commit_latency = osd['perf_stats']['commit_latency_ms']
-                yield (0, 'Apply Latency: %dms, Commit Latency: %dms' % ( apply_latency, commit_latency) , [ ( 'apply_latency', apply_latency / 1000.0), ( 'commit_latency', commit_latency / 1000.0) ] )
+                yield Result(state=State.OK,
+                             summary='Apply Latency: %dms, Commit Latency: %dms' % ( apply_latency,
+                                                                                     commit_latency))
+                yield Metric('apply_latency', apply_latency / 1000.0)
+                yield Metric('commit_latency', commit_latency / 1000.0)
 
-check_info["cephosd"] = {
-    'parse_function'         : parse_cephosd,
-    'check_function'         : check_cephosd,
-    'inventory_function'     : inventory_cephosd,
-    'service_description'    : 'Ceph %s',
-    'has_perfdata'           : True,
-    'group'                  : 'filesystem',
-    'default_levels_variable': 'filesystem_default_levels',
-    'includes'               : [ 'size_trend.include', 'df.include' ],
-}
+register.check_plugin(
+    name="cephosd",
+    service_name="Ceph %s",
+    sections=["cephosd"],
+    discovery_function=discovery_cephosd,
+    check_function=check_cephosd,
+    check_default_parameters=df.FILESYSTEM_DEFAULT_LEVELS,
+    check_ruleset_name="filesystem",
+)
