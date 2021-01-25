@@ -15,11 +15,16 @@
 # to the Free Software Foundation, Inc., 51 Franklin St,  Fifth Floor,
 # Boston, MA 02110-1301 USA.
 
-def bake_cpufreq(opsys, conf, conf_dir, plugins_dir):
-    shutil.copy2(cmk.utils.paths.local_agents_dir + "/plugins/cpufreq", plugins_dir + "/cpufreq")
+from pathlib import Path
+from typing import Any, Dict
 
-bakery_info["cpufreq"] = {
-    "bake_function" : bake_cpufreq,
-    "os"            : [ "linux", ],
-    "matchtype"     : "first",
-}
+from .bakery_api.v0 import FileGenerator, OS, Plugin, register
+
+def get_cpufreq_files(conf: Dict[str, Any]) -> FileGenerator:
+    yield Plugin(base_os=OS.LINUX,
+                 source=Path("cpufreq"))
+
+register.bakery_plugin(
+    name="cpufreq",
+    files_function=get_cpufreq_files,
+)
