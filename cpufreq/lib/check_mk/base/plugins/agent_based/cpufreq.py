@@ -1,7 +1,8 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 # -*- encoding: utf-8; py-indent-offset: 4 -*-
 
-
+# (c) 2020 Heinlein Support GmbH
+#          Robert Sander <r.sander@heinlein-support.de>
 
 # This is free software;  you can redistribute it and/or modify it
 # under the  terms of the  GNU General Public License  as published by
