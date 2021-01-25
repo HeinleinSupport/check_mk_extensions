@@ -15,9 +15,16 @@
 # to the Free Software Foundation, Inc., 51 Franklin St,  Fifth Floor,
 # Boston, MA 02110-1301 USA.
 
-metric_info['perc_users'] = {
-    'title': _('Usage Users'),
-    'unit': '%',
-    "color" : "#00e060",
-}
+from pathlib import Path
+from typing import Any, Dict
 
+from .bakery_api.v0 import FileGenerator, OS, Plugin, register
+
+def get_dovereplstat_files(conf: Dict[str, Any]) -> FileGenerator:
+    yield Plugin(base_os=OS.LINUX,
+                 source=Path("dovereplstat"))
+
+register.bakery_plugin(
+    name="dovereplstat",
+    files_function=get_dovereplstat_files,
+)
