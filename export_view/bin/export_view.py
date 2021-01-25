@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 # -*- encoding: utf-8; py-indent-offset: 4 -*-
 
 # This tool reads a multisite view as CSV and writes its contents
@@ -40,7 +40,10 @@ url = None
 if omdsite:
     omdroot = os.environ.get('OMD_ROOT')
     omdconfig = {}
-    execfile(os.path.join(omdroot, 'etc', 'omd', 'site.conf'), omdconfig, omdconfig)
+    configfile = os.path.join(omdroot, 'etc', 'omd', 'site.conf')
+    with open(configfile) as f:
+            code = compile(f.read(), configfile, 'exec')
+            exec(code, omdconfig, omdconfig)
     user = 'automation'
     url = 'http://%s:%s/%s/check_mk/view.py' % (omdconfig['CONFIG_APACHE_TCP_ADDR'], omdconfig['CONFIG_APACHE_TCP_PORT'], omdsite)
 
@@ -71,10 +74,10 @@ resp = requests.get(args.url, params={'_username': args.automation,
                                       'view_name': args.view})
 if resp.status_code == 200:
     if args.debug:
-        print resp.text.encode('utf-8')
+        print(resp.text)
     else:
         with open(args.output, 'w') as output:
-            output.write(resp.text.encode('utf-8'))
+            output.write(resp.text)
             output.write("\n")
 else:
     raise resp.text
