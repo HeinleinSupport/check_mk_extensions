@@ -1,11 +1,21 @@
-checkgroups = []
-subgroup_os =           _("Operating System Resources")
+#!/usr/bin/env python3
+# -*- encoding: utf-8; py-indent-offset: 4 -*-
 
-register_check_parameters(
-     subgroup_os,
-    "entropy_avail",
-    _("Entropy Available"),
-    Dictionary(
+from cmk.gui.i18n import _
+from cmk.gui.valuespec import (
+    Dictionary,
+    Percentage,
+    Tuple,
+)
+
+from cmk.gui.plugins.wato import (
+    rulespec_registry,
+    CheckParameterRulespecWithoutItem,
+    RulespecGroupCheckParametersOperatingSystem,
+)
+
+def _parameter_valuespec_entropy_avail():
+    return Dictionary(
         help = _("Here you can override the default levels for the entropy Available check."
                    "You can either specify a absolut value or a percentage value."),
         elements = [
@@ -28,7 +38,13 @@ register_check_parameters(
                 ),
             ),
         ],
-    ),
-    None,
-    match_type = "dict",
-)
+    )
+
+rulespec_registry.register(
+    CheckParameterRulespecWithoutItem(
+        check_group_name="entropy_avail",
+        group=RulespecGroupCheckParametersOperatingSystem,
+        match_type="dict",
+        parameter_valuespec=_parameter_valuespec_entropy_avail,
+        title=lambda: _("Entropy Available"),
+    ))
