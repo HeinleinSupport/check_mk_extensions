@@ -15,17 +15,33 @@
 # to the Free Software Foundation, Inc., 51 Franklin St,  Fifth Floor,
 # Boston, MA 02110-1301 USA.
 
+from .agent_based_api.v1.type_defs import (
+    CheckResult,
+    DiscoveryResult,
+)
+
+from .agent_based_api.v1 import (
+    register,
+    render,
+    Result,
+    Metric,
+    State,
+    check_levels,
+    ServiceLabel,
+    Service,
+)
+
 def versiontuple(v):
     return tuple(map(int, (v.split("."))))
 
-def icpraid_info2data(info):
+def parse_icpraid(string_table):
     ctid = -1
     data = {}
     inController = False
     inLogicalDevice = False
     inChannel = False
     inPhysicalDevice = False
-    for line in info:
+    for line in string_table:
         completeLine = ' '.join(line)
         if completeLine == 'Controller information':
             inController = True
@@ -66,79 +82,68 @@ def icpraid_info2data(info):
                     data[ctid]['ch'][chid]['pd'][pdid][key] = value
     return data
 
-def inventory_icpraid(info):
-    inventory = []
-    data = icpraid_info2data(info)
-    for ctid in data.keys():
-        inventory.append( ('Controller %d' % ctid, None ) )
-        for ldid in data[ctid]['ld'].keys():
-            inventory.append( ('LD %d:%d' % (ctid, ldid), None ) )
-        for chid in data[ctid]['ch'].keys():
-            for pdid in data[ctid]['ch'][chid]['pd'].keys():
-                inventory.append( ('PD: %d:%d:%d' % (ctid, chid, pdid), None ) )
-    return inventory
+register.agent_section(
+    name="icpraid",
+    parse_function=parse_icpraid,
+)
 
-def check_icpraid(item, _no_params, info):
-    data = icpraid_info2data(info)
+def discover_icpraid(section) -> DiscoveryResult:
+    for ctid in section.keys():
+        yield Service(item='Controller %d' % ctid)
+        for ldid in section[ctid]['ld'].keys():
+            yield Service(item='LD %d:%d' % (ctid, ldid))
+        for chid in section[ctid]['ch'].keys():
+            for pdid in section[ctid]['ch'][chid]['pd'].keys():
+                yield Service(item='PD: %d:%d:%d' % (ctid, chid, pdid))
+
+def check_icpraid(item, section) -> CheckResult:
     if item[:10] == 'Controller':
         ctid = int(item[11:])
-        if ctid in data:
-            infotext = []
-            rc = 0
-            for key, value in data[ctid]['info'].iteritems():
-                it = key + ": " + value
+        if ctid in section:
+            for key, value in section[ctid]['info'].items():
+                rc = State.OK
                 if key == 'Defunct disk drive count':
                     if int(value) > 0:
-                        rc = 1
-                        it += ' (!)'
+                        rc = State.WARN
                 if key == 'Controller Status':
                     if value != 'Optimal':
-                        rc = 2
-                        it += ' (!!)'
+                        rc = State.CRIT
                 if key == 'Status':
                     # ignore Battery Status for now
                     continue
-                infotext.append(it)
-            return (rc, ", ".join(infotext))
+                yield Result(state=rc,
+                             notice=key + ": " + value)
     if item[:2] == 'LD':
         ctid, ldid = map(int, item[3:].split(':'))
-        if ctid in data:
-            if ldid in data[ctid]['ld']:
-                infotext = []
-                rc = 0
-                for key, value in data[ctid]['ld'][ldid].iteritems():
-                    it = key + ": " + value
+        if ctid in section:
+            if ldid in section[ctid]['ld']:
+                for key, value in section[ctid]['ld'][ldid].items():
+                    rc = State.OK
                     if key == 'Status of logical device':
                         if value != 'Optimal':
-                            rc = 2
-                            it += ' (!!)'
-                    infotext.append(it)
-                return(rc, ", ".join(infotext))
+                            rc = State.CRIT
+                    yield Result(state=rc,
+                                 notice=key + ": " + value)
     if item[:2] == 'PD':
         ctid, chid, pdid = map(int, item[3:].split(':'))
-        if ctid in data:
-            if chid in data[ctid]['ch']:
-                if pdid in data[ctid]['ch'][chid]['pd']:
-                    infotext = []
-                    rc = 0
-                    for key, value in data[ctid]['ch'][chid]['pd'][pdid].iteritems():
-                        it = key + ": " + value
+        if ctid in section:
+            if chid in section[ctid]['ch']:
+                if pdid in section[ctid]['ch'][chid]['pd']:
+                    for key, value in section[ctid]['ch'][chid]['pd'][pdid].items():
+                        rc = State.OK
                         if key == 'State':
                             if value != 'Online':
-                                rc = 2
-                                it += ' (!!)'
+                                rc = State.CRIT
                         if key == 'Temperature status':
                             if value != 'Normal':
-                                rc = 2
-                                it += ' (!!)'
-                        infotext.append(it)
-                    return(rc, ', '.join(infotext))
-    return (3, "Unknown Element: %s" % item)
+                                rc = State.CRIT
+                        yield Result(state=rc,
+                                     notice=key + ": " + value)
 
-check_info['icpraid'] = {
-    'check_function':      check_icpraid,
-    'service_description': "ICP RAID %s",
-    'has_perfdata':        False,
-    'inventory_function':  inventory_icpraid,
-    'group':               'icpraid',
-}
+register.check_plugin(
+    name="icpraid",
+    service_name="ICP RAID %s",
+    sections=["icpraid"],
+    discovery_function=discover_icpraid,
+    check_function=check_icpraid,
+)
