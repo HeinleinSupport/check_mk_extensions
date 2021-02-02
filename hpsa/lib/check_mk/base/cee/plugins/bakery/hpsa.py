@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 # -*- encoding: utf-8; py-indent-offset: 4 -*-
 
-# (c) 2013 Heinlein Support GmbH
+# (c) 2020 Heinlein Support GmbH
 #          Robert Sander <r.sander@heinlein-support.de>
 
 # This is free software;  you can redistribute it and/or modify it
@@ -15,25 +15,17 @@
 # to the Free Software Foundation, Inc., 51 Franklin St,  Fifth Floor,
 # Boston, MA 02110-1301 USA.
 
-def inventory_hpsa_controller(info):
-    return [ ( line[0], None ) for line in info ]
+from pathlib import Path
+from typing import Any, Dict
 
-def check_hpsa_controller(item, params, info):
-    for line in info:
-        if item == line[0]:
-            infotext = " ".join(line[2:])
-            if line[1] == 'OK':
-                rc = 0
-            else:
-                rc = 2
-                infotext = " ".join(line)
-            return (rc, infotext)
-    return (3, "Unknown Controller: %s" % item)
+from .bakery_api.v0 import FileGenerator, OS, Plugin, PluginConfig, register
 
-check_info['hpsa_controller'] = {
-    'check_function':      check_hpsa_controller,
-    'service_description': "HP RAID Controller %s",
-    'has_perfdata':        False,
-    'inventory_function':  inventory_hpsa_controller,
-}
+def get_hpsa_files(conf: Dict[str, Any]) -> FileGenerator:
+    yield Plugin(base_os=OS.LINUX,
+                 source=Path("hpsa"),
+                 interval=conf.get("interval"))
 
+register.bakery_plugin(
+    name="hpsa",
+    files_function=get_hpsa_files,
+)
