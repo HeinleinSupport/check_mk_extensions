@@ -1,3 +1,21 @@
+#!/usr/bin/env python3
+# -*- encoding: utf-8; py-indent-offset: 4 -*-
+
+from cmk.gui.i18n import _
+from cmk.gui.valuespec import (
+    Dictionary,
+    Tuple,
+    Integer,
+    Float,
+    TextAscii,
+)
+
+from cmk.gui.plugins.wato import (
+    rulespec_registry,
+    CheckParameterRulespecWithItem,
+    RulespecGroupCheckParametersApplications,
+)
+
 def memcached_upper_bounds(title, warn, crit, unit = None):
     spec_type = {
         int: Integer,
@@ -26,11 +44,11 @@ def memcached_lower_bounds(title, warn, crit, unit=None):
         ]
     )
 
-register_check_parameters(
-    subgroup_applications,
-    "memcached",
-    _("Memcached"),
-    Dictionary(
+def _item_spec_memcached():
+    return TextAscii(title = _("Instance"))
+
+def _parameter_valuespec_memcached():
+    return Dictionary(
         title = _("Limits"),
         elements = [
             ('version',               memcached_lower_bounds("Version",
@@ -102,50 +120,14 @@ register_check_parameters(
             ('reclaimed',             memcached_upper_bounds("Number of times a request used memory from an expired key",
                                                              0,        0, _("per second")))
         ]
-    ),
-    TextAscii(title = _("Instance")),
-    match_type='dict',
-)
+    )
 
-register_rule("agents/" + _("Agent Plugins"),
-    "agent_config:memcached",
-    CascadingDropdown(
-        title = _("Memcached instances (Linux)"),
-        help = _("If you activate this option, then the agent plugin <tt>memcached</tt> will be deployed. "
-                 "For each configured or detected memcached instance there will be one new service with detailed "
-                 "statistics of the current number of clients and processes and their various states."),
-        style = "dropdown",
-        choices = [
-            ( "autodetect", _("Autodetect instances")
-             ),
-            ( "static", _("Specific list of instances"),
-                ListOf(
-                    Tuple(
-                        elements = [
-                            IPv4Address(
-                                title = _("IP Address"),
-                                default_value = "127.0.0.1",
-                            ),
-                            Alternative(
-                                style = "dropdown",
-                                elements = [
-                                    FixedValue(None,
-                                        title = _("Don't use custom port"),
-                                        totext = _("Use default port"),
-                                    ),
-                                    Integer(
-                                        title = _("TCP Port Number"),
-                                        minvalue = 1,
-                                        maxvalue = 65535,
-                                        default_value = 11211,
-                                    ),
-                                ]
-                            ),
-                        ]
-                    ),
-                ),
-            ),
-            ( '_no_deploy', _("Do not deploy the memcached plugin") ),
-        ]
-    ),
-)
+rulespec_registry.register(
+    CheckParameterRulespecWithItem(
+        check_group_name="memcached",
+        group=RulespecGroupCheckParametersApplications,
+        item_spec=_item_spec_memcached,
+        match_type="dict",
+        parameter_valuespec=_parameter_valuespec_memcached,
+        title=lambda: _("Parameters for Memcached"),
+    ))

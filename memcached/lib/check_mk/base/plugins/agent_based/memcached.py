@@ -1,19 +1,10 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 # -*- encoding: utf-8; py-indent-offset: 4 -*-
-# +------------------------------------------------------------------+
-# |             ____ _               _        __  __ _  __           |
-# |            / ___| |__   ___  ___| | __   |  \/  | |/ /           |
-# |           | |   | '_ \ / _ \/ __| |/ /   | |\/| | ' /            |
-# |           | |___| | | |  __/ (__|   <    | |  | | . \            |
-# |            \____|_| |_|\___|\___|_|\_\___|_|  |_|_|\_\           |
-# |                                                                  |
-# | Copyright Mathias Kettner 2016             mk@mathias-kettner.de |
-# +------------------------------------------------------------------+
-#
-# This file is part of Check_MK.
-# The official homepage is at http://mathias-kettner.de/check_mk.
-#
-# check_mk is free software;  you can redistribute it and/or modify it
+
+# (c) 2020 Heinlein Support GmbH
+#          Robert Sander <r.sander@heinlein-support.de>
+
+# This is free software;  you can redistribute it and/or modify it
 # under the  terms of the  GNU General Public License  as published by
 # the Free Software Foundation in version 2.  check_mk is  distributed
 # in the hope that it will be useful, but WITHOUT ANY WARRANTY;  with-
@@ -34,6 +25,16 @@
 #               bytes_read          66
 #    ...
 
+from .agent_based_api.v1 import (
+    get_rate,
+    get_value_store,
+    register,
+    Result,
+    Metric,
+    State,
+    Service,
+)
+import time
 
 memcached_aggregates = [
     ('bytes_percent',  lambda readings:
@@ -110,18 +111,16 @@ memcached_traits = [
 
 memcached_factory_settings = {}
 for group, values in memcached_traits:
-    for key, traits in values.iteritems():
-        bounds = [trait for trait_key, trait in traits.iteritems()
+    for key, traits in values.items():
+        bounds = [trait for trait_key, trait in traits.items()
                   if trait_key in ['fixed', 'upper_bounds', 'lower_bounds']]
         if bounds and bounds[0] is not None:
             memcached_factory_settings[key] = bounds[0]
-factory_settings['memcached_default_levels'] = memcached_factory_settings
 
-
-def parse_memcached(info):
+def parse_memcached(string_table):
     instances = {}
     current_instance = None
-    for line in info:
+    for line in string_table:
         if not line:
             continue
 
@@ -134,14 +133,19 @@ def parse_memcached(info):
             instances[current_instance][line[0]] = line[1]
     return instances
 
+register.agent_section(
+    name="memcached",
+    parse_function=parse_memcached,
+)
 
-def inventory_memcached(parsed):
+def discover_memcached(section):
     # one item per memcached instance
-    return [(key, {}) for key in parsed.keys()]
+    for instance in section:
+        yield Service(item=instance)
 
-
-def check_memcached(item, params, parsed):
+def check_memcached(item, params, section):
     this_time = time.time()
+    value_store = get_value_store()
 
     def expect_order(*args):
         arglist = filter(lambda x: x != None, args)
@@ -159,9 +163,9 @@ def check_memcached(item, params, parsed):
         else:
             return "%s" % val
 
-    if item in parsed:
+    if item in section:
         status = []
-        readings = parsed[item]
+        readings = section[item]
         # calculate aggregates
         for aggregate, func in memcached_aggregates:
             try:
@@ -173,57 +177,64 @@ def check_memcached(item, params, parsed):
         for group, checks in memcached_traits:
             fails = False
             count = 0
-            for key, traits in checks.iteritems():
+            for key, traits in checks.items():
                 if key not in readings:
                     # stat missing in output
                     continue
                 count += 1
                 reading = traits.get('type', float)(readings[key])
                 if traits.get('counter', False):
-                    rate = get_rate('%s.%s' % (item, key), this_time, reading)
+                    rate = get_rate(value_store,
+                                    'memcached.%s.%s' % (item, key),
+                                    this_time,
+                                    reading)
                     reading = rate
                 if 'upper_bounds' in traits:
                     warn, crit = params.get(key, (None, None))
                     status = expect_order(reading, warn, crit)
                     if status != 0:
                         fails = True
-                        yield status, "%s = %s (warn/crit at %s/%s)" %\
-                            (traits['name'], format_value(reading), warn, crit)
+                        yield Result(state=status,
+                                     notice="%s = %s (warn/crit at %s/%s)" % (traits['name'],
+                                                                              format_value(reading), warn, crit))
                     if traits.get('perfdata', True) and type(reading) in [int, float]:
-                        yield 0, None, [(key, reading, warn, crit)]
+                        yield Metric(key, reading, levels=(warn, crit))
 
                 elif 'lower_bounds' in traits:
                     warn, crit = params.get(key, (None, None))
                     status = expect_order(crit, warn, reading)
                     if status != 0:
                         fails = True
-                        yield status, "%s = %s (warn/crit below %s/%s)" %\
-                            (traits['name'], format_value(reading), warn, crit)
+                        yield Result(state=status,
+                                     notice="%s = %s (warn/crit below %s/%s)" % (traits['name'],
+                                                                                 format_value(reading), warn, crit))
                     if traits.get('perfdata', True) and type(reading) in [int, float]:
-                        yield 0, None, [(key, reading)]
+                        yield Metric(key, reading)
 
                 elif 'fixed' in traits:
                     if reading != params.get(key, reading):
                         fails = True
-                        yield 2, "%s = %s" % (traits['name'], format_value(reading))
+                        yield Result(state=State.CRIT,
+                                     notice="%s = %s" % (traits['name'], format_value(reading)))
 
                 else:
-                    yield 0, "%s = %s" % (traits['name'], format_value(reading))
+                    yield Result(state=State.OK,
+                                 notice="%s = %s" % (traits['name'], format_value(reading)))
 
             if not fails:
                 if count > 0:
-                    yield 0, "%s OK" % group
+                    yield Result(state=State.OK,
+                                 notice="%s OK" % group)
                 else:
-                    yield 1, "%s No Stats" % group
+                    yield Result(state=State.WARN,
+                                 notice="%s No Stats" % group)
 
-
-check_info['memcached'] = {
-    'inventory_function'      : inventory_memcached,
-    'check_function'          : check_memcached,
-    'parse_function'          : parse_memcached,
-    'has_perfdata'            : True,
-    'service_description'     : "Memcached %s",
-    'default_levels_variable' : "memcached_default_levels",
-    'group'                   : "memcached"
-}
-
+register.check_plugin(
+    name="memcached",
+    service_name="Memcached %s",
+    sections=["memcached"],
+    discovery_function=discover_memcached,
+    check_function=check_memcached,
+    check_default_parameters=memcached_factory_settings,
+    check_ruleset_name="memcached",
+)
