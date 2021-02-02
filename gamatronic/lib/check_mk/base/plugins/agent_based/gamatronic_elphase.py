@@ -86,7 +86,7 @@ def check_gamatronic_phase(item, params, section) -> CheckResult:
         yield Result(state=State(state), summary=text)
         for p in perfdata:
             if len(p) == 4:
-                yield Metric(p[0], p[1], limits=(p[2], p[3]))
+                yield Metric(p[0], p[1], levels=(p[2], p[3]))
             else:
                 yield Metric(p[0], p[1])
 
