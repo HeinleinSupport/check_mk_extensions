@@ -22,13 +22,23 @@ def memcached_upper_bounds(title, warn, crit, unit = None):
         float: Float,
         str: TextAscii
     }
-    return Tuple(
-        title = title,
-        elements = [
-            spec_type[type(warn)](title = _("Warning at"), unit = unit, default_value = warn),
-            spec_type[type(warn)](title = _("Critical at"), unit = unit, default_value = crit),
-        ]
-    )
+    warn_type = type(warn)
+    if unit:
+        return Tuple(
+            title = title,
+            elements = [
+                spec_type[warn_type](title = _("Warning at"), unit = unit, default_value = warn),
+                spec_type[warn_type](title = _("Critical at"), unit = unit, default_value = crit),
+            ]
+        )
+    else:
+        return Tuple(
+            title = title,
+            elements = [
+                spec_type[warn_type](title = _("Warning at"), default_value = warn),
+                spec_type[warn_type](title = _("Critical at"), default_value = crit),
+            ]
+        )
 
 def memcached_lower_bounds(title, warn, crit, unit=None):
     spec_type = {
@@ -36,13 +46,23 @@ def memcached_lower_bounds(title, warn, crit, unit=None):
         float: Float,
         str: TextAscii
     }
-    return Tuple(
-        title = title,
-        elements = [
-            spec_type[type(warn)](title = _("Warning below"), unit = unit, default_value = warn),
-            spec_type[type(warn)](title = _("Critical below"), unit = unit, default_value = crit),
-        ]
-    )
+    warn_type = type(warn)
+    if unit:
+        return Tuple(
+            title = title,
+            elements = [
+                spec_type[warn_type](title = _("Warning below"), unit = unit, default_value = warn),
+                spec_type[warn_type](title = _("Critical below"), unit = unit, default_value = crit),
+            ]
+        )
+    else:
+        return Tuple(
+            title = title,
+            elements = [
+                spec_type[warn_type](title = _("Warning below"), default_value = warn),
+                spec_type[warn_type](title = _("Critical below"), default_value = crit),
+            ]
+        )
 
 def _item_spec_memcached():
     return TextAscii(title = _("Instance"))
@@ -52,7 +72,7 @@ def _parameter_valuespec_memcached():
         title = _("Limits"),
         elements = [
             ('version',               memcached_lower_bounds("Version",
-                                                             "1.4.15", "1.4.15")),
+                                                             "1.5.6", "1.4.15")),
             ('pointer_size',          memcached_lower_bounds("Architecture",
                                                              64,       32)),
             ('rusage_system',         memcached_upper_bounds("System CPU time used",
