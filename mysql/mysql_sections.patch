@@ -1,0 +1,90 @@
+diff -ruN 2.0.0b5.cee.orig/lib/python3/cmk/base/cee/bakery/core_bakelets/mk_mysql.py 2.0.0b5.cee/lib/python3/cmk/base/cee/bakery/core_bakelets/mk_mysql.py
+--- 2.0.0b5.cee.orig/lib/python3/cmk/base/cee/bakery/core_bakelets/mk_mysql.py	2021-01-27 14:21:05.000000000 +0100
++++ 2.0.0b5.cee/lib/python3/cmk/base/cee/bakery/core_bakelets/mk_mysql.py	2021-02-03 15:12:40.255188367 +0100
+@@ -83,6 +83,11 @@
+         lines.append("[check_mk]")
+         lines.append("alias=\"%s\"" % conf["alias"])
+ 
++    if "sections" in conf:
++        if "alias" not in conf:
++            lines.append("[check_mk]")
++        lines.append("sections=\"%s\"" % " ".join(conf["sections"].keys()))
++
+     return lines
+ 
+ 
+diff -ruN 2.0.0b5.cee.orig/lib/python3/cmk/gui/cee/plugins/wato/agent_bakery/rulespecs/mk_mysql.py 2.0.0b5.cee/lib/python3/cmk/gui/cee/plugins/wato/agent_bakery/rulespecs/mk_mysql.py
+--- 2.0.0b5.cee.orig/lib/python3/cmk/gui/cee/plugins/wato/agent_bakery/rulespecs/mk_mysql.py	2021-01-27 14:21:05.000000000 +0100
++++ 2.0.0b5.cee/lib/python3/cmk/gui/cee/plugins/wato/agent_bakery/rulespecs/mk_mysql.py	2021-02-03 14:31:22.532965063 +0100
+@@ -54,6 +54,16 @@
+                     ("alias",
+                      TextAscii(title=_("Instance Alias Name"),
+                                help=_("An optional alias name for your mysql instance"))),
++                    ("sections",
++                     Dictionary(
++                         title=_("Agent Plugin Sections to execute"),
++                         help=_("You can switch off specific sections."),
++                         elements=[
++                             ("status", FixedValue(True, title=_("Status"), totext=_("execute section mysql"))),
++                             ("capacity", FixedValue(True, title=_("Capacity"), totext=_("execute section mysql_capcity"))),
++                             ("slave", FixedValue(True, title=_("Slave"), totext=_("execute section  mysql_slave"))),
++                         ],
++                    )),
+                 ],
+             ),
+             FixedValue(
+diff -ruN 2.0.0b5.cee.orig/share/check_mk/agents/plugins/mk_mysql 2.0.0b5.cee/share/check_mk/agents/plugins/mk_mysql
+--- 2.0.0b5.cee.orig/share/check_mk/agents/plugins/mk_mysql	2021-01-27 13:54:20.000000000 +0100
++++ 2.0.0b5.cee/share/check_mk/agents/plugins/mk_mysql	2021-02-03 14:06:05.535386479 +0100
+@@ -18,28 +18,37 @@
+   echo "$INSTANCE_HEADER"
+   mysqladmin --defaults-extra-file="$MK_CONFDIR"/mysql.cfg ${1:+--socket="$1"} ping 2>&1 || return
+ 
+-  echo "<<<mysql>>>"
+-  echo "$INSTANCE_HEADER"
+-  mysql --defaults-extra-file="$MK_CONFDIR"/mysql.cfg ${1:+--socket="$1"} -sN \
+-     -e "show global status ; show global variables ;"
+-
+-  echo "<<<mysql_capacity>>>"
+-  echo "$INSTANCE_HEADER"
+-  mysql --defaults-extra-file="$MK_CONFDIR"/mysql.cfg ${1:+--socket="$1"} -sN \
+-      -e "SELECT table_schema, sum(data_length + index_length), sum(data_free)
+-         FROM information_schema.TABLES GROUP BY table_schema"
++  if [[ $sections == *status* ]]; then
++    echo "<<<mysql>>>"
++    echo "$INSTANCE_HEADER"
++    mysql --defaults-extra-file="$MK_CONFDIR"/mysql.cfg ${1:+--socket="$1"} -sN \
++       -e "show global status ; show global variables ;"
++  fi
+ 
+-  echo "<<<mysql_slave>>>"
+-  echo "$INSTANCE_HEADER"
+-  mysql --defaults-extra-file="$MK_CONFDIR"/mysql.cfg ${1:+--socket="$1"} -s \
+-     -e "show slave status\G"
++  if [[ $sections == *capacity* ]]; then
++    echo "<<<mysql_capacity>>>"
++    echo "$INSTANCE_HEADER"
++    mysql --defaults-extra-file="$MK_CONFDIR"/mysql.cfg ${1:+--socket="$1"} -sN \
++        -e "SELECT table_schema, sum(data_length + index_length), sum(data_free)
++           FROM information_schema.TABLES GROUP BY table_schema"
++  fi
+ 
++  if [[ $sections == *slave* ]]; then
++    echo "<<<mysql_slave>>>"
++    echo "$INSTANCE_HEADER"
++    mysql --defaults-extra-file="$MK_CONFDIR"/mysql.cfg ${1:+--socket="$1"} -s \
++       -e "show slave status\G"
++  fi
+ }
+ 
+ if type mysqladmin >/dev/null
+ then
+   mysql_sockets=$(fgrep -h socket "$MK_CONFDIR"/mysql{.local,}.cfg | sed -ne 's/.*socket=\([^ ]*\).*/\1/p')
+   alias=$(fgrep -h alias "$MK_CONFDIR"/mysql{.local,}.cfg | cut -d \" -f2)
++  sections=$(fgrep -h sections "$MK_CONFDIR"/mysql{.local,}.cfg | cut -d \" -f2)
++  if [ -z "$sections" ]; then
++    sections="status capacity slave"
++  fi
+   if [ -z "$mysql_sockets" ] ; then
+     mysql_sockets=$(ps -fww -C mysqld | grep "socket" | sed -ne 's/.*socket=\([^ ]*\).*/\1/p')
+   fi
