@@ -112,7 +112,7 @@ def check_cephstatus(item, params, section) -> CheckResult:
                 yield Result(state=State.OK,
                              summary='Overall Health OK')
             elif 'checks' in section['health']:
-                for check, data in section['health']['checks'].iteritems():
+                for check, data in section['health']['checks'].items():
                     if data['severity'] == 'HEALTH_WARN':
                         yield Result(state=State.WARN,
                                      summary=check + ": " + data['summary']['message'])

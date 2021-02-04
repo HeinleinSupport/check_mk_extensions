@@ -2,7 +2,7 @@
 # -*- encoding: utf-8; py-indent-offset: 4 -*-
 
 #
-# (c) 2017 Heinlein Support GmbH
+# (c) 2020 Heinlein Support GmbH
 #          Robert Sander <r.sander@heinlein-support.de>
 #
 
