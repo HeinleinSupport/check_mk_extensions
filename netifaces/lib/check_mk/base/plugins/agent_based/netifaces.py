@@ -33,28 +33,21 @@ from .agent_based_api.v1 import (
 from functools import reduce
 import socket
 import dns.reversename
-import ipaddr
+import ipaddress
 
-netifaces_blacklist = [ ipaddr.IPNetwork('10.0.0.0/8'),
-                        ipaddr.IPNetwork('127.0.0.0/8'),
-                        ipaddr.IPNetwork('172.16.0.0/12'),
-                        ipaddr.IPNetwork('192.168.0.0/16'),
-                        ipaddr.IPNetwork('::1/128'),
-                        ipaddr.IPNetwork('fe80::/10'),
-                        ipaddr.IPNetwork('fc00::/7'),
-                      ]
-
-from cmk.utils import debug
-from pprint import pprint
-
-def discovery_netifaces_rbl(section) -> DiscoveryResult:
+def discovery_netifaces_rbl(params, section) -> DiscoveryResult:
     if_table, ip_stats = section
-    if debug.enabled():
-        pprint(ip_stats)
-    for iface, info in ip_stats.items():
-        for addr in map(lambda x: x.split('/')[0], info.get('inet', []) + info.get('inet6', [])):
-            if not reduce( lambda result, network: result or ( ipaddr.IPAddress(addr) in network ), netifaces_blacklist, False):
-                yield Service(item=addr)
+    if params.get('active'):
+        include_list = list(map(ipaddress.ip_network, params.get('include', [])))
+        exclude_list = list(map(ipaddress.ip_network, params.get('exclude', [])))
+        for iface, info in ip_stats.items():
+            for addr in map(lambda x: x.split('/')[0], info.get('inet', []) + info.get('inet6', [])):
+                a = ipaddress.ip_address(addr)
+                if reduce(lambda result, network: result or (a in network), include_list, False):
+                    yield Service(item=addr)
+                    continue
+                if not reduce(lambda result, network: result or (a in network), exclude_list, False):
+                    yield Service(item=addr)
 
 def check_netifaces_rbl(item, params, section) -> CheckResult:
     levels = { 'warn': State.WARN,
@@ -65,14 +58,14 @@ def check_netifaces_rbl(item, params, section) -> CheckResult:
     if_table, ip_stats = section
     for iface, info in ip_stats.items():
         for family in ["inet", "inet6"]:
-            for address in map(lambda x: x.split('/')[0], info.get(family, [])):
-                if item == address:
+            for addr in map(lambda x: x.split('/')[0], info.get(family, [])):
+                if item == addr:
                     yield Result(state=State.OK,
                                  summary="bound on %s" % iface)
                     count = 0
                     for level, levelres in levels.items():
                         for rbl in params.get(level, []):
-                            ptr = "%s.%s." % (dns.reversename.from_address(address) - reverse_domain[family], rbl)
+                            ptr = "%s.%s." % (dns.reversename.from_address(addr) - reverse_domain[family], rbl)
                             try:
                                 ip = socket.gethostbyname(ptr)
                                 count += 1
@@ -94,6 +87,20 @@ register.check_plugin(
     service_name="RBL %s",
     sections=["lnx_if"],
     discovery_function=discovery_netifaces_rbl,
+    discovery_ruleset_name="discovery_rbl_rules",
+    discovery_default_parameters={
+        'active': False,
+        'include': [],
+        'exclude': [
+            '10.0.0.0/8',
+            '127.0.0.0/8',
+            '172.16.0.0/12',
+            '192.168.0.0/16',
+            '::1/128',
+            'fe80::/10',
+            'fc00::/7',
+        ],
+    },
     check_function=check_netifaces_rbl,
     check_default_parameters={
         'crit': [ "bl.spamcop.org", "zen.spamhaus.org", "ix.dnsbl.manitu.net" ]
