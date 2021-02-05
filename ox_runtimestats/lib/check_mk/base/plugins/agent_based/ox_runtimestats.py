@@ -198,7 +198,7 @@ def check_ox_memorypool(item, params, section) -> CheckResult:
         yield from memory.check_element(label='Usage',
                                         used=pool['used'],
                                         total=pool['max'],
-                                        metric_name="mem_used",
+                                        metric_name="memory_used",
                                         create_percent_metric=True,
                                         levels=(mode, (warn, crit)))
 
