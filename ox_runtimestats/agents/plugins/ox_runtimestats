@@ -4,7 +4,7 @@ runtimestats=/opt/open-xchange/sbin/showruntimestats
 
 if [ -x $runtimestats ]; then
 
-  echo '<<<ox_runtimestats>>>'
+  echo '<<<ox_runtimestats:sep(0)>>>'
 
   $runtimestats -a
 
