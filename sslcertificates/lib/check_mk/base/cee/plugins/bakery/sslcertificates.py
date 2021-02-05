@@ -20,13 +20,7 @@ from typing import Any, Dict
 
 from .bakery_api.v0 import FileGenerator, OS, Plugin, PluginConfig, register
 
-from cmk.utils import debug
-import pprint
-
 def get_sslcertificates_files(conf: Dict[str, Any]) -> FileGenerator:
-    if debug.enabled():
-        pprint.pprint(conf)
-
     yield Plugin(base_os=OS.LINUX,
                  source=Path("sslcertificates"),
                  interval=conf.get("interval"))

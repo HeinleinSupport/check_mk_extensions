@@ -17,15 +17,11 @@
 
 from .agent_based_api.v1 import register, render, Result, Metric, State, check_levels, ServiceLabel, Service
 import time
-from cmk.utils import debug
-import pprint
 
 def sslcertificates_name(line):
     return line[0]
 
 def parse_sslcertificates(string_table):
-    if debug.enabled():
-        pprint.pprint(string_table)
     return string_table
 
 register.agent_section(
@@ -57,12 +53,8 @@ def check_sslcertificates(item, params, section):
             
             endtime = int(line[1])
             now = int(time.time())
-            daysremaining = ( endtime - now ) / 60 / 60 / 24
             secondsremaining = endtime - now
             ignored = False
-
-            # value_store = get_value_store()
-            # rate = get_rate(value_store, "id", time.time(), value)
 
             algosign = '/'
             if len(line) > 2:
@@ -75,22 +67,30 @@ def check_sslcertificates(item, params, section):
                 subj = " ".join(line[3:])
             yield Result(state=State.OK, summary="Subject: %s" % subj)
 
-            if daysremaining < 0:
-                infotext = "expired %d days ago on %s" % ( abs(daysremaining), time.strftime("%c", time.gmtime(endtime)))
+            if secondsremaining < 0:
+                infotext = "expired %s ago on %s" % ( render.timespan(abs(secondsremaining)),
+                                                      time.strftime("%c", time.gmtime(endtime)))
             else:
-                infotext = "expires in %d days on %s" % ( daysremaining, time.strftime("%c", time.gmtime(endtime)))
-            if ignore and -daysremaining > ignore[0]:
+                infotext = "expires in %s on %s" % ( render.timespan(secondsremaining),
+                                                     time.strftime("%c", time.gmtime(endtime)))
+            if ignore and -secondsremaining > ignore[0]:
                 yield Result(state=State.OK, summary=infotext + ', ignored because "%s"' % ignore[1])
                 ignored = True
             else:
-                yield from check_levels(secondsremaining,
-                    levels_lower=(warn * 86400, crit * 86400),
-                    metric_name='lifetime_remaining',
-                    label='Lifetime Remaining',
-                    render_func=render.timespan,
-                    )
-            # yield Metric('lifetime_remaining', secondsremaining, 
-            # [ ( 'lifetime_remaining', secondsremaining, warn * 86400, crit * 86400 ) ]
+                if secondsremaining > 0:
+                    yield from check_levels(secondsremaining,
+                        levels_lower=(warn * 86400, crit * 86400),
+                        metric_name='lifetime_remaining',
+                        label='Lifetime Remaining',
+                        render_func=render.timespan,
+                        )
+                else:
+                    yield from check_levels(secondsremaining,
+                        levels_lower=(warn * 86400, crit * 86400),
+                        metric_name='lifetime_remaining',
+                        label='Expired',
+                        render_func=lambda x: "%s ago" % render.timespan(abs(x)),
+                        )
 
             if algosign:
                 infotext = "Signature Algorithm: %s" % algosign
@@ -114,17 +114,3 @@ register.check_plugin(
     },
     check_ruleset_name="sslcertificates",
 )
-
-# check_info['sslcertificates'] = {
-#     'check_function':      check_sslcertificates,
-#     'service_description': "SSL Certificate in %s",
-#     'has_perfdata':        True,
-#     'inventory_function':  discovery_sslcertificates,
-#     'group':               'sslcertificates',
-#     'default_levels_variable' : "sslcertificates_default_levels",
-# }
-# factory_settings['sslcertificates_default_levels'] = {
-#     'age': ( 90, 60 ),
-#     'warnalgo': [ 'md5WithRSAEncryption', 'sha1WithRSAEncryption' ],
-#     }
-
