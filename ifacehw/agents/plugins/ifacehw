@@ -1,0 +1,22 @@
+#!/bin/bash
+
+if lscpu | grep -q ^Hypervisor 2> /dev/null; then
+
+  echo '<<<local>>>'
+
+  for drivlink in /sys/class/net/*/device/driver; do
+    
+    iface=$(echo $drivlink | cut -d'/' -f 5)
+    modname=$(basename $(readlink $drivlink))
+
+    case "$modname" in
+      vmxnet*|vif*|virtio_net)
+        ;;
+      *)
+        echo "1 Iface_HW_$iface - Bitte virtuellen Netzwerk-Adapter-Typ checken: $modname"
+        ;;
+    esac
+
+  done
+
+fi
