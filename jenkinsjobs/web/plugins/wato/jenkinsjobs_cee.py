@@ -20,10 +20,10 @@ from cmk.gui.valuespec import (
     Tuple,
 )
 
-def _valuespec_agent_config_jenkins():
+def _valuespec_agent_config_jenkinsjobs():
     return Alternative(
         title = _("Jenkins Jobs (Linux)"),
-        help = _("This will deploy the agent plugin <tt>jenkins</tt> to check Jenkins Jobs."),
+        help = _("This will deploy the agent plugin <tt>jenkinsjobs</tt> to check Jenkins Jobs."),
         style = 'dropdown',
         elements = [
             Dictionary(
@@ -61,6 +61,6 @@ def _valuespec_agent_config_jenkins():
 rulespec_registry.register(
      HostRulespec(
          group=RulespecGroupMonitoringAgentsAgentPlugins,
-         name="agent_config:jenkins",
-         valuespec=_valuespec_agent_config_jenkins,
+         name="agent_config:jenkinsjobs",
+         valuespec=_valuespec_agent_config_jenkinsjobs,
      ))

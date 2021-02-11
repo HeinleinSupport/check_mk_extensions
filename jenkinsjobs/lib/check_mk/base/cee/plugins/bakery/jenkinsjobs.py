@@ -20,16 +20,16 @@ from typing import Any, Dict
 
 from .bakery_api.v0 import FileGenerator, OS, Plugin, PluginConfig, register
 
-def get_jenkins_files(conf: Dict[str, Any]) -> FileGenerator:
+def get_jenkinsjobs_files(conf: Dict[str, Any]) -> FileGenerator:
     yield Plugin(base_os=OS.LINUX,
-                 source=Path("jenkins"))
+                 source=Path("jenkinsjobs"))
     if 'url' in conf:
         yield PluginConfig(base_os=OS.LINUX,
                            lines=['params = %r' % conf],
-                           target=Path("jenkins.cfg"),
+                           target=Path("jenkinsjobs.cfg"),
                            include_header=True)
 
 register.bakery_plugin(
-    name="jenkins",
-    files_function=get_jenkins_files,
+    name="jenkinsjobs",
+    files_function=get_jenkinsjobs_files,
 )

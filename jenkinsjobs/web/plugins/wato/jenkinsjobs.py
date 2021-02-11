@@ -18,14 +18,14 @@ from cmk.gui.plugins.wato import (
     RulespecGroupCheckParametersApplications,
 )
 
-def _item_spec_jenkins():
+def _item_spec_jenkinsjobs():
     return TextAscii(
         title = _("Service descriptions"),
-        help = _('Specify service descriptions of the host that uses the special agent "jenkins".'),
+        help = _('Specify service descriptions of the host that uses the special agent "jenkinsjobs".'),
         allow_empty = False
     )
 
-def _parameter_valuespec_jenkins():
+def _parameter_valuespec_jenkinsjobs():
     return ListOf(
         Dictionary(
             elements = [
@@ -44,18 +44,18 @@ def _parameter_valuespec_jenkins():
 
 rulespec_registry.register(
     CheckParameterRulespecWithItem(
-        check_group_name="jenkins",
+        check_group_name="jenkinsjobs",
         group=RulespecGroupCheckParametersApplications,
-        item_spec=_item_spec_jenkins,
+        item_spec=_item_spec_jenkinsjobs,
         match_type="first",
-        parameter_valuespec=_parameter_valuespec_jenkins,
+        parameter_valuespec=_parameter_valuespec_jenkinsjobs,
         title=lambda: _("Jenkins Jobs"),
     ))
 
 register_rule('datasource_programs',
-    "special_agents:jenkins",
+    "special_agents:jenkinsjobs",
     Dictionary(
-        title = _("Jenkins"),
+        title = _("Jenkins Jobs"),
         elements = [
             ('url', HTTPUrl(title=_('Jenkins URL'))),
             ('auth', Alternative(title = _("Authentication"),

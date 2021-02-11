@@ -6,7 +6,7 @@
 # Robert Sander <r.sander@heinlein-support.de>
 #
 
-def agent_jenkins_arguments(servicespecs, hostname, ipaddress):    
+def agent_jenkinsjobs_arguments(servicespecs, hostname, ipaddress):    
     params = {'servicespecs': servicespecs,
               'hostname': hostname,
               'ipadress': ipaddress}
@@ -20,4 +20,4 @@ def agent_jenkins_arguments(servicespecs, hostname, ipaddress):
 
     return " ".join(cmd)
 
-special_agent_info['jenkins'] = agent_jenkins_arguments
+special_agent_info['jenkinsjobs'] = agent_jenkinsjobs_arguments
