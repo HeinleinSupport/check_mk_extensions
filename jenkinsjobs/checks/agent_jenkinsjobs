@@ -16,7 +16,7 @@ def agent_jenkinsjobs_arguments(servicespecs, hostname, ipaddress):
 
     cmd = []
 
-    cmd += encodestring(dumps(params)).split('\n')
+    cmd += encodestring(dumps(params)).decode('ascii').split('\n')
 
     return " ".join(cmd)
 

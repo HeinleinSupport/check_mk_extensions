@@ -23,6 +23,7 @@ import urllib
 import pickle
 import base64
 import re
+import json
 import pprint
 
 class JenkinsAPI(requests.Session):
@@ -90,7 +91,7 @@ if __name__ == '__main__':
     args = parser.parse_args()
 
     # Parameters are base64 encoded cPickle data
-    params = pickle.loads(base64.decodestring('\n'.join(args.params)))
+    params = pickle.loads(base64.decodebytes(('\n'.join(args.params)).encode('ascii')))
 
     if args.debug:
         pprint.pprint(args)
@@ -112,8 +113,8 @@ if __name__ == '__main__':
     for host, jobs in hosts.iteritems():
         if host and params['hostname'] != host:
             print('<<<<%s>>>>' % host)
-        print('<<<jenkinsjobs>>>')
-        pprint.pprint(jobs)
+        print('<<<jenkinsjobs:seq(0)>>>')
+        print(json.dumps(jobs))
         if host and params['hostname'] != host:
             print('<<<<>>>>')
 

@@ -17,55 +17,93 @@
 # to the Free Software Foundation, Inc., 51 Franklin St,  Fifth Floor,
 # Boston, MA 02110-1301 USA.
 
+from .agent_based_api.v1.type_defs import (
+    CheckResult,
+    DiscoveryResult,
+)
 
-def parse_jenkinsjobs(info):
-    data = eval(" ".join([item for sublist in info for item in sublist]))
-    return data
+from .agent_based_api.v1 import (
+    check_levels,
+    check_levels_predictive,
+    get_rate,
+    get_value_store,
+    register,
+    render,
+    Metric,
+    Result,
+    State,
+    Service,
+    )
 
-def inventory_jenkinsjobs(parsed):
-    for name, job in parsed.iteritems():
+import json
+import time
+
+def parse_jenkinsjobs(string_table):
+    section = {}
+    for line in string_table:
+        section.update(json.loads(line[0]))
+    return section
+
+register.agent_section(
+    name="jenkinsjobs",
+    parse_function=parse_jenkinsjobs,
+)
+
+def discover_jenkinsjobs(section) -> DiscoveryResult:
+    for name, job in section.items():
         if job['data'].get('buildable', False):
-            yield name, {}
+            yield Service(item=name)
 
-# @get_parsed_item_data
-def check_jenkinsjobs(_no_item, _no_params, data):
-    job = data['data']
+def check_jenkinsjobs(item, section) -> CheckResult:
+    if item in section:
+        job = section[item]['data']
 
-    yield 0, job['displayName']
+        yield Result(state=State.OK,
+                     summary=job['displayName'])
 
-    lastUnsuccessfulBuild = job.get('lastUnsuccessfulBuild', {'number': 0})
-    if not lastUnsuccessfulBuild:
-        lastUnsuccessfulBuild = {'number': 0}
-    lastUnsuccessfulBuild = lastUnsuccessfulBuild.get('number', 0)
-    lastStableBuild = job.get('lastStableBuild', {'number': 0})
-    if not lastStableBuild:
-        lastStableBuild = {'number': 0}
-    lastStableBuild = lastStableBuild.get('number', 0)
-    numFailedBuilds = 0
-    if lastUnsuccessfulBuild > 0:
-        numFailedBuilds = lastUnsuccessfulBuild - lastStableBuild
-    if numFailedBuilds > 0:
-        yield 1, "%d failed builds" % numFailedBuilds
+        if 'url' in section[item]:
+            yield Result(state=State.OK,
+                         summary="URL: %s " % section[item]['url'])
 
-    lastCompletedBuild = job.get('lastCompletedBuild', {'data': None}).get('data', {})
-    if lastCompletedBuild:
-        yield 0, "last complete build started at %s" % time.strftime('%Y-%m-%d %H:%M:%S', time.localtime(lastCompletedBuild['timestamp']/1000.0))
-        yield 0, "completed at %s" % time.strftime('%Y-%m-%d %H:%M:%S', time.localtime((lastCompletedBuild['timestamp']+lastCompletedBuild['duration'])/1000.0))
-        if lastCompletedBuild.get('result') != u'SUCCESS':
-            yield 2, lastCompletedBuild.get('result')
-        art = lastCompletedBuild.get('artifacts', {})
-        checkmkart = art.get('checkmk.txt', {})
-        for error in checkmkart.get('error', []):
-            yield 2, error
-        for metric, value in checkmkart.get('perfdata', {}).iteritems():
-            yield 0, None, [(metric, value)]
-    else:
-        yield 1, "no completed build"
+        lastUnsuccessfulBuild = job.get('lastUnsuccessfulBuild', {'number': 0})
+        if not lastUnsuccessfulBuild:
+            lastUnsuccessfulBuild = {'number': 0}
+        lastUnsuccessfulBuild = lastUnsuccessfulBuild.get('number', 0)
+        lastStableBuild = job.get('lastStableBuild', {'number': 0})
+        if not lastStableBuild:
+            lastStableBuild = {'number': 0}
+        lastStableBuild = lastStableBuild.get('number', 0)
+        numFailedBuilds = 0
+        if lastUnsuccessfulBuild > 0:
+            numFailedBuilds = lastUnsuccessfulBuild - lastStableBuild
+        if numFailedBuilds > 0:
+            yield Result(state=State.WARN,
+                         summary="%d failed builds" % numFailedBuilds)
 
-# check_info["jenkinsjobs"] = {
-#     'parse_function'        : parse_jenkinsjobs,
-#     'check_function'        : check_jenkinsjobs,
-#     'inventory_function'    : inventory_jenkinsjobs,
-#     'service_description'   : 'Jenkins Job %s',
-#     'has_perfdata'          : True,
-# }
+        lastCompletedBuild = job.get('lastCompletedBuild', {'data': None}).get('data', {})
+        if lastCompletedBuild:
+            yield Result(state=State.OK,
+                         notice="last complete build started at %s" % time.strftime('%Y-%m-%d %H:%M:%S', time.localtime(lastCompletedBuild['timestamp']/1000.0)))
+            yield Result(state=State.OK,
+                         notice="completed at %s" % time.strftime('%Y-%m-%d %H:%M:%S', time.localtime((lastCompletedBuild['timestamp']+lastCompletedBuild['duration'])/1000.0)))
+            if lastCompletedBuild.get('result') != u'SUCCESS':
+                yield Result(state=State.CRIT,
+                             summary=lastCompletedBuild.get('result'))
+            art = lastCompletedBuild.get('artifacts', {})
+            checkmkart = art.get('checkmk.txt', {})
+            for error in checkmkart.get('error', []):
+                yield Result(state=State.CRIT,
+                             summary=error)
+            for metric, value in checkmkart.get('perfdata', {}).items():
+                yield Metric(metric, value)
+        else:
+            yield Result(state=State.WARN,
+                         summary="no completed build")
+
+register.check_plugin(
+    name="jenkinsjobs",
+    service_name="JenkinsJob %s",
+    sections=["jenkinsjobs"],
+    discovery_function=discover_jenkinsjobs,
+    check_function=check_jenkinsjobs,
+)

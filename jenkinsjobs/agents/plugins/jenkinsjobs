@@ -22,6 +22,7 @@ import urllib
 import re
 import os
 import socket
+import json
 import pprint
 
 class JenkinsAPI(requests.Session):
@@ -90,8 +91,8 @@ if __name__ == '__main__':
     for host, jobs in hosts.iteritems():
         if host and hostname != host:
             print '<<<<%s>>>>' % host
-        print '<<<jenkinsjobs>>>'
-        pprint.pprint(jobs)
+        print '<<<jenkinsjobs:sep(0)>>>'
+        print(json.dumps(jobs))
         if host and hostname != host:
             print '<<<<>>>>'
 

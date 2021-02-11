@@ -15,8 +15,11 @@ from cmk.gui.valuespec import (
 from cmk.gui.plugins.wato import (
     rulespec_registry,
     CheckParameterRulespecWithItem,
+    HostRulespec,
     RulespecGroupCheckParametersApplications,
 )
+
+from cmk.gui.plugins.wato.datasource_programs import RulespecGroupDatasourceProgramsApps
 
 def _item_spec_jenkinsjobs():
     return TextAscii(
@@ -52,10 +55,9 @@ rulespec_registry.register(
         title=lambda: _("Jenkins Jobs"),
     ))
 
-register_rule('datasource_programs',
-    "special_agents:jenkinsjobs",
-    Dictionary(
-        title = _("Jenkins Jobs"),
+def _valuespec_special_agents_jenkinsjobs():
+    return Dictionary(
+        title = _("JenkinsJobs"),
         elements = [
             ('url', HTTPUrl(title=_('Jenkins URL'))),
             ('auth', Alternative(title = _("Authentication"),
@@ -71,7 +73,7 @@ register_rule('datasource_programs',
             ('hosts', ListOf(
                 Dictionary(
                     elements = [
-                        ('hostname', MonitoredHostname(title=_('Hostname'), from_active_config=True)),
+                        ('hostname', MonitoredHostname(title=_('Hostname'))),
                         ('jobs', ListOf(RegExp('prefix', label=_('RegExp for job name')),
                                         title=_('List of Regular Expressions'))),
                     ],
@@ -81,8 +83,11 @@ register_rule('datasource_programs',
                 )),
         ],
         optional_keys = [ 'auth' ],
-    ),
-    title = _("Jenkins Jobs"),
-    help  = _(''),
-    match = 'first'
-)
+    )
+
+rulespec_registry.register(
+    HostRulespec(
+        group=RulespecGroupDatasourceProgramsApps,
+        name="special_agents:jenkinsjobs",
+        valuespec=_valuespec_special_agents_jenkinsjobs,
+    ))
