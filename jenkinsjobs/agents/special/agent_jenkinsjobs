@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 # -*- encoding: utf-8; py-indent-offset: 4 -*-
 
 #
@@ -20,7 +20,7 @@
 import argparse
 import requests
 import urllib
-import cPickle
+import pickle
 import base64
 import re
 import pprint
@@ -70,7 +70,7 @@ class JenkinsAPI(requests.Session):
                         if jobre.match(job['name']):
                             job[u'data'] = self.get_job_data(job['url'])
                             if args.debug:
-                                print "job = ",
+                                print("job = ", end='')
                                 pprint.pprint(job)
                             hosts[host][job['name']] = job
                             if u'jobs' in job[u'data']:
@@ -86,11 +86,11 @@ if __name__ == '__main__':
     parser.add_argument('-p', '--password')
     parser.add_argument('-a', '--authtoken')
     parser.add_argument('-d', '--debug', action="store_true")
-    parser.add_argument('params', nargs='+', help='base64 encoded cPickled Python dictionary')
+    parser.add_argument('params', nargs='+', help='base64 encoded pickled Python dictionary')
     args = parser.parse_args()
 
     # Parameters are base64 encoded cPickle data
-    params = cPickle.loads(base64.decodestring('\n'.join(args.params)))
+    params = pickle.loads(base64.decodestring('\n'.join(args.params)))
 
     if args.debug:
         pprint.pprint(args)
@@ -99,7 +99,7 @@ if __name__ == '__main__':
     s = JenkinsAPI()
 
     if 'auth' in params['servicespecs']:
-        if type(params['servicespecs']["auth"]) == tuple:
+        if isinstance(params['servicespecs']["auth"], tuple):
             s.auth = params['servicespecs']['auth']
         else:
             s.headers.update({'Authorization': "Bearer %s" % params['servicespecs']["auth"]})
@@ -111,9 +111,9 @@ if __name__ == '__main__':
     hosts = s.get_host_jobs(params['servicespecs'])
     for host, jobs in hosts.iteritems():
         if host and params['hostname'] != host:
-            print '<<<<%s>>>>' % host
-        print '<<<jenkinsjobs>>>'
+            print('<<<<%s>>>>' % host)
+        print('<<<jenkinsjobs>>>')
         pprint.pprint(jobs)
         if host and params['hostname'] != host:
-            print '<<<<>>>>'
+            print('<<<<>>>>')
 

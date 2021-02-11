@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 # -*- encoding: utf-8; py-indent-offset: 4 -*-
 
 #
@@ -11,12 +11,12 @@ def agent_jenkins_arguments(servicespecs, hostname, ipaddress):
               'hostname': hostname,
               'ipadress': ipaddress}
 
-    import cPickle
-    import base64
+    from pickle import dumps
+    from base64 import encodestring
 
     cmd = []
 
-    cmd += base64.encodestring(cPickle.dumps(params)).split('\n')
+    cmd += encodestring(dumps(params)).split('\n')
 
     return " ".join(cmd)
 

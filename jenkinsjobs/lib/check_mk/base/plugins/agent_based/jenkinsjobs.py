@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 # -*- encoding: utf-8; py-indent-offset: 4 -*-
 
 #
@@ -27,7 +27,7 @@ def inventory_jenkinsjobs(parsed):
         if job['data'].get('buildable', False):
             yield name, {}
 
-@get_parsed_item_data
+# @get_parsed_item_data
 def check_jenkinsjobs(_no_item, _no_params, data):
     job = data['data']
 
@@ -62,10 +62,10 @@ def check_jenkinsjobs(_no_item, _no_params, data):
     else:
         yield 1, "no completed build"
 
-check_info["jenkinsjobs"] = {
-    'parse_function'        : parse_jenkinsjobs,
-    'check_function'        : check_jenkinsjobs,
-    'inventory_function'    : inventory_jenkinsjobs,
-    'service_description'   : 'Jenkins Job %s',
-    'has_perfdata'          : True,
-}
+# check_info["jenkinsjobs"] = {
+#     'parse_function'        : parse_jenkinsjobs,
+#     'check_function'        : check_jenkinsjobs,
+#     'inventory_function'    : inventory_jenkinsjobs,
+#     'service_description'   : 'Jenkins Job %s',
+#     'has_perfdata'          : True,
+# }
