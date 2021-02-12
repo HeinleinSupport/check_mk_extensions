@@ -13,6 +13,7 @@ import requests
 import warnings
 import os
 import json
+import time
 
 class CMKRESTAPI():
     def __init__(self, site_url=None, api_user=None, api_secret=None):
@@ -53,23 +54,25 @@ class CMKRESTAPI():
         return username, password
 
     def _check_response(self, resp):
-        pprint(resp.request.url)
-        pprint(resp.request.headers)
-        resp.raise_for_status()
+        # pprint(resp.request.url)
+        # pprint(resp.request.headers)
+        # pprint(resp.status_code)
+        # pprint(resp.headers)
         if resp.content:
             data = resp.json()
         else:
             data = {}
         etag = resp.headers.get('ETag', '').strip('"')
-        return data, etag
+        return data, etag, resp
 
     def _get_url(self, uri, data={}):
-        pprint(uri)
-        pprint(f"{self.api_url}/{uri}")
+        # pprint(uri)
+        # pprint(f"{self.api_url}/{uri}")
         return self._check_response(
             self.session.get(
                 f"{self.api_url}/{uri}",
-                params=data
+                params=data,
+                allow_redirects=False,
             )
         )
 
@@ -78,7 +81,10 @@ class CMKRESTAPI():
             self.session.post(
                 f"{self.api_url}/{uri}",
                 json=data,
-                headers={"Content-Type": 'application/json',}
+                headers={
+                    "Content-Type": 'application/json',
+                },
+                allow_redirects=False,
             )
         )
 
@@ -90,7 +96,8 @@ class CMKRESTAPI():
                 headers={
                     "Content-Type": 'application/json',
                     "If-Match": etag,
-                }
+                },
+                allow_redirects=False,
             )
         )
     
@@ -98,56 +105,70 @@ class CMKRESTAPI():
         return self._check_response(
             self.session.delete(
                 f"{self.api_url}/{uri}",
-                headers={"If-Match": etag}
+                headers={"If-Match": etag},
+                allow_redirects=False,
             )
         )
 
     def add_host(self, hostname, folder, attributes={}):
-        try:
-            return self._post_url(
-                f"domain-types/host_config/collections/all",
-                data={
-                    'host_name': hostname,
-                    'folder': folder,
-                    'attributes': attributes
-                },
-            )
-        except requests.exceptions.HTTPError as er:
-            if er.response.status_code == 400:
-                return {}, None
-            raise
+        print(f'Add Host {hostname}')
+        data, etag, resp = self._post_url(
+            f"domain-types/host_config/collections/all",
+            data={
+                'host_name': hostname,
+                'folder': folder,
+                'attributes': attributes
+            },
+        )
+        if resp.status_code == 200:
+            return data, etag
+        resp.raise_for_status()
 
     def get_host(self, hostname, effective_attr=False):
-        return self._get_url(
+        print(f'Get Host {hostname}')
+        data, etag, resp = self._get_url(
             f"/objects/host_config/{hostname}",
             data={"effective_attributes": "true" if effective_attr else "false"}
         )
+        if resp.status_code == 200:
+            return data, etag
+        resp.raise_for_status()
 
     def get_all_hosts(self, effective_attr=False):
-        data, etag = self._get_url(
+        print('Get All Hosts')
+        data, etag, resp = self._get_url(
             f"/domain-types/host_config/collections/all",
             data={"effective_attributes": "true" if effective_attr else "false"}
         )
+        if resp.status_code != 200:
+            resp.raise_for_status()
         hosts = {}
         for hinfo in data.get('value', []):
             if hinfo.get('domainType') == 'link':
-                hostdata, etag = self._get_url(
+                hostdata, etag, resp = self._get_url(
                     hinfo['href'],
                     data={"effective_attributes": "true" if effective_attr else "false"}
                 )
+                if resp.status_code != 200:
+                    resp.raise_for_status()
                 if hostdata.get('domainType') == 'host_config':
                     hosts[hostdata['id']] = hostdata['extensions']
         return hosts
 
     def delete_host(self, hostname, etag=None):
+        print(f'Delete Host {hostname}')
         if not etag:
             hostdata, etag = self.get_host(hostname)
-        return self._delete_url(f"/objects/host_config/{hostname}", etag)
+        data, etag, resp = self._delete_url(f"/objects/host_config/{hostname}", etag)
+        if resp.status_code == 200:
+            return data, etag
+        resp.raise_for_status()
 
     def edit_host(self, hostname, etag=None, set_attr={}, update_attr={}, unset_attr=[]):
+        print(f'Edit Host {hostname}')
         if not etag:
             hostdata, etag = self.get_host(hostname)
-        return self._put_url(
+        data, etag, resp = self._put_url(
             f"objects/host_config/{hostname}",
             etag,
             data={
@@ -156,25 +177,48 @@ class CMKRESTAPI():
                 'remove_attributes': unset_attr,
             },
         )
+        if resp.status_code == 200:
+            return data, etag
+        resp.raise_for_status()
 
     def disc_host(self, hostname):
-        return self._post_url(f"/objects/host/{hostname}/actions/discover-services/mode/tabula-rasa")
+        print(f'Discover Host {hostname}')
+        data, etag, resp = self._post_url(
+            f"/objects/host/{hostname}/actions/discover-services/mode/tabula-rasa"
+        )
+        if resp.status_code == 204:
+            return data, etag
+        resp.raise_for_status()
+
+    def _wait_for_activation(uri):
+        code = 302
+        while code == 302:
+            time.sleep(1)
+            print("Calling link %s" % uri)
+            data, etag, resp = self._get_url(uri)
+            code = resp.status_code
+        return resp
 
     def activate(self, sites=[]):
-        data, etag = self._post_url(
+        print('Activate Changes')
+        data, etag, resp = self._post_url(
             "/domain-types/activation_run/actions/activate-changes/invoke",
             data={
                 'redirect': False,
                 'sites': sites
             },
         )
-        pprint(data)
-        if data.get('domainType') == 'activation_run':
-            for link in data.get('links', []):
-                if link.get('rel') == 'urn:com.checkmk:rels/wait-for-completion':
-                    pprint(link.get('href'))
-                    return self._get_url(link.get('href'))
-        return data, etag
+        if resp.status_code == 200:
+            return data, etag
+        if resp.status_code == 302:
+            if data.get('domainType') == 'activation_run':
+                for link in data.get('links', []):
+                    if link.get('rel') == 'urn:com.checkmk:rels/wait-for-completion':
+                        r = self._wait_for_activation(link.get('href'))
+                        if r.status_code == 204:
+                            return {}, None
+                        r.raise_for_status()
+        resp.raise_for_status()
 
     # def bake_agents(self):
     #     api_bake_agents = { u'action': u'bake_agents' }
