@@ -2,7 +2,7 @@
 # -*- encoding: utf-8; py-indent-offset: 4 -*-
 
 #
-# (C) 2017 Heinlein Support GmbH
+# (C) 2021 Heinlein Support GmbH
 # Robert Sander <r.sander@heinlein-support.de>
 #
 
@@ -12,202 +12,252 @@ from pprint import pprint
 import requests
 import warnings
 import os
-
-def check_mk_url(url):
-    if url[-1] == '/':
-        if not url.endswith('check_mk/'):
-            url += 'check_mk/'
-    else:
-        if not url.endswith('check_mk'):
-            url += '/check_mk/'
-    return url
-
-def _site_url():
-    urldefault = None
-    if 'OMD_ROOT' in os.environ and 'HOME' in os.environ and os.environ['HOME'] == os.environ['OMD_ROOT']:
-        siteconfig = {}
-        execfile(os.path.join(os.environ['OMD_ROOT'], 'etc', 'omd', 'site.conf'), siteconfig, siteconfig)
-        urldefault = 'http://%s:%s/%s' % (siteconfig['CONFIG_APACHE_TCP_ADDR'], siteconfig['CONFIG_APACHE_TCP_PORT'], os.environ['OMD_SITE'])
-    return urldefault
-
-def _site_creds(username=None):
-    password = None
-    if 'OMD_ROOT' in os.environ and 'HOME' in os.environ and os.environ['HOME'] == os.environ['OMD_ROOT']:
-        if not username:
-            username = 'automation'
-        password = open(os.path.join(os.environ['OMD_ROOT'], 'var', 'check_mk', 'web', username, 'automation.secret')).read().strip()
-    return username, password
+import json
 
 class CMKRESTAPI():
     def __init__(self, site_url=None, api_user=None, api_secret=None):
         if not site_url:
-            site_url = _site_url()
+            site_url = self._site_url()
         if not api_secret:
-            api_user, api_secret = _site_creds(api_user)
-        self.api_url = '%s/api/v0' % check_mk_url(site_url)
+            api_user, api_secret = self._site_creds(api_user)
+        self.api_url = '%sapi/v0' % self._check_mk_url(site_url)
         self.session = requests.session()
         self.session.headers['Authorization'] = f"Bearer {api_user} {api_secret}"
         self.session.headers['Accept'] = 'application/json'
 
-    def api_request(self, action, etag=None):
-        if data:
-            resp = self.session.post(self.api_url, verify=False, params=params,
-                                     headers={'content-type': 'application/x-www-form-urlencoded'}, data='request=%s' % repr(data))
+    def _check_mk_url(self, url):
+        if url[-1] == '/':
+            if not url.endswith('check_mk/'):
+                url += 'check_mk/'
         else:
-            resp = self.session.get(f"{self.api_url}/{action}")
-        resp.raise_for_status()
-        return resp.json()
+            if not url.endswith('check_mk'):
+                url += '/check_mk/'
+        return url
 
-    def get_url(self, uri):
-        resp = self.session.get(f"{self.api_url}/{uri}")
+    def _site_url(self):
+        urldefault = None
+        if 'OMD_ROOT' in os.environ and 'HOME' in os.environ and os.environ['HOME'] == os.environ['OMD_ROOT']:
+            siteconfig = {}
+            execfile(os.path.join(os.environ['OMD_ROOT'], 'etc', 'omd', 'site.conf'), siteconfig, siteconfig)
+            urldefault = 'http://%s:%s/%s' % (siteconfig['CONFIG_APACHE_TCP_ADDR'],
+                                              siteconfig['CONFIG_APACHE_TCP_PORT'],
+                                              os.environ['OMD_SITE'])
+        return urldefault
+
+    def _site_creds(self, username=None):
+        password = None
+        if 'OMD_ROOT' in os.environ and 'HOME' in os.environ and os.environ['HOME'] == os.environ['OMD_ROOT']:
+            if not username:
+                username = 'automation'
+            password = open(os.path.join(os.environ['OMD_ROOT'], 'var', 'check_mk', 'web', username, 'automation.secret')).read().strip()
+        return username, password
+
+    def _check_response(self, resp):
+        pprint(resp.request.url)
+        pprint(resp.request.headers)
         resp.raise_for_status()
-        data = resp.json()
-        etag = resp.headers.get('ETag')
+        if resp.content:
+            data = resp.json()
+        else:
+            data = {}
+        etag = resp.headers.get('ETag', '').strip('"')
         return data, etag
 
-    def get_host(self, hostname):
-        return self.get_url(f"/objects/host_config/{hostname}")
+    def _get_url(self, uri, data={}):
+        pprint(uri)
+        pprint(f"{self.api_url}/{uri}")
+        return self._check_response(
+            self.session.get(
+                f"{self.api_url}/{uri}",
+                params=data
+            )
+        )
 
-    def get_all_hosts(self, effective_attr=True):
-        api_get_all_hosts = { u'action': u'get_all_hosts', u'effective_attributes': 1 }
-        api_get_all_hosts.update(self.api_creds)
-        if not effective_attr:
-            api_get_all_hosts[u'effective_attributes'] = 0
-        return self.api_request(params=api_get_all_hosts, errmsg='Error getting all hosts')
+    def _post_url(self, uri, data={}):
+        return self._check_response(
+            self.session.post(
+                f"{self.api_url}/{uri}",
+                json=data,
+                headers={"Content-Type": 'application/json',}
+            )
+        )
 
-    def add_host(self, hostname, folder=None, set_attr = {}):
-        api_add_host = { u'action': u'add_host' }
-        api_add_host.update(self.api_creds)
-        return self.api_request(params=api_add_host,
-                                data={u'hostname': hostname,
-                                      u'folder': folder,
-                                      u'attributes': set_attr},
-                                errmsg='Error adding host %s' % hostname)
-
-    def edit_host(self, hostname, set_attr={}, unset_attr = [], nodes = []):
-        api_edit_host = { u'action': u'edit_host' }
-        api_edit_host.update(self.api_creds)
-        data = {u'hostname': hostname}
-        if set_attr:
-            data[u'attributes'] = set_attr
-        if unset_attr:
-            data[u'unset_attributes'] = unset_attr
-        if nodes:
-            data[u'nodes'] = nodes
-        return self.api_request(params=api_edit_host,
-                                data=data,
-                                errmsg='Error updating host %s' % hostname)
-
-    def delete_host(self, hostname):
-        api_del_host = { u'action': u'delete_host' }
-        api_del_host.update(self.api_creds)
-        return self.api_request(params=api_del_host,
-                                data={u'hostname': hostname},
-                                errmsg='Error deleting host %s' % hostname)
+    def _put_url(self, uri, etag, data={}):
+        return self._check_response(
+            self.session.put(
+                f"{self.api_url}/{uri}",
+                json=data,
+                headers={
+                    "Content-Type": 'application/json',
+                    "If-Match": etag,
+                }
+            )
+        )
     
-    def disc_host(self, hostname, fail=False):
-        api_disc_host = { u'action': u'discover_services' }
-        api_disc_host.update(self.api_creds)
-        return self.api_request(params=api_disc_host,
-                                data={u'hostname': hostname},
-                                errmsg='Error discovering host %s' % hostname,
-                                fail=fail)
+    def _delete_url(self, uri, etag):
+        return self._check_response(
+            self.session.delete(
+                f"{self.api_url}/{uri}",
+                headers={"If-Match": etag}
+            )
+        )
 
-    def activate(self, sites=[], allow_foreign_changes=False, comment=False):
-        api_activate = { u'action': u'activate_changes'}
-        api_activate.update(self.api_creds)
-        data = {}
-        if allow_foreign_changes:
-            data[u'allow_foreign_changes'] = u'1'
-        if comment:
-            data[u'comment'] = comment
-        if sites:
-            data[u'mode'] = u'specific'
-            data[u'sites'] = sites
-        return self.api_request(params=api_activate, data=data)
+    def add_host(self, hostname, folder, attributes={}):
+        try:
+            return self._post_url(
+                f"domain-types/host_config/collections/all",
+                data={
+                    'host_name': hostname,
+                    'folder': folder,
+                    'attributes': attributes
+                },
+            )
+        except requests.exceptions.HTTPError as er:
+            if er.response.status_code == 400:
+                return {}, None
+            raise
 
-    def bake_agents(self):
-        api_bake_agents = { u'action': u'bake_agents' }
-        api_bake_agents.update(self.api_creds)
-        return self.api_request(params=api_bake_agents)
+    def get_host(self, hostname, effective_attr=False):
+        return self._get_url(
+            f"/objects/host_config/{hostname}",
+            data={"effective_attributes": "true" if effective_attr else "false"}
+        )
 
-class MultisiteAPI():
-    def __init__(self, site_url, api_user, api_secret):
-        if not site_url:
-            site_url = _site_url()
-        if not api_secret:
-            api_user, api_secret = _site_creds(api_user)
-        self.site_url = check_mk_url(site_url)
+    def get_all_hosts(self, effective_attr=False):
+        data, etag = self._get_url(
+            f"/domain-types/host_config/collections/all",
+            data={"effective_attributes": "true" if effective_attr else "false"}
+        )
+        hosts = {}
+        for hinfo in data.get('value', []):
+            if hinfo.get('domainType') == 'link':
+                hostdata, etag = self._get_url(
+                    hinfo['href'],
+                    data={"effective_attributes": "true" if effective_attr else "false"}
+                )
+                if hostdata.get('domainType') == 'host_config':
+                    hosts[hostdata['id']] = hostdata['extensions']
+        return hosts
+
+    def delete_host(self, hostname, etag=None):
+        if not etag:
+            hostdata, etag = self.get_host(hostname)
+        return self._delete_url(f"/objects/host_config/{hostname}", etag)
+
+    def edit_host(self, hostname, etag=None, set_attr={}, update_attr={}, unset_attr=[]):
+        if not etag:
+            hostdata, etag = self.get_host(hostname)
+        return self._put_url(
+            f"objects/host_config/{hostname}",
+            etag,
+            data={
+                'attributes': set_attr,
+                'update_attributes': update_attr,
+                'remove_attributes': unset_attr,
+            },
+        )
+
+    def disc_host(self, hostname):
+        return self._post_url(f"/objects/host/{hostname}/actions/discover-services/mode/tabula-rasa")
+
+    def activate(self, sites=[]):
+        data, etag = self._post_url(
+            "/domain-types/activation_run/actions/activate-changes/invoke",
+            data={
+                'redirect': False,
+                'sites': sites
+            },
+        )
+        pprint(data)
+        if data.get('domainType') == 'activation_run':
+            for link in data.get('links', []):
+                if link.get('rel') == 'urn:com.checkmk:rels/wait-for-completion':
+                    pprint(link.get('href'))
+                    return self._get_url(link.get('href'))
+        return data, etag
+
+    # def bake_agents(self):
+    #     api_bake_agents = { u'action': u'bake_agents' }
+    #     api_bake_agents.update(self.api_creds)
+    #     return self.api_request(params=api_bake_agents)
+
+# class MultisiteAPI():
+#     def __init__(self, site_url, api_user, api_secret):
+#         if not site_url:
+#             site_url = _site_url()
+#         if not api_secret:
+#             api_user, api_secret = _site_creds(api_user)
+#         self.site_url = check_mk_url(site_url)
         
-        self.api_creds = {'_username': api_user, '_secret': api_secret, 'request_format': 'python', 'output_format': 'python', '_transid': '-1'}
-        self.down_from_now = {'_down_from_now': "from+for+now"}
-        self.do_actions = {'_do_actions': "yes"}
-        self.do_confirm = {'_do_confirm': "yes"}
-        self.down_remove ={'_down_remove': "Remove"}
+#         self.api_creds = {'_username': api_user, '_secret': api_secret, 'request_format': 'python', 'output_format': 'python', '_transid': '-1'}
+#         self.down_from_now = {'_down_from_now': "from+for+now"}
+#         self.do_actions = {'_do_actions': "yes"}
+#         self.do_confirm = {'_do_confirm': "yes"}
+#         self.down_remove ={'_down_remove': "Remove"}
 
-    def api_request(self, api_url, params, data=None, errmsg='Error', fail=True, command=False):
-        with warnings.catch_warnings():
-            warnings.simplefilter('ignore')
-            if data:
-                resp = requests.post(api_url, verify=False, params=params, data='request=%s' % repr(data))
-            else:
-                resp = requests.get(api_url, verify=False, params=params)
-            if resp.status_code == 200 and command:
-                if("MESSAGE: " in resp.text):                   
-                    msg = resp.text[resp.text.find("\n")+1:]                   
-                    return eval(msg)
-                else:   
-                    return eval(resp.text)
-            elif resp.status_code == 200:
-                return eval(resp.text)
-            else:
-                raise resp.text
-        return []
+#     def api_request(self, api_url, params, data=None, errmsg='Error', fail=True, command=False):
+#         with warnings.catch_warnings():
+#             warnings.simplefilter('ignore')
+#             if data:
+#                 resp = requests.post(api_url, verify=False, params=params, data='request=%s' % repr(data))
+#             else:
+#                 resp = requests.get(api_url, verify=False, params=params)
+#             if resp.status_code == 200 and command:
+#                 if("MESSAGE: " in resp.text):                   
+#                     msg = resp.text[resp.text.find("\n")+1:]                   
+#                     return eval(msg)
+#                 else:   
+#                     return eval(resp.text)
+#             elif resp.status_code == 200:
+#                 return eval(resp.text)
+#             else:
+#                 raise resp.text
+#         return []
 
-    def view(self, view_name, **kwargs):
-        result = []
-        request = {'view_name': view_name}
-        request.update(self.api_creds)
-        request.update(kwargs)
-        resp = self.api_request(self.site_url + 'view.py', request, errmsg='Cannot get view data')
-        header = resp[0]
-        for data in resp[1:]:
-            item = {}
-            for i in xrange(len(header)):
-                item[header[i]] = data[i]
-            result.append(item)
-        return result
+#     def view(self, view_name, **kwargs):
+#         result = []
+#         request = {'view_name': view_name}
+#         request.update(self.api_creds)
+#         request.update(kwargs)
+#         resp = self.api_request(self.site_url + 'view.py', request, errmsg='Cannot get view data')
+#         header = resp[0]
+#         for data in resp[1:]:
+#             item = {}
+#             for i in xrange(len(header)):
+#                 item[header[i]] = data[i]
+#             result.append(item)
+#         return result
 
-    def set_downtime(self, view_name, site, host, _down_comment, _down_minutes, **kwargs):
-        result = []
-        request = {'view_name': view_name, 'site': site, 'host': host, '_down_comment': _down_comment, '_down_minutes': _down_minutes}
-        request.update(self.api_creds)
-        request.update(self.down_from_now)
-        request.update(self.do_actions)
-        request.update(self.do_confirm)
-        request.update(kwargs)
-        resp = self.api_request(self.site_url + 'view.py', request, errmsg='Cannot get view data', command=True)
-        header = resp[0]
-        for data in resp[1:]:
-            item = {}
-            for i in range(len(header)):
-                item[header[i]] = data[i]
-            result.append(item)
-        return result
+#     def set_downtime(self, view_name, site, host, _down_comment, _down_minutes, **kwargs):
+#         result = []
+#         request = {'view_name': view_name, 'site': site, 'host': host, '_down_comment': _down_comment, '_down_minutes': _down_minutes}
+#         request.update(self.api_creds)
+#         request.update(self.down_from_now)
+#         request.update(self.do_actions)
+#         request.update(self.do_confirm)
+#         request.update(kwargs)
+#         resp = self.api_request(self.site_url + 'view.py', request, errmsg='Cannot get view data', command=True)
+#         header = resp[0]
+#         for data in resp[1:]:
+#             item = {}
+#             for i in range(len(header)):
+#                 item[header[i]] = data[i]
+#             result.append(item)
+#         return result
 
-    def revoke_downtime(self, view_name, site, host, _down_comment, **kwargs):
-        result = []
-        request = {'view_name': view_name, 'site': site, 'host': host}
-        request.update(self.api_creds)
-        request.update(self.do_actions)
-        request.update(self.do_confirm)
-        request.update(self.down_remove)
-        request.update(kwargs)
-        resp = self.api_request(self.site_url + 'view.py', request, errmsg='Cannot get view data', command=True)
-        header = resp[0]
-        for data in resp[1:]:
-            item = {}
-            for i in range(len(header)):
-                item[header[i]] = data[i]
-            result.append(item)
-        return result
+#     def revoke_downtime(self, view_name, site, host, _down_comment, **kwargs):
+#         result = []
+#         request = {'view_name': view_name, 'site': site, 'host': host}
+#         request.update(self.api_creds)
+#         request.update(self.do_actions)
+#         request.update(self.do_confirm)
+#         request.update(self.down_remove)
+#         request.update(kwargs)
+#         resp = self.api_request(self.site_url + 'view.py', request, errmsg='Cannot get view data', command=True)
+#         header = resp[0]
+#         for data in resp[1:]:
+#             item = {}
+#             for i in range(len(header)):
+#                 item[header[i]] = data[i]
+#             result.append(item)
+#         return result
