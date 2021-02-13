@@ -14,44 +14,52 @@ import warnings
 import os
 import json
 import time
+import sys
+
+def _check_mk_url(url):
+    if url[-1] == '/':
+        if not url.endswith('check_mk/'):
+            url += 'check_mk/'
+    else:
+        if not url.endswith('check_mk'):
+            url += '/check_mk/'
+    return url
+
+def _site_url():
+    urldefault = None
+    if 'OMD_ROOT' in os.environ and 'HOME' in os.environ and os.environ['HOME'] == os.environ['OMD_ROOT']:
+        siteconfig = {}
+        execfile(os.path.join(os.environ['OMD_ROOT'], 'etc', 'omd', 'site.conf'), siteconfig, siteconfig)
+        urldefault = 'http://%s:%s/%s' % (siteconfig['CONFIG_APACHE_TCP_ADDR'],
+                                          siteconfig['CONFIG_APACHE_TCP_PORT'],
+                                          os.environ['OMD_SITE'])
+    return urldefault
+
+def _site_creds(username=None):
+    password = None
+    if os.environ.get('HOME', 'a') == os.environ.get('OMD_ROOT', 'b'):
+        if not username:
+            username = 'automation'
+        password = open(
+            os.path.join(
+                os.environ['OMD_ROOT'],
+                'var',
+                'check_mk',
+                'web',
+                username,
+                'automation.secret')).read().strip()
+    return username, password
 
 class CMKRESTAPI():
     def __init__(self, site_url=None, api_user=None, api_secret=None):
         if not site_url:
-            site_url = self._site_url()
+            site_url = _site_url()
         if not api_secret:
-            api_user, api_secret = self._site_creds(api_user)
-        self.api_url = '%sapi/v0' % self._check_mk_url(site_url)
+            api_user, api_secret = _site_creds(api_user)
+        self.api_url = '%sapi/v0' % _check_mk_url(site_url)
         self.session = requests.session()
         self.session.headers['Authorization'] = f"Bearer {api_user} {api_secret}"
         self.session.headers['Accept'] = 'application/json'
-
-    def _check_mk_url(self, url):
-        if url[-1] == '/':
-            if not url.endswith('check_mk/'):
-                url += 'check_mk/'
-        else:
-            if not url.endswith('check_mk'):
-                url += '/check_mk/'
-        return url
-
-    def _site_url(self):
-        urldefault = None
-        if 'OMD_ROOT' in os.environ and 'HOME' in os.environ and os.environ['HOME'] == os.environ['OMD_ROOT']:
-            siteconfig = {}
-            execfile(os.path.join(os.environ['OMD_ROOT'], 'etc', 'omd', 'site.conf'), siteconfig, siteconfig)
-            urldefault = 'http://%s:%s/%s' % (siteconfig['CONFIG_APACHE_TCP_ADDR'],
-                                              siteconfig['CONFIG_APACHE_TCP_PORT'],
-                                              os.environ['OMD_SITE'])
-        return urldefault
-
-    def _site_creds(self, username=None):
-        password = None
-        if 'OMD_ROOT' in os.environ and 'HOME' in os.environ and os.environ['HOME'] == os.environ['OMD_ROOT']:
-            if not username:
-                username = 'automation'
-            password = open(os.path.join(os.environ['OMD_ROOT'], 'var', 'check_mk', 'web', username, 'automation.secret')).read().strip()
-        return username, password
 
     def _check_response(self, resp):
         # pprint(resp.request.url)
@@ -59,15 +67,18 @@ class CMKRESTAPI():
         # pprint(resp.status_code)
         # pprint(resp.headers)
         if resp.content:
-            data = resp.json()
+            try:
+                data = resp.json()
+            except json.decoder.JSONDecodeError:
+                data = resp.content
         else:
             data = {}
         etag = resp.headers.get('ETag', '').strip('"')
+        if resp.status_code >= 400:
+            sys.stderr.write("%r\n" % data)
         return data, etag, resp
 
     def _get_url(self, uri, data={}):
-        # pprint(uri)
-        # pprint(f"{self.api_url}/{uri}")
         return self._check_response(
             self.session.get(
                 f"{self.api_url}/{uri}",
@@ -127,7 +138,7 @@ class CMKRESTAPI():
     def get_host(self, hostname, effective_attr=False):
         print(f'Get Host {hostname}')
         data, etag, resp = self._get_url(
-            f"/objects/host_config/{hostname}",
+            f"objects/host_config/{hostname}",
             data={"effective_attributes": "true" if effective_attr else "false"}
         )
         if resp.status_code == 200:
@@ -137,7 +148,7 @@ class CMKRESTAPI():
     def get_all_hosts(self, effective_attr=False):
         print('Get All Hosts')
         data, etag, resp = self._get_url(
-            f"/domain-types/host_config/collections/all",
+            f"domain-types/host_config/collections/all",
             data={"effective_attributes": "true" if effective_attr else "false"}
         )
         if resp.status_code != 200:
@@ -159,7 +170,10 @@ class CMKRESTAPI():
         print(f'Delete Host {hostname}')
         if not etag:
             hostdata, etag = self.get_host(hostname)
-        data, etag, resp = self._delete_url(f"/objects/host_config/{hostname}", etag)
+        data, etag, resp = self._delete_url(
+            f"objects/host_config/{hostname}",
+            etag
+        )
         if resp.status_code == 200:
             return data, etag
         resp.raise_for_status()
@@ -184,7 +198,7 @@ class CMKRESTAPI():
     def disc_host(self, hostname):
         print(f'Discover Host {hostname}')
         data, etag, resp = self._post_url(
-            f"/objects/host/{hostname}/actions/discover-services/mode/tabula-rasa"
+            f"objects/host/{hostname}/actions/discover-services/mode/tabula-rasa"
         )
         if resp.status_code == 204:
             return data, etag
@@ -202,7 +216,7 @@ class CMKRESTAPI():
     def activate(self, sites=[]):
         print('Activate Changes')
         data, etag, resp = self._post_url(
-            "/domain-types/activation_run/actions/activate-changes/invoke",
+            "domain-types/activation_run/actions/activate-changes/invoke",
             data={
                 'redirect': False,
                 'sites': sites
@@ -220,88 +234,136 @@ class CMKRESTAPI():
                         r.raise_for_status()
         resp.raise_for_status()
 
-    # def bake_agents(self):
-    #     api_bake_agents = { u'action': u'bake_agents' }
-    #     api_bake_agents.update(self.api_creds)
-    #     return self.api_request(params=api_bake_agents)
+    def bake_agents(self):
+        print('Bake Agents')
+        data, etag, resp = self._post_url(
+            "domain-types/agent/actions/bake",
+        )
+        if resp.status_code == 200:
+            return data, etag
+        resp.raise_for_status()
 
-# class MultisiteAPI():
-#     def __init__(self, site_url, api_user, api_secret):
-#         if not site_url:
-#             site_url = _site_url()
-#         if not api_secret:
-#             api_user, api_secret = _site_creds(api_user)
-#         self.site_url = check_mk_url(site_url)
-        
-#         self.api_creds = {'_username': api_user, '_secret': api_secret, 'request_format': 'python', 'output_format': 'python', '_transid': '-1'}
-#         self.down_from_now = {'_down_from_now': "from+for+now"}
-#         self.do_actions = {'_do_actions': "yes"}
-#         self.do_confirm = {'_do_confirm': "yes"}
-#         self.down_remove ={'_down_remove': "Remove"}
+    def download_agent(self, hostname, ostype):
+        print('Download Agent')
+        data, etag, resp = self._get_url(
+            "objects/agent/ed81f94eb95181ca",
+            data={
+                "os_type": ostype,
+                # "host_name": hostname,
+            },
+        )
+        if resp.status_code == 204:
+            return data, etag
+        resp.raise_for_status()
 
-#     def api_request(self, api_url, params, data=None, errmsg='Error', fail=True, command=False):
-#         with warnings.catch_warnings():
-#             warnings.simplefilter('ignore')
-#             if data:
-#                 resp = requests.post(api_url, verify=False, params=params, data='request=%s' % repr(data))
-#             else:
-#                 resp = requests.get(api_url, verify=False, params=params)
-#             if resp.status_code == 200 and command:
-#                 if("MESSAGE: " in resp.text):                   
-#                     msg = resp.text[resp.text.find("\n")+1:]                   
-#                     return eval(msg)
-#                 else:   
-#                     return eval(resp.text)
-#             elif resp.status_code == 200:
-#                 return eval(resp.text)
-#             else:
-#                 raise resp.text
-#         return []
+    def set_downtime(self, comment, start_time, end_time, hostname,
+                     services = None):
+        print('Setting Downtime')
+        if services:
+            if not isinstance(services, list):
+                services = [ services ]
+            data, etag, resp = self._post_url(
+                "domain-types/downtime/collections/service",
+                data={
+                    'downtime_type': 'service',
+                    'start_time':    start_time, # 2017-07-21T17:32:28Z
+                    'end_time':      end_time,   # 2017-07-21T17:32:28Z
+                    'comment':       comment,
+                    'host_name':     hostname,
+                    'service_descriptions': services,
+                }
+            )
+        else:
+            data, etag, resp = self._post_url(
+                "domain-types/downtime/collections/host",
+                data={
+                    'downtime_type': 'host',
+                    'start_time':    start_time, # 2017-07-21T17:32:28Z
+                    'end_time':      end_time,   # 2017-07-21T17:32:28Z
+                    'comment':       comment,
+                    'host_name':     hostname,
+                }
+            )
+        if resp.status_code == 204:
+            return data, etag
+        resp.raise_for_status()
 
-#     def view(self, view_name, **kwargs):
-#         result = []
-#         request = {'view_name': view_name}
-#         request.update(self.api_creds)
-#         request.update(kwargs)
-#         resp = self.api_request(self.site_url + 'view.py', request, errmsg='Cannot get view data')
-#         header = resp[0]
-#         for data in resp[1:]:
-#             item = {}
-#             for i in xrange(len(header)):
-#                 item[header[i]] = data[i]
-#             result.append(item)
-#         return result
+    def revoke_downtime(self, hostname, services = None):
+        print('Removing Downtime')
+        params={
+            'delete_type': 'params',
+            'hostname':    hostname,
+        }
+        if services:
+            if not isinstance(services, list):
+                services = [ services ]
+            params['services'] = services
 
-#     def set_downtime(self, view_name, site, host, _down_comment, _down_minutes, **kwargs):
-#         result = []
-#         request = {'view_name': view_name, 'site': site, 'host': host, '_down_comment': _down_comment, '_down_minutes': _down_minutes}
-#         request.update(self.api_creds)
-#         request.update(self.down_from_now)
-#         request.update(self.do_actions)
-#         request.update(self.do_confirm)
-#         request.update(kwargs)
-#         resp = self.api_request(self.site_url + 'view.py', request, errmsg='Cannot get view data', command=True)
-#         header = resp[0]
-#         for data in resp[1:]:
-#             item = {}
-#             for i in range(len(header)):
-#                 item[header[i]] = data[i]
-#             result.append(item)
-#         return result
+        data, etag, resp = self._post_url(
+            "domain-types/downtime/actions/delete/invoke",
+            data=params,
+        )
+        if resp.status_code == 204:
+            return data, etag
+        resp.raise_for_status()
 
-#     def revoke_downtime(self, view_name, site, host, _down_comment, **kwargs):
-#         result = []
-#         request = {'view_name': view_name, 'site': site, 'host': host}
-#         request.update(self.api_creds)
-#         request.update(self.do_actions)
-#         request.update(self.do_confirm)
-#         request.update(self.down_remove)
-#         request.update(kwargs)
-#         resp = self.api_request(self.site_url + 'view.py', request, errmsg='Cannot get view data', command=True)
-#         header = resp[0]
-#         for data in resp[1:]:
-#             item = {}
-#             for i in range(len(header)):
-#                 item[header[i]] = data[i]
-#             result.append(item)
-#         return result
+class MultisiteAPI():
+    def __init__(self, site_url=None, api_user=None, api_secret=None):
+        if not site_url:
+            site_url = _site_url()
+        if not api_secret:
+            api_user, api_secret = _site_creds(api_user)
+        self.site_url = _check_mk_url(site_url)
+
+        self.api_creds = {
+            '_username': api_user,
+            '_secret': api_secret,
+            'request_format': 'python',
+            'output_format': 'python',
+            '_transid': '-1',
+        }
+
+    def api_request(self, api_url, params, data=None):
+        with warnings.catch_warnings():
+            warnings.simplefilter('ignore')
+            params.update(self.api_creds)
+            if data:
+                resp = requests.post(
+                    self.site_url + api_url,
+                    verify=False,
+                    params=params,
+                    data='request=%s' % repr(data),
+                    allow_redirects=False,
+                )
+            else:
+                resp = requests.get(
+                    self.site_url + api_url,
+                    verify=False,
+                    params=params,
+                    allow_redirects=False,
+                )
+            if resp.status_code == 200:
+                if "MESSAGE: " in resp.text:
+                    msg = resp.text[resp.text.find("\n")+1:]
+                    return eval(msg)
+                if resp.text.startswith('ERROR: '):
+                    raise ValueError(resp.text[7:])
+                else:
+                    return eval(resp.text)
+            else:
+                sys.stderr.write("%s\n" % resp.text)
+                resp.raise_for_status()
+
+    def view(self, view_name, **kwargs):
+        result = []
+        request = {'view_name': view_name}
+        request.update(kwargs)
+        resp = self.api_request('view.py', request)
+        header = resp[0]
+        for data in resp[1:]:
+            item = {}
+            for i in range(len(header)):
+                item[header[i]] = data[i]
+            result.append(item)
+        return result
+
