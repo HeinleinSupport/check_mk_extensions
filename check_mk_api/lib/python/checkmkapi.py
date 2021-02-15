@@ -56,10 +56,10 @@ class CMKRESTAPI():
             site_url = _site_url()
         if not api_secret:
             api_user, api_secret = _site_creds(api_user)
-        self.api_url = '%sapi/v0' % _check_mk_url(site_url)
-        self.session = requests.session()
-        self.session.headers['Authorization'] = f"Bearer {api_user} {api_secret}"
-        self.session.headers['Accept'] = 'application/json'
+        self._api_url = '%sapi/v0' % _check_mk_url(site_url)
+        self._session = requests.session()
+        self._session.headers['Authorization'] = f"Bearer {api_user} {api_secret}"
+        self._session.headers['Accept'] = 'application/json'
 
     def _check_response(self, resp):
         # pprint(resp.request.url)
@@ -80,8 +80,8 @@ class CMKRESTAPI():
 
     def _get_url(self, uri, data={}):
         return self._check_response(
-            self.session.get(
-                f"{self.api_url}/{uri}",
+            self._session.get(
+                f"{self._api_url}/{uri}",
                 params=data,
                 allow_redirects=False,
             )
@@ -89,8 +89,8 @@ class CMKRESTAPI():
 
     def _post_url(self, uri, data={}):
         return self._check_response(
-            self.session.post(
-                f"{self.api_url}/{uri}",
+            self._session.post(
+                f"{self._api_url}/{uri}",
                 json=data,
                 headers={
                     "Content-Type": 'application/json',
@@ -101,8 +101,8 @@ class CMKRESTAPI():
 
     def _put_url(self, uri, etag, data={}):
         return self._check_response(
-            self.session.put(
-                f"{self.api_url}/{uri}",
+            self._session.put(
+                f"{self._api_url}/{uri}",
                 json=data,
                 headers={
                     "Content-Type": 'application/json',
@@ -114,8 +114,8 @@ class CMKRESTAPI():
     
     def _delete_url(self, uri, etag):
         return self._check_response(
-            self.session.delete(
-                f"{self.api_url}/{uri}",
+            self._session.delete(
+                f"{self._api_url}/{uri}",
                 headers={"If-Match": etag},
                 allow_redirects=False,
             )
@@ -313,9 +313,9 @@ class MultisiteAPI():
             site_url = _site_url()
         if not api_secret:
             api_user, api_secret = _site_creds(api_user)
-        self.site_url = _check_mk_url(site_url)
+        self._site_url = _check_mk_url(site_url)
 
-        self.api_creds = {
+        self._api_creds = {
             '_username': api_user,
             '_secret': api_secret,
             'request_format': 'python',
@@ -323,13 +323,13 @@ class MultisiteAPI():
             '_transid': '-1',
         }
 
-    def api_request(self, api_url, params, data=None):
+    def _api_request(self, api_url, params, data=None):
         with warnings.catch_warnings():
             warnings.simplefilter('ignore')
-            params.update(self.api_creds)
+            params.update(self._api_creds)
             if data:
                 resp = requests.post(
-                    self.site_url + api_url,
+                    self._site_url + api_url,
                     verify=False,
                     params=params,
                     data='request=%s' % repr(data),
@@ -337,7 +337,7 @@ class MultisiteAPI():
                 )
             else:
                 resp = requests.get(
-                    self.site_url + api_url,
+                    self._site_url + api_url,
                     verify=False,
                     params=params,
                     allow_redirects=False,
@@ -358,7 +358,7 @@ class MultisiteAPI():
         result = []
         request = {'view_name': view_name}
         request.update(kwargs)
-        resp = self.api_request('view.py', request)
+        resp = self._api_request('view.py', request)
         header = resp[0]
         for data in resp[1:]:
             item = {}
