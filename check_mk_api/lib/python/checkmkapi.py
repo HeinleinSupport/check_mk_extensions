@@ -62,10 +62,6 @@ class CMKRESTAPI():
         self._session.headers['Accept'] = 'application/json'
 
     def _check_response(self, resp):
-        # pprint(resp.request.url)
-        # pprint(resp.request.headers)
-        # pprint(resp.status_code)
-        # pprint(resp.headers)
         if resp.content:
             try:
                 data = resp.json()
