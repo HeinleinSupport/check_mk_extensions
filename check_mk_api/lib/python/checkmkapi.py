@@ -239,18 +239,18 @@ class CMKRESTAPI():
             return data, etag
         resp.raise_for_status()
 
-    def download_agent(self, hostname, ostype):
-        print('Download Agent')
-        data, etag, resp = self._get_url(
-            "objects/agent/ed81f94eb95181ca",
-            data={
-                "os_type": ostype,
-                # "host_name": hostname,
-            },
-        )
-        if resp.status_code == 204:
-            return data, etag
-        resp.raise_for_status()
+    # def download_agent(self, hostname, ostype):
+    #     print('Download Agent')
+    #     data, etag, resp = self._get_url(
+    #         "objects/agent/ed81f94eb95181ca",
+    #         data={
+    #             "os_type": ostype,
+    #             # "host_name": hostname,
+    #         },
+    #     )
+    #     if resp.status_code == 204:
+    #         return data, etag
+    #     resp.raise_for_status()
 
     def set_downtime(self, comment, start_time, end_time, hostname,
                      services = None):
