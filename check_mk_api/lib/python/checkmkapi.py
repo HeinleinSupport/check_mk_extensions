@@ -124,7 +124,7 @@ class CMKRESTAPI():
             data={
                 'host_name': hostname,
                 'folder': folder,
-                'attributes': attributes
+                'attributes': attributes,
             },
         )
         if resp.status_code == 200:
