@@ -8,6 +8,8 @@
 
 # https://checkmk.com/cms_rest_api.html
 
+"""API-Wrapper for the CheckMK 2.0 REST API and the Multisite API (Views)"""
+
 from pprint import pprint
 import requests
 import warnings
@@ -17,6 +19,7 @@ import time
 import sys
 
 def _check_mk_url(url):
+    """ adds trailing check_mk path component to URL """
     if url[-1] == '/':
         if not url.endswith('check_mk/'):
             url += 'check_mk/'
@@ -52,6 +55,16 @@ def _site_creds(username=None):
 
 class CMKRESTAPI():
     def __init__(self, site_url=None, api_user=None, api_secret=None):
+        """Initialize a REST-API instance. URL, User and Secret can be automatically taken from local site if running as site user.
+
+        Args:
+            site_url: the site URL
+            api_user: username of automation user account
+            api_secret: automation secret
+
+        Returns:
+            instance of CMKRESTAPI
+        """
         if not site_url:
             site_url = _site_url()
         if not api_secret:
@@ -118,6 +131,17 @@ class CMKRESTAPI():
         )
 
     def add_host(self, hostname, folder, attributes={}):
+        """Adds a host to a folder in the CheckMK configuration.
+
+        Args:
+            hostname: unique name for the new host
+            folder: The folder-id of the folder under which this folder shall be created. May be 'root' for the root-folder.
+
+        Returns:
+            (data, etag)
+            data: host's data
+            etag: current etag value
+        """
         print(f'Add Host {hostname}')
         data, etag, resp = self._post_url(
             f"domain-types/host_config/collections/all",
@@ -132,6 +156,17 @@ class CMKRESTAPI():
         resp.raise_for_status()
 
     def get_host(self, hostname, effective_attr=False):
+        """Gets host configuration including eTag value.
+
+        Args:
+            hostname:  A hostname
+            effective_attr: Show all effective attributes, which affect this host, not just the attributes which were set on this host specifically. This includes all attributes of all of this host's parent folders.
+
+        Returns:
+            (data, etag)
+            data: host's data
+            etag: current etag value
+        """
         print(f'Get Host {hostname}')
         data, etag, resp = self._get_url(
             f"objects/host_config/{hostname}",
@@ -142,6 +177,14 @@ class CMKRESTAPI():
         resp.raise_for_status()
 
     def get_all_hosts(self, effective_attr=False):
+        """Gets all hosts from the CheckMK configuration.
+
+        Args:
+            effective_attr: Show all effective attributes, which affect this host, not just the attributes which were set on this host specifically. This includes all attributes of all of this host's parent folders.
+
+        Returns:
+            hosts: Dictionary of host data
+        """
         print('Get All Hosts')
         data, etag, resp = self._get_url(
             f"domain-types/host_config/collections/all",
@@ -163,6 +206,17 @@ class CMKRESTAPI():
         return hosts
 
     def delete_host(self, hostname, etag=None):
+        """Deletes a host from the CheckMK configuration.
+
+        Args:
+            hostname: name of the host
+            etag: (optional) etag value, if not provided the host will be looked up first using get_host().
+
+        Returns:
+            (data, etag)
+            data: host's data
+            etag: current etag value
+        """
         print(f'Delete Host {hostname}')
         if not etag:
             hostdata, etag = self.get_host(hostname)
@@ -175,6 +229,20 @@ class CMKRESTAPI():
         resp.raise_for_status()
 
     def edit_host(self, hostname, etag=None, set_attr={}, update_attr={}, unset_attr=[]):
+        """Edit a host in the CheckMK configuration.
+
+        Args:
+            hostname: name of the host
+            etag: (optional) etag value, if not provided the host will be looked up first using get_host().
+            set_attr: Replace all currently set attributes on the host, with these attributes. Any previously set attributes which are not given here will be removed.
+            update_attr: Just update the hosts attributes with these attributes. The previously set attributes will not be touched.
+            unset_attr: A list of attributes which should be removed.
+
+        Returns:
+            (data, etag)
+            data: host's data
+            etag: current etag value
+        """
         print(f'Edit Host {hostname}')
         if not etag:
             hostdata, etag = self.get_host(hostname)
@@ -192,6 +260,16 @@ class CMKRESTAPI():
         resp.raise_for_status()
 
     def disc_host(self, hostname):
+        """Discovers services on a host.
+
+        Args:
+            hostname: name of the host
+
+        Returns:
+            (data, etag)
+            data: discovery data
+            etag: current etag value
+        """
         print(f'Discover Host {hostname}')
         data, etag, resp = self._post_url(
             f"objects/host/{hostname}/actions/discover-services/mode/tabula-rasa"
@@ -210,6 +288,14 @@ class CMKRESTAPI():
         return resp
 
     def activate(self, sites=[]):
+        """Activates pending changes
+
+        Args:
+            sites: On which sites the configuration shall be activated. An empty list means all sites which have pending changes.
+
+        Returns:
+            (data, etag): usually both empty
+        """
         print('Activate Changes')
         data, etag, resp = self._post_url(
             "domain-types/activation_run/actions/activate-changes/invoke",
@@ -231,6 +317,11 @@ class CMKRESTAPI():
         resp.raise_for_status()
 
     def bake_agents(self):
+        """Bakes agent packages
+
+        Returns:
+            (data, etag): usually both empty
+        """
         print('Bake Agents')
         data, etag, resp = self._post_url(
             "domain-types/agent/actions/bake",
@@ -254,6 +345,18 @@ class CMKRESTAPI():
 
     def set_downtime(self, comment, start_time, end_time, hostname,
                      services = None):
+        """Sets a scheduled downtime on a host or a service
+
+        Args:
+            comment: string
+            start_time: The start datetime of the new downtime. The format has to conform to the ISO 8601 profile 2017-07-21T17:32:28Z
+            end_time: The end datetime of the new downtime. The format has to conform to the ISO 8601 profile 2017-07-21T17:42:28Z
+            hostname: hostname
+            services: if set a list of service descriptions
+
+        Returns:
+            (data, etag): usually empty
+        """
         print('Setting Downtime')
         if services:
             if not isinstance(services, list):
@@ -263,7 +366,7 @@ class CMKRESTAPI():
                 data={
                     'downtime_type': 'service',
                     'start_time':    start_time, # 2017-07-21T17:32:28Z
-                    'end_time':      end_time,   # 2017-07-21T17:32:28Z
+                    'end_time':      end_time,   # 2017-07-21T17:42:28Z
                     'comment':       comment,
                     'host_name':     hostname,
                     'service_descriptions': services,
@@ -275,7 +378,7 @@ class CMKRESTAPI():
                 data={
                     'downtime_type': 'host',
                     'start_time':    start_time, # 2017-07-21T17:32:28Z
-                    'end_time':      end_time,   # 2017-07-21T17:32:28Z
+                    'end_time':      end_time,   # 2017-07-21T17:42:28Z
                     'comment':       comment,
                     'host_name':     hostname,
                 }
@@ -285,6 +388,15 @@ class CMKRESTAPI():
         resp.raise_for_status()
 
     def revoke_downtime(self, hostname, services = None):
+        """Revokes scheduled downtime
+
+        Args:
+            hostname: name of host
+            services: list of service descriptions. If empty, all scheduled downtimes for the host will be removed.
+
+        Returns:
+            (data, etag): usually empty
+        """
         print('Removing Downtime')
         params={
             'delete_type': 'params',
@@ -351,6 +463,15 @@ class MultisiteAPI():
                 resp.raise_for_status()
 
     def view(self, view_name, **kwargs):
+        """Fetches data from a Multisite view
+
+        Args:
+            view_name: name of the view to query
+            kwargs: more arguments for the view
+
+        Returns:
+            List of Dictionaries, every item is a Dict(TableHeader -> Value) for the row
+        """
         result = []
         request = {'view_name': view_name}
         request.update(kwargs)
