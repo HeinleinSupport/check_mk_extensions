@@ -31,7 +31,7 @@ def _check_mk_url(url):
 
 def _site_url():
     urldefault = None
-    if 'OMD_ROOT' in os.environ and 'HOME' in os.environ and os.environ['HOME'] == os.environ['OMD_ROOT']:
+    if os.environ.get('HOME', 'a') == os.environ.get('OMD_ROOT', 'b'):
         siteconfig = configparser.ConfigParser()
         with open(os.path.join(os.environ['OMD_ROOT'], 'etc', 'omd', 'site.conf'), 'r') as f:
             config_string = '[GLOBAL]\n' + f.read()
