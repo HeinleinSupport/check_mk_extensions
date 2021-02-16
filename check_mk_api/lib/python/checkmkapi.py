@@ -17,6 +17,7 @@ import os
 import json
 import time
 import sys
+import configparser
 
 def _check_mk_url(url):
     """ adds trailing check_mk path component to URL """
@@ -31,10 +32,12 @@ def _check_mk_url(url):
 def _site_url():
     urldefault = None
     if 'OMD_ROOT' in os.environ and 'HOME' in os.environ and os.environ['HOME'] == os.environ['OMD_ROOT']:
-        siteconfig = {}
-        execfile(os.path.join(os.environ['OMD_ROOT'], 'etc', 'omd', 'site.conf'), siteconfig, siteconfig)
-        urldefault = 'http://%s:%s/%s' % (siteconfig['CONFIG_APACHE_TCP_ADDR'],
-                                          siteconfig['CONFIG_APACHE_TCP_PORT'],
+        siteconfig = configparser.ConfigParser()
+        with open(os.path.join(os.environ['OMD_ROOT'], 'etc', 'omd', 'site.conf'), 'r') as f:
+            config_string = '[GLOBAL]\n' + f.read()
+            siteconfig.read_string(config_string)
+        urldefault = 'http://%s:%s/%s' % (siteconfig['GLOBAL']['CONFIG_APACHE_TCP_ADDR'].strip("'"),
+                                          siteconfig['GLOBAL']['CONFIG_APACHE_TCP_PORT'].strip("'"),
                                           os.environ['OMD_SITE'])
     return urldefault
 
