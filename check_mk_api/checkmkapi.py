@@ -1,1 +1,1 @@
-lib/python/checkmkapi.py
+lib/python3/checkmkapi.py
