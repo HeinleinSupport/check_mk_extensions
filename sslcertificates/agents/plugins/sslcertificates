@@ -35,7 +35,7 @@ fi
 get_cert_info() {
     certfile="$1"
     single="$2"
-    if [ -f "$certfile" -a -r "$certfile" -a \( ! -L "$certfile" -o "$single" \) ] && ! [[ $certfile =~ .*~$ ]] && ! [[ $certfile =~ .*_CA.crt$ ]]; then
+    if [ -f "$certfile" -a -r "$certfile" -a \( ! -L "$certfile" -o "$single" \) ] && ! [[ $certfile =~ .*~$ ]] && ! [[ $certfile =~ .*_CA.crt$ ]] && ! [[ $certfile =~ .*/ca-certificates.crt$ ]]; then
 	inform='DER'
 	if grep -q -- '-----BEGIN CERTIFICATE-----' "$certfile"; then
 	    inform='PEM'
@@ -47,8 +47,9 @@ get_cert_info() {
             cert_enddate=$($OPENSSL x509 -inform $inform -noout -enddate -in "$certfile" | cut -d "=" -f 2 )
             cert_enddate_epoch=$(date --date "$cert_enddate" '+%s')
             cert_algosign=$($OPENSSL x509 -inform $inform -noout -text -in "$certfile" | awk '/Signature Algorithm: / { print $3; exit;}' )
+            cert_issuer_hash=$($OPENSSL x509 -inform $inform -noout -issuer_hash -in "$certfile" )
 
-            echo "$certfile $cert_enddate_epoch $cert_algosign $cert_subject"
+            echo "$certfile $cert_enddate_epoch $cert_algosign issuer_hash=$cert_issuer_hash $cert_subject"
         fi
     fi
 }

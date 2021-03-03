@@ -18,92 +18,100 @@
 from .agent_based_api.v1 import register, render, Result, Metric, State, check_levels, ServiceLabel, Service
 import time
 
-def sslcertificates_name(line):
+def _sslcertificates_name(line):
     return line[0]
 
 def parse_sslcertificates(string_table):
-    return string_table
-
-register.agent_section(
-    name="sslcertificates",
-    parse_function=parse_sslcertificates,
-)
-
-# def discovery_sslcertificates(params, section_sslcertificates):
-def discovery_sslcertificates(section):
-    for line in section:
-        service_labels=[]
+    section = {}
+    for line in string_table:
+        name = _sslcertificates_name(line)
+        section[name] = {
+            'endtime': int(line[1])
+        }
         algosign = '/'
         if len(line) > 2:
             algosign = line[2]
         if algosign[0] == '/':
             # old agent plugin
             algosign = ''
-        if algosign:
-            service_labels.append(ServiceLabel('sslcertificates/algorithm', algosign))
-        yield Service(item=sslcertificates_name(line), labels=service_labels)
+            subj = " ".join(line[2:])
+        else:
+            subj = " ".join(line[3:])
+        if subj.startswith('issuer_hash='):
+            issuer_hash = subj[12:20]
+            subj = subj[21:]
+        else:
+            issuer_hash = None
+        section[name]['algosign'] = algosign
+        section[name]['subj'] = subj
+        section[name]['issuer_hash'] = issuer_hash
+    return section
+
+register.agent_section(
+    name="sslcertificates",
+    parse_function=parse_sslcertificates,
+)
+
+def discover_sslcertificates(section):
+    for name, data in section.items():
+        sl = []
+        if data['issuer_hash']:
+            sl.append(ServiceLabel(u'sslcertificates/issuer_hash', data['issuer_hash']))
+        if data['algosign']:
+            sl.append(ServiceLabel(u'sslcertificates/algorithm', data['algosign']))
+        yield Service(item=name, labels=sl)
 
 def check_sslcertificates(item, params, section):
     warn, crit = params.get('age', (0, 0))
     warnalgos = params.get('warnalgo', [])
     ignore = params.get('ignore', None)
 
-    for line in section:
-        if item == sslcertificates_name(line):
-            
-            endtime = int(line[1])
-            now = int(time.time())
-            secondsremaining = endtime - now
-            ignored = False
+    if item in section:
+        data = section[item]
+        
+        now = int(time.time())
+        secondsremaining = data['endtime'] - now
+        ignored = False
 
-            algosign = '/'
-            if len(line) > 2:
-                algosign = line[2]
-            if algosign[0] == '/':
-                # old agent plugin
-                algosign = ''
-                subj = " ".join(line[2:])
-            else:
-                subj = " ".join(line[3:])
-            yield Result(state=State.OK, summary="Subject: %s" % subj)
+        yield Result(state=State.OK, summary="Subject: %s" % data['subj'])
 
-            if secondsremaining < 0:
-                infotext = "expired %s ago on %s" % ( render.timespan(abs(secondsremaining)),
-                                                      time.strftime("%c", time.gmtime(endtime)))
+        if secondsremaining < 0:
+            infotext = "expired %s ago on %s" % ( render.timespan(abs(secondsremaining)),
+                                                  time.strftime("%c", time.gmtime(data['endtime'])))
+        else:
+            infotext = "expires in %s on %s" % ( render.timespan(secondsremaining),
+                                                 time.strftime("%c", time.gmtime(data['endtime'])))
+        if ignore and -secondsremaining > ignore[0]:
+            yield Result(state=State.OK, summary=infotext + ', ignored because "%s"' % ignore[1])
+            ignored = True
+        else:
+            if secondsremaining > 0:
+                yield from check_levels(secondsremaining,
+                    levels_lower=(warn * 86400, crit * 86400),
+                    metric_name='lifetime_remaining',
+                    label='Lifetime Remaining',
+                    render_func=render.timespan,
+                    )
             else:
-                infotext = "expires in %s on %s" % ( render.timespan(secondsremaining),
-                                                     time.strftime("%c", time.gmtime(endtime)))
-            if ignore and -secondsremaining > ignore[0]:
-                yield Result(state=State.OK, summary=infotext + ', ignored because "%s"' % ignore[1])
-                ignored = True
-            else:
-                if secondsremaining > 0:
-                    yield from check_levels(secondsremaining,
-                        levels_lower=(warn * 86400, crit * 86400),
-                        metric_name='lifetime_remaining',
-                        label='Lifetime Remaining',
-                        render_func=render.timespan,
-                        )
-                else:
-                    yield from check_levels(secondsremaining,
-                        levels_lower=(warn * 86400, crit * 86400),
-                        metric_name='lifetime_remaining',
-                        label='Expired',
-                        render_func=lambda x: "%s ago" % render.timespan(abs(x)),
-                        )
+                yield from check_levels(secondsremaining,
+                    levels_lower=(warn * 86400, crit * 86400),
+                    metric_name='lifetime_remaining',
+                    label='Expired',
+                    render_func=lambda x: "%s ago" % render.timespan(abs(x)),
+                    )
 
-            if algosign:
-                infotext = "Signature Algorithm: %s" % algosign
-                if not ignored and algosign in warnalgos:
-                    yield Result(state=State.WARN, summary=infotext)
-                else:
-                    yield Result(state=State.OK, summary=infotext)
+        if  data['algosign']:
+            infotext = "Signature Algorithm: %s" % data['algosign']
+            if not ignored and data['algosign'] in warnalgos:
+                yield Result(state=State.WARN, summary=infotext)
+            else:
+                yield Result(state=State.OK, summary=infotext)
 
 register.check_plugin(
     name="sslcertificates",
     service_name="SSL Certificate in %s",
     sections=["sslcertificates"],
-    discovery_function=discovery_sslcertificates,
+    discovery_function=discover_sslcertificates,
     # discovery_default_parameters={},
     # discovery_ruleset_name="",
     # discovery_ruleset_type=register.RuleSetType.MERGED,
