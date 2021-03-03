@@ -20,14 +20,45 @@ factory_settings['sslcertificates_default_levels'] = {
     'warnalgo': [ 'md5WithRSAEncryption', 'sha1WithRSAEncryption' ],
     }
 
-def sslcertificates_name(line):
+def _sslcertificates_name(line):
     return line[0]
 
-def inventory_sslcertificates(info):
+def parse_sslcertificates(info):
+    parsed = {}
     for line in info:
-        yield sslcertificates_name(line), {}
+        name = _sslcertificates_name(line)
+        parsed[name] = {
+            'endtime': int(line[1])
+        }
+        algosign = '/'
+        if len(line) > 2:
+            algosign = line[2]
+        if algosign[0] == '/':
+            # old agent plugin
+            algosign = ''
+            subj = " ".join(line[2:])
+        else:
+            subj = " ".join(line[3:])
+        if subj.startswith('issuer_hash='):
+            issuer_hash = subj[12:20]
+            subj = subj[21:]
+        else:
+            issuer_hash = None
+        parsed[name]['algosign'] = algosign
+        parsed[name]['subj'] = subj
+        parsed[name]['issuer_hash'] = issuer_hash
+    return parsed
 
-def check_sslcertificates(item, params, info):
+def inventory_sslcertificates(parsed):
+    for name, data in parsed.items():
+        sl = ServiceLabels()
+        if data['issuer_hash']:
+            sl.add_label(ServiceLabel(u'sslcertificates/issuer_hash', data['issuer_hash']))
+        if data['algosign']:
+            sl.add_label(ServiceLabel(u'sslcertificates/algorithm', data['algosign']))
+        yield Service(item=name, service_labels=sl)
+
+def check_sslcertificates(item, params, parsed):
     if type(params) == tuple:
         # old config
         warn, crit = params
@@ -38,49 +69,40 @@ def check_sslcertificates(item, params, info):
         warnalgos = params.get('warnalgo', [])
         ignore = params.get('ignore', None)
 
-    for line in info:
-        if item == sslcertificates_name(line):
-            
-            endtime = saveint(line[1])
-            now = int(time.time())
-            daysremaining = ( endtime - now ) / 60 / 60 / 24
-            secondsremaining = endtime - now
-            ignored = False
+    if item in parsed:
+        data = parsed[item]
+        
+        now = int(time.time())
+        daysremaining = ( data['endtime'] - now ) / 60 / 60 / 24
+        secondsremaining = data['endtime'] - now
+        ignored = False
 
-            algosign = '/'
-            if len(line) > 2:
-                algosign = line[2]
-            if algosign[0] == '/':
-                # old agent plugin
-                algosign = ''
-                subj = " ".join(line[2:])
-            else:
-                subj = " ".join(line[3:])
-            yield 0, "Subject: %s" % subj, [ ( 'lifetime_remaining', secondsremaining, warn * 86400, crit * 86400 ) ]
+        yield 0, "Subject: %s" % data['subj'], [ ( 'lifetime_remaining', secondsremaining, warn * 86400, crit * 86400 ) ]
 
-            if daysremaining < 0:
-                infotext = "expired %d days ago on %s" % ( abs(daysremaining), time.strftime("%c", time.gmtime(endtime)))
+        if daysremaining < 0:
+            infotext = "expired %d days ago on %s" % ( abs(daysremaining), time.strftime("%c", time.gmtime(data['endtime'])))
+        else:
+            infotext = "expires in %d days on %s" % ( daysremaining, time.strftime("%c", time.gmtime(data['endtime'])))
+        if ignore and -daysremaining > ignore[0]:
+            yield 0, infotext + ', ignored because "%s"' % ignore[1]
+            ignored = True
+        else:
+            if daysremaining < crit:
+                yield 2, infotext
+            elif daysremaining < warn:
+                yield 1, infotext
             else:
-                infotext = "expires in %d days on %s" % ( daysremaining, time.strftime("%c", time.gmtime(endtime)))
-            if ignore and -daysremaining > ignore[0]:
-                yield 0, infotext + ', ignored because "%s"' % ignore[1]
-                ignored = True
-            else:
-                if daysremaining < crit:
-                    yield 2, infotext
-                elif daysremaining < warn:
-                    yield 1, infotext
-                else:
-                    yield 0, infotext
+                yield 0, infotext
 
-            if algosign:
-                infotext = "Signature Algorithm: %s" % algosign
-                if not ignored and algosign in warnalgos:
-                    yield 1, infotext
-                else:
-                    yield 0, infotext
+        if data['algosign']:
+            infotext = "Signature Algorithm: %s" % data['algosign']
+            if not ignored and data['algosign'] in warnalgos:
+                yield 1, infotext
+            else:
+                yield 0, infotext
 
 check_info['sslcertificates'] = {
+    'parse_function':      parse_sslcertificates,
     'check_function':      check_sslcertificates,
     'service_description': "SSL Certificate in %s",
     'has_perfdata':        True,
