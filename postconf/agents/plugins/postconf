@@ -1,9 +1,10 @@
 #!/bin/bash
 
-if [ -x /usr/sbin/postconf ]; then
+pc=$(which postconf)
+
+if [ -x "$pc" ]; then
 
     echo '<<<postconf>>>'
-    postconf
+    $pc
 
 fi
-
