@@ -196,6 +196,7 @@ class CMKRESTAPI():
         if resp.status_code != 200:
             resp.raise_for_status()
         hosts = {}
+        etags = {}
         for hinfo in data.get('value', []):
             if hinfo.get('domainType') == 'link':
                 hostdata, etag, resp = self._get_url(
@@ -206,7 +207,8 @@ class CMKRESTAPI():
                     resp.raise_for_status()
                 if hostdata.get('domainType') == 'host_config':
                     hosts[hostdata['id']] = hostdata['extensions']
-        return hosts
+                    etags[hostdata['id']] = etag
+        return hosts, etags
 
     def delete_host(self, hostname, etag=None):
         """Deletes a host from the CheckMK configuration.
