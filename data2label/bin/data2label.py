@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 # -*- encoding: utf-8; py-indent-offset: 4 -*-
 
 #
@@ -12,9 +12,9 @@ import re
 import copy
 
 parser = argparse.ArgumentParser()
-parser.add_argument('-s', '--url', required=True, help='URL to Check_MK site')
-parser.add_argument('-u', '--username', required=True, help='name of the automation user')
-parser.add_argument('-p', '--password', required=True, help='secret of the automation user')
+parser.add_argument('-s', '--url', help='URL to Check_MK site')
+parser.add_argument('-u', '--username', help='name of the automation user')
+parser.add_argument('-p', '--password', help='secret of the automation user')
 parser.add_argument('-c', '--config', required=True, help='Path to config file')
 parser.add_argument('-d', '--dump', action="store_true", help='Dump unique values from the view')
 args = parser.parse_args()
@@ -27,7 +27,7 @@ for attr, patterns in conf['labelmap'].items():
         conf_labelmap[attr][re.compile(pattern, re.IGNORECASE)] = labels
 
 mapi = checkmkapi.MultisiteAPI(args.url, args.username, args.password)
-wato = checkmkapi.WATOAPI(args.url, args.username, args.password)
+wato = checkmkapi.CMKRESTAPI(args.url, args.username, args.password)
 
 resp = mapi.view(conf['view_name'], **conf.get('args', {}))
 
@@ -45,7 +45,7 @@ if args.dump:
     pprint.pprint(result)
 else:
     changes = False
-    hosts = wato.get_all_hosts()
+    hosts, etags = wato.get_all_hosts()
 
     # get current labels
     
@@ -76,8 +76,8 @@ else:
 
     for hostname, labels in host_labels.items():
         if labels != orig_labels[hostname]:
-            print "Setting labels for %s to %s" % (hostname, labels)        
-            wato.edit_host(hostname, set_attr={'labels': labels})
+            print("Setting labels for %s to %s" % (hostname, labels))       
+            wato.edit_host(hostname, etag=etags[hostname], set_attr={'labels': labels})
             changes = True
     if changes:
         wato.activate()
