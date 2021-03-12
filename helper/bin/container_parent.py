@@ -43,11 +43,11 @@ for host in hosts.keys():
     if watohost[u'attributes'].get(u'parents', []) != [ hosts[host] ]:
         if hosts[host]:
             print("%s gets %s as parent" % (host, hosts[host]))
-            wato.edit_host(host, etag=etags[host], set_attr={u'parents': [ hosts[host] ]})
+            wato.edit_host(host, set_attr={u'parents': [ hosts[host] ]})
             changes = True
         elif len(watohost['attributes'].get('parents', [])) == 1:
             print("%s gets no specific parent" % host)
-            wato.edit_host(host, etag=etags[host], unset_attr=[u'parents'])
+            wato.edit_host(host, unset_attr=[u'parents'])
             changes = True
 if changes:
     wato.activate()
