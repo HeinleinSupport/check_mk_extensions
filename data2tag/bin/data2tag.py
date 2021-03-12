@@ -65,7 +65,7 @@ else:
         print(tags)
 
         if tags:
-            wato.edit_host(info['host'], etag=etags[info['host']], set_attr=tags)
+            wato.edit_host(info['host'], set_attr=tags)
             changes = True
     if changes:
         wato.activate()
