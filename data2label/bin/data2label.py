@@ -76,8 +76,8 @@ else:
 
     for hostname, labels in host_labels.items():
         if labels != orig_labels[hostname]:
-            print("Setting labels for %s to %s" % (hostname, labels))       
-            wato.edit_host(hostname, etag=etags[hostname], set_attr={'labels': labels})
+            print("Setting labels for %s to %s (etag=%s)" % (hostname, labels, etags[hostname]))
+            wato.edit_host(hostname, set_attr={'labels': labels})
             changes = True
     if changes:
         wato.activate()
