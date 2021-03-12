@@ -15,6 +15,10 @@ parser.add_argument('-s', '--url', required=False, help='URL to Check_MK site')
 parser.add_argument('-u', '--username', required=False, help='name of the Automation user')
 parser.add_argument('-p', '--password', required=False)
 parser.add_argument('-a', '--append', required=False, help='append this to the node name if not already there (usually the domainname)')
+parser.add_argument('-r', '--remove',
+                    action='store_true',
+                    required=False,
+                    help="remove the domainname from the node's name")
 args = parser.parse_args()
 
 mapi = checkmkapi.MultisiteAPI(args.url, args.username, args.password)
@@ -28,7 +32,9 @@ for item in resp:
         node = item['svc_plugin_output'][26:]
     if item['svc_plugin_output'].startswith('Container exited on node '):
         node = item['svc_plugin_output'][25:-4]
-    if not node.endswith(args.append):
+    if args.remove:
+        node = node.split('.')[0]
+    if args.append and not node.endswith(args.append):
         node += args.append
     hosts[item[u'host']] = node
 

@@ -22,6 +22,10 @@ parser.add_argument('-p', '--password',
 parser.add_argument('-a', '--append',
                     required=False,
                     help='append this to the hypervisor name if not already there (usually the domainname)')
+parser.add_argument('-r', '--remove',
+                    action='store_true',
+                    required=False,
+                    help="remove the domainname from the hypervisor's name")
 args = parser.parse_args()
 
 mapi = checkmkapi.MultisiteAPI(args.url, args.username, args.password)
@@ -33,7 +37,9 @@ for item in resp:
     node = False
     if item['svc_plugin_output'].startswith('Running on '):
         node = item['svc_plugin_output'][11:]
-        if not node.endswith(args.append):
+        if args.remove:
+            node = node.split('.')[0]
+        if args.append and not node.endswith(args.append):
             node += args.append
     hosts[item['host']] = node
 
