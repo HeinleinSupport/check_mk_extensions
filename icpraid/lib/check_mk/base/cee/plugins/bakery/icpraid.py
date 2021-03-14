@@ -16,7 +16,7 @@
 # Boston, MA 02110-1301 USA.
 
 from pathlib import Path
-from .bakery_api.v0 import FileGenerator, OS, Plugin, register
+from .bakery_api.v1 import FileGenerator, OS, Plugin, register
 
 def get_icpraid_files(conf) -> FileGenerator:
     yield Plugin(base_os=OS.LINUX,

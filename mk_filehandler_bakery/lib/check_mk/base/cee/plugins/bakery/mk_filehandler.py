@@ -4,7 +4,7 @@
 from pathlib import Path
 from typing import Any, Dict
 
-from .bakery_api.v0 import FileGenerator, OS, Plugin, register
+from .bakery_api.v1 import FileGenerator, OS, Plugin, register
 
 def get_mk_filehandler_files(conf: Dict[str, Any]) -> FileGenerator:
     yield Plugin(base_os=OS.LINUX,

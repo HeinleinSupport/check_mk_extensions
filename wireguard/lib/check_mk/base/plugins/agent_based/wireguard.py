@@ -65,7 +65,7 @@ def discover_wireguard(section) -> DiscoveryResult:
             yield Service(item='%s Peer %s' % (interface, peer),
                           parameters={'allowed-ips': data['allowed-ips']})
 
-def check_wireguard(item, params, section):
+def check_wireguard(item, section):
     timeout = 300 # from wireguard technical white paper Reject-After-Time + Rekey-Attempt-Time + 30s
     if 'Peer' in item:
         interface, x, peer = item.split(' ')

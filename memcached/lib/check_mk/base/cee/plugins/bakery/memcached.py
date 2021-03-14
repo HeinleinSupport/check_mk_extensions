@@ -18,7 +18,7 @@
 from pathlib import Path
 from typing import Any, Dict
 
-from .bakery_api.v0 import FileGenerator, OS, Plugin, PluginConfig, register
+from .bakery_api.v1 import FileGenerator, OS, Plugin, PluginConfig, register
 
 def get_memcached_files(conf: Dict[str, Any]) -> FileGenerator:
     if isinstance(conf, str) and conf == '_no_deploy':

@@ -18,15 +18,9 @@
 from pathlib import Path
 from typing import Any, Dict
 
-from .bakery_api.v0 import FileGenerator, OS, Plugin, register
-
-from cmk.utils import debug
-import pprint
+from .bakery_api.v1 import FileGenerator, OS, Plugin, register
 
 def get_lsbrelease_files(conf: Dict[str, Any]) -> FileGenerator:
-    if debug.enabled():
-        pprint.pprint(conf)
-        pprint.pprint(conf.get("interval"))
     yield Plugin(base_os=OS.LINUX,
                  source=Path("lsbrelease"),
                  interval=conf.get("interval"))

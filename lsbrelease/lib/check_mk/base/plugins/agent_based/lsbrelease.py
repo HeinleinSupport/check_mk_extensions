@@ -119,3 +119,31 @@ register.check_plugin(
     check_ruleset_name="lsbrelease",
 )
 
+# from cmk.utils import debug
+# from pprint import pprint
+
+# def discovery_lsbrelease_inv(section) -> DiscoveryResult:
+#     if debug.enabled():
+#         pprint(section)
+#     if section:
+#         yield Service()
+
+# def check_lsbrelease_inv(params, section) -> CheckResult:
+#     yield Result(state=State.OK)
+
+# register.check_plugin(
+#     name="lsbrelease_inv",
+#     service_name="Distribution Release Inventory",
+#     sections=["lnx_distro"],
+#     discovery_function=discovery_lsbrelease_inv,
+#     check_function=check_lsbrelease_inv,
+#     check_default_parameters={'distributions': [
+#         ( 'CentOS', '7' ),
+#         ( 'Debian', '9.9' ),
+#         ( 'openSUSE', '15.1'),
+#         ( 'SUSE Linux Enterprise Server', '12.5' ),
+#         ( 'Ubuntu', '16.04.7'),
+#     ]},
+#     check_ruleset_name="lsbrelease",
+# )
+
