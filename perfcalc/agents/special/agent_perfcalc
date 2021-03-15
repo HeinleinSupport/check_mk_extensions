@@ -1,8 +1,8 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 # -*- encoding: utf-8; py-indent-offset: 4 -*-
 
 import base64
-import cPickle
+import pickle
 import sys
 import os, os.path
 import socket
@@ -15,11 +15,11 @@ home = os.environ.get('OMD_ROOT')
 if home:
     localsocketname = home + '/tmp/run/live'
 else:
-    print "Unable to get OMD_ROOT"
+    print("Unable to get OMD_ROOT")
     sys.exit(3)
 
-# Parameters are base64 encoded cPickle data
-params = cPickle.loads(base64.decodestring('\n'.join(sys.argv[1:])))
+# Parameters are base64 encoded pickle data
+params = pickle.loads(base64.decodebytes(('\n'.join(sys.argv[1:])).encode('ascii')))
 
 def debug_output(var):
     if params['debug']:
@@ -48,7 +48,7 @@ def load_sites():
         else:
             return vars["sites"]
 
-    except Exception, e:
+    except Exception:
         return {}
 
 #
@@ -132,7 +132,7 @@ class Socket(object):
 sites = load_sites()
 sockets = {}
 localsocket = Socket(localsocketname)
-for siteid, sitedata in sites.iteritems():
+for siteid, sitedata in sites.items():
     if 'socket' in sitedata:
         if type(sitedata['socket']) == str:
             if sitedata['socket'].startswith('unix:'):
@@ -149,9 +149,9 @@ if sockets:
 else:
     queries = { '': localsocket }
         
-print '<<<check_mk>>>'
-print 'Version: agent_perfcalc-3.2'
-print '<<<perfcalc>>>'
+print('<<<check_mk>>>')
+print('Version: agent_perfcalc-3.2')
+print('<<<perfcalc>>>')
 
 for servicespec in params['servicespecs']:
     perfdata = {}
@@ -159,7 +159,7 @@ for servicespec in params['servicespecs']:
     hosts = []
     for dsname in servicespec['datasource']:
         perfdata[dsname] = []
-    for siteid, query in queries.iteritems():
+    for siteid, query in queries.items():
         query = query.services
 
         if 'hosttags' in servicespec and servicespec['hosttags']:
@@ -182,12 +182,15 @@ for servicespec in params['servicespecs']:
                 dsname, value = pd.split('=')
                 if dsname in servicespec['datasource']:
                     curvalue, crit, warn, minvalue, maxvalue = value.split(';')
-                    for i in range(len(curvalue)-1, -1, -1):
-                        try:
-                            tmp = int(curvalue[i])
-                            break
-                        except:
-                            continue
+                    if len(curvalue) > 1:
+                        for i in range(len(curvalue)-1, -1, -1):
+                            try:
+                                tmp = int(curvalue[i])
+                                break
+                            except:
+                                continue
+                    else:
+                        i = 1
                     perfdata[dsname].append(float(curvalue[:i]))
                     unit[dsname] = curvalue[i+1:]
             if siteid:
@@ -195,10 +198,10 @@ for servicespec in params['servicespecs']:
             else:
                 hosts.append(result['host_name'])
 
-    print 'service %s %s' % ( servicespec['service'], servicespec['operator'])
-    print 'host %s' % " ".join(hosts)
+    print('service %s %s' % ( servicespec['service'], servicespec['operator']))
+    print('host %s' % " ".join(hosts))
     if hosts:
-        for dsname, values in perfdata.iteritems():
+        for dsname, values in perfdata.items():
             if servicespec['operator'] == 'sum':
                 value = math.fsum(values)
             elif servicespec['operator'] == 'min':
@@ -207,4 +210,4 @@ for servicespec in params['servicespecs']:
                 value = max(values)
             elif servicespec['operator'] == 'ave':
                 value = math.fsum(values) / len(values)
-            print 'ds %s %s%s' % (dsname, value, unit[dsname])
+            print('ds %s %s%s' % (dsname, value, unit[dsname]))
