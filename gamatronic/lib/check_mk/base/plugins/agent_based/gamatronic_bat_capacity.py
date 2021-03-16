@@ -1,5 +1,7 @@
-#!/usr/bin/python3
+#!/usr/bin/env python3
 # -*- encoding: utf-8; py-indent-offset: 4 -*-
+
+# UNFINISHED because no example data available
 
 # (c) 2018 Heinlein Support GmbH
 #          Robert Sander <r.sander@heinlein-support.de>
@@ -15,10 +17,36 @@
 # to the Free Software Foundation, Inc., 51 Franklin St,  Fifth Floor,
 # Boston, MA 02110-1301 USA.
 
+# from .agent_based_api.v1 import (
+#     contains,
+#     register,
+#     Metric,
+#     Result,
+#     Service,
+#     SNMPTree,
+#     State,
+# )
+# from .agent_based_api.v1.type_defs import (
+#     CheckResult,
+#     DiscoveryResult,
+#     StringTable,
+# )
+
+# from cmk.utils import debug
+# from pprint import pprint
+
 # factory_settings["gamatronic_bat_capacity_default"] = {
 #     "battime"     : (0, 0),
 #     "capacity"    : (95, 90),
 # }
+
+# def parse_gamatronic_bat_capacity(string_table):
+#     if debug.enabled():
+#         pprint(string_table)
+#     section = {}
+#     if debug.enabled():
+#         pprint(section)
+#     return section
 
 # def inventory_gamatronic_bat_capacity(info):
 #     for line in info:
@@ -43,3 +71,20 @@
 #     "snmp_scan_function"     : lambda oid: oid(".1.3.6.1.2.1.1.2.0") == ".1.3.6.1.4.1.6050.5",
 #     "includes"               : [ "ups_capacity.include" ],
 # }
+
+# register.snmp_section(
+#     name="gamatronic_bat_capacity",
+#     parse_function=parse_gamatronic_bat_capacity,
+#     fetch=[
+#         SNMPTree(
+#             base=".1.3.6.1.4.1.6050.1.2",
+#             oids=[
+#                 "1", # psBatteryNumber
+#                 "4", # psBatteryNominalCapacity
+#                 "5", # psBatteryActualCapacity
+#             ],
+#         ),
+#     ],
+#     detect=contains(".1.3.6.1.2.1.1.2.0", ".1.3.6.1.4.1.6050.5"),
+# )
+
