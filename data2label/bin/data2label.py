@@ -10,6 +10,7 @@ import argparse
 import checkmkapi
 import re
 import copy
+from pprint import pprint
 
 parser = argparse.ArgumentParser()
 parser.add_argument('-s', '--url', required=True, help='URL to Check_MK site')
@@ -35,44 +36,51 @@ if args.dump:
     #
     # get uniq values from view
     #
-    import pprint
     result = {}
     for info in resp:
         for key, value in info.items():
             if key not in result:
                 result[key] = set()
             result[key].add(value)
-    pprint.pprint(result)
+    pprint(result)
 else:
     changes = False
-    hosts = wato.get_all_hosts()
 
-    # get current labels
-    
     host_labels = {}
-    for hostname, data in hosts.items():
-        host_labels[hostname] = data['attributes'].get('labels', {})
-    orig_labels = copy.deepcopy(host_labels)
-
-    # remove labels that start with label_prefix
+    orig_labels = {}
     
-    for attr in conf_labelmap.keys():
-        for label in host_labels[hostname].keys():
-            if label.startswith(conf['label_prefix'][attr]):
-                del(host_labels[hostname][label])
+    def get_host_labels(hostname):
+        if hostname not in host_labels:
+            print "Getting labels…"
+            host = wato.get_host(hostname)
+
+            host_labels[hostname] = host['attributes'].get('labels', {})
+            orig_labels[hostname] = copy.deepcopy(host_labels[hostname])
+
+            # remove labels that start with label_prefix
+            for attr in conf_labelmap.keys():
+                for label in host_labels[hostname].keys():
+                    if label.startswith(conf['label_prefix'][attr]):
+                        del(host_labels[hostname][label])
+            print "host_labels[%s] = %s" % (hostname, host_labels[hostname])
+            print "orig_labels[%s] = %s" % (hostname, orig_labels[hostname])
 
     for info in resp:
         hostname = info['host']
-        if hostname not in hosts:
-            # host not in configuration
+        print hostname
+        try:
+            get_host_labels(hostname)
+        except RuntimeError:
             continue
         for attr, patterns in conf_labelmap.items():
             if attr in info:
+                print attr, info[attr]
                 for pattern, setlabels in patterns.items():
                     if pattern.search(info[attr]):
                         # set labels if pattern matches
                         for label in setlabels:
                             host_labels[hostname][u'%s%s' % (conf['label_prefix'][attr], label)] = conf['label_value'][attr]
+                            print host_labels[hostname]
 
     for hostname, labels in host_labels.items():
         if labels != orig_labels[hostname]:
