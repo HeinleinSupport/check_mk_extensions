@@ -10,6 +10,21 @@ import argparse
 import checkmkapi
 import re
 import copy
+from pprint import pprint
+
+def get_host_labels(hostname):
+    host, etag = wato.get_host(hostname)
+
+    orig_labels = host['extensions']['attributes'].get('labels', {})
+    host_labels = {}
+
+    # only use labels that do not start with label_prefix
+    for attr in conf_labelmap.keys():
+        for label, value in orig_labels.items():
+            if not label.startswith(conf['label_prefix'][attr]):
+                host_labels[label] = value
+
+    return host_labels, orig_labels, etag
 
 parser = argparse.ArgumentParser()
 parser.add_argument('-s', '--url', help='URL to Check_MK site')
@@ -35,49 +50,40 @@ if args.dump:
     #
     # get uniq values from view
     #
-    import pprint
     result = {}
     for info in resp:
         for key, value in info.items():
             if key not in result:
                 result[key] = set()
             result[key].add(value)
-    pprint.pprint(result)
+    pprint(result)
 else:
     changes = False
-    hosts, etags = wato.get_all_hosts()
-
-    # get current labels
     
-    host_labels = {}
-    for hostname, data in hosts.items():
-        host_labels[hostname] = data['attributes'].get('labels', {})
-    orig_labels = copy.deepcopy(host_labels)
-
-    # remove labels that start with label_prefix
+    host_info = {}
     
-    for attr in conf_labelmap.keys():
-        for label in host_labels[hostname].keys():
-            if label.startswith(conf['label_prefix'][attr]):
-                del(host_labels[hostname][label])
-
     for info in resp:
         hostname = info['host']
-        if hostname not in hosts:
-            # host not in configuration
-            continue
-        for attr, patterns in conf_labelmap.items():
-            if attr in info:
-                for pattern, setlabels in patterns.items():
-                    if pattern.search(info[attr]):
-                        # set labels if pattern matches
-                        for label in setlabels:
-                            host_labels[hostname][u'%s%s' % (conf['label_prefix'][attr], label)] = conf['label_value'][attr]
+        host_info.setdefault(hostname, [])
+        host_info[hostname].append(info)
 
-    for hostname, labels in host_labels.items():
-        if labels != orig_labels[hostname]:
-            print("Setting labels for %s to %s (etag=%s)" % (hostname, labels, etags[hostname]))
-            wato.edit_host(hostname, set_attr={'labels': labels})
+    for hostname, infos in host_info.items():
+        try:
+            host_labels, orig_labels, etag = get_host_labels(hostname)
+        except Exception:
+            raise
+        for info in infos:
+            for attr, patterns in conf_labelmap.items():
+                if attr in info:
+                    for pattern, setlabels in patterns.items():
+                        if pattern.search(info[attr]):
+                            # set labels if pattern matches
+                            for label in setlabels:
+                                host_labels[u'%s%s' % (conf['label_prefix'][attr], label)] = conf['label_value'][attr]
+
+        if host_labels != orig_labels:
+            print("Setting labels for %s to %s (etag=%s)" % (hostname, host_labels, etag))
+            wato.edit_host(hostname, etag=etag, set_attr={'labels': host_labels})
             changes = True
     if changes:
         wato.activate()
