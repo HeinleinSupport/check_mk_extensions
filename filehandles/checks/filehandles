@@ -78,19 +78,11 @@ def inventory_filehandles(info):
 
     inventory = []
     rules = []
-    for rule in inventory_filehandles_rules:
-        taglist, hostlist = rule[1:3]
-        if len(rule) >= 4:
-            options = rule[3]
-            if options.get("disabled"):
-                continue
-        # Filter out entries with do not match our current host
-        if not hosttags_match_taglist(tags_of_host(host_name()), taglist) \
-           or not in_extraconf_hostlist(hostlist, host_name()):
-            continue
-        v = rule[0]
-        rules.append((v['descr'], v.get('match'), v.get('user')))
-
+    
+    for value in host_extra_conf(host_name(), inventory_filehandles_rules):
+    # Extract the list of processes
+    rules.append((value['descr'], value.get('match'), value.get('user')))
+  
     for line in info:
         if line[1] == 'global':
             inventory.append( ('global', {}) )
