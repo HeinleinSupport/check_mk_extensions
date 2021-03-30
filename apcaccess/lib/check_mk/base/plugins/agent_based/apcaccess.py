@@ -114,7 +114,7 @@ register.check_plugin(
     discovery_function=discovery_apcaccess,
     check_function=check_apcaccess,
     check_default_parameters={
-        "voltage"         : (210, 190, 240, 260),
+        # "voltage"         : (210, 190, 240, 260), # there are other voltages
         "output_load"     : (80, 90),
         "battery_capacity": (90, 80),
         "timeleft"        : (10, 5),
