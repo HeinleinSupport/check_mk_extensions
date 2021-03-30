@@ -25,6 +25,8 @@ from cmk.gui.valuespec import (
 from cmk.gui.plugins.wato import (
     rulespec_registry,
     CheckParameterRulespecWithItem,
+    HostRulespec,
+    RulespecGroupCheckParametersDiscovery,
     RulespecGroupCheckParametersEnvironment,
 )
 
@@ -83,4 +85,25 @@ rulespec_registry.register(
         match_type="dict",
         parameter_valuespec=_parameter_valuespec_apcaccess,
         title=lambda: _("APC Power Supplies (directly connected)"),
+    ))
+
+def _valuespec_apcaccess_inventory():
+    return Dictionary(
+        title=_("APC Access discovery"),
+        help=_(""),
+        elements=[
+            ('upsname',
+             FixedValue(
+                 True,
+                 title=_('UPS Name'),
+                 totext=_('Use the UPSNAME field as item name for the service description.'),
+             )),
+        ],
+    )
+
+rulespec_registry.register(
+    HostRulespec(
+        group=RulespecGroupCheckParametersDiscovery,
+        name="apcaccess_inventory",
+        valuespec=_valuespec_apcaccess_inventory,
     ))

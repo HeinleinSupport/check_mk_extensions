@@ -25,6 +25,7 @@ from .agent_based_api.v1 import (
     check_levels,
     register,
     render,
+    Metric,
     Result,
     State,
     HostLabel,
@@ -41,7 +42,9 @@ def parse_apcaccess(string_table):
             instance = line[0][2:-2]
             parsed[instance] = {}
         elif instance:
-            parsed[instance][line[0].strip()] = ":".join(line[1:]).strip()
+            key = line[0].strip()
+            value = ":".join(line[1:]).strip()
+            parsed[instance][key] = value
     return parsed
 
 register.agent_section(
@@ -49,29 +52,37 @@ register.agent_section(
     parse_function=parse_apcaccess,
 )
 
-def discovery_apcaccess(section) -> DiscoveryResult:
+def discovery_apcaccess(params, section) -> DiscoveryResult:
     for instance in section:
-        yield Service(item=instance)
+        if params.get('upsname'):
+            yield Service(item=section[instance]['UPSNAME'], parameters={'upsname': instance})
+        else:
+            yield Service(item=instance)
 
 def check_apcaccess(item, params, section) -> CheckResult:
+    attrs = ['MODEL', 'SERIALNO', 'FIRMWARE', 'UPSMODE']
+    if 'upsname' in params:
+        item = params['upsname']
+    else:
+        attrs.insert(0, 'UPSNAME')
     if item in section:
         data = section[item]
-        if 'UPSNAME' in data and 'MODEL' in data and 'SERIALNO' in data and 'FIRMWARE' in data:
-            yield Result(state=State.OK,
-                         summary=", ".join([data['UPSNAME'],
-                                            data.get('MODEL'),
-                                            data.get('SERIALNO'),
-                                            data.get('FIRMWARE')]))
-        else:
+        found = False
+        for attr in attrs:
+            if attr in data:
+                found = True
+                yield Result(state=State.OK,
+                             summary="%s: %s" % (attr, data[attr]))
+        if not found:
             yield Result(state=State.UNKNOWN, summary='Unkown UPS / no data')
-        metrics = { 'voltage': ('OUTPUTV', 'Output Voltage'),
-                    'output_load': ('LOADPCT', 'Output Load'),
-                    'battery_capacity': ('BCHARGE', 'Battery Capacity'),
-                    'timeleft': ('TIMELEFT', 'Time Left') }
         human_readable = {'voltage': lambda x: "%0.0fV" % x,
                           'output_load': render.percent,
                           'battery_capacity': render.percent,
                           'timeleft': render.timespan }
+        metrics = { 'voltage': ('OUTPUTV', 'Output Voltage'),
+                    'output_load': ('LOADPCT', 'Output Load'),
+                    'battery_capacity': ('BCHARGE', 'Battery Capacity'),
+                    'timeleft': ('TIMELEFT', 'Time Left') }
         factors = { 'timeleft': 60.0 }
         for metric, (key, text) in metrics.items():
             if key in data:
@@ -111,6 +122,9 @@ register.check_plugin(
     name="apcaccess",
     service_name="APC %s Status",
     sections=["apcaccess"],
+    discovery_ruleset_name="apcaccess_inventory",
+    discovery_ruleset_type=register.RuleSetType.MERGED,
+    discovery_default_parameters={'upsname': False},
     discovery_function=discovery_apcaccess,
     check_function=check_apcaccess,
     check_default_parameters={
@@ -122,12 +136,17 @@ register.check_plugin(
     check_ruleset_name="apcaccess",
 )
 
-def discovery_apcaccess_temp(section):
+def discovery_apcaccess_temp(params, section):
     for instance in section:
         if 'ITEMP' in section[instance]:
-            yield Service(item=instance)
+            if params.get('upsname'):
+                yield Service(item=section[instance]['UPSNAME'], parameters={'upsname': instance})
+            else:
+                yield Service(item=instance)
 
 def check_apcaccess_temp(item, params, section):
+    if 'upsname' in params:
+        item = params['upsname']
     if item in section and 'ITEMP' in section[item]:
         itemp = section[item]['ITEMP'].split(' ')
         yield from temperature.check_temperature(float(itemp[0]),
@@ -139,6 +158,9 @@ register.check_plugin(
     name="apcaccess_temperature",
     service_name="APC %s Temperature",
     sections=["apcaccess"],
+    discovery_ruleset_name="apcaccess_inventory",
+    discovery_ruleset_type=register.RuleSetType.MERGED,
+    discovery_default_parameters={'upsname': False},
     discovery_function=discovery_apcaccess_temp,
     check_function=check_apcaccess_temp,
     check_default_parameters={
