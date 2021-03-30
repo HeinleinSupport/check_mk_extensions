@@ -8,4 +8,3 @@ Development of these plugins can be sponsored by opening a [support request](htt
 
 The repository has multiple branches for the specific check**mk** versions.
 
-The master branch contains the extensions for the current check**mk** version.
