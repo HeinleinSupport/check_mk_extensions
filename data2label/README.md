@@ -1,12 +1,12 @@
 # Description #
 
-data2label is a tool that uses the check_MK Multisite and WATO APIs to set host labels based on information from the monitoring system (e.g. HW/SW-inventory).
+data2label is a tool that uses the check**mk** Multisite and REST APIs to set host labels based on information from the monitoring system (e.g. HW/SW-inventory).
 
 data2label queries a Multisite view (which has to contain at least a column with host names) and sets labels by using a mapping from a configuration file.
 
 # Prequisites #
 
-data2label needs the [checkmkapi](https://github.com/HeinleinSupport/check_mk_extensions/tree/master/check_mk_api) Python module.
+data2label needs the [checkmkapi](https://github.com/HeinleinSupport/check_mk_extensions/tree/cmk2.0/check_mk_api) Python module.
 
 # Usage #
 
