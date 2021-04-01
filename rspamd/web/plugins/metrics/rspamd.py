@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 # -*- encoding: utf-8; py-indent-offset: 4 -*-
 
 #
@@ -16,6 +16,13 @@
 # License along with GNU Make; see the file  COPYING.  If  not,  write
 # to the Free Software Foundation, Inc., 51 Franklin St,  Fifth Floor,
 # Boston, MA 02110-1301 USA.
+
+from cmk.gui.i18n import _
+
+from cmk.gui.plugins.metrics import (
+    metric_info,
+    graph_info,
+)
 
 metric_info['rspamd_scanned_rate'] = {
     'title': _('Rspamd Scanned Messages'),
@@ -71,7 +78,7 @@ metric_info['rspamd_actions_add_header_rate'] = {
     'color': '#fafa0e',
 }
 
-graph_info.append({
+graph_info["rspamd_ham_spam"] = {
     'title': _('Rspamd HAM/SPAM'),
     'metrics': [ ( 'rspamd_ham_count_rate', 'stack' ),
                  ( 'rspamd_spam_count_rate', 'stack' ),
@@ -79,7 +86,7 @@ graph_info.append({
                ],
     })
 
-graph_info.append({
+graph_info["rspamd_actions"] = {
     'title': _('Rspamd Actions'),
     'metrics': [ ( 'rspamd_actions_no_action_rate', 'stack' ),
                  ( 'rspamd_actions_reject_rate', 'stack' ),
