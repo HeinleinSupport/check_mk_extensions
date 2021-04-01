@@ -54,16 +54,23 @@ register.agent_section(
 
 def discovery_apcaccess(params, section) -> DiscoveryResult:
     for instance in section:
-        if params.get('upsname'):
+        if params.get('servicedesc') == 'upsname':
             yield Service(item=section[instance]['UPSNAME'], parameters={'upsname': instance})
+        elif params.get('servicedesc') == 'model' and 'MODEL' in section[instance]:
+            yield Service(item=section[instance]['MODEL'], parameters={'model': instance})
         else:
             yield Service(item=instance)
 
 def check_apcaccess(item, params, section) -> CheckResult:
-    attrs = ['MODEL', 'SERIALNO', 'FIRMWARE', 'UPSMODE']
+    attrs = ['SERIALNO', 'FIRMWARE', 'UPSMODE']
     if 'upsname' in params:
         item = params['upsname']
+        attrs.insert(0, 'MODEL')
+    elif 'model' in params:
+        item = params['model']
+        attrs.insert(0, 'UPSNAME')
     else:
+        attrs.insert(0, 'MODEL')
         attrs.insert(0, 'UPSNAME')
     if item in section:
         data = section[item]
@@ -124,7 +131,7 @@ register.check_plugin(
     sections=["apcaccess"],
     discovery_ruleset_name="apcaccess_inventory",
     discovery_ruleset_type=register.RuleSetType.MERGED,
-    discovery_default_parameters={'upsname': False},
+    discovery_default_parameters={'servicedesc': False},
     discovery_function=discovery_apcaccess,
     check_function=check_apcaccess,
     check_default_parameters={
@@ -139,14 +146,18 @@ register.check_plugin(
 def discovery_apcaccess_temp(params, section):
     for instance in section:
         if 'ITEMP' in section[instance]:
-            if params.get('upsname'):
+            if params.get('servicedesc') == 'upsname':
                 yield Service(item=section[instance]['UPSNAME'], parameters={'upsname': instance})
+            elif params.get('servicedesc') == 'model' and 'MODEL' in section[instance]:
+                yield Service(item=section[instance]['MODEL'], parameters={'model': instance})
             else:
                 yield Service(item=instance)
 
 def check_apcaccess_temp(item, params, section):
     if 'upsname' in params:
         item = params['upsname']
+    elif 'model' in params:
+        item = params['model']
     if item in section and 'ITEMP' in section[item]:
         itemp = section[item]['ITEMP'].split(' ')
         yield from temperature.check_temperature(float(itemp[0]),
@@ -160,7 +171,7 @@ register.check_plugin(
     sections=["apcaccess"],
     discovery_ruleset_name="apcaccess_inventory",
     discovery_ruleset_type=register.RuleSetType.MERGED,
-    discovery_default_parameters={'upsname': False},
+    discovery_default_parameters={'servicedesc': False},
     discovery_function=discovery_apcaccess_temp,
     check_function=check_apcaccess_temp,
     check_default_parameters={

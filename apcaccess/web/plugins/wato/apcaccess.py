@@ -90,14 +90,17 @@ rulespec_registry.register(
 def _valuespec_apcaccess_inventory():
     return Dictionary(
         title=_("APC Access discovery"),
-        help=_(""),
+        help=_("This selects which attribute is used for the service description."),
         elements=[
-            ('upsname',
-             FixedValue(
-                 True,
-                 title=_('UPS Name'),
-                 totext=_('Use the UPSNAME field as item name for the service description.'),
-             )),
+            ('servicedesc',
+             DropdownChoice(
+                 title=_('Service Name'),
+                 choices=[
+                     (None, _('apcupsd configuration file name')),
+                     ('upsname', _('value of UPSNAME field')),
+                     ('model', _('value of MODEL field')),
+                 ],
+            )),
         ],
     )
 
