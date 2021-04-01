@@ -1,1 +1,0 @@
-../../../share/check_mk/agents/special/agent_pingdom
