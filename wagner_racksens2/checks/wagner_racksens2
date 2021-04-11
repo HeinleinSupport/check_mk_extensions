@@ -42,6 +42,7 @@ def parse_wagner_racksens2(info):
             u'Service or Blocked': int(info[0][0][16]),
             u'Door': int(info[0][0][17]),
             u'Main': int(info[0][0][18]),
+            u'Battery': int(info[1][0][31]),
             },
         }
     for detector in [1, 2]:
@@ -138,6 +139,7 @@ check_info['wagner_racksens2'] = {
                                                       "24587",  # RACKSENS2-MIB::rsAirFlowdeviation         28
                                                       "24602",  # RACKSENS2-MIB::rsAirFlowFailureThreshold  29
                                                       "24590042", # RACKSENS2-MIB::rsAirFlowControlAvailable 30
+                                                      "24590058", # RACKSENS2-MIB::rsBatteryFailure         31
                                                      ]),
                    ],
     "snmp_scan_function": lambda oid: oid(".1.3.6.1.2.1.1.2.0") == ".1.3.6.1.4.1.34187.57949",
