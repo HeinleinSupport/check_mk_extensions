@@ -11,6 +11,8 @@
 from pprint import pprint
 import requests
 import warnings
+import configparser
+import os
 
 def check_mk_url(url):
     if url[-1] == '/':
@@ -21,8 +23,39 @@ def check_mk_url(url):
             url += '/check_mk/'
     return url
 
+def _site_url():
+    urldefault = None
+    if os.environ.get('HOME', 'a') == os.environ.get('OMD_ROOT', 'b'):
+        siteconfig = configparser.ConfigParser()
+        with open(os.path.join(os.environ['OMD_ROOT'], 'etc', 'omd', 'site.conf'), 'r') as f:
+            config_string = '[GLOBAL]\n' + f.read()
+            siteconfig.read_string(config_string.decode())
+        urldefault = 'http://%s:%s/%s' % (siteconfig['GLOBAL']['CONFIG_APACHE_TCP_ADDR'].strip("'"),
+                                          siteconfig['GLOBAL']['CONFIG_APACHE_TCP_PORT'].strip("'"),
+                                          os.environ['OMD_SITE'])
+    return urldefault
+
+def _site_creds(username=None):
+    password = None
+    if os.environ.get('HOME', 'a') == os.environ.get('OMD_ROOT', 'b'):
+        if not username:
+            username = 'automation'
+        password = open(
+            os.path.join(
+                os.environ['OMD_ROOT'],
+                'var',
+                'check_mk',
+                'web',
+                username,
+                'automation.secret')).read().strip()
+    return username, password
+
 class WATOAPI():
-    def __init__(self, site_url, api_user, api_secret):
+    def __init__(self, site_url=None, api_user=None, api_secret=None):
+        if not site_url:
+            site_url = _site_url()
+        if not api_secret:
+            api_user, api_secret = _site_creds(api_user)
         self.api_url = '%s/webapi.py' % check_mk_url(site_url)
         self.api_creds = {'_username': api_user, '_secret': api_secret, 'request_format': 'python', 'output_format': 'python'}
 
@@ -126,7 +159,11 @@ class WATOAPI():
         return self.api_request(params=api_bake_agents)
 
 class MultisiteAPI():
-    def __init__(self, site_url, api_user, api_secret):
+    def __init__(self, site_url=None, api_user=None, api_secret=None):
+        if not site_url:
+            site_url = _site_url()
+        if not api_secret:
+            api_user, api_secret = _site_creds(api_user)
         self.site_url = check_mk_url(site_url)
         self.api_creds = {'_username': api_user, '_secret': api_secret, 'request_format': 'python', 'output_format': 'python', '_transid': '-1'}
         self.down_from_now = {'_down_from_now': "from+for+now"}
