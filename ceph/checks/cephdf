@@ -52,13 +52,24 @@ def check_cephdf(item, params, parsed):
             if pool['name'] == item:
                 stats = pool['stats']
 
-                if stats['max_avail'] > 0:
-                    avail_mb = stats['max_avail'] / 1048576.0
-                    size_mb = avail_mb + stats['bytes_used'] / 1048576.0
+                avail_mb = 0
+                size_mb = 0
+
+                if 'stored' in stats:
+                    # netto
+                    used_mb = stats['stored'] / 1048576.0
+                    if 'max_avail' in stats and stats['max_avail'] > 0:
+                        avail_mb = stats['max_avail'] / 1048576.0
+                        size_mb = avail_mb + used_mb
+                    elif 'percent_used' in stats:
+                        size_mb = used_mb / stats['percent_used']
+                        avail_mb = size_mb - used_mb
                 else:
+                    # brutto
                     used_mb = stats['bytes_used'] / 1048576.0
-                    size_mb = used_mb / stats['percent_used']
-                    avail_mb = size_mb - used_mb
+                    if 'percent_used' in stats:
+                        size_mb = used_mb / stats['percent_used']
+                        avail_mb = size_mb - used_mb
 
                 yield df_check_filesystem_list(item, params, [ (item, size_mb, avail_mb, 0) ])
 
@@ -85,6 +96,29 @@ check_info["cephdf"] = {
     'check_function'         : check_cephdf,
     'inventory_function'     : inventory_cephdf,
     'service_description'    : 'Ceph Pool %s',
+    'has_perfdata'           : True,
+    'group'                  : 'filesystem',
+    'default_levels_variable': 'filesystem_default_levels',
+    'includes'               : [ 'size_trend.include', 'df.include' ],
+}
+
+def inventory_cephdfclass(parsed):
+    for cls in parsed.get('stats_by_class', {}).keys():
+        yield cls, {}
+
+def check_cephdfclass(item, params, parsed):
+    if 'stats_by_class' in parsed and item in parsed['stats_by_class']:
+        stats = parsed['stats_by_class'][item]
+
+        avail_mb = stats["total_avail_bytes"] / 1048576.0
+        size_mb = stats["total_bytes"] / 1048576.0
+
+        yield df_check_filesystem_list(item, params, [ (item, size_mb, avail_mb, 0) ])
+
+check_info["cephdf.class"] = {
+    'check_function'         : check_cephdfclass,
+    'inventory_function'     : inventory_cephdfclass,
+    'service_description'    : 'Ceph Class %s',
     'has_perfdata'           : True,
     'group'                  : 'filesystem',
     'default_levels_variable': 'filesystem_default_levels',

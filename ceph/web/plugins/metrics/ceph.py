@@ -145,6 +145,7 @@ check_metrics["check_mk-cephdf"]["disk_read_ios"] = {}
 check_metrics["check_mk-cephdf"]["disk_write_ios"] = {}
 check_metrics["check_mk-cephdf"]["disk_read_throughput"] = {}
 check_metrics["check_mk-cephdf"]["disk_write_throughput"] = {}
+check_metrics["check_mk-cephdf.class"] = df_translation
 
 metric_info["apply_latency"] = {
     'title' : _('Apply Latency'),
