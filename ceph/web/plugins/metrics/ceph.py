@@ -150,6 +150,7 @@ _ceph_df_translation = { "fs_used": { "scale": MB },
 
 check_metrics["check_mk-cephstatus"] = _ceph_df_translation
 check_metrics["check_mk-cephdf"] = _ceph_df_translation
+check_metrics["check_mk-cephdfclass"] = _ceph_df_translation
 check_metrics["check_mk-cephosd"] = _ceph_df_translation
 check_metrics["check_mk-cephosdbluefs"] = _ceph_df_translation
 check_metrics["check_mk-cephosdbluefs_wal"] = _ceph_df_translation

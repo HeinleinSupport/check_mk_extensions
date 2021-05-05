@@ -78,13 +78,24 @@ def check_cephdf(item, params, section) -> CheckResult:
         if pool['name'] == item:
             stats = pool['stats']
 
-            if stats['max_avail'] > 0:
-                avail_mb = stats['max_avail'] / 1048576.0
-                size_mb = avail_mb + stats['bytes_used'] / 1048576.0
+            avail_mb = 0
+            size_mb = 0
+
+            if 'stored' in stats:
+                # netto
+                used_mb = stats['stored'] / 1048576.0
+                if 'max_avail' in stats and stats['max_avail'] > 0:
+                    avail_mb = stats['max_avail'] / 1048576.0
+                    size_mb = avail_mb + used_mb
+                elif 'percent_used' in stats:
+                    size_mb = used_mb / stats['percent_used']
+                    avail_mb = size_mb - used_mb
             else:
+                # brutto
                 used_mb = stats['bytes_used'] / 1048576.0
-                size_mb = used_mb / stats['percent_used']
-                avail_mb = size_mb - used_mb
+                if 'percent_used' in stats:
+                    size_mb = used_mb / stats['percent_used']
+                    avail_mb = size_mb - used_mb
 
             yield from df.df_check_filesystem_single(value_store,
                                                      item,
@@ -120,6 +131,39 @@ register.check_plugin(
     sections=["cephdf"],
     discovery_function=discovery_cephdf,
     check_function=check_cephdf,
+    check_ruleset_name="filesystem",
+    check_default_parameters=df.FILESYSTEM_DEFAULT_LEVELS,
+)
+
+def discovery_cephdfclass(section) -> DiscoveryResult:
+    for cls in section.get('stats_by_class', {}).keys():
+        yield Service(item=cls)
+
+def check_cephdfclass(item, params, section) -> CheckResult:
+    now = time.time()
+    value_store = get_value_store()
+
+    if 'stats_by_class' in section and item in section['stats_by_class']:
+        stats = section['stats_by_class'][item]
+
+        avail_mb = stats["total_avail_bytes"] / 1048576.0
+        size_mb = stats["total_bytes"] / 1048576.0
+
+        yield from df.df_check_filesystem_single(value_store,
+                                                 item,
+                                                 size_mb,
+                                                 avail_mb,
+                                                 0,
+                                                 None,
+                                                 None,
+                                                 params=params)
+
+register.check_plugin(
+    name="cephdfclass",
+    service_name="Ceph Class %s",
+    sections=["cephdf"],
+    discovery_function=discovery_cephdfclass,
+    check_function=check_cephdfclass,
     check_ruleset_name="filesystem",
     check_default_parameters=df.FILESYSTEM_DEFAULT_LEVELS,
 )
