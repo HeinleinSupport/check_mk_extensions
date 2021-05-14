@@ -78,6 +78,7 @@ def check_cephstatus(item, params, section) -> CheckResult:
                       'active+recovery_wait+undersized+degraded',
                       'active+recovery_wait+undersized+degraded+remapped',
                       'active+recovery_wait+undersized+remapped',
+                      'active+remapped',
                       'active+remapped+backfill_toofull',
                       'active+remapped+backfill_wait',
                       'active+remapped+backfill_wait+backfill_toofull',
