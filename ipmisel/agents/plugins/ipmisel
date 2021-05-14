@@ -1,0 +1,70 @@
+#!/usr/bin/env python3
+
+import os
+import distutils.spawn
+import subprocess
+import sys
+from datetime import datetime
+from pathlib import Path
+from pprint import pprint
+
+state_map = {
+    'Critical': 'C',
+    'Warning': 'W',
+    'Nominal': 'O',
+}
+
+MK_VARDIR = os.getenv("LOGWATCH_DIR") or os.getenv("MK_VARDIR") or os.getenv("MK_STATEDIR") or "."
+
+def parse_output(cmd, dateformat, namecol, statecol, eventcol):
+    r = subprocess.run(cmd, capture_output=True)
+    if r.returncode == 0:
+        data = {}
+
+        for row in r.stdout.decode().split('\n'):
+            columns = list(map(lambda x: x.strip(), row.split('|')))
+            if columns[0] == 'ID' or not columns[0]:
+                continue
+            try:
+                eventtime = datetime.strptime('%s %s' % (columns[1], columns[2]), dateformat)
+                data[columns[0]] = {
+                    'time': eventtime,
+                    'name': columns[namecol],
+                    'state': columns[statecol],
+                    'event': columns[eventcol],
+                }
+            except ValueError:
+                pass
+        return data
+    else:
+        raise
+
+def statefile_datetime():
+    statefile = os.path.join(MK_VARDIR, 'ipmisel.state')
+
+    try:
+        mtime = os.path.getmtime(statefile)
+    except FileNotFoundError:
+        mtime = 0
+
+    Path(statefile).touch()
+        
+    return datetime.fromtimestamp(mtime)
+
+if __name__ == '__main__':
+    ipmisel = distutils.spawn.find_executable("ipmi-sel")
+    ipmitool = distutils.spawn.find_executable("ipmitool")
+    last_time = statefile_datetime()
+
+    if ipmisel:
+        data = parse_output([ipmisel, '--output-event-state', '--utc-to-localtime'], '%b-%d-%Y %H:%M:%S', 3, 5, 6)
+    elif ipmitool:
+        data = parse_output([ipmitool, 'sel', 'list'], '%m/%d/%Y %H:%M:%S', 3, 5, 4)
+    else:
+        sys.exit(0)
+
+    print('<<<logwatch>>>')
+    print('[[[IPMI System Events]]]')
+    for id, data in data.items():
+        if data['time'] > last_time:
+            print("%s %s %s: %s" % (state_map.get(data['state'], '.'), data['time'].isoformat(sep=' '), data['name'], data['event']))
