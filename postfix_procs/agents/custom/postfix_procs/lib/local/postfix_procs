@@ -16,8 +16,6 @@
 
 if [ -x /usr/sbin/postconf ]; then
 
-  echo "<<<local>>>"
-
   defaultlimit=$(/usr/sbin/postconf -h default_process_limit)
 
   processes=$(ps -ef)
