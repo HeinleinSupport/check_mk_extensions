@@ -10,7 +10,6 @@
 
 """API-Wrapper for the CheckMK 2.0 REST API and the Multisite API (Views)"""
 
-from pprint import pprint
 import requests
 import warnings
 import os
@@ -18,39 +17,35 @@ import json
 import time
 import sys
 import configparser
+import json
 
 def _check_mk_url(url):
     """ adds trailing check_mk path component to URL """
-    if url[-1] == '/':
-        if not url.endswith('check_mk/'):
-            url += 'check_mk/'
-    else:
-        if not url.endswith('check_mk'):
-            url += '/check_mk/'
+    if url[-1] != '/':
+        url += '/'
+    if not url.endswith('check_mk/'):
+        url += 'check_mk/'
     return url
 
 def _site_url():
     urldefault = None
     if os.environ.get('HOME', 'a') == os.environ.get('OMD_ROOT', 'b'):
-        siteconfig = configparser.ConfigParser()
-        with open(os.path.join(os.environ['OMD_ROOT'], 'etc', 'omd', 'site.conf'), 'r') as f:
-            config_string = '[GLOBAL]\n' + f.read()
-            siteconfig.read_string(config_string)
-        urldefault = 'http://%s:%s/%s' % (siteconfig['GLOBAL']['CONFIG_APACHE_TCP_ADDR'].strip("'"),
-                                          siteconfig['GLOBAL']['CONFIG_APACHE_TCP_PORT'].strip("'"),
+        import cmk.utils.site
+        siteconfig = cmk.utils.site.get_omd_config()
+        urldefault = 'http://%s:%s/%s' % (siteconfig['CONFIG_APACHE_TCP_ADDR'],
+                                          siteconfig['CONFIG_APACHE_TCP_PORT'],
                                           os.environ['OMD_SITE'])
     return urldefault
 
 def _site_creds(username=None):
     password = None
     if os.environ.get('HOME', 'a') == os.environ.get('OMD_ROOT', 'b'):
+        import cmk.utils.paths
         if not username:
             username = 'automation'
         password = open(
             os.path.join(
-                os.environ['OMD_ROOT'],
-                'var',
-                'check_mk',
+                cmk.utils.paths.var_dir,
                 'web',
                 username,
                 'automation.secret')).read().strip()
@@ -145,7 +140,6 @@ class CMKRESTAPI():
             data: host's data
             etag: current etag value
         """
-        print(f'Add Host {hostname}')
         data, etag, resp = self._post_url(
             f"domain-types/host_config/collections/all",
             data={
@@ -170,7 +164,6 @@ class CMKRESTAPI():
             data: host's data
             etag: current etag value
         """
-        print(f'Get Host {hostname}')
         data, etag, resp = self._get_url(
             f"objects/host_config/{hostname}",
             data={"effective_attributes": "true" if effective_attr else "false"}
@@ -179,16 +172,16 @@ class CMKRESTAPI():
             return data, etag
         resp.raise_for_status()
 
-    def get_all_hosts(self, effective_attr=False):
+    def get_all_hosts(self, effective_attr=False, attributes=True):
         """Gets all hosts from the CheckMK configuration.
 
         Args:
             effective_attr: Show all effective attributes, which affect this host, not just the attributes which were set on this host specifically. This includes all attributes of all of this host's parent folders.
+            attributes: If False do not fetch hosts' data
 
         Returns:
-            hosts: Dictionary of host data
+            hosts: Dictionary of host data or dict of hostname -> URL depending on aatributes parameter
         """
-        print('Get All Hosts')
         data, etag, resp = self._get_url(
             f"domain-types/host_config/collections/all",
             data={"effective_attributes": "true" if effective_attr else "false"}
@@ -199,15 +192,18 @@ class CMKRESTAPI():
         etags = {}
         for hinfo in data.get('value', []):
             if hinfo.get('domainType') == 'link':
-                hostdata, etag, resp = self._get_url(
-                    hinfo['href'],
-                    data={"effective_attributes": "true" if effective_attr else "false"}
-                )
-                if resp.status_code != 200:
-                    resp.raise_for_status()
-                if hostdata.get('domainType') == 'host_config':
-                    hosts[hostdata['id']] = hostdata['extensions']
-                    etags[hostdata['id']] = etag
+                if attributes:
+                    hostdata, etag, resp = self._get_url(
+                        hinfo['href'],
+                        data={"effective_attributes": "true" if effective_attr else "false"}
+                    )
+                    if resp.status_code != 200:
+                        resp.raise_for_status()
+                    if hostdata.get('domainType') == 'host_config':
+                        hosts[hostdata['id']] = hostdata['extensions']
+                        etags[hostdata['id']] = etag
+                else:
+                    hosts[hinfo['title']] = hinfo['href']
         return hosts, etags
 
     def delete_host(self, hostname, etag=None):
@@ -222,7 +218,6 @@ class CMKRESTAPI():
             data: host's data
             etag: current etag value
         """
-        print(f'Delete Host {hostname}')
         if not etag:
             hostdata, etag = self.get_host(hostname)
         data, etag, resp = self._delete_url(
@@ -248,7 +243,6 @@ class CMKRESTAPI():
             data: host's data
             etag: current etag value
         """
-        print(f'Edit Host {hostname}')
         if not etag:
             hostdata, etag = self.get_host(hostname)
         data, etag, resp = self._put_url(
@@ -275,7 +269,6 @@ class CMKRESTAPI():
             data: discovery data
             etag: current etag value
         """
-        print(f'Discover Host {hostname}')
         data, etag, resp = self._post_url(
             f"objects/host/{hostname}/actions/discover-services/mode/tabula-rasa"
         )
@@ -287,10 +280,9 @@ class CMKRESTAPI():
         code = 302
         while code == 302:
             time.sleep(1)
-            print("Calling link %s" % uri)
             data, etag, resp = self._get_url(uri)
             code = resp.status_code
-        return resp
+        return data, etag, resp
 
     def activate(self, sites=[]):
         """Activates pending changes
@@ -301,13 +293,10 @@ class CMKRESTAPI():
         Returns:
             (data, etag): usually both empty
         """
-        print('Activate Changes')
+        postdata = { 'redirect': False, 'sites': sites, 'force_foreign_changes': False }
         data, etag, resp = self._post_url(
             "domain-types/activation_run/actions/activate-changes/invoke",
-            data={
-                'redirect': False,
-                'sites': sites
-            },
+            data=postdata,
         )
         if resp.status_code == 200:
             return data, etag
@@ -315,9 +304,9 @@ class CMKRESTAPI():
             if data.get('domainType') == 'activation_run':
                 for link in data.get('links', []):
                     if link.get('rel') == 'urn:com.checkmk:rels/wait-for-completion':
-                        r = self._wait_for_activation(link.get('href'))
+                        d, e, r = self._wait_for_activation(link.get('href'))
                         if r.status_code == 204:
-                            return {}, None
+                            return d, e
                         r.raise_for_status()
         resp.raise_for_status()
 
@@ -327,7 +316,6 @@ class CMKRESTAPI():
         Returns:
             (data, etag): usually both empty
         """
-        print('Bake Agents')
         data, etag, resp = self._post_url(
             "domain-types/agent/actions/bake",
         )
@@ -336,7 +324,6 @@ class CMKRESTAPI():
         resp.raise_for_status()
 
     # def download_agent(self, hostname, ostype):
-    #     print('Download Agent')
     #     data, etag, resp = self._get_url(
     #         "objects/agent/ed81f94eb95181ca",
     #         data={
@@ -362,7 +349,6 @@ class CMKRESTAPI():
         Returns:
             (data, etag): usually empty
         """
-        print('Setting Downtime')
         if services:
             if not isinstance(services, list):
                 services = [ services ]
@@ -402,7 +388,6 @@ class CMKRESTAPI():
         Returns:
             (data, etag): usually empty
         """
-        print('Removing Downtime')
         params={
             'delete_type': 'params',
             'hostname':    hostname,
