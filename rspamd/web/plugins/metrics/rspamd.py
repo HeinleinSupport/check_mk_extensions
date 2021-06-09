@@ -84,7 +84,7 @@ graph_info["rspamd_ham_spam"] = {
                  ( 'rspamd_spam_count_rate', 'stack' ),
                  ( 'rspamd_scanned_rate', 'line' ),
                ],
-    })
+    }
 
 graph_info["rspamd_actions"] = {
     'title': _('Rspamd Actions'),
@@ -96,4 +96,4 @@ graph_info["rspamd_actions"] = {
                  ( 'rspamd_actions_add_header_rate', 'stack' ),
                  ( 'rspamd_scanned_rate', 'line' ),
                ],
-    })
+    }
