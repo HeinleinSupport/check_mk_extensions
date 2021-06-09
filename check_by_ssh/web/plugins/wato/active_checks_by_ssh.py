@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 # -*- encoding: utf-8; py-indent-offset: 4 -*-
 
 #
@@ -17,13 +17,29 @@
 # to the Free Software Foundation, Inc., 51 Franklin St,  Fifth Floor,
 # Boston, MA 02110-1301 USA.
 
-group = "activechecks"
+from cmk.gui.i18n import _
+from cmk.gui.valuespec import (
+    Dictionary,
+    Tuple,
+    Integer,
+    TextAscii,
+    Alternative,
+    Transform,
+)
 
-register_rule(group,
-    "active_checks:by_ssh",
-    Tuple(
-        title = _("Check via SSH service"),
-        help = _("Checks via SSH. "),
+from cmk.gui.plugins.wato import (
+    rulespec_registry,
+    HostRulespec,
+)
+
+from cmk.gui.plugins.wato.active_checks import (
+    RulespecGroupIntegrateOtherServices,
+)
+
+def _valuespec_active_checks_by_ssh():
+    return Tuple(
+        title = _("Check via SSH"),
+        help = _("Execute classical Nagios plugins via SSH."),
         elements = [
             TextAscii(
                 title = _("Command"),
@@ -91,6 +107,13 @@ register_rule(group,
                     ]
                 )
             ]
-        ),
-    match = 'all')
+        )
+
+rulespec_registry.register(
+    HostRulespec(
+        group=RulespecGroupIntegrateOtherServices,
+        match_type="all",
+        name="active_checks:by_ssh",
+        valuespec=_valuespec_active_checks_by_ssh,
+    ))
 
