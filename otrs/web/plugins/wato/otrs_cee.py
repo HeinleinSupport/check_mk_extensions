@@ -1,11 +1,24 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 # -*- encoding: utf-8; py-indent-offset: 4 -*-
 
-group = "agents/" + _("Agent Plugins")
+from cmk.gui.i18n import _
+from cmk.gui.plugins.wato import (
+    HostRulespec,
+    rulespec_registry,
+)
+from cmk.gui.cee.plugins.wato.agent_bakery.rulespecs.utils import RulespecGroupMonitoringAgentsAgentPlugins
+from cmk.gui.valuespec import (
+    Age,
+    Alternative,
+    Dictionary,
+    FixedValue,
+    Integer,
+    Password,
+    TextAscii,
+)
 
-register_rule(group,
-    "agent_config:otrs",
-    Alternative(
+def _valuespec_agent_config_otrs():
+    return Alternative(
         title = _("OTRS (Linux)"),
         help = _("This ruleset will deploy the agent plugin <tt>check_otrs.py</tt>."),
         style = "dropdown",
@@ -31,8 +44,8 @@ register_rule(group,
                           Dictionary(
                               optional_keys = False,
                               elements = [
-                                  ( 'name', TextAscii(title=_("Queue name"), allow_empty=False, optional_key=False) ),
-                                  ( 'id', Integer(title=_("Queue ID"), allow_empty=False) ),
+                                  ( 'name', TextAscii(title=_("Queue name"), allow_empty=False) ),
+                                  ( 'id', Integer(title=_("Queue ID")) ),
                                   ( 'types', TextAscii(title=_('Ticket state for this queue'), default_value="1 4 6 13") ),
                               ]
                           ),
@@ -45,5 +58,10 @@ register_rule(group,
             FixedValue(None, title = _("Do not deploy the OTRS plugin"), totext = _("disabled")),
         ]
     )
-)
 
+rulespec_registry.register(
+     HostRulespec(
+         group=RulespecGroupMonitoringAgentsAgentPlugins,
+         name="agent_config:otrs",
+         valuespec=_valuespec_agent_config_otrs,
+     ))

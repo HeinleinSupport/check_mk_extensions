@@ -1,4 +1,4 @@
-#!/usr/bin/env python3
+#!/usr/bin/env python2
 # -*- encoding: utf-8; py-indent-offset: 4 -*-
 
 # (c) 2015 Heinlein Support GmbH
@@ -15,11 +15,11 @@
 # to the Free Software Foundation, Inc., 51 Franklin St,  Fifth Floor,
 # Boston, MA 02110-1301 USA.
 
-from configparser import ConfigParser
-from mysql.connector.connection import MySQLConnection
+import ConfigParser
+import MySQLdb
 import os
 
-cfg = ConfigParser()
+cfg = ConfigParser.SafeConfigParser()
 # make option names case sensitive
 # http://docs.python.org/library/configparser.html#ConfigParser.RawConfigParser.optionxform
 cfg.optionxform = str
@@ -28,12 +28,7 @@ cfgdir = os.environ.get('MK_CONFDIR', '/etc/check_mk')
 cfg.read(os.path.join(cfgdir, 'otrs.cfg'))
 defaults = cfg.defaults()
 
-db = MySQLConnection(
-    host=defaults['dbhost'],
-    user=defaults['dbuser'],
-    password=defaults['dbpass'],
-    database=defaults['dbname']
-)
+db = MySQLdb.connect(defaults['dbhost'], defaults['dbuser'], defaults['dbpass'], defaults['dbname'])
 cur = db.cursor()
 
 # fetch state names
@@ -43,7 +38,7 @@ rows = cur.fetchall()
 for row in rows:
     ticket_state[row[0]] = row[1]
 
-print('<<<otrs>>>')
+print '<<<otrs>>>'
 
 for section in cfg.sections():
     queuename = section.replace(' ', '_')
@@ -53,12 +48,12 @@ for section in cfg.sections():
             for typeid in types.split():
                 cur.execute("SELECT COUNT(*) FROM `ticket` WHERE `queue_id` = '%s' AND `ticket_state_id` = '%s'" % (cfg.get(section, 'id'), typeid))
                 count = cur.fetchone()[0]
-                print(queuename, typeid, count, ticket_state[int(typeid)])
+                print queuename, typeid, count, ticket_state[int(typeid)]
         else:
             cur.execute("SELECT COUNT(*) FROM `ticket` WHERE `queue_id` = '%s'" % (cfg.get(section, 'id')))
             count = cur.fetchone()[0]
-            print(queuename, 0, count, 'all')
+            print queuename, 0, count, 'all'
     else:
         cur.execute("SELECT COUNT(*) FROM `ticket` WHERE `queue_id` = '%s'" % (cfg.get(section, 'id')))
         count = cur.fetchone()[0]
-        print(queuename, 0, count, 'all')
+        print queuename, 0, count, 'all'

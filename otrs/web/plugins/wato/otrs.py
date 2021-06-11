@@ -1,11 +1,26 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 # -*- encoding: utf-8; py-indent-offset: 4 -*-
 
-register_check_parameters(
-    subgroup_applications,
-    "otrs",
-    _("OTRS Queues"),
-    Dictionary(
+from cmk.gui.i18n import _
+from cmk.gui.valuespec import (
+    Dictionary,
+    Tuple,
+    Levels,
+    ListOfStrings,
+    TextAscii,
+)
+
+from cmk.gui.plugins.wato import (
+    rulespec_registry,
+    CheckParameterRulespecWithItem,
+    RulespecGroupCheckParametersApplications,
+)
+
+def _item_spec_otrs():
+    return TextAscii(title = _('OTRS Queue Name'))
+
+def _parameter_valuespec_otrs():
+    return Dictionary(
         title = _('Number of Tickets in Queue'),
         help = _('Count the number of tickets in a queue based on their state.'),
         elements = [
@@ -29,8 +44,14 @@ register_check_parameters(
             )),
         ],
         optional_keys = None,
-    ),
-    TextAscii(title = _('OTRS Queue Name')),
-    match_type = "dict",
-)
+    )
 
+rulespec_registry.register(
+    CheckParameterRulespecWithItem(
+        check_group_name="otrs",
+        group=RulespecGroupCheckParametersApplications,
+        item_spec=_item_spec_otrs,
+        match_type="dict",
+        parameter_valuespec=_parameter_valuespec_otrs,
+        title=lambda: _("OTRS Queues"),
+    ))
