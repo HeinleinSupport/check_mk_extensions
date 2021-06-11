@@ -5,7 +5,6 @@ from cmk.gui.i18n import _
 from cmk.gui.valuespec import (
     Dictionary,
     Tuple,
-    Levels,
     ListOfStrings,
     TextAscii,
 )
@@ -13,6 +12,7 @@ from cmk.gui.valuespec import (
 from cmk.gui.plugins.wato import (
     rulespec_registry,
     CheckParameterRulespecWithItem,
+    Levels,
     RulespecGroupCheckParametersApplications,
 )
 
