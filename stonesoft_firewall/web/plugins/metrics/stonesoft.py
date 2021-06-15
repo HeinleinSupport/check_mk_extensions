@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 # -*- encoding: utf-8; py-indent-offset: 4 -*-
 
 #
@@ -17,6 +17,6 @@
 # to the Free Software Foundation, Inc., 51 Franklin St,  Fifth Floor,
 # Boston, MA 02110-1301 USA.
 
-from cmk.gui.plugins.metrics.check_mk import df_translation
+from cmk.gui.plugins.metrics.translation import df_translation
 
 check_metrics["check_mk-stonesoft_firewall_partition"] = df_translation
