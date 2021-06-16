@@ -1,4 +1,4 @@
-#!/usr/bin/python
+#!/usr/bin/env python3
 # -*- encoding: utf-8; py-indent-offset: 4 -*-
 
 #
@@ -82,66 +82,66 @@ def check_wagner_racksens2(_no_item, _no_params, parsed):
     for key, value in parsed.get(u'info', []):
         yield 0, "%s: %s" % (key, value)
 
-check_info['wagner_racksens2'] = {
-    "parse_function": parse_wagner_racksens2,
-    "inventory_function": inventory_wagner_racksens2,
-    "check_function": check_wagner_racksens2,
-    "service_description": "Racksens2 Info",
-    "snmp_info": [ (".1.3.6.1.4.1.34187.57949.1.1", [ "1",      # RACKSENS2-MIB::rsManufacturer              0
-                                                      "2",      # RACKSENS2-MIB::rsUnitName                  1
-                                                      "3",      # RACKSENS2-MIB::rsUnitVersion               2
-                                                      "1000",   # RACKSENS2-MIB::pswExtinguishing            3
-                                                      "1001",   # RACKSENS2-MIB::pswCutOffActive             4
-                                                      "1002",   # RACKSENS2-MIB::pswManualActivation         5
-                                                      "1003",   # RACKSENS2-MIB::pswMainAlarmD1              6
-                                                      "1004",   # RACKSENS2-MIB::pswMainAlarmD2              7
-                                                      "1005",   # RACKSENS2-MIB::pswPreAlarmD1               8
-                                                      "1006",   # RACKSENS2-MIB::pswPreAlarmD2               9
-                                                      "1007",   # RACKSENS2-MIB::pswTemperatureAlarm1       10
-                                                      "1008",   # RACKSENS2-MIB::pswTemperatureAlarm2       11
-                                                      "1009",   # RACKSENS2-MIB::pswTemperatureAlarm3       12
-                                                      "1010",   # RACKSENS2-MIB::pswTemperatureAlarm4       13
-                                                      "1011",   # RACKSENS2-MIB::pswTemperatureAlarm5       14
-                                                      "1012",   # RACKSENS2-MIB::pswFailure                 15
-                                                      "1013",   # RACKSENS2-MIB::pswServiceOrBlocked        16
-                                                      "1014",   # RACKSENS2-MIB::pswDoorState               17
-                                                      "1015",   # RACKSENS2-MIB::pswUnitMainAlarm           18
-                                                     ]),
-                   (".1.3.6.1.4.1.34187.57949.2.1", [ "24577",  # RACKSENS2-MIB::rsUnitSerialNumber          0
-                                                      "24578",  # RACKSENS2-MIB::rsDetector1SerialNumber     1
-                                                      "24579",  # RACKSENS2-MIB::rsDetector2SerialNumber     2
-                                                      "245800000",  # RACKSENS2-MIB::rsTemperature1String    3
-                                                      "245810000",  # RACKSENS2-MIB::rsTemperature2String    4
-                                                      "245820000",  # RACKSENS2-MIB::rsTemperature3String    5
-                                                      "245830000",  # RACKSENS2-MIB::rsTemperature4String    6
-                                                      "245840000",  # RACKSENS2-MIB::rsTemperature5String    7
-                                                      "245850000",  # RACKSENS2-MIB::rsAirTemperatureString  8
-                                                      "245860000",  # RACKSENS2-MIB::rsAirFlowSpeedString    9
-                                                      "245940000",  # RACKSENS2-MIB::rsSmokeLevel1String    10
-                                                      "245990000",  # RACKSENS2-MIB::rsSmokeLevel2String    11
-                                                      "246050000",  # RACKSENS2-MIB::rsSensibility1String   12
-                                                      "246060000",  # RACKSENS2-MIB::rsSensibility2String   13
-                                                      "246070000",  # RACKSENS2-MIB::rsAlarmTemp1String     14
-                                                      "246080000",  # RACKSENS2-MIB::rsAlarmTemp2String     15
-                                                      "246090000",  # RACKSENS2-MIB::rsAlarmTemp3String     16
-                                                      "246100000",  # RACKSENS2-MIB::rsAlarmTemp4String     17
-                                                      "246110000",  # RACKSENS2-MIB::rsAlarmTemp5String     18
-                                                      "246120000",  # RACKSENS2-MIB::rsFanVoltageString     19
-                                                      "246260000",  # RACKSENS2-MIB::rsFlowReferenceString  20
-                                                      "24595",  # RACKSENS2-MIB::rsChamberState1            21
-                                                      "24600",  # RACKSENS2-MIB::rsChamberState2            22
-                                                      "24590037", # RACKSENS2-MIB::rsTempSensor1Registrated 23
-                                                      "24590038", # RACKSENS2-MIB::rsTempSensor2Registrated 24
-                                                      "24590039", # RACKSENS2-MIB::rsTempSensor3Registrated 25
-                                                      "24590040", # RACKSENS2-MIB::rsTempSensor4Registrated 26
-                                                      "24590041", # RACKSENS2-MIB::rsTempSensor5Registrated 27
-                                                      "24587",  # RACKSENS2-MIB::rsAirFlowdeviation         28
-                                                      "24602",  # RACKSENS2-MIB::rsAirFlowFailureThreshold  29
-                                                      "24590042", # RACKSENS2-MIB::rsAirFlowControlAvailable 30
-                                                     ]),
-                   ],
-    "snmp_scan_function": lambda oid: oid(".1.3.6.1.2.1.1.2.0") == ".1.3.6.1.4.1.34187.57949",
-}
+# check_info['wagner_racksens2'] = {
+#     "parse_function": parse_wagner_racksens2,
+#     "inventory_function": inventory_wagner_racksens2,
+#     "check_function": check_wagner_racksens2,
+#     "service_description": "Racksens2 Info",
+#     "snmp_info": [ (".1.3.6.1.4.1.34187.57949.1.1", [ "1",      # RACKSENS2-MIB::rsManufacturer              0
+#                                                       "2",      # RACKSENS2-MIB::rsUnitName                  1
+#                                                       "3",      # RACKSENS2-MIB::rsUnitVersion               2
+#                                                       "1000",   # RACKSENS2-MIB::pswExtinguishing            3
+#                                                       "1001",   # RACKSENS2-MIB::pswCutOffActive             4
+#                                                       "1002",   # RACKSENS2-MIB::pswManualActivation         5
+#                                                       "1003",   # RACKSENS2-MIB::pswMainAlarmD1              6
+#                                                       "1004",   # RACKSENS2-MIB::pswMainAlarmD2              7
+#                                                       "1005",   # RACKSENS2-MIB::pswPreAlarmD1               8
+#                                                       "1006",   # RACKSENS2-MIB::pswPreAlarmD2               9
+#                                                       "1007",   # RACKSENS2-MIB::pswTemperatureAlarm1       10
+#                                                       "1008",   # RACKSENS2-MIB::pswTemperatureAlarm2       11
+#                                                       "1009",   # RACKSENS2-MIB::pswTemperatureAlarm3       12
+#                                                       "1010",   # RACKSENS2-MIB::pswTemperatureAlarm4       13
+#                                                       "1011",   # RACKSENS2-MIB::pswTemperatureAlarm5       14
+#                                                       "1012",   # RACKSENS2-MIB::pswFailure                 15
+#                                                       "1013",   # RACKSENS2-MIB::pswServiceOrBlocked        16
+#                                                       "1014",   # RACKSENS2-MIB::pswDoorState               17
+#                                                       "1015",   # RACKSENS2-MIB::pswUnitMainAlarm           18
+#                                                      ]),
+#                    (".1.3.6.1.4.1.34187.57949.2.1", [ "24577",  # RACKSENS2-MIB::rsUnitSerialNumber          0
+#                                                       "24578",  # RACKSENS2-MIB::rsDetector1SerialNumber     1
+#                                                       "24579",  # RACKSENS2-MIB::rsDetector2SerialNumber     2
+#                                                       "245800000",  # RACKSENS2-MIB::rsTemperature1String    3
+#                                                       "245810000",  # RACKSENS2-MIB::rsTemperature2String    4
+#                                                       "245820000",  # RACKSENS2-MIB::rsTemperature3String    5
+#                                                       "245830000",  # RACKSENS2-MIB::rsTemperature4String    6
+#                                                       "245840000",  # RACKSENS2-MIB::rsTemperature5String    7
+#                                                       "245850000",  # RACKSENS2-MIB::rsAirTemperatureString  8
+#                                                       "245860000",  # RACKSENS2-MIB::rsAirFlowSpeedString    9
+#                                                       "245940000",  # RACKSENS2-MIB::rsSmokeLevel1String    10
+#                                                       "245990000",  # RACKSENS2-MIB::rsSmokeLevel2String    11
+#                                                       "246050000",  # RACKSENS2-MIB::rsSensibility1String   12
+#                                                       "246060000",  # RACKSENS2-MIB::rsSensibility2String   13
+#                                                       "246070000",  # RACKSENS2-MIB::rsAlarmTemp1String     14
+#                                                       "246080000",  # RACKSENS2-MIB::rsAlarmTemp2String     15
+#                                                       "246090000",  # RACKSENS2-MIB::rsAlarmTemp3String     16
+#                                                       "246100000",  # RACKSENS2-MIB::rsAlarmTemp4String     17
+#                                                       "246110000",  # RACKSENS2-MIB::rsAlarmTemp5String     18
+#                                                       "246120000",  # RACKSENS2-MIB::rsFanVoltageString     19
+#                                                       "246260000",  # RACKSENS2-MIB::rsFlowReferenceString  20
+#                                                       "24595",  # RACKSENS2-MIB::rsChamberState1            21
+#                                                       "24600",  # RACKSENS2-MIB::rsChamberState2            22
+#                                                       "24590037", # RACKSENS2-MIB::rsTempSensor1Registrated 23
+#                                                       "24590038", # RACKSENS2-MIB::rsTempSensor2Registrated 24
+#                                                       "24590039", # RACKSENS2-MIB::rsTempSensor3Registrated 25
+#                                                       "24590040", # RACKSENS2-MIB::rsTempSensor4Registrated 26
+#                                                       "24590041", # RACKSENS2-MIB::rsTempSensor5Registrated 27
+#                                                       "24587",  # RACKSENS2-MIB::rsAirFlowdeviation         28
+#                                                       "24602",  # RACKSENS2-MIB::rsAirFlowFailureThreshold  29
+#                                                       "24590042", # RACKSENS2-MIB::rsAirFlowControlAvailable 30
+#                                                      ]),
+#                    ],
+#     "snmp_scan_function": lambda oid: oid(".1.3.6.1.2.1.1.2.0") == ".1.3.6.1.4.1.34187.57949",
+# }
 
 #.
 #   .--detector------------------------------------------------------------.
@@ -155,10 +155,10 @@ check_info['wagner_racksens2'] = {
 #   |                                                                      |
 #   '----------------------------------------------------------------------'
 
-factory_settings["wagner_racksens2.detector_defaultlevels"] = {
-    "smoke_levels": (3, 5),
-    "chamber_levels": (10, 20),
-}
+# factory_settings["wagner_racksens2.detector_defaultlevels"] = {
+#     "smoke_levels": (3, 5),
+#     "chamber_levels": (10, 20),
+# }
 
 def inventory_wagner_racksens2_detector(parsed):
     for d in parsed.get(u'detectors', {}).keys():
@@ -189,13 +189,13 @@ def check_wagner_racksens2_detector(item, params, parsed):
                 status = 0
             yield status, u"%d%% chamber deviation" % vals[u'chamber'], [("chamber_perc", vals[u'chamber'], warn, crit)]
 
-check_info['wagner_racksens2.detector'] = {
-    "inventory_function": inventory_wagner_racksens2_detector,
-    "check_function": check_wagner_racksens2_detector,
-    "service_description": "Racksens2 Detector %s",
-    "has_perfdata": True,
-    "default_levels_variable": "wagner_racksens2.detector_defaultlevels",
-    }
+# check_info['wagner_racksens2.detector'] = {
+#     "inventory_function": inventory_wagner_racksens2_detector,
+#     "check_function": check_wagner_racksens2_detector,
+#     "service_description": "Racksens2 Detector %s",
+#     "has_perfdata": True,
+#     "default_levels_variable": "wagner_racksens2.detector_defaultlevels",
+#     }
 
 #.
 #   .--temperature---------------------------------------------------------.
@@ -230,14 +230,14 @@ def check_wagner_racksens2_temp(item, params, parsed):
                     dev_status = temp[3] * 2,
                     dev_status_name = u'Alarm')
 
-check_info['wagner_racksens2.temp'] = {
-    "inventory_function": inventory_wagner_racksens2_temp,
-    "check_function": check_wagner_racksens2_temp,
-    "service_description": "Racksens2 Temp %s",
-    "has_perfdata": True,
-    "group": "temperature",
-    "includes": ["temperature.include"],    
-    }
+# check_info['wagner_racksens2.temp'] = {
+#     "inventory_function": inventory_wagner_racksens2_temp,
+#     "check_function": check_wagner_racksens2_temp,
+#     "service_description": "Racksens2 Temp %s",
+#     "has_perfdata": True,
+#     "group": "temperature",
+#     "includes": ["temperature.include"],    
+#     }
 
 #.
 #   .--alarms--------------------------------------------------------------.
@@ -260,11 +260,11 @@ def check_wagner_racksens2_alarm(item, _no_params, parsed):
         if alarm == item:
             yield status * 2, "Status: %d" % status
 
-check_info['wagner_racksens2.alarm'] = {
-    "inventory_function": inventory_wagner_racksens2_alarm,
-    "check_function": check_wagner_racksens2_alarm,
-    "service_description": "Racksens2 Alarm %s",
-    }
+# check_info['wagner_racksens2.alarm'] = {
+#     "inventory_function": inventory_wagner_racksens2_alarm,
+#     "check_function": check_wagner_racksens2_alarm,
+#     "service_description": "Racksens2 Alarm %s",
+#     }
 
 #.
 #   .--air flow deviation--------------------------------------------------.
@@ -292,9 +292,9 @@ def check_wagner_racksens2_airflow(_no_item, _no_params, parsed):
             state = 2
         yield state, "%d%% deviation" % airflow[2], [ (u'deviation_airflow', airflow[2], None, crit) ]
 
-check_info['wagner_racksens2.airflow'] = {
-    "inventory_function": inventory_wagner_racksens2_airflow,
-    "check_function": check_wagner_racksens2_airflow,
-    "service_description": "Racksens2 Airflow",
-    "has_perfdata": True,
-    }
+# check_info['wagner_racksens2.airflow'] = {
+#     "inventory_function": inventory_wagner_racksens2_airflow,
+#     "check_function": check_wagner_racksens2_airflow,
+#     "service_description": "Racksens2 Airflow",
+#     "has_perfdata": True,
+#     }

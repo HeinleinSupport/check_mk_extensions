@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 # -*- encoding: utf-8; py-indent-offset: 4 -*-
 
 #
@@ -18,7 +18,7 @@
 # Boston, MA 02110-1301 USA.
 
 from cmk.utils.render import physical_precision
-from cmk.gui.plugins.metrics.check_mk import physical_precision_list
+from cmk.gui.plugins.metrics.unit import physical_precision_list
 
 unit_info["m/s"] = {
     "title": _("Meters per second"),
