@@ -63,26 +63,6 @@ from .utils.ups import DETECT_UPS_GENERIC
 from cmk.base.check_legacy_includes.uptime import parse_snmp_uptime
 
 def parse_ups_alarms(string_table):
-    return string_table
-
-register.snmp_section(
-    name="ups_alarms",
-    detect=any_of(
-        DETECT_UPS_GENERIC,
-        contains(".1.3.6.1.2.1.1.2.0", ".1.3.6.1.4.1.318.1.3.27"),
-    ),
-    parse_function=parse_ups_alarms,
-    fetch=SNMPTree(
-        base=".1.3.6.1.2.1.33.1.6.2.1",
-        oids=["2", "3"]
-    ),
-)
-
-def discover_ups_alarms(section_ups_alarms, section_uptime):
-    if section_ups_alarms:
-        yield Service()
-
-def check_ups_alarms(section_ups_alarms, section_uptime):
     transUpsAlarm = { '.1.3.6.1.2.1.33.1.6.3.1': 'Battery Bad',
                       '.1.3.6.1.2.1.33.1.6.3.2': 'On Battery',
                       '.1.3.6.1.2.1.33.1.6.3.3': 'Low Battery',
@@ -108,15 +88,48 @@ def check_ups_alarms(section_ups_alarms, section_uptime):
                       '.1.3.6.1.2.1.33.1.6.3.23': 'Shutdown Imminent',
                       '.1.3.6.1.2.1.33.1.6.3.24': 'Test In Progress',
     }
-    numAlarms = len(section_ups_alarms)
-    if numAlarms > 0:
+    section = {'count': 0}
+
+    if len(string_table) == 2:
+        if len(string_table[0]) == 1:
+            section['count'] = int(string_table[0][0][0])
+        if len(string_table[1]) > 0 and section['count'] > 0:
+            section['alarms'] = []
+            for line in string_table[1]:
+                section['alarms'].append((parse_snmp_uptime(line[1]), transUpsAlarm.get(line[0], 'Unknown')))
+    return section
+
+register.snmp_section(
+    name="ups_alarms",
+    detect=any_of(
+        DETECT_UPS_GENERIC,
+        contains(".1.3.6.1.2.1.1.2.0", ".1.3.6.1.4.1.318.1.3.27"),
+    ),
+    parse_function=parse_ups_alarms,
+    fetch=[
+        SNMPTree(
+            base=".1.3.6.1.2.1.33.1.6",
+            oids=["1.0"]
+        ),
+        SNMPTree(
+            base=".1.3.6.1.2.1.33.1.6.2.1",
+            oids=["2", "3"]
+        ),
+    ],
+)
+
+def discover_ups_alarms(section_ups_alarms, section_uptime):
+    if section_ups_alarms:
+        yield Service()
+
+def check_ups_alarms(section_ups_alarms, section_uptime):
+    if section_ups_alarms['count'] > 0:
         alarms = []
-        for alarm in section_ups_alarms:
-            alarmtime = parse_snmp_uptime(alarm[1])
-            alarms.append("%s (was %s ago)" % (transUpsAlarm.get(alarm[0], alarm[0]),
-                                               render.timespan(section_uptime.uptime_sec - alarmtime)))
+        for alarm in section_ups_alarms['alarms']:
+            alarms.append("%s (was %s ago)" % (alarm[1],
+                                               render.timespan(section_uptime.uptime_sec - alarm[0])))
         yield Result(state=State.CRIT,
-                     summary='%d Alarms found (see long output)' % numAlarms,
+                     summary='%d Alarms found (see long output)' % section_ups_alarms['count'],
                      details="\n".join(alarms))
     else:
         yield Result(state=State.OK,
