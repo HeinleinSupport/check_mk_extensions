@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 # -*- encoding: utf-8; py-indent-offset: 4 -*-
 
 # (c) 2019 Heinlein Support GmbH
@@ -53,17 +53,17 @@ def check_acgateway_ipgroup(item, params, parsed):
             if value != data.get(param):
                 yield 2, '%s is %s(!!)' % (param, data.get(param))
 
-check_info['acgateway_ipgroup'] = {
-    'parse_function'        : parse_acgateway_ipgroup,
-    'inventory_function'    : inventory_acgateway_ipgroup,
-    'check_function'        : check_acgateway_ipgroup,
-    'service_description'   : 'IP Group %s',
-    'has_perfdata'          : False,
-    'snmp_info'             : ( '.1.3.6.1.4.1.5003.9.10.3.1.1.23.21.1', [ '1',  # 0  AcGateway::ipGroupIndex
-                                                                          '2',  # 1  AcGateway::ipGroupRowStatus
-                                                                          '5',  # 2  AcGateway::ipGroupType
-                                                                          '6',  # 3  AcGateway::ipGroupDescription
-                                                                          '31', # 4  AcGateway::ipGroupName
-                                                                        ] ),
-    'snmp_scan_function'    : lambda oid: oid('.1.3.6.1.2.1.1.2.0').startswith('.1.3.6.1.4.1.5003.8.1.1'),
-}
+# check_info['acgateway_ipgroup'] = {
+#     'parse_function'        : parse_acgateway_ipgroup,
+#     'inventory_function'    : inventory_acgateway_ipgroup,
+#     'check_function'        : check_acgateway_ipgroup,
+#     'service_description'   : 'IP Group %s',
+#     'has_perfdata'          : False,
+#     'snmp_info'             : ( '.1.3.6.1.4.1.5003.9.10.3.1.1.23.21.1', [ '1',  # 0  AcGateway::ipGroupIndex
+#                                                                           '2',  # 1  AcGateway::ipGroupRowStatus
+#                                                                           '5',  # 2  AcGateway::ipGroupType
+#                                                                           '6',  # 3  AcGateway::ipGroupDescription
+#                                                                           '31', # 4  AcGateway::ipGroupName
+#                                                                         ] ),
+#     'snmp_scan_function'    : lambda oid: oid('.1.3.6.1.2.1.1.2.0').startswith('.1.3.6.1.4.1.5003.8.1.1'),
+# }

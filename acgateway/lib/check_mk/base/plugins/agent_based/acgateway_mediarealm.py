@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 # -*- encoding: utf-8; py-indent-offset: 4 -*-
 
 # (c) 2019 Heinlein Support GmbH
@@ -84,36 +84,36 @@ def check_acgateway_mediarealm(item, params, parsed):
             if value != data.get(param):
                 yield 2, '%s is %s(!!)' % (param, data.get(param))
 
-check_info['acgateway_mediarealm'] = {
-    'parse_function'        : parse_acgateway_mediarealm,
-    'inventory_function'    : inventory_acgateway_mediarealm,
-    'check_function'        : check_acgateway_mediarealm,
-    'service_description'   : 'Media Realm %s',
-    'has_perfdata'          : False,
-    'snmp_info'             : [ ( '.1.3.6.1.4.1.5003.9.10.5.1.1.6.21.1', [ '2',  # 0  AC-CONTROL-MIB::acCPMediaRealmRowStatus
-                                                                            '5',  # 1  AC-CONTROL-MIB::acCPMediaRealmName
-                                                                            '6',  # 2  AC-CONTROL-MIB::acCPMediaRealmIPv4If
-                                                                            '8',  # 3  AC-CONTROL-MIB::acCPMediaRealmPortRangeStart
-                                                                            '10', # 4  AC-CONTROL-MIB::acCPMediaRealmPortRangeEnd
-                                                                          ] ),
-                                ( '.1.3.6.1.4.1.5003.9.10.10.1.3.1.30.22.1', [ '2',  # 0  AC-SYSTEM-MIB::acSysInterfaceRowStatus
-                                                                               '5',  # 1  AC-SYSTEM-MIB::acSysInterfaceApplicationTypes
-                                                                               '6',  # 2  AC-SYSTEM-MIB::acSysInterfaceMode
-                                                                               '7',  # 3  AC-SYSTEM-MIB::acSysInterfaceIPAddress
-                                                                               '8',  # 4  AC-SYSTEM-MIB::acSysInterfacePrefixLength
-                                                                               '9',  # 5  AC-SYSTEM-MIB::acSysInterfaceGateway
-                                                                               '10', # 6  AC-SYSTEM-MIB::acSysInterfaceVlanID
-                                                                               '11', # 7  AC-SYSTEM-MIB::acSysInterfaceName
-                                                                               '12', # 8  AC-SYSTEM-MIB::acSysInterfacePrimaryDNSServerIPAddress
-                                                                               '13', # 9  AC-SYSTEM-MIB::acSysInterfaceSecondaryDNSServerIPAddress
-                                                                               '14', # 10 AC-SYSTEM-MIB::acSysInterfaceUnderlyingInterface
-                                                                               '15', # 11 AC-SYSTEM-MIB::acSysInterfaceUnderlyingDevice
-                                                                            ] ),
-                                ( '.1.3.6.1.4.1.5003.9.10.10.1.3.1.30.26.1', [ '2',  # 0  AC-SYSTEM-MIB::acSysEthernetDeviceRowStatus
-                                                                               '3',  # 1  AC-SYSTEM-MIB::acSysEthernetDeviceAction
-                                                                               '4',  # 2  AC-SYSTEM-MIB::acSysEthernetDeviceActionRes
-                                                                               '5',  # 3  AC-SYSTEM-MIB::acSysEthernetDeviceVlanID
-                                                                               '7',  # 4  AC-SYSTEM-MIB::acSysEthernetDeviceName
-                                                                            ] ) ],
-    'snmp_scan_function'    : lambda oid: oid('.1.3.6.1.2.1.1.2.0').startswith('.1.3.6.1.4.1.5003.8.1.1'),
-}
+# check_info['acgateway_mediarealm'] = {
+#     'parse_function'        : parse_acgateway_mediarealm,
+#     'inventory_function'    : inventory_acgateway_mediarealm,
+#     'check_function'        : check_acgateway_mediarealm,
+#     'service_description'   : 'Media Realm %s',
+#     'has_perfdata'          : False,
+#     'snmp_info'             : [ ( '.1.3.6.1.4.1.5003.9.10.5.1.1.6.21.1', [ '2',  # 0  AC-CONTROL-MIB::acCPMediaRealmRowStatus
+#                                                                             '5',  # 1  AC-CONTROL-MIB::acCPMediaRealmName
+#                                                                             '6',  # 2  AC-CONTROL-MIB::acCPMediaRealmIPv4If
+#                                                                             '8',  # 3  AC-CONTROL-MIB::acCPMediaRealmPortRangeStart
+#                                                                             '10', # 4  AC-CONTROL-MIB::acCPMediaRealmPortRangeEnd
+#                                                                           ] ),
+#                                 ( '.1.3.6.1.4.1.5003.9.10.10.1.3.1.30.22.1', [ '2',  # 0  AC-SYSTEM-MIB::acSysInterfaceRowStatus
+#                                                                                '5',  # 1  AC-SYSTEM-MIB::acSysInterfaceApplicationTypes
+#                                                                                '6',  # 2  AC-SYSTEM-MIB::acSysInterfaceMode
+#                                                                                '7',  # 3  AC-SYSTEM-MIB::acSysInterfaceIPAddress
+#                                                                                '8',  # 4  AC-SYSTEM-MIB::acSysInterfacePrefixLength
+#                                                                                '9',  # 5  AC-SYSTEM-MIB::acSysInterfaceGateway
+#                                                                                '10', # 6  AC-SYSTEM-MIB::acSysInterfaceVlanID
+#                                                                                '11', # 7  AC-SYSTEM-MIB::acSysInterfaceName
+#                                                                                '12', # 8  AC-SYSTEM-MIB::acSysInterfacePrimaryDNSServerIPAddress
+#                                                                                '13', # 9  AC-SYSTEM-MIB::acSysInterfaceSecondaryDNSServerIPAddress
+#                                                                                '14', # 10 AC-SYSTEM-MIB::acSysInterfaceUnderlyingInterface
+#                                                                                '15', # 11 AC-SYSTEM-MIB::acSysInterfaceUnderlyingDevice
+#                                                                             ] ),
+#                                 ( '.1.3.6.1.4.1.5003.9.10.10.1.3.1.30.26.1', [ '2',  # 0  AC-SYSTEM-MIB::acSysEthernetDeviceRowStatus
+#                                                                                '3',  # 1  AC-SYSTEM-MIB::acSysEthernetDeviceAction
+#                                                                                '4',  # 2  AC-SYSTEM-MIB::acSysEthernetDeviceActionRes
+#                                                                                '5',  # 3  AC-SYSTEM-MIB::acSysEthernetDeviceVlanID
+#                                                                                '7',  # 4  AC-SYSTEM-MIB::acSysEthernetDeviceName
+#                                                                             ] ) ],
+#     'snmp_scan_function'    : lambda oid: oid('.1.3.6.1.2.1.1.2.0').startswith('.1.3.6.1.4.1.5003.8.1.1'),
+# }

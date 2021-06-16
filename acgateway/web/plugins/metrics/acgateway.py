@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 # -*- encoding: utf-8; py-indent-offset: 4 -*-
 
 #
@@ -37,7 +37,7 @@ for idx, prefix in enumerate([ 'tel2ip', 'ip2tel' ]):
     switch = ''
     if idx % 2:
         switch = '-'
-    for key, info in _acgateway_sipperf_info.iteritems():
+    for key, info in _acgateway_sipperf_info.items():
         metric_name = '%s_%s' % (prefix, info[0])
         if key == 9:
             metric_info[metric_name] = {
