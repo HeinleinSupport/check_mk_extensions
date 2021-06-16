@@ -115,7 +115,9 @@ def _parameter_valuespec_lancom_xdsl():
                  Age(title=_("Critical at")),
              ],
          )),
-    ],)
+    ],
+    ignored_keys = [ 'discovered' ],
+    )
 
 
 rulespec_registry.register(
