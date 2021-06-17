@@ -69,6 +69,7 @@ def _parameter_valuespec_apcaccess():
                 ],
             )),
         ],
+        ignored_keys = ["upsname", "model"],
     )
 
 def _item_spec_apcaccess():
