@@ -16,11 +16,66 @@
 # to the Free Software Foundation, Inc., 51 Franklin St,  Fifth Floor,
 # Boston, MA 02110-1301 USA.
 
-def inventory_acgateway_sipperf(info):
-    if len(info) == 2:
-        yield None, {}
+from .agent_based_api.v1 import (
+    contains,
+    get_rate,
+    get_value_store,
+    register,
+    render,
+    Metric,
+    OIDEnd,
+    Result,
+    Service,
+    SNMPTree,
+    State,
+)
 
-def check_acgateway_sipperf(_no_item, params, info):
+import time
+
+def parse_acgateway_sipperf(string_table):
+    return string_table
+
+register.snmp_section(
+    name="acgateway_sipperf",
+    detect=contains(".1.3.6.1.2.1.1.2.0", ".1.3.6.1.4.1.5003.8.1.1"),
+    parse_function=parse_acgateway_sipperf,
+    fetch=[
+        SNMPTree(
+            base='.1.3.6.1.4.1.5003.10.3.1.1.1',
+            oids=[
+                '1.0',  # AcPerfH323SIPGateway::acPerfTel2IPAttemptedCalls
+                '2.0',  # AcPerfH323SIPGateway::acPerfTel2IPEstablishedCalls
+                '3.0',  # AcPerfH323SIPGateway::acPerfTel2IPBusyCalls
+                '4.0',  # AcPerfH323SIPGateway::acPerfTel2IPNoAnswerCalls
+                '5.0',  # AcPerfH323SIPGateway::acPerfTel2IPNoRouteCalls
+                '6.0',  # AcPerfH323SIPGateway::acPerfTel2IPNoMatchCalls
+                '7.0',  # AcPerfH323SIPGateway::acPerfTel2IPFailCalls
+                '8.0',  # AcPerfH323SIPGateway::acPerfTel2IPFaxAttemptedCalls
+                '9.0',  # AcPerfH323SIPGateway::acPerfTel2IPFaxSuccessCalls
+                '10.0', # AcPerfH323SIPGateway::acPerfTel2IPTotalDuration
+            ]),
+        SNMPTree(
+            base='.1.3.6.1.4.1.5003.10.3.1.1.2',
+            oids=[
+                '1.0',  # AcPerfH323SIPGateway::acPerfIP2TelAttemptedCalls
+                '2.0',  # AcPerfH323SIPGateway::acPerfIP2TelEstablishedCalls
+                '3.0',  # AcPerfH323SIPGateway::acPerfIP2TelBusyCalls
+                '4.0',  # AcPerfH323SIPGateway::acPerfIP2TelNoAnswerCalls
+                '5.0',  # AcPerfH323SIPGateway::acPerfIP2TelNoRouteCalls
+                '6.0',  # AcPerfH323SIPGateway::acPerfIP2TelNoMatchCalls
+                '7.0',  # AcPerfH323SIPGateway::acPerfIP2TelFailCalls
+                '8.0',  # AcPerfH323SIPGateway::acPerfIP2TelFaxAttemptedCalls
+                '9.0',  # AcPerfH323SIPGateway::acPerfIP2TelFaxSuccessCalls
+                '10.0', # AcPerfH323SIPGateway::acPerfIP2TelTotalDuration
+            ]),
+    ],
+)
+
+def discover_acgateway_sipperf(section):
+    if len(section) == 2:
+        yield Service()
+
+def check_acgateway_sipperf(section):
     sipperf_info = {
         0:  ("sip_calls_attempted", "Number of Attempted SIP/H323 calls"),
         1:  ("sip_calls_established", "Number of established (connected and voice activated) SIP/H323 calls"),
@@ -33,51 +88,36 @@ def check_acgateway_sipperf(_no_item, params, info):
         8:  ("sip_fax_success", "Number of SIP/H323 fax success calls"),
         9:  ("sip_total_duration", "total duration of SIP/H323 calls"),
         }
-    if len(info) == 2:
+    if len(section) == 2:
+        vs = get_value_store()
+        this_time = time.time()
         # Tel2IP
         this_time = time.time()
-        for key, value in enumerate(info[0][0]):
+        for key, value in enumerate(section[0][0]):
             if key == 9:
-                yield 0, "Tel2IP %s: %d" % (sipperf_info[key][1], saveint(value)), [ ( 'tel2ip_%s' % sipperf_info[key][0], saveint(value) ) ]
+                yield Result(state=State.OK,
+                             summary="Tel2IP %s: %d" % (sipperf_info[key][1], int(value)))
+                yield Metric('tel2ip_%s' % sipperf_info[key][0], int(value))
             else:
-                rate = get_rate('acgateway_sipperf.tel2ip_%s' % sipperf_info[key][0], this_time, saveint(value))
-                yield 0, "Tel2IP %s: %0.1f/s" % (sipperf_info[key][1], rate), [ ( 'tel2ip_%s' % sipperf_info[key][0], rate ) ]
+                rate = get_rate(vs, 'acgateway_sipperf.tel2ip_%s' % sipperf_info[key][0], this_time, int(value))
+                yield Result(state=State.OK,
+                             summary="Tel2IP %s: %0.1f/s" % (sipperf_info[key][1], rate))
+                yield Metric('tel2ip_%s' % sipperf_info[key][0], rate)
         # IP2Tel
-        for key, value in enumerate(info[1][0]):
+        for key, value in enumerate(section[1][0]):
             if key == 9:
-                yield 0, "IP2Tel %s: %d" % (sipperf_info[key][1], saveint(value)), [ ( 'ip2tel_%s' % sipperf_info[key][0], saveint(value) ) ]
+                yield Result(state=State.OK,
+                             summary="IP2Tel %s: %d" % (sipperf_info[key][1], int(value)))
+                yield Metric('ip2tel_%s' % sipperf_info[key][0], int(value))
             else:
-                rate = get_rate('acgateway_sipperf.ip2tel_%s' % sipperf_info[key][0], this_time, saveint(value))
-                yield 0, "IP2Tel %s: %0.1f/s" % (sipperf_info[key][1], rate), [ ( 'ip2tel_%s' % sipperf_info[key][0], rate ) ]
+                rate = get_rate(vs, 'acgateway_sipperf.ip2tel_%s' % sipperf_info[key][0], this_time, int(value))
+                yield Result(state=State.OK,
+                             summary="IP2Tel %s: %0.1f/s" % (sipperf_info[key][1], rate))
+                yield Metric('ip2tel_%s' % sipperf_info[key][0], rate)
 
-# check_info['acgateway_sipperf'] = {
-#     'inventory_function'    : inventory_acgateway_sipperf,
-#     'check_function'        : check_acgateway_sipperf,
-#     'service_description'   : 'SIP Performance',
-#     'has_perfdata'          : True,
-#     'snmp_info'             : [ ( '.1.3.6.1.4.1.5003.10.3.1.1.1', [
-#         '1.0',  # AcPerfH323SIPGateway::acPerfTel2IPAttemptedCalls
-#         '2.0',  # AcPerfH323SIPGateway::acPerfTel2IPEstablishedCalls
-#         '3.0',  # AcPerfH323SIPGateway::acPerfTel2IPBusyCalls
-#         '4.0',  # AcPerfH323SIPGateway::acPerfTel2IPNoAnswerCalls
-#         '5.0',  # AcPerfH323SIPGateway::acPerfTel2IPNoRouteCalls
-#         '6.0',  # AcPerfH323SIPGateway::acPerfTel2IPNoMatchCalls
-#         '7.0',  # AcPerfH323SIPGateway::acPerfTel2IPFailCalls
-#         '8.0',  # AcPerfH323SIPGateway::acPerfTel2IPFaxAttemptedCalls
-#         '9.0',  # AcPerfH323SIPGateway::acPerfTel2IPFaxSuccessCalls
-#         '10.0', # AcPerfH323SIPGateway::acPerfTel2IPTotalDuration
-#         ] ),
-#                                 ( '.1.3.6.1.4.1.5003.10.3.1.1.2', [
-#         '1.0',  # AcPerfH323SIPGateway::acPerfIP2TelAttemptedCalls
-#         '2.0',  # AcPerfH323SIPGateway::acPerfIP2TelEstablishedCalls
-#         '3.0',  # AcPerfH323SIPGateway::acPerfIP2TelBusyCalls
-#         '4.0',  # AcPerfH323SIPGateway::acPerfIP2TelNoAnswerCalls
-#         '5.0',  # AcPerfH323SIPGateway::acPerfIP2TelNoRouteCalls
-#         '6.0',  # AcPerfH323SIPGateway::acPerfIP2TelNoMatchCalls
-#         '7.0',  # AcPerfH323SIPGateway::acPerfIP2TelFailCalls
-#         '8.0',  # AcPerfH323SIPGateway::acPerfIP2TelFaxAttemptedCalls
-#         '9.0',  # AcPerfH323SIPGateway::acPerfIP2TelFaxSuccessCalls
-#         '10.0', # AcPerfH323SIPGateway::acPerfIP2TelTotalDuration
-#     ] ) ],
-#     'snmp_scan_function'    : lambda oid: oid('.1.3.6.1.2.1.1.2.0').startswith('.1.3.6.1.4.1.5003.8.1.1'),
-# }
+register.check_plugin(
+    name="acgateway_sipperf",
+    service_name="SIP Performance",
+    discovery_function=discover_acgateway_sipperf,
+    check_function=check_acgateway_sipperf,
+)

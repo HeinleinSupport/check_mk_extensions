@@ -54,13 +54,25 @@ for idx, prefix in enumerate([ 'tel2ip', 'ip2tel' ]):
                 }
             _acgateway_call_metrics.append( ( metric_name, '%sline' % switch, "%s %s" % ( prefix, _(info[1]) ) ) )
 
-graph_info.append({
+metric_info['active_alarms'] = {
+    "title": _('Active Alarms'),
+    "unit": "count",
+    "color": "21/a",
+}
+
+metric_info['archived_alarms'] = {
+    "title": _('Archived Alarms'),
+    "unit": "count",
+    "color": "21/b",
+}
+
+graph_info['sip_statistics'] = {
     'title'  : _('SIP Statistics'),
     'metrics': _acgateway_call_metrics,
-})
+}
 
-graph_info.append({
+graph_info['sip_totals'] = {
     'title'  : _('SIP Totals'),
     'metrics': _acgateway_total_metrics,
-})
+}
 

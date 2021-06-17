@@ -16,54 +16,79 @@
 # to the Free Software Foundation, Inc., 51 Franklin St,  Fifth Floor,
 # Boston, MA 02110-1301 USA.
 
+from .agent_based_api.v1 import (
+    contains,
+    register,
+    render,
+    Metric,
+    OIDEnd,
+    Result,
+    Service,
+    SNMPTree,
+    State,
+)
+
 def _item_acgateway_ipgroup(line):
     return "%s %s" % (line[0], line[4])
 
-def parse_acgateway_ipgroup(info):
+def parse_acgateway_ipgroup(string_table):
     rowStatus = {
-        u'1': u'active',
-        u'2': u'notInService',
-        u'3': u'notReady',
+        '1': 'active',
+        '2': 'notInService',
+        '3': 'notReady',
     }
     ipGroupType = {
-        u'0': u'server',
-        u'1': u'user',
-        u'2': u'gateway',
+        '0': 'server',
+        '1': 'user',
+        '2': 'gateway',
     }
-    parsed = {}
-    for line in info:
+    section = {}
+    for line in string_table:
         item = _item_acgateway_ipgroup(line)
-        parsed[item] = {u'ipgroupstatus': rowStatus.get(line[1], u'unknown'),
-                        u'ipgrouptype': ipGroupType.get(line[2], u'unknown'),
-                        u'description': line[3],
-                        u'name': line[4]}
-    return parsed
+        section[item] = {
+            'ipgroupstatus': rowStatus.get(line[1], 'unknown'),
+            'ipgrouptype': ipGroupType.get(line[2], 'unknown'),
+            'description': line[3],
+            'name': line[4]
+        }
+    return section
 
-def inventory_acgateway_ipgroup(parsed):
-    for item, data in parsed.iteritems():
-        yield (item, {'ipgroupstatus': data.get('ipgroupstatus')})
+register.snmp_section(
+    name="acgateway_ipgroup",
+    detect=contains(".1.3.6.1.2.1.1.2.0", ".1.3.6.1.4.1.5003.8.1.1"),
+    parse_function=parse_acgateway_ipgroup,
+    fetch=SNMPTree(
+        base='.1.3.6.1.4.1.5003.9.10.3.1.1.23.21.1',
+        oids=[
+            '1',  # 0  AcGateway::ipGroupIndex
+            '2',  # 1  AcGateway::ipGroupRowStatus
+            '5',  # 2  AcGateway::ipGroupType
+            '6',  # 3  AcGateway::ipGroupDescription
+            '31', # 4  AcGateway::ipGroupName
+        ]),
+)
 
-def check_acgateway_ipgroup(item, params, parsed):
-    if item in parsed:
-        data = parsed[item]
-        yield 0, 'ip group type: %s' % data[u'ipgrouptype']
-        if data[u'description']:
-            yield 0, data[u'description']
-        for param, value in params.iteritems():
+def discover_acgateway_ipgroup(section):
+    for item, data in section.items():
+        yield Service(item=item, parameters={'ipgroupstatus': data.get('ipgroupstatus')})
+
+def check_acgateway_ipgroup(item, params, section):
+    if item in section:
+        data = section[item]
+        yield Result(state=State.OK,
+                     summary='ip group type: %s' % data['ipgrouptype'])
+        if data['description']:
+            yield Result(state=State.OK,
+                         summary=data['description'])
+        for param, value in params.items():
             if value != data.get(param):
-                yield 2, '%s is %s(!!)' % (param, data.get(param))
+                yield Result(state=State.CRIT,
+                             summary='%s is %s' % (param, data.get(param)))
 
-# check_info['acgateway_ipgroup'] = {
-#     'parse_function'        : parse_acgateway_ipgroup,
-#     'inventory_function'    : inventory_acgateway_ipgroup,
-#     'check_function'        : check_acgateway_ipgroup,
-#     'service_description'   : 'IP Group %s',
-#     'has_perfdata'          : False,
-#     'snmp_info'             : ( '.1.3.6.1.4.1.5003.9.10.3.1.1.23.21.1', [ '1',  # 0  AcGateway::ipGroupIndex
-#                                                                           '2',  # 1  AcGateway::ipGroupRowStatus
-#                                                                           '5',  # 2  AcGateway::ipGroupType
-#                                                                           '6',  # 3  AcGateway::ipGroupDescription
-#                                                                           '31', # 4  AcGateway::ipGroupName
-#                                                                         ] ),
-#     'snmp_scan_function'    : lambda oid: oid('.1.3.6.1.2.1.1.2.0').startswith('.1.3.6.1.4.1.5003.8.1.1'),
-# }
+register.check_plugin(
+    name="acgateway_ipgroup",
+    service_name="IP Group %s",
+    discovery_function=discover_acgateway_ipgroup,
+    check_function=check_acgateway_ipgroup,
+    check_default_parameters={},
+)
