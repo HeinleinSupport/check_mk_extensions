@@ -1,6 +1,8 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 # -*- encoding: utf-8; py-indent-offset: 4 -*-
 
+from cmk.gui.i18n import _
+from cmk.gui.cee.plugins.wato.agent_bakery.rulespecs.utils import RulespecGroupMonitoringAgentsAgentPlugins
 from cmk.gui.valuespec import (
     Alternative,
     Dictionary,
@@ -10,7 +12,6 @@ from cmk.gui.plugins.wato import (
     HostRulespec,
     rulespec_registry,
 )
-from cmk.gui.cee.plugins.wato.agent_bakery import RulespecGroupMonitoringAgentsAgentPlugins
 
 def _valuespec_agent_config_proxmox_provisioned():
     return Alternative(

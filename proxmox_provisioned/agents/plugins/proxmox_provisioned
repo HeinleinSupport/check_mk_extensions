@@ -25,33 +25,32 @@ provisionedSpace () {
   done )
 }
 
+# provisionedSpace /mnt/ocfs2/PVE01-0006/images/
+
+# exit
+
 if [ -r /etc/pve/storage.cfg ]; then
   echo '<<<esx_vsphere_datastores>>>'
   cat /etc/pve/storage.cfg | while read key value; do
-    if [ "$key" = "disable" ]; then
-      enabled=""
-    fi
     case "$key" in
-      "dir:"|"nfs:"|"lvmthin:")
+      "dir:"|"nfs:")
         dsname=$value
-	enabled=true
-	thinpool=""
-	vgname=""
-        ;;
+	;;
       "*:")
-        dsname=""
-        ;;
+	dsname=""
+	;;
     esac
-    if [ "$key" = "path" -a -n "$dsname" -a -n "$enabled" ]; then
+    if [ "$key" = "path" -a -n "$dsname" ]; then
       dir=$value
       if [ -d $dir/images ]; then
         df=$(df -T -B 1 $dir | tail -1)
         capacity=$(echo $df | awk '{ print $3; }')
-        total_used=$(echo $df | awk '{print $4; }')
-        typ=$(echo $df | awk '{ print $2 }' )
+	total_used=$(echo $df | awk '{print $4; }')
+	typ=$(echo $df | awk '{ print $2 }' )
         used=$(du -B 1 -s $dir/images | cut -f 1 -d "	")
-        prov=$(provisionedSpace $dir/images/)
-        total_cap=$(($capacity - $total_used + $used))
+        # prov=$(addNumbers $(ls --block-size=1 -l $dir/images/*/* 2> /dev/null | awk '{ print $5; }'))
+	prov=$(provisionedSpace $dir/images/)
+	total_cap=$(($capacity - $total_used + $used))
         echo "[$dsname]"
         echo "url $dir"
         echo "accessible True"
@@ -60,42 +59,9 @@ if [ -r /etc/pve/storage.cfg ]; then
         echo "freeSpace $(($total_cap - $used))"
         if [ $prov -gt 0 ]; then
           echo "uncommitted $(($prov - $used))"
-        else
-          echo "uncommitted 0"
+	else
+	  echo "uncommitted 0"
         fi
-      fi
-    fi
-    if [ "$key" = "thinpool" ]; then
-      thinpool=$value
-    fi
-    if [ "$key" = "vgname" -a -n "$dsname" -a -n "$enabled" ]; then
-      vgname=$value
-      capacity=0
-      total_used=0
-      used=0
-      prov=0
-
-      while read lv vg flags size pool percent; do
-        if [ $lv = $thinpool ]; then
-          capacity=$size
-	  total_used=$(echo "$size * $pool / 100" | bc)
-	elif [ -n "$percent" ]; then
-          lvused=$(echo "$size * $percent / 100" | bc)
-	  used=$(( $used + $lvused ))
-	  prov=$(( $prov + $size ))
-	fi
-      done <<<$( lvs --units b --no-suffix --no-heading $vgname )
-
-      echo "[$dsname]"
-      echo "url /dev/$vgname"
-      echo "accessible True"
-      echo "type lvmthin"
-      echo "capacity $capacity"
-      echo "freeSpace $(($capacity - $total_used))"
-      if [ $prov -gt 0 ]; then
-        echo "uncommitted $(($prov - $used))"
-      else
-        echo "uncommitted 0"
       fi
     fi
   done
