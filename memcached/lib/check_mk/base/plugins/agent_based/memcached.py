@@ -150,7 +150,7 @@ def check_memcached(item, params, section):
     def expect_order(*args):
         arglist = filter(lambda x: x != None, args)
         sorted_by_val = sorted(enumerate(arglist), key=lambda x: x[1])
-        return max([abs(x[0] - x[1][0]) for x in enumerate(sorted_by_val)])
+        return State(max([abs(x[0] - x[1][0]) for x in enumerate(sorted_by_val)]))
 
     def format_value(val):
         if isinstance(val, float):
@@ -192,7 +192,7 @@ def check_memcached(item, params, section):
                 if 'upper_bounds' in traits:
                     warn, crit = params.get(key, (None, None))
                     status = expect_order(reading, warn, crit)
-                    if status != 0:
+                    if status != State.OK:
                         fails = True
                         yield Result(state=status,
                                      notice="%s = %s (warn/crit at %s/%s)" % (traits['name'],
@@ -203,7 +203,7 @@ def check_memcached(item, params, section):
                 elif 'lower_bounds' in traits:
                     warn, crit = params.get(key, (None, None))
                     status = expect_order(crit, warn, reading)
-                    if status != 0:
+                    if status != State.OK:
                         fails = True
                         yield Result(state=status,
                                      notice="%s = %s (warn/crit below %s/%s)" % (traits['name'],
