@@ -18,14 +18,30 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-register_rule("agents/" + _("Agent Plugins"),
-    "agent_config:redis_info",
-    CascadingDropdown(
+from cmk.gui.i18n import _
+from cmk.gui.plugins.wato import (
+    HostRulespec,
+    rulespec_registry,
+)
+from cmk.gui.cee.plugins.wato.agent_bakery.rulespecs.utils import RulespecGroupMonitoringAgentsAgentPlugins
+from cmk.gui.valuespec import (
+    Alternative,
+    CascadingDropdown,
+    FixedValue,
+    Integer,
+    IPv4Address,
+    ListOf,
+    Password,
+    Tuple,
+)
+
+def _valuespec_agent_config_redis_info():
+    return CascadingDropdown(
         title = _("REDIS instances (Linux)"),
         help = _("If you activate this option, then the agent plugin <tt>redis_info</tt> will be deployed. "
                  "For each configured or detected REDIS instance there will be one new service with detailed "
                  "statistics of the current number of clients and processes and their various states."),
-        style = "dropdown",
+        # style = "dropdown",
         choices = [
             ( "autodetect", _("Autodetect instances"),
                 Alternative(
@@ -102,6 +118,11 @@ register_rule("agents/" + _("Agent Plugins"),
             ),
             ( '_no_deploy', _("Do not deploy the redis_info plugin") ),
         ]
-    ),
-)
+    )
 
+rulespec_registry.register(
+     HostRulespec(
+         group=RulespecGroupMonitoringAgentsAgentPlugins,
+         name="agent_config:redis_info",
+         valuespec=_valuespec_agent_config_redis_info,
+     ))

@@ -18,24 +18,38 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-def bake_redis_info(opsys, conf, conf_dir, plugins_dir):
+from pathlib import Path
+from typing import Any, Dict
+
+from .bakery_api.v1 import FileGenerator, OS, Plugin, PluginConfig, register
+
+from cmk.utils import debug
+from pprint import pprint
+
+def get_redis_info_files(conf: Dict[str, Any]) -> FileGenerator:
+    if debug.enabled():
+        print("redis_info")
+        pprint(conf)
     res = True
-    if type(conf) == str and conf == '_no_deploy':
+    if isinstance(conf, str) and conf == '_no_deploy':
         res = False
-    elif type(conf) == tuple:
-        f = file(conf_dir + "/redis_info.cfg", "w")
-        f.write(agent_file_header)
+    elif isinstance(conf, tuple):
+        lines = []
         if conf[0] == "static":
-            f.write("instances = %r\n" % conf[1][0])
-            f.write("password = %r\n" % conf[1][1])
+            lines.append("instances = %r" % conf[1][0])
+            lines.append("password = %r" % conf[1][1])
         if conf[0] == "autodetect":
             if conf[1]:
-                f.write("password = %r\n" % conf[1])
-        f.close()
+                lines.append("password = %r" % conf[1])
+        yield PluginConfig(base_os=OS.LINUX,
+                           lines=lines,
+                           target=Path("redis_info.cfg"),
+                           include_header=True)
     if res:
-        shutil.copy2(cmk.utils.paths.local_agents_dir + "/plugins/redis_info", plugins_dir + "/redis_info")
+        yield Plugin(base_os=OS.LINUX,
+                     source=Path("redis_info.py"))
 
-# bakery_info["redis_info"] = {
-#     "bake_function": bake_redis_info,
-#     "os"           : ["linux", ],
-# }
+register.bakery_plugin(
+    name="redis_info",
+    files_function=get_redis_info_files,
+)

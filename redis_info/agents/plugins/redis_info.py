@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 # -*- encoding: utf-8; py-indent-offset: 4 -*-
 
 # (c) 2017 Heinlein Support GmbH
@@ -92,7 +92,7 @@ if instances is None:
 if not instances:
     sys.exit(0)
 
-print '<<<redis_info>>>'
+print('<<<redis_info>>>')
 for server in instances:
     if isinstance(server, tuple):
         address, port, serverpw = server
@@ -102,7 +102,7 @@ for server in instances:
         serverpw = password
     if not port:
         port = 6379
-    print '+++ %s:%s +++' % (address, port)
+    print('+++ %s:%s +++' % (address, port))
     try:
         sys.stdout.flush()
         if 'REDISCLI_AUTH' in os.environ:
@@ -112,6 +112,6 @@ for server in instances:
         elif password:
             os.environ['REDISCLI_AUTH'] = password
         call(["waitmax", "2", "redis-cli", "-h", address, "-p", str(port), "info"])
-    except Exception, e:
+    except Exception as e:
         sys.stderr.write('Exception (%s:%s): %s\n' % (address, port, e))
-    print '--- %s:%s ---' % (address, port)
+    print('--- %s:%s ---' % (address, port))
