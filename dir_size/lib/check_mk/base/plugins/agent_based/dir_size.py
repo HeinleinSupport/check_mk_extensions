@@ -1,5 +1,9 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 # -*- encoding: utf-8; py-indent-offset: 4 -*-
+
+#     2021 Heinlein Support GmbH
+#          Robert Sander <r.sander@heinlein-support.de>
+
 # +-----------------------------------------------------------------+
 # |                                                                 |
 # |        (  ___ \     | \    /\|\     /||\     /|( (    /|        |
@@ -34,59 +38,77 @@
 #17516   /tmp/
 #626088  /usr/local/
 
-factory_settings['dir_size_default_levels'] = {
-    'unit': 'KB',
-    'warn': 0,
-    'crit': 0,
-    }
+from .agent_based_api.v1 import (
+    check_levels,
+    register,
+    render,
+    Result,
+    Metric,
+    State,
+    ServiceLabel,
+    Service,
+)
 
-def inventory_dir_size(info):
-    inventory = []
-    for size, path in info:
-        inventory.append((path,None))
-    return inventory
+def parse_dir_size(string_table):
+    section = {}
+    for size, path in string_table:
+        section[path] = int(size) * 1024
+    return section
 
-def check_dir_size(item, params, info):
-    unit, warn, crit = params['unit'], params['warn'], params['crit']
-    no_warn, no_crit = False, False
-    
-    dir_size_factor = {
-        'B': 1,
-        'KB': 1024,
-        'MB': 1024 * 1024,
-        'GB': 1024 * 1024 * 1024,
-        'TB': 1024 * 1024 * 1024 * 1024,
-    }
-  
-    if warn == 0:
-        no_warn = True
-    else:
-        warn = warn * dir_size_factor[unit]
-    if crit == 0:
-        no_crit = True
-    else:
-        crit = crit * dir_size_factor[unit]
- 
-    for size, path in info:
-        if path == item:
-            size = saveint(size) * 1024
+register.agent_section(
+    name="dir_size",
+    parse_function=parse_dir_size,
+)
 
-            perf = [("dir_size","%dB" % size, warn, crit)]
-            output = "Folder size: %s (levels at %s / %s)" % (get_bytes_human_readable(size),
-                                                              get_bytes_human_readable(warn),
-                                                              get_bytes_human_readable(crit))
-            if not no_crit and size >= crit:
-                return (2, output, perf)
-            elif not no_warn and size >= warn:
-                return (1, output, perf)
-            else:
-                return (0, output, perf) 
+def discover_dir_size(section):
+    for path in section:
+        yield Service(item=path)
 
-check_info['dir_size'] = {
-    'check_function':          check_dir_size,
-    'service_description':     'Size of %s',
-    'has_perfdata':            True,
-    'inventory_function':      inventory_dir_size,
-    'group':                   'dir_size',
-    'default_levels_variable': 'dir_size_default_levels',
-}
+def check_dir_size(item, params, section):
+    if item in section:
+        factor = 1
+        if 'unit' in params:
+            unit = params['unit']
+
+            dir_size_factor = {
+                'B': 1,
+                'KB': 1024,
+                'MB': 1048576,
+                'GB': 1073741824,
+                'TB': 1099511627776,
+            }
+
+            factor = dir_size_factor.get(unit)
+            
+        warn = params.get('warn')
+        crit = params.get('crit')
+
+        if warn and factor:
+            warn *= factor
+        if crit and factor:
+            crit *= factor
+        if warn or crit:
+            params._data['levels_upper'] = (warn, crit)
+
+        yield from check_levels(
+            section[item],
+            levels_upper=params.get('levels_upper'),
+            metric_name="dir_size",
+            label="Folder size",
+            render_func=render.bytes,
+        )
+
+register.check_plugin(
+    name="dir_size",
+    service_name="Size of %s",
+    sections=["dir_size"],
+    discovery_function=discover_dir_size,
+    # discovery_default_parameters={},
+    # discovery_ruleset_name="",
+    # discovery_ruleset_type=register.RuleSetType.MERGED,
+    check_function=check_dir_size,
+    check_default_parameters={
+        'unit': 'KB',
+    },
+    check_ruleset_name="dir_size",
+)

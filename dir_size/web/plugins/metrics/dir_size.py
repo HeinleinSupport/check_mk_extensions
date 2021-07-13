@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 # -*- encoding: utf-8; py-indent-offset: 4 -*-
 
 #
@@ -16,6 +16,9 @@
 # License along with GNU Make; see the file  COPYING.  If  not,  write
 # to the Free Software Foundation, Inc., 51 Franklin St,  Fifth Floor,
 # Boston, MA 02110-1301 USA.
+
+from cmk.gui.i18n import _
+from cmk.gui.plugins.metrics import check_metrics
 
 metric_info['dir_size'] = {
     'title': _('Directory Size'),

@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 # -*- encoding: utf-8; py-indent-offset: 4 -*-
 
 #
@@ -17,20 +17,20 @@
 # to the Free Software Foundation, Inc., 51 Franklin St,  Fifth Floor,
 # Boston, MA 02110-1301 USA.
 
-def bake_dir_size(opsys, conf, conf_dir, plugins_dir):
-    shutil.copy2(cmk.utils.paths.local_agents_dir + "/plugins/dir_size", plugins_dir + "/dir_size")
-    f = file(conf_dir + "/dir_size.cfg", "w")
-    f.write(agent_file_header)
+from pathlib import Path
+from typing import Any, Dict
 
-    dirs = []
+from .bakery_api.v1 import FileGenerator, OS, Plugin, PluginConfig, register
 
-    for entry in conf:
-        dirs.extend(entry["directories"])
+def get_dir_size_files(conf: Dict[str, Any]) -> FileGenerator:
+    yield Plugin(base_os=OS.LINUX,
+                 source=Path("dir_size"))
+    yield PluginConfig(base_os=OS.LINUX,
+                       lines=conf.get("directories"),
+                       target=Path("dir_size.cfg"),
+                       include_header=True)
 
-    f.write("%s\n" % "\n".join(sorted(dirs)))
-
-bakery_info["dir_size"] = {
-    "bake_function" : bake_dir_size,
-    "os"            : [ "linux", ],
-    "matchtype"     : "all",
-}
+register.bakery_plugin(
+    name="dir_size",
+    files_function=get_dir_size_files,
+)
