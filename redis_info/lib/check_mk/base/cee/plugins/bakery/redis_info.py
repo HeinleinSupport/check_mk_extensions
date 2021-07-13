@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 # -*- encoding: utf-8; py-indent-offset: 4 -*-
 
 # Check_MK Redis Info Plugin
@@ -35,7 +35,7 @@ def bake_redis_info(opsys, conf, conf_dir, plugins_dir):
     if res:
         shutil.copy2(cmk.utils.paths.local_agents_dir + "/plugins/redis_info", plugins_dir + "/redis_info")
 
-bakery_info["redis_info"] = {
-    "bake_function": bake_redis_info,
-    "os"           : ["linux", ],
-}
+# bakery_info["redis_info"] = {
+#     "bake_function": bake_redis_info,
+#     "os"           : ["linux", ],
+# }

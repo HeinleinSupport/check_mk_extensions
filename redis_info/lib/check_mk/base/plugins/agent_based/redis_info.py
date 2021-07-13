@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 # -*- encoding: utf-8; py-indent-offset: 4 -*-
 
 # Check_MK Redis Info Plugin
@@ -31,9 +31,9 @@
 import time
 
 # factory_settings ... is part of version/share/check_mk/modules/check_mk.py
-factory_settings["redis_info_default_values"] = {
-    'config': ((None, None), False),
-}
+# factory_settings["redis_info_default_values"] = {
+#     'config': ((None, None), False),
+# }
 
 
 # the inventory function
@@ -362,11 +362,11 @@ def check_redis_info(item, params, info):
 # enddef
 
 # declare the check to Check_MK
-check_info["redis_info"] = {
-    'default_levels_variable': "redis_info_default_values",
-    'inventory_function': inventory_redis_info,
-    'check_function': check_redis_info,
-    'service_description': 'Redis info',
-    'has_perfdata': True,
-    'group': "redis_info",
-}
+# check_info["redis_info"] = {
+#     'default_levels_variable': "redis_info_default_values",
+#     'inventory_function': inventory_redis_info,
+#     'check_function': check_redis_info,
+#     'service_description': 'Redis info',
+#     'has_perfdata': True,
+#     'group': "redis_info",
+# }
