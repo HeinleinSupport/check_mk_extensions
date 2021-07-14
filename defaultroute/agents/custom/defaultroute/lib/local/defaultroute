@@ -7,7 +7,6 @@
 # Robert Sander <r.sander@heinlein-support.de>
 #
 
-echo '<<<local>>>'
 if ip -4 route show | grep -q ^default ; then
   echo '0 DefaultRoute4 - IPv4 default route exists'
 else
