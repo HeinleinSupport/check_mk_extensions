@@ -1,14 +1,30 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 # -*- encoding: utf-8; py-indent-offset: 4 -*-
 
-def bake_updater_hostname(opsys, conf, conf_dir, plugins_dir):
-    if conf:
-        target_dir = plugins_dir
-        if not os.path.exists(target_dir):
-            os.makedirs(target_dir)
-        shutil.copy2(cmk.utils.paths.local_agents_dir + "/plugins/updater_hostname", target_dir + "/updater_hostname")
+# (c) 2021 Heinlein Support GmbH
+#          Robert Sander <r.sander@heinlein-support.de>
 
-bakery_info["updater_hostname"] = {
-    "bake_function" : bake_updater_hostname,
-    "os"            : [ "linux", ],
-}
+# This is free software;  you can redistribute it and/or modify it
+# under the  terms of the  GNU General Public License  as published by
+# the Free Software Foundation in version 2.  This file is distributed
+# in the hope that it will be useful, but WITHOUT ANY WARRANTY;  with-
+# out even the implied warranty of  MERCHANTABILITY  or  FITNESS FOR A
+# PARTICULAR PURPOSE. See the  GNU General Public License for more de-
+# ails.  You should have  received  a copy of the  GNU  General Public
+# License along with GNU Make; see the file  COPYING.  If  not,  write
+# to the Free Software Foundation, Inc., 51 Franklin St,  Fifth Floor,
+# Boston, MA 02110-1301 USA.
+
+from pathlib import Path
+from typing import Any, Dict
+
+from .bakery_api.v1 import FileGenerator, OS, Plugin, register
+
+def get_updater_hostname_files(conf: Dict[str, Any]) -> FileGenerator:
+    yield Plugin(base_os=OS.LINUX,
+                 source=Path("updater_hostname.py"))
+
+register.bakery_plugin(
+    name="updater_hostname",
+    files_function=get_updater_hostname_files,
+)
