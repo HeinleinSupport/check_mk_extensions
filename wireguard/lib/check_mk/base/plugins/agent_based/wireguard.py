@@ -106,7 +106,7 @@ def check_wireguard(item, section):
             numpeers = len(peers)
             activepeers = 0
             now = time.time()
-            for peer, data in peers.iteritems():
+            for peer, data in peers.items():
                 if data['latest-handshake'] > 0:
                     since = now - data['latest-handshake']
                     if since < timeout:
