@@ -61,6 +61,8 @@ def check_cephstatus(item, params, section) -> CheckResult:
                       'active+clean+remapped',
                       'active+clean+scrubbing',
                       'active+clean+scrubbing+deep',
+                      'active+clean+snaptrim',
+                      'active+clean+snaptrim_wait',
                       'active+degraded',
                       'active+recovering',
                       'active+recovering+degraded',
