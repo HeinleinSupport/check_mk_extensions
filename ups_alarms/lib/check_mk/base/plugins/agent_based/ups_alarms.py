@@ -60,7 +60,23 @@ from .agent_based_api.v1 import (
     State,
 )
 from .utils.ups import DETECT_UPS_GENERIC
-from cmk.base.check_legacy_includes.uptime import parse_snmp_uptime
+
+def parse_snmp_uptime(ticks):
+    if len(ticks) < 3:
+        return 0
+
+    try:
+        return int(ticks[:-2])
+    except Exception:
+        pass
+
+    try:
+        days, h, m, s = ticks.split(":")
+        return (int(days) * 86400) + (int(h) * 3600) + (int(m) * 60) + int(float(s))
+    except Exception:
+        pass
+
+    return 0
 
 def parse_ups_alarms(string_table):
     transUpsAlarm = { '.1.3.6.1.2.1.33.1.6.3.1': 'Battery Bad',
