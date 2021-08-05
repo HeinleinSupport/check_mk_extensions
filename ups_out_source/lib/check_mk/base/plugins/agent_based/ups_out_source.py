@@ -27,7 +27,9 @@ from .agent_based_api.v1.type_defs import (
 from .utils.ups import DETECT_UPS_GENERIC
 
 def parse_ups_out_source(string_table: StringTable) -> StringTable:
-    return string_table
+    if string_table:
+        return { 'info': string_table[0][0] }
+    return None
 
 register.snmp_section(
     name="ups_out_source",
@@ -53,7 +55,7 @@ def check_ups_out_source(section: StringTable) -> CheckResult:
         "7": (State.WARN, "Reducer"),
     }
 
-    state, text = map_source.get(section[0][0], (State.UNKNOWN, "Unknown"))
+    state, text = map_source.get(section['info'], (State.UNKNOWN, "Unknown"))
 
     yield Result(state=state,
                  summary="Output source is %s" % text)

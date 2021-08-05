@@ -104,7 +104,7 @@ def parse_ups_alarms(string_table):
                       '.1.3.6.1.2.1.33.1.6.3.23': 'Shutdown Imminent',
                       '.1.3.6.1.2.1.33.1.6.3.24': 'Test In Progress',
     }
-    section = {'count': 0}
+    section = {'count': None}
 
     if len(string_table) == 2:
         if len(string_table[0]) == 1:
@@ -113,6 +113,9 @@ def parse_ups_alarms(string_table):
             section['alarms'] = []
             for line in string_table[1]:
                 section['alarms'].append((parse_snmp_uptime(line[1]), transUpsAlarm.get(line[0], 'Unknown')))
+
+    if section['count'] == None:
+        return None
     return section
 
 register.snmp_section(
