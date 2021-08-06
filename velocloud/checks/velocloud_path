@@ -1,0 +1,127 @@
+#!/usr/bin/env python
+# -*- encoding: utf-8; py-indent-offset: 4 -*-
+#
+# This is free software;  you can redistribute it and/or modify it
+# under the  terms of the  GNU General Public License  as published by
+# the Free Software Foundation in version 2.  check_mk is  distributed
+# in the hope that it will be useful, but WITHOUT ANY WARRANTY;  with-
+# out even the implied warranty of  MERCHANTABILITY  or  FITNESS FOR A
+# PARTICULAR PURPOSE. See the  GNU General Public License for more de-
+# tails. You should have  received  a copy of the  GNU  General Public
+# License along with GNU Make; see the file  COPYING.  If  not,  write
+# to the Free Software Foundation, Inc., 51 Franklin St,  Fifth Floor,
+# Boston, MA 02110-1301 USA.
+
+#   .--path----------------------------------------------------------------.
+#   |                                    _   _                             |
+#   |                        _ __   __ _| |_| |__                          |
+#   |                       | '_ \ / _` | __| '_ \                         |
+#   |                       | |_) | (_| | |_| | | |                        |
+#   |                       | .__/ \__,_|\__|_| |_|                        |
+#   |                       |_|                                            |
+#   +----------------------------------------------------------------------+
+#   |                                                                      |
+#   '----------------------------------------------------------------------'
+
+def parse_velocloud_path(string_table):
+    section = {}
+    map_path_state = {
+        '1': (1, 'Initial'),
+        '2': (2, 'Dead'),
+        '3': (2, 'Unusable'),
+        '4': (1, 'Quiet'),
+        '5': (1, 'Unstable'),
+        '6': (1, 'Bandwidth unmeasurable'),
+        '7': (0, 'waiting for Link Bandwidth'),
+        '8': (0, 'measuring Tx Bandwidth'), 
+        '9': (0, 'measuring Rx Bandwwidth'),
+        '10': (0, 'Stable'), 
+        '11': (0, 'Active'),
+        '12': (0, 'upHsby'),
+        '13': (0, 'idleHsby'),
+        '14': (0, 'Backup'),
+        '15': (2, 'Unknown')
+    }
+    map_iptype = {
+        '1': ('.', str),
+        '2': (':', lambda x: format(x, 'x')),
+    }
+    for oidend, iptype, ip, name, pathstate, rxstate, txstate, txlatency, rxlatency, rxbytes, txbytes, rxlost, txlost, rxpackets, txpackets, rxjitter, txjitter in string_table:
+
+        ipstring = map_iptype[iptype][0].join(map(map_iptype[iptype][1], map(ord, ip)))
+        
+        oidend_s = oidend.split('.')
+        gwaddrtype = oidend_s[16]
+        # gwaddrlen = oidend_s[17]
+        gwaddr = map_iptype[gwaddrtype][0].join(map(map_iptype[gwaddrtype][1], oidend_s[18:]))
+
+        item = "%s %s %s" % (name, ipstring, gwaddr)
+
+        if item in section:
+            raise '%s is duplicate' % item
+        
+        section[item] = {
+            'state': map_path_state.get(pathstate, (3, 'Unknown')),
+            'rxstate': map_path_state.get(rxstate, (3, 'Unknown')),
+            'txstate': map_path_state.get(txstate, (3, 'Unknown')),
+            'tx_jitter': float(txjitter) / 1000.0,
+            'rx_jitter': float(rxjitter) / 1000.0,
+            'tx_latency': float(txlatency) / 1000.0,
+            'rx_latency': float(rxlatency) / 1000.0,
+            'if_out_errors': int(txlost),
+            'if_in_errors': int(rxlost),
+            'if_out_unicast': int(txpackets),
+            'if_in_unicast': int(rxpackets),
+            'if_out_bps': int(txbytes),
+            'if_in_bps': int(rxbytes),
+        }
+    return section
+
+def discover_velocloud_path(section):
+    for name in section:
+        yield name, {}
+
+def check_velocloud_path(item, _no_params, section):
+    if item in section:
+        data = section[item]
+        now = time.time()
+        yield data['state'][0], 'Path: %s' % data['state'][1]
+        yield data['rxstate'][0], 'RX: %s' % data['rxstate'][1]
+        yield data['txstate'][0], 'TX: %s' % data['txstate'][1]
+        
+        for key, value in data.items():
+            if key.endswith('state'):
+                continue
+            if key.endswith('jitter') or key.endswith('latency'):
+                yield 0, '', [ (key, value) ]
+            else:
+                rate = get_rate('velocloud_path.%s.%s' % (item, key), now, value)
+                yield 0, '', [ (key, rate) ]
+
+check_info["velocloud_path"] = {
+    "parse_function":       parse_velocloud_path,
+    "service_description":  "VeloCloud Path",
+    "inventory_function": discover_velocloud_path,
+    "check_function":       check_velocloud_path,
+    "has_perfdata":         True,
+    "snmp_info":            (".1.3.6.1.4.1.45346.1.1.2.4.2.2.1", [
+        OID_END,
+        "2",  # vcePathIpType
+        "3",  # vcePathIp
+        "6",  # vcePathPeerName
+        "7",  # vcePathState
+        "10", # vcePathRxState
+        "11", # vcePathTxState
+        "13", # vcePathTxAveLatency
+        "14", # vcePathRxAveLatency
+        "15", # vcePathRxBytes
+        "16", # vcePathTxBytes
+        "17", # vcePathRxLostPkt
+        "18", # vcePathTxLostPkt
+        "19", # vcePathRxPkt
+        "20", # vcePathTxPkt
+        "21", # vcePathRxJitter
+        "22", # vcePathTxJitter
+    ]),
+    "snmp_scan_function":   lambda oid: "VeloCloud" in oid(".1.3.6.1.2.1.1.1.0") and oid(".1.3.6.1.2.1.1.2.0") == ".1.3.6.1.4.1.8072.3.2.10",
+}

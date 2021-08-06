@@ -1,0 +1,96 @@
+#!/usr/bin/env python
+# -*- encoding: utf-8; py-indent-offset: 4 -*-
+#
+# This is free software;  you can redistribute it and/or modify it
+# under the  terms of the  GNU General Public License  as published by
+# the Free Software Foundation in version 2.  check_mk is  distributed
+# in the hope that it will be useful, but WITHOUT ANY WARRANTY;  with-
+# out even the implied warranty of  MERCHANTABILITY  or  FITNESS FOR A
+# PARTICULAR PURPOSE. See the  GNU General Public License for more de-
+# tails. You should have  received  a copy of the  GNU  General Public
+# License along with GNU Make; see the file  COPYING.  If  not,  write
+# to the Free Software Foundation, Inc., 51 Franklin St,  Fifth Floor,
+# Boston, MA 02110-1301 USA.
+
+#   .--link----------------------------------------------------------------.
+#   |                           _ _       _                                |
+#   |                          | (_)_ __ | | __                            |
+#   |                          | | | '_ \| |/ /                            |
+#   |                          | | | | | |   <                             |
+#   |                          |_|_|_| |_|_|\_\                            |
+#   |                                                                      |
+#   +----------------------------------------------------------------------+
+#   |                                                                      |
+#   '----------------------------------------------------------------------'
+
+def parse_velocloud_link(string_table):
+    section = {}
+    map_vpn_state = {
+        '1': (1, 'Initial'),
+        '2': (2, 'Dead'),
+        '3': (2, 'Unusable'),
+        '4': (1, 'Quiet'),
+        '5': (0, 'Standby'),
+        '6': (1, 'Unstable'),
+        '7': (0, 'Stable'),
+        '8': (2, 'Unknown'),
+    }
+    for name, txjitter, rxjitter, txlatency, rxlatency, txlost, rxlost, vpnstate, txpackets, rxpackets, txbytes, rxbytes in string_table:
+        if name in section:
+            raise '%s is duplicate' % name
+        section[name] = {
+            'tx_jitter': float(txjitter) / 1000.0,
+            'rx_jitter': float(rxjitter) / 1000.0,
+            'tx_latency': float(txlatency) / 1000.0,
+            'rx_latency': float(rxlatency) / 1000.0,
+            'if_out_errors': int(txlost),
+            'if_in_errors': int(rxlost),
+            'state': map_vpn_state.get(vpnstate, (3, 'Unknown')),
+            'if_out_unicast': int(txpackets),
+            'if_in_unicast': int(rxpackets),
+            'if_out_bps': int(txbytes),
+            'if_in_bps': int(rxbytes),
+        }
+    return section
+
+def discover_velocloud_link(section):
+    for name in section:
+        yield name, {}
+
+def check_velocloud_link(item, _no_params, section):
+    if item in section:
+        data = section[item]
+        now = time.time()
+        yield data['state'][0], data['state'][1]
+        for key, value in data.items():
+            if key == 'state':
+                continue
+            if key.endswith('jitter') or key.endswith('latency'):
+                yield 0, '', [ (key, value) ]
+            else:
+                rate = get_rate('velocloud_link.%s.%s' % (item, key), now, value)
+                yield 0, '', [ (key, rate) ]
+
+check_info["velocloud_link"] = {
+    "parse_function":       parse_velocloud_link,
+    "service_description":  "VeloCloud Link %s",
+    "inventory_function": discover_velocloud_link,
+    "check_function":       check_velocloud_link,
+    "has_perfdata":         True,
+    "snmp_info":            (".1.3.6.1.4.1.45346.1.1.2.3.2.2.1",
+                             [
+                                 "3",  # vceLinkName
+                                 "20", # vceLinkTxJitter
+                                 "21", # vceLinkRxJitter
+                                 "22", # vceLinkTxLatency
+                                 "23", # vceLinkRxLatency
+                                 "24", # vceLinkTxLostPkt
+                                 "25", # vceLinkRxLostPkt
+                                 "26", # vceLinkVpnState
+                                 "36", # vceLinkTotTxPkts
+                                 "37", # vceLinkTotRxPkts
+                                 "38", # vceLinkTotTxbytes
+                                 "39", # vceLinkTotRxBytes
+                             ]),
+    "snmp_scan_function":   lambda oid: "VeloCloud" in oid(".1.3.6.1.2.1.1.1.0") and oid(".1.3.6.1.2.1.1.2.0") == ".1.3.6.1.4.1.8072.3.2.10",
+}
