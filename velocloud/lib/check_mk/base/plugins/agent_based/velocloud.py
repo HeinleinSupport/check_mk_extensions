@@ -32,8 +32,6 @@ from .agent_based_api.v1.type_defs import (
     StringTable,
 )
 import time
-import ipaddress
-import struct
 
 #   .--pathnum-------------------------------------------------------------.
 #   |                         _   _                                        |
@@ -46,7 +44,7 @@ import struct
 #   |                                                                      |
 #   '----------------------------------------------------------------------'
 
-def parse_velocloud_pathnum(string_table: StringTable) -> StringTable:
+def parse_velocloud_pathnum(string_table: StringTable):
     if string_table:
         return { 'pathnum': int(string_table[0][0]) }
     return None
@@ -90,7 +88,7 @@ register.check_plugin(
 #   |                                                                      |
 #   '----------------------------------------------------------------------'
 
-def parse_velocloud_hastate(string_table: StringTable) -> StringTable:
+def parse_velocloud_hastate(string_table: StringTable):
     map_admin_state = {
         '1': 'Single',
         '2': 'Active Standby Pair',
@@ -169,7 +167,7 @@ register.check_plugin(
 #   |                                                                      |
 #   '----------------------------------------------------------------------'
 
-def parse_velocloud_link(string_table: StringTable) -> StringTable:
+def parse_velocloud_link(string_table: StringTable):
     section = {}
     map_vpn_state = {
         '1': (State.WARN, 'Initial'),
@@ -263,7 +261,7 @@ register.check_plugin(
 #   |                                                                      |
 #   '----------------------------------------------------------------------'
 
-def parse_velocloud_path(string_table: StringTable) -> StringTable:
+def parse_velocloud_path(string_table: StringTable):
     section = {}
     map_path_state = {
         '1': (State.WARN, 'Initial'),
