@@ -49,6 +49,12 @@ metric_info['rx_latency'] = {
     'color' : '41/b',
 }
 
+metric_info['arp_entries'] = {
+    'title' : _('ARP Entries'),
+    'unit'  : 'count',
+    'color' : '24/a',
+}
+
 graph_info['if_errors'] = {
     'title': _('Errors'),
     'metrics': [

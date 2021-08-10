@@ -54,14 +54,17 @@ def parse_velocloud_link(string_table):
     return section
 
 def discover_velocloud_link(section):
-    for name in section:
-        yield name, {}
+    for name, data in section.items():
+        yield name, {'state': data['state'][1]}
 
-def check_velocloud_link(item, _no_params, section):
+def check_velocloud_link(item, params, section):
     if item in section:
         data = section[item]
         now = time.time()
-        yield data['state'][0], data['state'][1]
+        if data['state'][1] != params['state']:
+            yield 1, 'State has changed from %s to %s' % (params['state'], data['state'][1])
+        else:
+            yield 0, 'State is %s' % data['state'][1]
         for key, value in data.items():
             if key == 'state':
                 continue
