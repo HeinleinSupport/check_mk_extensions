@@ -51,15 +51,15 @@ register.agent_section(
 
 def discovery_cephosdbluefs(area, section) -> DiscoveryResult:
     for osdid, perf in section.items():
-        if 'bluefs' in perf and perf['bluefs']['%s_total_bytes' % area.lower()] > 0:
+        if 'bluefs' in perf and perf['bluefs'].get('%s_total_bytes' % area.lower(), 0) > 0:
             yield Service(item="OSD %s %s" % (osdid, area))
 
 def check_cephosdbluefs(area, item, params, section) -> CheckResult:
     for osdid, perf in section.items():
         if item == "OSD %s %s" % (osdid, area) and 'bluefs' in perf:
             value_store = get_value_store()
-            size_mb = perf['bluefs']['%s_total_bytes' % area.lower()] / 1024.0 / 1024.0
-            avail_mb = ( perf['bluefs']['%s_total_bytes' % area.lower()] - perf['bluefs']['%s_used_bytes' % area.lower()] ) / 1024.0 / 1024.0
+            size_mb = perf['bluefs'].get('%s_total_bytes' % area.lower(), 0) / 1024.0 / 1024.0
+            avail_mb = ( perf['bluefs'].get('%s_total_bytes' % area.lower(), 0) - perf['bluefs'].get('%s_used_bytes' % area.lower(), 0) ) / 1024.0 / 1024.0
             yield from df.df_check_filesystem_single(value_store,
                                                      item,
                                                      size_mb,
