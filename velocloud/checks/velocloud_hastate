@@ -46,21 +46,19 @@ def parse_velocloud_hastate(string_table):
     return None
 
 def discover_velocloud_hastate(section):
-    yield (None, {})
+    yield (None, {'admin_text': section['admin_text'], 'peer_text': section['peer_text']})
 
-def check_velocloud_hastate(_no_item, _no_params, section):
-    if section['admin'] > 4:
-        yield 2, section['admin_text']
-    elif section['admin'] > 1:
-        yield 0, section['admin_text']
-        if section['peer'] > 3:
-            yield 2, section['peer_text']
-        elif section['peer'] == 1:
-            yield 1, section['peer_text']
+def check_velocloud_hastate(_no_item, params, section):
+    if section['admin'] in [1, 2, 3, 4]:
+        if section['admin_text'] != params.get('admin_text'):
+            yield 1, 'Admin State changed from %s to %s' % (params.get('admin_text'), section['admin_text'])
         else:
-            yield 0, section['peer_text']
-    else:
-        yield 0, section['admin_text']
+            yield 0, 'Admin State: %s' % section['admin_text']
+        if section['admin'] > 1:
+            if section['peer'] != 3:
+                yield 2, 'Peer State: %s' % section['peer_text']
+            else:
+                yield 0, 'Peer State: %s' % section['peer_text']
 
 check_info["velocloud_hastate"] = {
     "parse_function": parse_velocloud_hastate,
