@@ -61,8 +61,8 @@ def check_velocloud_link(item, params, section):
     if item in section:
         data = section[item]
         now = time.time()
-        if data['state'][1] != params['state']:
-            yield 1, 'State has changed from %s to %s' % (params['state'], data['state'][1])
+        if data['state'][1] != params.get('state'):
+            yield 1, 'State has changed from %s to %s' % (params.get('state'), data['state'][1])
         else:
             yield 0, 'State is %s' % data['state'][1]
         for key, value in data.items():
