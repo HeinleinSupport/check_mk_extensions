@@ -66,6 +66,42 @@ metric_info['archived_alarms'] = {
     "color": "21/b",
 }
 
+metric_info['active_calls'] = {
+    "title": _("Active Calls"),
+    "unit": "count",
+    "color": "31/a",
+}
+
+metric_info['calls_per_sec'] = {
+    "title": _("Calls per Second"),
+    "unit": "1/s",
+    "color": "32/a",
+}
+
+metric_info['average_success_ratio'] = {
+    "title": _("Average Success Ratio"),
+    "unit": "%",
+    "color": "33/a",
+}
+
+metric_info['average_call_duration'] = {
+    "title": _("Average Call Duration"),
+    "unit": "s",
+    "color": "34/a",
+}
+
+metric_info['rx_trans'] = {
+    "title": _("RX Transactions per Second"),
+    "unit": "1/s",
+    "color": "11/a",
+}
+
+metric_info['tx_trans'] = {
+    "title": _("TX Transactions per Second"),
+    "unit": "1/s",
+    "color": "11/b",
+}
+
 graph_info['sip_statistics'] = {
     'title'  : _('SIP Statistics'),
     'metrics': _acgateway_call_metrics,
@@ -76,3 +112,7 @@ graph_info['sip_totals'] = {
     'metrics': _acgateway_total_metrics,
 }
 
+graph_info['transactions'] = {
+    'title': _('Transactions per Second'),
+    'metrics': [ ('rx_trans', 'area' ), ('tx_trans', '-area' ) ],
+}

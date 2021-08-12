@@ -96,23 +96,23 @@ def check_acgateway_sipperf(section):
         for key, value in enumerate(section[0][0]):
             if key == 9:
                 yield Result(state=State.OK,
-                             summary="Tel2IP %s: %d" % (sipperf_info[key][1], int(value)))
+                             notice="Tel2IP %s: %d" % (sipperf_info[key][1], int(value)))
                 yield Metric('tel2ip_%s' % sipperf_info[key][0], int(value))
             else:
                 rate = get_rate(vs, 'acgateway_sipperf.tel2ip_%s' % sipperf_info[key][0], this_time, int(value))
                 yield Result(state=State.OK,
-                             summary="Tel2IP %s: %0.1f/s" % (sipperf_info[key][1], rate))
+                             notice="Tel2IP %s: %0.1f/s" % (sipperf_info[key][1], rate))
                 yield Metric('tel2ip_%s' % sipperf_info[key][0], rate)
         # IP2Tel
         for key, value in enumerate(section[1][0]):
             if key == 9:
                 yield Result(state=State.OK,
-                             summary="IP2Tel %s: %d" % (sipperf_info[key][1], int(value)))
+                             notice="IP2Tel %s: %d" % (sipperf_info[key][1], int(value)))
                 yield Metric('ip2tel_%s' % sipperf_info[key][0], int(value))
             else:
                 rate = get_rate(vs, 'acgateway_sipperf.ip2tel_%s' % sipperf_info[key][0], this_time, int(value))
                 yield Result(state=State.OK,
-                             summary="IP2Tel %s: %0.1f/s" % (sipperf_info[key][1], rate))
+                             notice="IP2Tel %s: %0.1f/s" % (sipperf_info[key][1], rate))
                 yield Metric('ip2tel_%s' % sipperf_info[key][0], rate)
 
 register.check_plugin(
