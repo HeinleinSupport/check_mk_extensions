@@ -1,26 +1,27 @@
 #!/bin/bash
 
-lsbrelease=$(which lsb_release)
-
-if [ -x "$lsbrelease" ]; then
+if [ -r /etc/os-release ]; then
 
     echo '<<<lsbrelease>>>'
+    desc=$(grep ^NAME /etc/os-release | cut -f 2 -d '=' | tr -d '"')
+    version=$(grep ^VERSION_ID /etc/os-release | cut -f 2 -d '=' | tr -d '"')
+    echo -e "Description:\t$desc"
+    echo -e "Release:\t$version"
 
-    if [ -r /etc/SuSE-release ]; then
-        version=$(grep ^VERSION /etc/SuSE-release | cut -f 3 -d " ")
-        patchlevel=$(grep ^PATCHLEVEL /etc/SuSE-release | cut -f 3 -d " ")
-        if [ -n "$patchlevel" ]; then
-            version="$version.$patchlevel"
-        fi
-        if [ -n "$version" ]; then
-            $lsbrelease -a |grep -v ^Release
-            echo -e "Release:\t$version"
-        else
-            $lsbrelease -a
-        fi
-    else
-        $lsbrelease -a
+elif [ -r /etc/SuSE-release ]; then
+
+    echo '<<<lsbrelease>>>'
+    version=$(grep ^VERSION /etc/SuSE-release | cut -f 3 -d " ")
+    patchlevel=$(grep ^PATCHLEVEL /etc/SuSE-release | cut -f 3 -d " ")
+    if [ -n "$patchlevel" ]; then
+        version="$version.$patchlevel"
     fi
+    echo -e "Description:\tSUSE EOL"
+    echo -e "Release:\t$version"
+
+elif lsbrelease=$(which lsb_release); then
+
+    echo '<<<lsbrelease>>>'
+    $lsbrelease -a
 
 fi
-
