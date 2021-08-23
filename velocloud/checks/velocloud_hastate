@@ -41,6 +41,10 @@ def parse_velocloud_hastate(string_table):
             'peer': int(string_table[0][1]),
             'admin_text': map_admin_state.get(string_table[0][0], 'Unkown'),
             'peer_text': map_peer_state.get(string_table[0][1], 'Unknown'),
+            'wan_active': int(string_table[0][2]),
+            'lan_active': int(string_table[0][3]),
+            'wan_standby': int(string_table[0][4]),
+            'lan_standby': int(string_table[0][5]),
         }
         return section
     return None
@@ -59,6 +63,14 @@ def check_velocloud_hastate(_no_item, params, section):
                 yield 2, 'Peer State: %s' % section['peer_text']
             else:
                 yield 0, 'Peer State: %s' % section['peer_text']
+            if section['wan_active'] == section['wan_standby']:
+                yield 0, '%d WAN connections' % section['wan_active']
+            else:
+                yield 2, '%d active and %d standby WAN connections' % (section['wan_active'], section['wan_standby'])
+            if section['lan_active'] == section['lan_standby']:
+                yield 0, '%d LAN connections' % section['lan_active']
+            else:
+                yield 2, '%d active and %d standby LAN connections' % (section['lan_active'], section['lan_standby'])
 
 check_info["velocloud_hastate"] = {
     "parse_function": parse_velocloud_hastate,
@@ -68,8 +80,12 @@ check_info["velocloud_hastate"] = {
     "has_perfdata": False,
     "snmp_info": (".1.3.6.1.4.1.45346.1.1.2.1.2",
                   [
-                      "1.0",
-                      "2.0",
+                      "1.0", # vceHaAdminState
+                      "2.0", # vceHaPeerState
+                      "3.0", # vceHaActiveWanItfNum
+                      "4.0", # vceHaActiveLanItfNum
+                      "5.0", # vceHaStanbyWanItfNum
+                      "6.0", # vceHaStanbyLanItfNum
                   ]),
     "snmp_scan_function": lambda oid: "VeloCloud" in oid(".1.3.6.1.2.1.1.1.0") and oid(".1.3.6.1.2.1.1.2.0") == ".1.3.6.1.4.1.8072.3.2.10",
 }
