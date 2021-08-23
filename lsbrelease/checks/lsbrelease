@@ -17,6 +17,7 @@
 
 lsbrelease_default_values = [ ( 'Debian', '6.0.7' ),
                               ( 'openSUSE', '12.2'),
+                              ( 'SUSE OEL', '99' ),
                               ( 'SUSE Linux Enterprise Server', '11.3' ),
                             ]
 
