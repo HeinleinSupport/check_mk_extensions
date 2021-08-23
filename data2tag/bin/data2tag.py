@@ -10,7 +10,7 @@ import argparse
 import checkmkapi
 import re
 import copy
-import pprint
+from pprint import pprint
 
 parser = argparse.ArgumentParser()
 parser.add_argument('-s', '--url', help='URL to Check_MK site')
@@ -42,30 +42,69 @@ if args.dump:
             if key not in result:
                 result[key] = set()
             result[key].add(value)
-    pprint.pprint(result)
+    pprint(result)
 else:
     changes = False
-    hosts, etags = wato.get_all_hosts()
+    host_info = {}
+    hosts, etags = wato.get_all_hosts(attributes=False)
+
+    # pprint(hosts)
+
     for info in resp:
-        if info['host'] not in hosts:
-            continue
-        print(info['host'])
+        hostname = info['host']
+        host_info.setdefault(hostname, {})
+        for attr, value in info.items():
+            host_info[hostname].setdefault(attr, [])
+            host_info[hostname][attr].append(value)
+
+    # pprint(host_info)
+
+    for hostname, info in host_info.items():
+        try:
+            host, etag = wato.get_host(hostname)
+        except Exception:
+            raise
+        # pprint(host)
+        host_tags = host['extensions']['attributes']
         tags = {}
+        unset_tags = []
         for attr, patterns in conf_tagmap.items():
             if attr in info:
-                pprint.pprint(info[attr])
                 for pattern, settags in patterns.items():
-                    if pattern.search(info[attr]):
-                        for taggroup, tag in settags.items():
-                            if taggroup in hosts[info['host']]['attributes']:
-                                if hosts[info['host']]['attributes'][taggroup] != tag:
+                    for value in info[attr]:
+                        if pattern.search(value):
+                            for taggroup, tag in settags.items():
+                                if host_tags.get(taggroup) != tag:
                                     tags[taggroup] = tag
-                            else:
-                                tags[taggroup] = tag
-        print(tags)
-
-        if tags:
-            wato.edit_host(info['host'], set_attr=tags)
+        if tags or unset_tags:
+            # pprint(tags)
+            # pprint(unset_tags)
+            wato.edit_host(hostname,
+                           etag=etag,
+                           update_attr=tags,
+                           unset_attr=unset_tags)
             changes = True
+        if hostname in hosts:
+            del(hosts[hostname])
+
+    # pprint(hosts)
+    for hostname, url in hosts.items():
+        try:
+            host, etag = wato.get_host(hostname)
+        except Exception:
+            raise
+        # pprint(host)
+        host_tags = list(host['extensions']['attributes'].keys())
+        unset_tags = []
+        for attr, patterns in conf_tagmap.items():
+            for pattern, settags in patterns.items():
+                for taggroup, tag in settags.items():
+                    if taggroup in host_tags:
+                        unset_tags.append(taggroup)
+        if unset_tags:
+            # pprint(unset_tags)
+            wato.edit_host(hostname, etag=etag, unset_attr=unset_tags)
+            changes = True
+            
     if changes:
         wato.activate()
