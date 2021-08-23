@@ -317,7 +317,7 @@ class CMKRESTAPI():
             (data, etag): usually both empty
         """
         data, etag, resp = self._post_url(
-            "domain-types/agent/actions/bake",
+            "domain-types/agent/actions/bake/invoke",
         )
         if resp.status_code == 200:
             return data, etag
