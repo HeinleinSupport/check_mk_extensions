@@ -3,10 +3,10 @@
 if [ -r /etc/os-release ]; then
 
     echo '<<<lsbrelease>>>'
-    desc=$(grep ^NAME /etc/os-release | cut -f 2 -d '=' | tr -d '"')
-    version=$(grep ^VERSION_ID /etc/os-release | cut -f 2 -d '=' | tr -d '"')
-    echo -e "Description:\t$desc"
-    echo -e "Release:\t$version"
+    . /etc/os-release
+    echo -e "Description:\t$PRETTY_NAME"
+    echo -e "Release:\t$VERSION_ID"
+    echo -e "Codename:\t$VERSION_CODENAME"
 
 elif [ -r /etc/SuSE-release ]; then
 

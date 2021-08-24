@@ -82,16 +82,12 @@ def check_lsbrelease(params, section) -> CheckResult:
         for distribution, version in params.get('distributions', []):
             if desc.lower().startswith(distribution.lower()):
                 yield Result(state=State.OK, summary=desc)
-                found = True
                 current_version=(0, 0)
-                if distribution.lower().startswith('ubuntu'):
-                    current_version = versiontuple(desc.split()[1])
-                else:
-                    release = section.get('Release')
-                    if release:
-                        current_version = versiontuple(release)
-                        if release not in desc:
-                            yield Result(summery="Release " + release)
+                release = section.get('Release')
+                if release:
+                    current_version = versiontuple(release)
+                    if release not in desc:
+                        yield Result(state=State.OK, summary="Release " + release)
                 test_version = versiontuple(version)
                 if current_version[0] < test_version[0]:
                     yield Result(state=State.CRIT,
@@ -99,6 +95,8 @@ def check_lsbrelease(params, section) -> CheckResult:
                 if current_version < test_version:
                     yield Result(state=State.WARN,
                                  summary="expected version %s" % version)
+                found = True
+                break
     if not found:
         yield Result(state=State.UNKNOWN,
                      summary="Unknown Distribution: %s" % desc)
