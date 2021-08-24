@@ -19,6 +19,11 @@
 def _item_acgateway_sipinterface(line):
     return "%s %s" % (line[0], line[10])
 
+def _find_line(idx, lines):
+    for line in lines:
+        if line[0] == idx:
+            return line
+
 def parse_acgateway_sipinterface(info):
     rowStatus = {
         u'1': u'active',
@@ -55,21 +60,27 @@ def parse_acgateway_sipinterface(info):
                         u'tlsport': line[8],
                         u'name': line[10]}
         if line[4].startswith('.1.3.6.1.4.1.5003.9.10.10.1.3.1.30.22.1.11.'):
-            idx = int(line[4][43:])
-            sysiface = info[1][idx]
-            parsed[item].update({u'sysrowstatus': rowStatus.get(sysiface[0], u'unknown'),
-                                 u'sysapptype': sysInterfaceApplicationType.get(sysiface[1], u'unknown'),
-                                 u'sysmode': sysInterfaceMode.get(sysiface[2], u'unknown'),
-                                 u'sysip': "%s/%s" % (sysiface[3], sysiface[4]),
-                                 u'sysgateway': sysiface[5],
-                                 u'sysvlan': sysiface[6],
-                                 u'sysname': sysiface[7]})
-            if sysiface[11].startswith('.1.3.6.1.4.1.5003.9.10.10.1.3.1.30.26.1.7.'):
-                idx = int(sysiface[11][42:])
-                device = info[2][idx]
-                parsed[item].update({u'devrowstatus': rowStatus.get(device[0], u'unknown'),
-                                     u'devvlan': device[3],
-                                     u'devname': device[4]})
+            idx = line[4][43:]
+            sysiface = _find_line(idx, info[1])
+            if sysiface:
+                parsed[item].update({
+                    u'sysrowstatus': rowStatus.get(sysiface[1], u'unknown'),
+                    u'sysapptype': sysInterfaceApplicationType.get(sysiface[2], u'unknown'),
+                    u'sysmode': sysInterfaceMode.get(sysiface[3], u'unknown'),
+                    u'sysip': "%s/%s" % (sysiface[4], sysiface[5]),
+                    u'sysgateway': sysiface[6],
+                    u'sysvlan': sysiface[7],
+                    u'sysname': sysiface[8],
+                })
+                if sysiface[12].startswith('.1.3.6.1.4.1.5003.9.10.10.1.3.1.30.26.1.7.'):
+                    idx = sysiface[12][42:]
+                    device = _find_line(idx, info[2])
+                    if device:
+                        parsed[item].update({
+                            u'devrowstatus': rowStatus.get(device[1], u'unknown'),
+                            u'devvlan': device[4],
+                            u'devname': device[5],
+                        })
     return parsed
 
 def inventory_acgateway_sipinterface(parsed):
@@ -107,36 +118,41 @@ check_info['acgateway_sipinterface'] = {
     'check_function'        : check_acgateway_sipinterface,
     'service_description'   : 'SIP Interface %s',
     'has_perfdata'          : False,
-    'snmp_info'             : [ ( '.1.3.6.1.4.1.5003.9.10.3.1.1.27.21.1', [ '1',  # 0  AcGateway::sipInterfaceIndex
-                                                                            '2',  # 1  AcGateway::sipInterfaceRowStatus
-                                                                            '3',  # 2  AcGateway::sipInterfaceAction
-                                                                            '4',  # 3  AcGateway::sipInterfaceActionResult
-                                                                            '5',  # 4  AcGateway::sipInterfaceNetworkInterface
-                                                                            '6',  # 5  AcGateway::sipInterfaceApplicationType
-                                                                            '7',  # 6  AcGateway::sipInterfaceUDPPort
-                                                                            '8',  # 7  AcGateway::sipInterfaceTCPPort
-                                                                            '9',  # 8  AcGateway::sipInterfaceTLSPort
-                                                                            '10', # 9  AcGateway::sipInterfaceSRD
-                                                                            '11', # 10 AcGateway::sipInterfaceInterfaceName
-                                                                          ] ),
-                                ( '.1.3.6.1.4.1.5003.9.10.10.1.3.1.30.22.1', [ '2',  # 0  AC-SYSTEM-MIB::acSysInterfaceRowStatus
-                                                                               '5',  # 1  AC-SYSTEM-MIB::acSysInterfaceApplicationTypes
-                                                                               '6',  # 2  AC-SYSTEM-MIB::acSysInterfaceMode
-                                                                               '7',  # 3  AC-SYSTEM-MIB::acSysInterfaceIPAddress
-                                                                               '8',  # 4  AC-SYSTEM-MIB::acSysInterfacePrefixLength
-                                                                               '9',  # 5  AC-SYSTEM-MIB::acSysInterfaceGateway
-                                                                               '10', # 6  AC-SYSTEM-MIB::acSysInterfaceVlanID
-                                                                               '11', # 7  AC-SYSTEM-MIB::acSysInterfaceName
-                                                                               '12', # 8  AC-SYSTEM-MIB::acSysInterfacePrimaryDNSServerIPAddress
-                                                                               '13', # 9  AC-SYSTEM-MIB::acSysInterfaceSecondaryDNSServerIPAddress
-                                                                               '14', # 10 AC-SYSTEM-MIB::acSysInterfaceUnderlyingInterface
-                                                                               '15', # 11 AC-SYSTEM-MIB::acSysInterfaceUnderlyingDevice
-                                                                            ] ),
-                                ( '.1.3.6.1.4.1.5003.9.10.10.1.3.1.30.26.1', [ '2',  # 0  AC-SYSTEM-MIB::acSysEthernetDeviceRowStatus
-                                                                               '3',  # 1  AC-SYSTEM-MIB::acSysEthernetDeviceAction
-                                                                               '4',  # 2  AC-SYSTEM-MIB::acSysEthernetDeviceActionRes
-                                                                               '5',  # 3  AC-SYSTEM-MIB::acSysEthernetDeviceVlanID
-                                                                               '7',  # 4  AC-SYSTEM-MIB::acSysEthernetDeviceName
-                                                                            ] ) ],
+    'snmp_info'             : [ ( '.1.3.6.1.4.1.5003.9.10.3.1.1.27.21.1', [
+                                    '1',  # 0  AcGateway::sipInterfaceIndex
+                                    '2',  # 1  AcGateway::sipInterfaceRowStatus
+                                    '3',  # 2  AcGateway::sipInterfaceAction
+                                    '4',  # 3  AcGateway::sipInterfaceActionResult
+                                    '5',  # 4  AcGateway::sipInterfaceNetworkInterface
+                                    '6',  # 5  AcGateway::sipInterfaceApplicationType
+                                    '7',  # 6  AcGateway::sipInterfaceUDPPort
+                                    '8',  # 7  AcGateway::sipInterfaceTCPPort
+                                    '9',  # 8  AcGateway::sipInterfaceTLSPort
+                                    '10', # 9  AcGateway::sipInterfaceSRD
+                                    '11', # 10 AcGateway::sipInterfaceInterfaceName
+                                ] ),
+                                ( '.1.3.6.1.4.1.5003.9.10.10.1.3.1.30.22.1', [
+                                    OID_END,
+                                    '2',  # 0  AC-SYSTEM-MIB::acSysInterfaceRowStatus
+                                    '5',  # 1  AC-SYSTEM-MIB::acSysInterfaceApplicationTypes
+                                    '6',  # 2  AC-SYSTEM-MIB::acSysInterfaceMode
+                                    '7',  # 3  AC-SYSTEM-MIB::acSysInterfaceIPAddress
+                                    '8',  # 4  AC-SYSTEM-MIB::acSysInterfacePrefixLength
+                                    '9',  # 5  AC-SYSTEM-MIB::acSysInterfaceGateway
+                                    '10', # 6  AC-SYSTEM-MIB::acSysInterfaceVlanID
+                                    '11', # 7  AC-SYSTEM-MIB::acSysInterfaceName
+                                    '12', # 8  AC-SYSTEM-MIB::acSysInterfacePrimaryDNSServerIPAddress
+                                    '13', # 9  AC-SYSTEM-MIB::acSysInterfaceSecondaryDNSServerIPAddress
+                                    '14', # 10 AC-SYSTEM-MIB::acSysInterfaceUnderlyingInterface
+                                    '15', # 11 AC-SYSTEM-MIB::acSysInterfaceUnderlyingDevice
+                                ] ),
+                                ( '.1.3.6.1.4.1.5003.9.10.10.1.3.1.30.26.1', [
+                                    OID_END,
+                                    '2',  # 0  AC-SYSTEM-MIB::acSysEthernetDeviceRowStatus
+                                    '3',  # 1  AC-SYSTEM-MIB::acSysEthernetDeviceAction
+                                    '4',  # 2  AC-SYSTEM-MIB::acSysEthernetDeviceActionRes
+                                    '5',  # 3  AC-SYSTEM-MIB::acSysEthernetDeviceVlanID
+                                    '7',  # 4  AC-SYSTEM-MIB::acSysEthernetDeviceName
+                                ] ) ],
     'snmp_scan_function'    : lambda oid: oid('.1.3.6.1.2.1.1.2.0').startswith('.1.3.6.1.4.1.5003.8.1.1'),
 }
