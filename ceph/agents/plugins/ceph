@@ -39,7 +39,7 @@ cluster.connect()
 
 hostname = socket.gethostname()
 fqdn = socket.getfqdn()
-# workaround for alternative hostname (uname -a)
+# workaround for alternative hostname (hostname -a)
 althostname = fqdn.split('.')[0]
 
 res = cluster.command_mon("status")
