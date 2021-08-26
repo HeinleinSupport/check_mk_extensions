@@ -39,6 +39,8 @@ cluster.connect()
 
 hostname = socket.gethostname()
 fqdn = socket.getfqdn()
+# workaround for alternative hostname (uname -a)
+althostname = fqdn.split('.')[0]
 
 res = cluster.command_mon("status")
 if res[0] == 0:
@@ -46,7 +48,7 @@ if res[0] == 0:
     mons = status.get('quorum_names', [])
     fsid = status.get("fsid", "")
 
-    if hostname in mons or fqdn in mons:
+    if hostname in mons or althostname in mons or fqdn in mons:
     # only on MON hosts
 
         print("<<<cephstatus:sep(0)>>>")
