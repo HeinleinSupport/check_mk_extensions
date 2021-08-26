@@ -64,13 +64,13 @@ def check_velocloud_hastate(_no_item, params, section):
             else:
                 yield 0, 'Peer State: %s' % section['peer_text']
             if section['wan_active'] == section['wan_standby']:
-                yield 0, '%d WAN connections' % section['wan_active']
+                yield 0, '%d WAN links' % section['wan_active']
             else:
-                yield 2, '%d active and %d standby WAN connections' % (section['wan_active'], section['wan_standby'])
+                yield 2, 'WAN: active node has %d links but standby node has %d links' % (section['wan_active'], section['wan_standby'])
             if section['lan_active'] == section['lan_standby']:
-                yield 0, '%d LAN connections' % section['lan_active']
+                yield 0, '%d LAN links' % section['lan_active']
             else:
-                yield 2, '%d active and %d standby LAN connections' % (section['lan_active'], section['lan_standby'])
+                yield 2, 'LAN: active node has %d links but standby node has %d links' % (section['lan_active'], section['lan_standby'])
 
 check_info["velocloud_hastate"] = {
     "parse_function": parse_velocloud_hastate,
