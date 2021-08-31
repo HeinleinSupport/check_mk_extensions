@@ -60,11 +60,13 @@
 from .agent_based_api.v1.type_defs import (
     CheckResult,
     DiscoveryResult,
+    HostLabelGenerator,
 )
 
 from .agent_based_api.v1 import (
     get_value_store,
     register,
+    HostLabel,
     Metric,
     Result,
     State,
@@ -87,9 +89,14 @@ def parse_cephosd(string_table):
             pass
     return section
 
+def host_label_cephosd(section) -> HostLabelGenerator:
+    if 'df' in section and 'nodes' in section['df'] and len(section['df']['nodes']) > 0:
+        yield HostLabel('ceph/osd', 'yes')
+
 register.agent_section(
     name="cephosd",
     parse_function=parse_cephosd,
+    host_label_function=host_label_cephosd,
 )
 
 def discovery_cephosd(section) -> DiscoveryResult:

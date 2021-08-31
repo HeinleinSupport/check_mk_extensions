@@ -18,6 +18,7 @@
 from .agent_based_api.v1.type_defs import (
     CheckResult,
     DiscoveryResult,
+    HostLabelGenerator,
 )
 
 from .agent_based_api.v1 import (
@@ -25,6 +26,7 @@ from .agent_based_api.v1 import (
     get_value_store,
     register,
     render,
+    HostLabel,
     Metric,
     Result,
     State,
@@ -44,10 +46,15 @@ def parse_cephstatus(string_table):
         except ValueError:
             pass
     return section
+
+def host_label_cephstatus(section) -> HostLabelGenerator:
+    if 'health' in section:
+        yield HostLabel('ceph/mon', 'yes')
     
 register.agent_section(
     name="cephstatus",
     parse_function=parse_cephstatus,
+    host_label_function=host_label_cephstatus,
 )
 
 def discovery_cephstatus(section) -> DiscoveryResult:
