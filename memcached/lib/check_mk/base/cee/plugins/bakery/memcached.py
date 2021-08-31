@@ -25,7 +25,7 @@ def get_memcached_files(conf: Dict[str, Any]) -> FileGenerator:
         pass
     else:
         yield Plugin(base_os=OS.LINUX,
-                     source=Path("mk_memcached"))
+                     source=Path("memcached.py"))
         if isinstance(conf, tuple):
             yield PluginConfig(base_os=OS.LINUX,
                                lines=['instances = %r' % conf[1]],
