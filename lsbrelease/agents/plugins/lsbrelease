@@ -2,11 +2,12 @@
 
 if [ -r /etc/os-release ]; then
 
-    echo '<<<lsbrelease>>>'
     . /etc/os-release
+    echo '<<<lsbrelease>>>'
     echo -e "Description:\t$PRETTY_NAME"
     echo -e "Release:\t$VERSION_ID"
     echo -e "Codename:\t$VERSION_CODENAME"
+    echo -e "Distributor ID:\t$ID"
 
 elif [ -r /etc/SuSE-release ]; then
 
