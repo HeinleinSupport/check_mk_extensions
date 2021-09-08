@@ -79,7 +79,7 @@ def check_rspamd(params, section):
                     rate[key] = {}
                 for key2, value2 in data[key].items():
                     if type(value2) == int:
-                        if key2 in section[key]:
+                        if key in section and key2 in section[key]:
                             data[key][key2] = section[key][key2]
                             rate[key][key2] = get_rate(value_store,
                                                        'rspamd.%s.%s' % (key, key2),
