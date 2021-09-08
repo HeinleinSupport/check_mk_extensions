@@ -18,75 +18,75 @@
 # Boston, MA 02110-1301 USA.
 
 metric_info['rspamd_scanned_rate'] = {
-    'title': _('Rspamd Scanned Messages'),
-    'unit': '1/s',
-    'color': '#000000',
+    u'title': _('Rspamd Scanned Messages'),
+    u'unit': '1/s',
+    u'color': '#000000',
 }
 
 metric_info['rspamd_ham_count_rate'] = {
-    'title': _('Rspamd HAM Messages'),
-    'unit': '1/s',
-    'color': '#00bb33',
+    u'title': _('Rspamd HAM Messages'),
+    u'unit': '1/s',
+    u'color': '#00bb33',
 }
 
 metric_info['rspamd_spam_count_rate'] = {
-    'title': _('Rspamd SPAM Messages'),
-    'unit': '1/s',
-    'color': '#e70000',
+    u'title': _('Rspamd SPAM Messages'),
+    u'unit': '1/s',
+    u'color': '#e70000',
 }
 
 metric_info['rspamd_actions_no_action_rate'] = {
-    'title': _('Rspamd No Action Taken'),
-    'unit': '1/s',
-    'color': '#00bb33',
+    u'title': _('Rspamd No Action Taken'),
+    u'unit': '1/s',
+    u'color': '#00bb33',
 }
 
 metric_info['rspamd_actions_reject_rate'] = {
-    'title': _('Rspamd Rejected'),
-    'unit': '1/s',
-    'color': '#e70000',
+    u'title': _('Rspamd Rejected'),
+    u'unit': '1/s',
+    u'color': '#e70000',
 }
 
 metric_info['rspamd_actions_soft_reject_rate'] = {
-    'title': _('Rspamd Soft Rejected'),
-    'unit': '1/s',
-    'color': '#8c8c69',
+    u'title': _('Rspamd Soft Rejected'),
+    u'unit': '1/s',
+    u'color': '#8c8c69',
 }
 
 metric_info['rspamd_actions_greylist_rate'] = {
-    'title': _('Rspamd Greylisted'),
-    'unit': '1/s',
-    'color': '#c9c977',
+    u'title': _('Rspamd Greylisted'),
+    u'unit': '1/s',
+    u'color': '#c9c977',
 }
 
 metric_info['rspamd_actions_rewrite_subject_rate'] = {
-    'title': _('Rspamd Subject Rewritten'),
-    'unit': '1/s',
-    'color': '#f3f35b',
+    u'title': _('Rspamd Subject Rewritten'),
+    u'unit': '1/s',
+    u'color': '#f3f35b',
 }
 
 metric_info['rspamd_actions_add_header_rate'] = {
-    'title': _('Rspamd Added Headers'),
-    'unit': '1/s',
-    'color': '#fafa0e',
+    u'title': _('Rspamd Added Headers'),
+    u'unit': '1/s',
+    u'color': '#fafa0e',
 }
 
 graph_info.append({
-    'title': _('Rspamd HAM/SPAM'),
-    'metrics': [ ( 'rspamd_ham_count_rate', 'stack' ),
-                 ( 'rspamd_spam_count_rate', 'stack' ),
+    u'title': _('Rspamd HAM/SPAM'),
+    u'metrics': [ ( 'rspamd_ham_count_rate', 'stacked' ),
+                 ( 'rspamd_spam_count_rate', 'stacked' ),
                  ( 'rspamd_scanned_rate', 'line' ),
                ],
     })
 
 graph_info.append({
-    'title': _('Rspamd Actions'),
-    'metrics': [ ( 'rspamd_actions_no_action_rate', 'stack' ),
-                 ( 'rspamd_actions_reject_rate', 'stack' ),
-                 ( 'rspamd_actions_soft_reject_rate', 'stack' ),
-                 ( 'rspamd_actions_greylist_rate', 'stack' ),
-                 ( 'rspamd_actions_rewrite_subject_rate', 'stack' ),
-                 ( 'rspamd_actions_add_header_rate', 'stack' ),
+    u'title': _('Rspamd Actions'),
+    u'metrics': [ ( 'rspamd_actions_no_action_rate', 'stacked' ),
+                 ( 'rspamd_actions_reject_rate', 'stacked' ),
+                 ( 'rspamd_actions_soft_reject_rate', 'stacked' ),
+                 ( 'rspamd_actions_greylist_rate', 'stacked' ),
+                 ( 'rspamd_actions_rewrite_subject_rate', 'stacked' ),
+                 ( 'rspamd_actions_add_header_rate', 'stacked' ),
                  ( 'rspamd_scanned_rate', 'line' ),
                ],
     })

@@ -56,7 +56,7 @@ def check_rspamd(_no_item, params, info):
                     rate[key] = {}
                 for key2, value2 in data[key].iteritems():
                     if type(value2) == int:
-                        if key2 in info[key]:
+                        if key in info and key2 in info[key]:
                             data[key][key2] = info[key][key2]
                             rate[key][key2] = get_rate('rspamd.%s.%s' % (key, key2), now, data[key][key2])
                         else:
@@ -67,12 +67,19 @@ def check_rspamd(_no_item, params, info):
 
         for key, value in data.iteritems():
             if type(value) == int:
-                yield 0, '%d %s (%0.2f%%)' % (value, key, value*100.0/total), [ ('rspamd_%s_rate' % key, rate[key]) ]
+                if total == 0:
+                    yield 0, '%d %s' % (value, key), [ ('rspamd_%s_rate' % key, rate[key]) ]
+                else:
+                    yield 0, '%d %s (%0.2f%%)' % (value, key, value*100.0/total), [ ('rspamd_%s_rate' % key, rate[key]) ]
             elif type(value) == dict:
                 for key2, value2 in data[key].iteritems():
                     if type(value2) == int:
-                        yield ( 0, '%d %s (%0.2f%%)' % (value2, key2, value2*100.0/total),
-                                [ ('rspamd_%s_%s_rate' % (key, key2.replace(' ', '_')), rate[key][key2]) ] )
+                        if total == 0:
+                            yield ( 0, '%d %s' % (value2, key2),
+                                    [ ('rspamd_%s_%s_rate' % (key, key2.replace(' ', '_')), rate[key][key2]) ] )
+                        else:
+                            yield ( 0, '%d %s (%0.2f%%)' % (value2, key2, value2*100.0/total),
+                                    [ ('rspamd_%s_%s_rate' % (key, key2.replace(' ', '_')), rate[key][key2]) ] )
     
 check_info['rspamd'] = {
     'parse_function'         : parse_rspamd,
