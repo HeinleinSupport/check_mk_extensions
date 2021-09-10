@@ -1,0 +1,85 @@
+#!/usr/bin/env python3
+# -*- encoding: utf-8; py-indent-offset: 4 -*-
+
+#
+# (c) 2021 Heinlein Support GmbH
+#          Robert Sander <r.sander@heinlein-support.de>
+#
+
+# This is free software;  you can redistribute it and/or modify it
+# under the  terms of the  GNU General Public License  as published by
+# the Free Software Foundation in version 2.  This file is distributed
+# in the hope that it will be useful, but WITHOUT ANY WARRANTY;  with-
+# out even the implied warranty of  MERCHANTABILITY  or  FITNESS FOR A
+# PARTICULAR PURPOSE. See the  GNU General Public License for more de-
+# ails.  You should have  received  a copy of the  GNU  General Public
+# License along with GNU Make; see the file  COPYING.  If  not,  write
+# to the Free Software Foundation, Inc., 51 Franklin St,  Fifth Floor,
+# Boston, MA 02110-1301 USA.
+
+import sys
+import subprocess
+from pprint import pprint
+
+snmpgetcmd=['snmpget', '-O', 'nq']
+factor=1.0
+unit=""
+warn=0
+warnset=False
+crit=0
+critset=False
+metric=False
+perfdata=''
+args = sys.argv[1:]
+
+def exec_snmpget(cmd):
+    return subprocess.run(cmd, capture_output=True, text=True)
+
+while args:
+    a = args.pop(0)
+    if a == "--factor":
+        factor=float(args.pop(0))
+    elif a == "--unit":
+        unit=args.pop(0)
+    elif a == "--metric":
+        metric=args.pop(0)
+    elif a == "--warn":
+        warn=float(args.pop(0))
+        warnset=True
+    elif a == "--crit":
+        crit=float(args.pop(0))
+        critset=True
+    elif a == "-h" or a == "--help":
+        print("%s --factor FACTOR --unit UNIT --warn WARN --crit CRIT --metric METRIC …plus snmpget arguments…" % sys.argv[0])
+        snmpgetcmd.append(a)
+        res = exec_snmpget(snmpgetcmd)
+        print(res.stderr)
+        sys.exit(res.returncode)
+    else:
+        snmpgetcmd.append(a)
+
+res = exec_snmpget(snmpgetcmd)
+
+if res.returncode == 0:
+    oid, v = res.stdout.strip().split()
+    val = float(v) / factor
+    state = 0
+    info = '%s is %0.2f %s' % (oid, val, unit)
+    if critset and val > crit:
+        state = 2
+        info += ' (crit level is %0.2f %s)(!!)' % (crit, unit)
+    elif warnset and val > warn:
+        state = 1
+        info += ' (warn level is %0.2f %s)(!!)' % (warn, unit)
+    if metric:
+        perfdata = "|%s=%f;" % (metric, val)
+        if warnset:
+            perfdata += "%f" % warn
+        perfdata += ";"
+        if critset:
+            perfdata += "%f" % crit
+    print("%s%s" % (info, perfdata))
+    sys.exit(state)
+else:
+    print(res.stderr)
+    sys.exit(2)
