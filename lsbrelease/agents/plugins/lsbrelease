@@ -5,7 +5,11 @@ if [ -r /etc/os-release ]; then
     . /etc/os-release
     echo '<<<lsbrelease>>>'
     echo -e "Description:\t$PRETTY_NAME"
-    echo -e "Release:\t$VERSION_ID"
+    if echo $PRETTY_NAME | grep -q -i "leap 42"; then
+        echo -e "Release:\t"$(echo $VERSION_ID | sed -e s/42/14/)
+    else
+        echo -e "Release:\t$VERSION_ID"
+    fi
     echo -e "Codename:\t$VERSION_CODENAME"
     echo -e "Distributor ID:\t$ID"
 
