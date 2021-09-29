@@ -32,8 +32,11 @@ from .agent_based_api.v1 import (
 def parse_lsbrelease(string_table):
     lsbinfo = {}
     for line in string_table:
-        key, value = (" ".join(line)).split(': ')
-        lsbinfo[key] = value
+        try:
+            key, value = (" ".join(line)).split(': ')
+            lsbinfo[key] = value
+        except ValueError:
+            pass
     return lsbinfo
 
 def parse_lnx_distro(info):
@@ -92,7 +95,7 @@ def check_lsbrelease(params, section) -> CheckResult:
                 if current_version[0] < test_version[0]:
                     yield Result(state=State.CRIT,
                                  summary="expected at least version %d" % test_version[0])
-                if current_version < test_version:
+                elif current_version < test_version:
                     yield Result(state=State.WARN,
                                  summary="expected version %s" % version)
                 found = True
