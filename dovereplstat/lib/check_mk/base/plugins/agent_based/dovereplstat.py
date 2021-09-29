@@ -91,7 +91,7 @@ def check_dovereplstat(params, section) -> CheckResult:
             yield Result(state=State.OK,
                          notice="%s: %d" % (data['label'], data['value']))
             yield Metric(key, data['value'])
-    if 'total_users' in section:
+    if 'total_users' in section and section['total_users']['value'] != 0:
         perc_users = section.get('current_users', {'value': 0})['value'] * 100.0 / section['total_users']['value']
         yield Result(state=State.OK,
                      summary='%0.2f%% user usage' % perc_users)
