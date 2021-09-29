@@ -127,7 +127,7 @@ def check_amavis(params, section) -> CheckResult:
                     'OutMsgs',
                     'OutMsgsAttemptFails',
                     'InMsgsStatusRejectedOriginating' ]
-        percentage = { 'total': 'InMsgs',
+        percentage = { 'total': 0,
                        'parts': {'ContentCleanMsgs': 0,
                                  'ContentSpamMsgs': 0,
                                  'ContentVirusMsgs': 0,
