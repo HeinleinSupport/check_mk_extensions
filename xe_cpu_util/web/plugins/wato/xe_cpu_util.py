@@ -16,11 +16,21 @@
 # to the Free Software Foundation, Inc., 51 Franklin St,  Fifth Floor,
 # Boston, MA 02110-1301 USA.
 
-register_check_parameters(
-    subgroup_os,
-    "xe_cpu_util",
-    _("CPU utilization on Xen hosts"),
-    Dictionary(
+from cmk.gui.i18n import _
+from cmk.gui.valuespec import (
+    Checkbox,
+    Dictionary,
+    Levels,
+)
+
+from cmk.gui.plugins.wato import (
+    rulespec_registry,
+    CheckParameterRulespecWithoutItem,
+    RulespecGroupCheckParametersOperatingSystem,
+)
+
+def _parameter_valuespec_xe_cpu_util():
+    return Dictionary(
         elements = [
             ( "util",
                 Levels(
@@ -49,7 +59,14 @@ register_check_parameters(
             ),
 
         ],
-    ),
-    None,
-    "dict",
-)
+    )
+
+rulespec_registry.register(
+    CheckParameterRulespecWithoutItem(
+        check_group_name="xe_cpu_util",
+        group=RulespecGroupCheckParametersOperatingSystem,
+        item_spec=_item_spec_xe_cpu_util,
+        match_type="dict",
+        parameter_valuespec=_parameter_valuespec_xe_cpu_util,
+        title=lambda: _("CPU utilization on Xen hosts"),
+    ))

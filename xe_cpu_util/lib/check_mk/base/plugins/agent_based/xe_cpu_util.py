@@ -15,45 +15,71 @@
 # to the Free Software Foundation, Inc., 51 Franklin St,  Fifth Floor,
 # Boston, MA 02110-1301 USA.
 
-def inventory_xe_cpu_util(info):
-    if len(info) > 0:
-        yield None, {}
+from .agent_based_api.v1 import (
+    check_levels,
+    register,
+    render,
+    Result,
+    Metric,
+    State,
+    Service,
+)
 
-def check_xe_cpu_util(_no_item, params, info):
-    cpus = {}
-    for line in info:
-        cpus[saveint(line[0])] = round(savefloat(line[2]) * 100.0, 1)
-    if cpus:
-        average = sum(cpus.values()) / len(cpus)
-        perfdata = [ ('cpu_util_guest', average) ]
-        if 'util' in params:
-            if type(params['util']) == tuple:
-                perfdata = [ ('cpu_util_guest', average, params['util'][0], params['util'][1]) ]
-            state, text, perflevel = check_levels(average, 'xe_cpu_util_average', params['util'], unit='%')
-        else:
-            state, text, perflevel = 0, '', []
-        yield state, 'Average CPU utilisation: %s%s' % (get_percent_human_readable(average), text), perfdata + perflevel
-        if 'levels_single' or 'core_util_graph' in params:
-            for cpuid in sorted(cpus.keys()):
-                if 'core_util_graph' in params:
-                    perfdata = [ ('cpu_core_util_%s' % cpuid, cpus[cpuid]) ]
-                else:
-                    perfdata = []
-                if 'levels_single' in params:
-                    if type(params['levels_single']) == tuple:
-                        perfdata = [ ('cpu_core_util_%s' % cpuid, cpus[cpuid], params['levels_single'][0], params['levels_single'][1]) ]
-                    state, text, perflevel = check_levels(cpus[cpuid], 'xe_cpu_util_%s' % cpuid, params['levels_single'], unit='%')
-                else:
-                    state, text, perflevel = 0, '', []
-                if text:
-                    yield state, "Core %d: %s%s" % (cpuid + 1, get_percent_human_readable(cpus[cpuid]), text), perfdata + perflevel
-                elif perfdata:
-                    yield 0, None, perfdata
+from cmk.utils import debug
+from pprint import pprint
 
-# check_info["xe_cpu_util"] = {
-#     'check_function'        : check_xe_cpu_util,
-#     'inventory_function'    : inventory_xe_cpu_util,
-#     'service_description'   : 'Xen CPU Utilisation',
-#     'has_perfdata'          : True,
-#     'group'                 : 'xe_cpu_util',
-# }
+def parse_xe_cpu_util(string_table):
+    section = {}
+    if debug.enabled():
+        pprint(string_table)
+    for cpuid, uuid, value in string_table:
+        section[int(cpuid)] = round(float(value) * 100.0, 1)
+    if debug.enabled():
+        pprint(section)
+    return section
+
+register.agent_section(
+    name="xe_cpu_util",
+    parse_function=parse_xe_cpu_util,
+)
+
+def discover_xe_cpu_util(section):
+    if len(section) > 0:
+        yield Service()
+
+def check_xe_cpu_util(params, section):
+    if debug.enabled():
+        pprint(params)
+    average = sum(section.values()) / len(section)
+    perfdata = [  ]
+    if 'util' in params:
+        yield from check_levels(average,
+                                levels_upper=params['util'],
+                                boundaries=(0, 100),
+                                metric_name="cpu_util_guest",
+                                label="Average CPU utilisation",
+                                render_func=render.percent)
+    else:
+        yield Metric('cpu_util_guest', average)
+        yield Result(state=State.OK, summary='Average CPU utilisation: %s' % render.percent(average))
+    if 'levels_single' or 'core_util_graph' in params:
+        for cpuid in sorted(section.keys()):
+            if 'levels_single' in params:
+                yield from check_levels(section[cpuid],
+                                        levels_upper=params['levels_single'],
+                                        boundaries=(0, 100),
+                                        metric_name='cpu_core_util_%s' % cpuid,
+                                        label='Core %d' % cpuid,
+                                        render_func=render.percent)
+            elif 'core_util_graph' in params:
+                yield Metric('cpu_core_util_%s' % cpuid, cpus[cpuid])
+
+register.check_plugin(
+    name="xe_cpu_util",
+    service_name="Xen CPU Utilisation",
+    sections=["xe_cpu_util"],
+    discovery_function=discover_xe_cpu_util,
+    check_function=check_xe_cpu_util,
+    check_default_parameters={},
+    check_ruleset_name="xe_cpu_util",
+)
