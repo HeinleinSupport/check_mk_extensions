@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 # -*- encoding: utf-8; py-indent-offset: 4 -*-
 #
 # (c) 2018 Heinlein Support GmbH
@@ -52,16 +52,4 @@ register_check_parameters(
     ),
     None,
     "dict",
-)
-
-register_rule('agents/' + _('Agent Plugins'),
-    "agent_config:xe_cpu_util",
-    DropdownChoice(
-        title = _("Xen CPU Utilization (Linux)"),
-        help = _("This will deploy the agent plugin <tt>xe_cpu_util</tt> to check CPU utilisation on Xen hosts."),
-        choices = [
-            ( True, _("Deploy plugin xe_cpu_util") ),
-            ( None, _("Do not deploy plugin xe_cpu_util") ),
-        ]
-    )
 )

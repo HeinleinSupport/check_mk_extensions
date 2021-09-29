@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 # -*- encoding: utf-8; py-indent-offset: 4 -*-
 
 # (c) 2018 Heinlein Support GmbH
@@ -50,10 +50,10 @@ def check_xe_cpu_util(_no_item, params, info):
                 elif perfdata:
                     yield 0, None, perfdata
 
-check_info["xe_cpu_util"] = {
-    'check_function'        : check_xe_cpu_util,
-    'inventory_function'    : inventory_xe_cpu_util,
-    'service_description'   : 'Xen CPU Utilisation',
-    'has_perfdata'          : True,
-    'group'                 : 'xe_cpu_util',
-}
+# check_info["xe_cpu_util"] = {
+#     'check_function'        : check_xe_cpu_util,
+#     'inventory_function'    : inventory_xe_cpu_util,
+#     'service_description'   : 'Xen CPU Utilisation',
+#     'has_perfdata'          : True,
+#     'group'                 : 'xe_cpu_util',
+# }
