@@ -15,9 +15,6 @@
 # to the Free Software Foundation, Inc., 51 Franklin St,  Fifth Floor,
 # Boston, MA 02110-1301 USA.
 
-from cmk.utils import debug
-from pprint import pprint
-
 from .agent_based_api.v1.type_defs import (
     CheckResult,
     DiscoveryResult,
@@ -47,9 +44,6 @@ def discover_postconf(section) -> DiscoveryResult:
         yield Service()
 
 def check_postconf(params, section) -> CheckResult:
-    if debug.enabled():
-        pprint(params)
-        pprint(section)
     if 'config' not in params:
         yield Result (state=State.OK,
                       summary="No Postfix configuration parameters to check.")
