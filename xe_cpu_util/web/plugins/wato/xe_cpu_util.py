@@ -20,12 +20,12 @@ from cmk.gui.i18n import _
 from cmk.gui.valuespec import (
     Checkbox,
     Dictionary,
-    Levels,
 )
 
 from cmk.gui.plugins.wato import (
     rulespec_registry,
     CheckParameterRulespecWithoutItem,
+    Levels,
     RulespecGroupCheckParametersOperatingSystem,
 )
 
@@ -65,7 +65,6 @@ rulespec_registry.register(
     CheckParameterRulespecWithoutItem(
         check_group_name="xe_cpu_util",
         group=RulespecGroupCheckParametersOperatingSystem,
-        item_spec=_item_spec_xe_cpu_util,
         match_type="dict",
         parameter_valuespec=_parameter_valuespec_xe_cpu_util,
         title=lambda: _("CPU utilization on Xen hosts"),
