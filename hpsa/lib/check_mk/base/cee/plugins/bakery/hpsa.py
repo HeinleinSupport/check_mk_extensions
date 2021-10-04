@@ -24,6 +24,9 @@ def get_hpsa_files(conf: Dict[str, Any]) -> FileGenerator:
     yield Plugin(base_os=OS.LINUX,
                  source=Path("hpsa"),
                  interval=conf.get("interval"))
+    yield Plugin(base_os=OS.WINDOWS,
+                 source=Path("hpsa.ps1"),
+                 interval=conf.get("interval"))
 
 register.bakery_plugin(
     name="hpsa",
