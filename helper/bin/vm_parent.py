@@ -43,22 +43,20 @@ for item in resp:
             node += args.append
     hosts[item['host']] = node
 
-watohosts, etags = wato.get_all_hosts()
-
 changes = False
 for host in hosts.keys():
-    if host in watohosts:
-        watohost = watohosts[host]
-    else:
+    try:
+        watohost, etag = wato.get_host(host, effective_attr=True)
+    except:
         continue
-    if watohost['attributes'].get('parents', []) != [ hosts[host] ]:
+    if watohost['extensions']['effective_attributes'].get('parents', []) != [ hosts[host] ]:
         if hosts[host]:
             print("%s gets %s as parent" % (host, hosts[host]))
-            wato.edit_host(host, update_attr={'parents': [ hosts[host] ]})
+            wato.edit_host(host, etag=etag, update_attr={'parents': [ hosts[host] ]})
             changes = True
-        elif len(watohost['attributes'].get('parents', [])) == 1:
+        elif len(watohost['extensions']['attributes'].get('parents', [])) == 1:
             print("%s gets no specific parent" % (host, hosts[host]))
-            wato.edit_host(host, unset_attr=['parents'])
+            wato.edit_host(host, etag=etag, unset_attr=['parents'])
             changes = True
 if changes:
     wato.activate()
