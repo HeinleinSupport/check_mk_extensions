@@ -49,7 +49,7 @@ def _all_none(l):
 def _list_to_args(para, l):
     if _all_none(l):
         return ''
-    return "%s %s" % (para, ",".join(map(lambda x: x if x else '', l)))
+    return "%s %s" % (para, ",".join(map(lambda x: str(x) if x else '', l)))
 
 def check_snmp_arguments(params):
     if 'hostname' in params:
@@ -77,8 +77,13 @@ def check_snmp_arguments(params):
     crit = []
     for query in params['query']:
         oids.append(query['oid'])
-        warn.append(query.get('warn'))
-        crit.append(query.get('crit'))
+        levels_upper = query.get('levels_upper')
+        if levels_upper:
+            warn.append(levels_upper[0])
+            crit.append(levels_upper[1])
+        else:
+            warn.append(None)
+            crit.append(None)
     if oids:
         args += " -m ALL -o %s" % ",".join(map(quote_shell_string, oids))
     args += _list_to_args('-w', warn)
