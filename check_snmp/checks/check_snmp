@@ -49,7 +49,7 @@ def _all_none(l):
 def _list_to_args(para, l):
     if _all_none(l):
         return ''
-    return "%s %s" % (para, ",".join(map(lambda x: str(x) if x else '', l)))
+    return " %s %s" % (para, ",".join(map(lambda x: str(x) if x else '', l)))
 
 def check_snmp_arguments(params):
     if 'hostname' in params:
