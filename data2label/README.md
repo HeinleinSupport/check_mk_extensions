@@ -35,7 +35,7 @@ Example:
                 'centos'                       : ['redhat', 'linux'],
                 'debian'                       : ['debian', 'linux'],
                 'suse'                         : ['suse', 'linux'],
-                'ubuntu'                       : [''ubuntu', 'linux'],
+                'ubuntu'                       : ['ubuntu', 'linux'],
                 'xenserver'                    : ['redhat', 'linux'],
                 'Microsoft Windows 7'          : ['win7', 'windows'],
                 'Microsoft Windows Server 2008': ['win2008', 'windows'],
