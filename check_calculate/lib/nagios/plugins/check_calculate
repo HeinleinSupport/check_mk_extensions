@@ -1,0 +1,200 @@
+#!/usr/bin/env python3
+# -*- encoding: utf-8; py-indent-offset: 4 -*-
+
+#
+# (c) 2021 Heinlein Support GmbH
+#          Robert Sander <r.sander@heinlein-support.de>
+#
+
+# This is free software;  you can redistribute it and/or modify it
+# under the  terms of the  GNU General Public License  as published by
+# the Free Software Foundation in version 2.  This file is distributed
+# in the hope that it will be useful, but WITHOUT ANY WARRANTY;  with-
+# out even the implied warranty of  MERCHANTABILITY  or  FITNESS FOR A
+# PARTICULAR PURPOSE. See the  GNU General Public License for more de-
+# ails.  You should have  received  a copy of the  GNU  General Public
+# License along with GNU Make; see the file  COPYING.  If  not,  write
+# to the Free Software Foundation, Inc., 51 Franklin St,  Fifth Floor,
+# Boston, MA 02110-1301 USA.
+
+# params = {
+#     'metric': 'blablub',
+#     'label': 'Label',
+#     'levels_upper': (0.1, 10.0),
+#     'levels_lower': None,
+#     'expression': ('operator', '*', [
+#         ('operator',  '+', [
+#             ('rrd', 'cephtest21.mauerpark.heinlein-intern.de', 'Filesystem /', 'fs_used', 'max'),
+#             ('rrd', 'cephtest22.mauerpark.heinlein-intern.de', 'Filesystem /', 'fs_used', 'max'),
+#         ]),
+#         ('constant', 1.5),
+#     ]),
+# }
+
+import os
+import sys
+import socket
+import json
+import math
+import argparse
+from cmk.base.plugins.agent_based.agent_based_api.v1 import (
+    check_levels,
+    Result,
+    Metric,
+    State,
+)
+from functools import reduce
+from pprint import pprint
+
+home = os.environ.get('OMD_ROOT')
+if home:
+    localsocketname = home + '/tmp/run/live'
+else:
+    print("Unable to get OMD_ROOT")
+    sys.exit(3)
+
+parser = argparse.ArgumentParser()
+parser.add_argument('-d', '--description')
+parser.add_argument('-l', '--label')
+parser.add_argument('-m', '--metric')
+parser.add_argument('-o', '--levelslower', default='None')
+parser.add_argument('-u', '--levelsupper', default='None')
+parser.add_argument('-e', '--expression')
+
+args = parser.parse_args()
+
+#
+# MKLivestatus helper from https://github.com/arthru/python-mk-livestatus
+# Copyright (c) 2011, Michael Fladischer
+#
+
+class Query(object):
+    def __init__(self, conn, resource):
+        self._conn = conn
+        self._resource = resource
+        self._columns = []
+        self._filters = []
+        self._stats = []
+
+    def call(self):
+        try:
+            data = bytes(str(self), 'utf-8')
+        except TypeError:
+            data = str(self)
+        return self._conn.call(data)
+
+    __call__ = call
+
+    def __str__(self):
+        request = 'GET %s' % (self._resource)
+        if self._columns and any(self._columns):
+            request += '\nColumns: %s' % (' '.join(self._columns))
+        if self._filters:
+            for filter_line in self._filters:
+                if filter_line.startswith('Or: ') or filter_line.startswith('And: '):
+                    request += '\n%s' % (filter_line)
+                else:
+                    request += '\nFilter: %s' % (filter_line)
+        if self._stats:
+            for stats_line in self._stats:
+                request += '\nStats: %s' % (stats_line)
+        request += '\nOutputFormat: json\nColumnHeaders: on\n'
+        return request
+
+    def columns(self, *args):
+        self._columns = args
+        return self
+
+    def filter(self, filter_str):
+        self._filters.append(filter_str)
+        return self
+
+    def stats(self, stats_str):
+        self._stats.append(stats_str)
+        return self
+
+class Socket(object):
+    def __init__(self, peer):
+        self.peer = peer
+
+    def __getattr__(self, name):
+        return Query(self, name)
+
+    def call(self, request):
+        try:
+            if len(self.peer) == 2:
+                s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+            else:
+                s = socket.socket(socket.AF_UNIX, socket.SOCK_STREAM)
+            s.connect(self.peer)
+            s.send(request)
+            s.shutdown(socket.SHUT_WR)
+            rawdata = s.makefile().read()
+            if not rawdata:
+                return []
+            data = json.loads(rawdata)
+            return [dict(zip(data[0], value)) for value in data[1:]]
+        finally:
+            s.close()
+
+#
+# End MKLivestatus Helper
+#
+
+ops = {
+    '+': math.fsum,
+    '-': lambda l: reduce(lambda x, y: x-y, l),
+    '*': math.prod,
+    '/': lambda l: reduce(lambda x, y: x/y, l),
+}
+
+def get_metric_value(hostname, service, metric):
+    lq = Socket(localsocketname)
+    query = lq.services
+    query = query.filter('host_name = %s' % hostname)
+    query = query.filter('description = %s' % service)
+    query = query.columns('perf_data')
+    result = query.call()
+
+    for perfdata in result[0]['perf_data'].split():
+        if perfdata.startswith('%s=' % metric):
+            return float(perfdata.split('=')[1].split(';')[0])
+
+def replace_metric_value(expr):
+    ty = expr[0]
+    val = None
+    if ty == 'rrd':
+        val = get_metric_value(expr[1], expr[2], expr[3])
+    elif ty == 'constant':
+        val = expr[1]
+    elif ty == 'operator':
+        op = expr[1]
+        argl = []
+        for arg in expr[2]:
+            argl.append(replace_metric_value(arg))
+        val = ops[op](argl)
+    return val
+
+try:
+    value = replace_metric_value(eval(args.expression))
+except Exception as e:
+    print('Unable to compute value: %s' % e)
+    sys.exit(3)
+
+for res in check_levels(
+    value,
+    levels_upper=eval(args.levelsupper),
+    levels_lower=eval(args.levelslower),
+    metric_name=args.metric,
+    label=args.label,
+):
+    if isinstance(res, Result):
+        state = res.state
+        details = res.details
+        summary = res.summary
+    if isinstance(res, Metric):
+        name = res.name
+        value = res.value
+
+print('%s|%s=%s' % (summary, name, value))
+sys.exit(state.value)
