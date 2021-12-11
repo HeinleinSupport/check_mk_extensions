@@ -56,10 +56,11 @@ def check_infortrend_disks(item, params, info):
         254 : "Missing Drive",
         255 : "Failed Drive"
         }
-    for slot, status, model, version, serial, size in info:
+    for slot, status, model, version, serial, size, blocksize in info:
         if slot == item:
             status = saveint(status)
-            info = "%s %s %s, %s, " % (model, version, serial, get_bytes_human_readable(saveint(size)))
+            disksize = int(size) * 2 ** int(blocksize)
+            info = "%s %s %s, %s, " % (model, version, serial, get_bytes_human_readable(disksize))
             if status not in status_info.keys():
                 return (3, "%sStatus is %d" % (info, status))
             if status == 1 or status == 3 or status == 9:
@@ -74,5 +75,5 @@ check_info["infortrend_disks"] = {
     'has_perfdata'          : False,
     'inventory_function'    : inventory_infortrend_disks,
     'snmp_scan_function'    : lambda oid: oid(".1.3.6.1.4.1.1714.1.1.1.1.0") != None,
-    'snmp_info'             : ( ".1.3.6.1.4.1.1714.1.6.1", [ "13", "11", "15", "16", "17", "7" ] ),
+    'snmp_info'             : ( ".1.3.6.1.4.1.1714.1.6.1", [ "13", "11", "15", "16", "17", "7", "8" ] ),
 }
