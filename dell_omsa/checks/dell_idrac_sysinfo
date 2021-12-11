@@ -1,4 +1,4 @@
-#!/usr/bin/python
+#!/usr/bin/env python3
 # -*- encoding: utf-8; py-indent-offset: 4 -*-
 
 def inventory_dell_idrac_sysinfo(info):
@@ -43,7 +43,5 @@ check_info["dell_idrac_sysinfo"] = {
         '10.1.4.1',      # chassisStatus
         '50.1.5.1.1',    # systemBIOSStatus
         ] ),
-    'snmp_scan_function'    : lambda oid: oid(".1.3.6.1.4.1.674.10892.5.4.300.10.1.9.1") != None,
+    'snmp_scan_function'    : lambda oid: oid(".1.3.6.1.4.1.674.10892.5.4.300.10.1.9.1"),
 }
-
-
