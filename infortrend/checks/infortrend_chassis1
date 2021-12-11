@@ -173,7 +173,7 @@ def check_infortrend_chassis1(item, params, info):
                     output.append("%s (!)" % status_info[devtype]['bits'][bit][bit_set])
                 else:
                     output.append(status_info[devtype]['bits'][bit][bit_set])
-            if status_info[devtype].has_key('adtl_info'):
+            if 'adtl_info'in status_info[devtype]:
                 adtl_status = status_info[devtype]['adtl_func'](status)
                 if adtl_status > 0:
                     output.append("%s (!)" % status_info[devtype]['adtl_info'][adtl_status])

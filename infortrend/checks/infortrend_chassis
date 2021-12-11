@@ -133,7 +133,7 @@ def check_infortrend_chassis(item, params, info):
                     yield 2, status_info[type]['bits'][bit][bit_set]
                 else:
                     yield 0, status_info[type]['bits'][bit][bit_set]
-            if status_info[type].has_key('adtl_info'):
+            if 'adtl_info' in status_info[type]:
                 adtl_status = status_info[type]['adtl_func'](status)
                 yield status_info[type]['adtl_info'][adtl_status][0], status_info[type]['adtl_info'][adtl_status][1]
 
