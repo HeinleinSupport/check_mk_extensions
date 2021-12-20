@@ -27,7 +27,7 @@ from cmk.gui.valuespec import (
 
 def _valuespec_agent_config_updater_hostname():
     return DropdownChoice(
-        title=_("Agent Updater Hostname (Linux)"),
+        title=_("Agent Updater Hostname (Linux, Windows)"),
         help=_("Hosts configured via this rule get the <tt>updater_hostname</tt> plugin "
                "deployed. This will create a service check that compares the host's name "
                "with the value in /etc/cmk-update-agent.state."),

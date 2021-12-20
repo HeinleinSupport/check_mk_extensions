@@ -15,18 +15,13 @@
 # to the Free Software Foundation, Inc., 51 Franklin St,  Fifth Floor,
 # Boston, MA 02110-1301 USA.
 
-from pathlib import Path
-from typing import Any, Dict
+import socket
 
-from .bakery_api.v1 import FileGenerator, OS, Plugin, register
+print("<<<updater_hostname>>>")
 
-def get_updater_hostname_files(conf: Dict[str, Any]) -> FileGenerator:
-    yield Plugin(base_os=OS.LINUX,
-                 source=Path("updater_hostname.py"))
-    yield Plugin(base_os=OS.WINDOWS,
-                 source=Path("updater_hostname.py"))
+print("fqdn %s" % socket.getfqdn())
+print("host %s" % socket.gethostname())
 
-register.bakery_plugin(
-    name="updater_hostname",
-    files_function=get_updater_hostname_files,
-)
+config = eval(open('C:\\ProgramData\\checkmk\\agent\\config\\cmk-update-agent.state', 'r').read())
+
+print("conf %s" % config['host_name'])
