@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 # -*- encoding: utf-8; py-indent-offset: 4 -*-
 
 #
@@ -133,7 +133,7 @@ def check_infortrend_chassis(item, params, info):
                     yield 2, status_info[type]['bits'][bit][bit_set]
                 else:
                     yield 0, status_info[type]['bits'][bit][bit_set]
-            if status_info[type].has_key('adtl_info'):
+            if 'adtl_info' in status_info[type]:
                 adtl_status = status_info[type]['adtl_func'](status)
                 yield status_info[type]['adtl_info'][adtl_status][0], status_info[type]['adtl_info'][adtl_status][1]
 
@@ -142,6 +142,6 @@ check_info["infortrend_chassis"] = {
     'service_description'   : "IFT %s",
     'has_perfdata'          : False,
     'inventory_function'    : inventory_infortrend_chassis,
-    'snmp_scan_function'    : lambda oid: oid(".1.3.6.1.4.1.1714.1.1.1.1.0") != None,
+    'snmp_scan_function'    : lambda oid: oid(".1.3.6.1.4.1.1714.1.1.1.1.0"),
     'snmp_info'             : ( ".1.3.6.1.4.1.1714.1.9.1", [ "8", "13", "6", "9", "10", "12" ] ),
 }
