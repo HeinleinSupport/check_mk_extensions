@@ -44,10 +44,10 @@ Example:
             },
         }
         'label_prefix': {
-            'inv_software_os_name': u'opsys/',
+            'inv_software_os_name': 'opsys/',
         },
         'label_value': {
-            'inv_software_os_name': u'yes',
+            'inv_software_os_name': 'yes',
         },
     }
     
