@@ -293,6 +293,8 @@ class CMKRESTAPI():
         Returns:
             (data, etag): usually both empty
         """
+        # sleep for 2s to let API settle down
+        time.sleep(2)
         postdata = { 'redirect': False, 'sites': sites, 'force_foreign_changes': False }
         data, etag, resp = self._post_url(
             "domain-types/activation_run/actions/activate-changes/invoke",

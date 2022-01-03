@@ -11,11 +11,11 @@ data2label needs the [checkmkapi](https://github.com/HeinleinSupport/check_mk_ex
 # Usage #
 
     data2label.py --help
-	usage: data2label.py [-h] -s URL -u USERNAME -p PASSWORD -c CONFIG [-d]
+	usage: data2label.py [-h] [-s URL] [-u USERNAME] [-p PASSWORD] -c CONFIG [-d]
     
     optional arguments:
-	  -h, --help            show this help message and exit
-	  -s URL, --url URL     URL to Check_MK site
+      -h, --help            show this help message and exit
+      -s URL, --url URL     URL to Check_MK site
       -u USERNAME, --username USERNAME
                             name of the automation user
       -p PASSWORD, --password PASSWORD
@@ -44,10 +44,10 @@ Example:
             },
         }
         'label_prefix': {
-            'inv_software_os_name': u'opsys/',
+            'inv_software_os_name': 'opsys/',
         },
         'label_value': {
-            'inv_software_os_name': u'yes',
+            'inv_software_os_name': 'yes',
         },
     }
     
