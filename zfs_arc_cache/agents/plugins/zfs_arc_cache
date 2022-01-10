@@ -1,0 +1,13 @@
+#!/bin/bash
+
+if [ -r /proc/spl/kstat/zfs/arcstats ]; then
+
+  echo '<<<zfs_arc_cache>>>'
+
+  tail -n +3 /proc/spl/kstat/zfs/arcstats | while read name t value; do
+
+    echo $name = $value
+
+  done
+
+fi
