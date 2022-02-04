@@ -66,7 +66,7 @@ def host_label_lsbrelease(section) -> HostLabelGenerator:
             }
         for k, v in infomap.items():
             if k in section:
-                yield HostLabel(v, section[k])
+                yield HostLabel(v, section[k].lower())
 
 register.agent_section(
     name="lsbrelease",
