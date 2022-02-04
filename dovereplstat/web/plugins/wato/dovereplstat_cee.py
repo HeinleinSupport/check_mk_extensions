@@ -17,28 +17,33 @@
 # to the Free Software Foundation, Inc., 51 Franklin St,  Fifth Floor,
 # Boston, MA 02110-1301 USA.
 
-from cmk.gui.i18n import _
-from cmk.gui.plugins.wato import (
-    HostRulespec,
-    rulespec_registry,
-)
-from cmk.gui.cee.plugins.wato.agent_bakery.rulespecs.utils import RulespecGroupMonitoringAgentsAgentPlugins
-from cmk.gui.valuespec import DropdownChoice
-
-def _valuespec_agent_config_dovereplstat():
-    return     DropdownChoice(
-        title = _("Dovecot Replicator Status"),
-        help = _("This will deploy the agent plugin <tt>dovereplstat</tt> "
-                 "for checking the Dovecot replicator status "),
-        choices = [
-            (True, _("Deploy the plugin") ),
-            (False, _("Do not deploy the plugin") ),
-        ]
+try:
+    from cmk.gui.i18n import _
+    from cmk.gui.plugins.wato import (
+        HostRulespec,
+        rulespec_registry,
     )
-
-rulespec_registry.register(
-    HostRulespec(
-        group=RulespecGroupMonitoringAgentsAgentPlugins,
-        name="agent_config:dovereplstat",
-        valuespec=_valuespec_agent_config_dovereplstat,
-    ))
+    from cmk.gui.cee.plugins.wato.agent_bakery.rulespecs.utils import RulespecGroupMonitoringAgentsAgentPlugins
+    from cmk.gui.valuespec import DropdownChoice
+    
+    def _valuespec_agent_config_dovereplstat():
+        return     DropdownChoice(
+            title = _("Dovecot Replicator Status"),
+            help = _("This will deploy the agent plugin <tt>dovereplstat</tt> "
+                     "for checking the Dovecot replicator status "),
+            choices = [
+                (True, _("Deploy the plugin") ),
+                (False, _("Do not deploy the plugin") ),
+            ]
+        )
+    
+    rulespec_registry.register(
+        HostRulespec(
+            group=RulespecGroupMonitoringAgentsAgentPlugins,
+            name="agent_config:dovereplstat",
+            valuespec=_valuespec_agent_config_dovereplstat,
+        ))
+    
+except ModuleNotFoundError:
+    # RAW edition
+    pass

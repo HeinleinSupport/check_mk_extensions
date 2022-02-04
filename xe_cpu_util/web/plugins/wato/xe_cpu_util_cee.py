@@ -16,29 +16,34 @@
 # to the Free Software Foundation, Inc., 51 Franklin St,  Fifth Floor,
 # Boston, MA 02110-1301 USA.
 
-from cmk.gui.i18n import _
-from cmk.gui.plugins.wato import (
-    HostRulespec,
-    rulespec_registry,
-)
-from cmk.gui.cee.plugins.wato.agent_bakery.rulespecs.utils import RulespecGroupMonitoringAgentsAgentPlugins
-from cmk.gui.valuespec import (
-    DropdownChoice,
-)
-              
-def _valuespec_agent_config_xe_cpu_util():
-    return DropdownChoice(
-        title = _("Xen CPU Utilization (Linux)"),
-        help = _("This will deploy the agent plugin <tt>xe_cpu_util</tt> to check CPU utilisation on Xen hosts."),
-        choices = [
-            ( True, _("Deploy plugin xe_cpu_util") ),
-            ( None, _("Do not deploy plugin xe_cpu_util") ),
-        ]
+try:
+    from cmk.gui.i18n import _
+    from cmk.gui.plugins.wato import (
+        HostRulespec,
+        rulespec_registry,
+    )
+    from cmk.gui.cee.plugins.wato.agent_bakery.rulespecs.utils import RulespecGroupMonitoringAgentsAgentPlugins
+    from cmk.gui.valuespec import (
+        DropdownChoice,
     )
 
-rulespec_registry.register(
-     HostRulespec(
-         group=RulespecGroupMonitoringAgentsAgentPlugins,
-         name="agent_config:xe_cpu_util",
-         valuespec=_valuespec_agent_config_xe_cpu_util,
-     ))
+    def _valuespec_agent_config_xe_cpu_util():
+        return DropdownChoice(
+            title = _("Xen CPU Utilization (Linux)"),
+            help = _("This will deploy the agent plugin <tt>xe_cpu_util</tt> to check CPU utilisation on Xen hosts."),
+            choices = [
+                ( True, _("Deploy plugin xe_cpu_util") ),
+                ( None, _("Do not deploy plugin xe_cpu_util") ),
+            ]
+        )
+
+    rulespec_registry.register(
+         HostRulespec(
+             group=RulespecGroupMonitoringAgentsAgentPlugins,
+             name="agent_config:xe_cpu_util",
+             valuespec=_valuespec_agent_config_xe_cpu_util,
+         ))
+
+except ModuleNotFoundError:
+    # RAW edition
+    pass

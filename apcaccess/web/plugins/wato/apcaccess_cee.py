@@ -14,29 +14,34 @@
 # to the Free Software Foundation, Inc., 51 Franklin St,  Fifth Floor,
 # Boston, MA 02110-1301 USA.
 
-from cmk.gui.i18n import _
-from cmk.gui.plugins.wato import (
-    HostRulespec,
-    rulespec_registry,
-)
-from cmk.gui.cee.plugins.wato.agent_bakery.rulespecs.utils import RulespecGroupMonitoringAgentsAgentPlugins
-from cmk.gui.valuespec import (
-    DropdownChoice,
-)
-
-def _valuespec_agent_config_apcaccess():
-    return DropdownChoice(
-        title = _("APC UPS via apcaccess (Linux, Windows)"),
-        help = _("This will deploy the agent plugin <tt>apcaccess</tt> to check various APC UPS stats."),
-        choices = [
-            ( True, _("Deploy plugin for APC UPS") ),
-            ( None, _("Do not deploy plugin for APC UPS") ),
-        ]
+try:
+    from cmk.gui.i18n import _
+    from cmk.gui.plugins.wato import (
+        HostRulespec,
+        rulespec_registry,
+    )
+    from cmk.gui.cee.plugins.wato.agent_bakery.rulespecs.utils import RulespecGroupMonitoringAgentsAgentPlugins
+    from cmk.gui.valuespec import (
+        DropdownChoice,
     )
 
-rulespec_registry.register(
-     HostRulespec(
-         group=RulespecGroupMonitoringAgentsAgentPlugins,
-         name="agent_config:apcaccess",
-         valuespec=_valuespec_agent_config_apcaccess,
-     ))
+    def _valuespec_agent_config_apcaccess():
+        return DropdownChoice(
+            title = _("APC UPS via apcaccess (Linux, Windows)"),
+            help = _("This will deploy the agent plugin <tt>apcaccess</tt> to check various APC UPS stats."),
+            choices = [
+                ( True, _("Deploy plugin for APC UPS") ),
+                ( None, _("Do not deploy plugin for APC UPS") ),
+            ]
+        )
+
+    rulespec_registry.register(
+         HostRulespec(
+             group=RulespecGroupMonitoringAgentsAgentPlugins,
+             name="agent_config:apcaccess",
+             valuespec=_valuespec_agent_config_apcaccess,
+         ))
+
+except ModuleNotFoundError:
+    # RAW edition
+    pass

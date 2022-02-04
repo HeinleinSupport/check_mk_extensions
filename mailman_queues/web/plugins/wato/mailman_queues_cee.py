@@ -15,53 +15,58 @@
 # to the Free Software Foundation, Inc., 51 Franklin St,  Fifth Floor,
 # Boston, MA 02110-1301 USA.
 
-from cmk.gui.i18n import _
-from cmk.gui.plugins.wato import (
-    HostRulespec,
-    rulespec_registry,
-)
-from cmk.gui.cee.plugins.wato.agent_bakery.rulespecs.utils import RulespecGroupMonitoringAgentsAgentPlugins
-from cmk.gui.valuespec import (
-    Alternative,
-    Dictionary,
-    FixedValue,
-    ListOfStrings,
-    TextAscii,
-)
-
-def _valuespec_agent_config_mailman_queues():
-    return Alternative(
-        title = _("Mailman queues (Linux)"),
-        help = _("This will deploy the agent plugin <tt>mailman_queues</tt> "
-                 "for checking Mailman queues.<br />The default "
-                 "queues are <tt>bounces</tt>, <tt>in</tt>, <tt>out</tt> and <tt>shunt</tt>."),
-        style = "dropdown",
-        elements = [
-            Dictionary(
-                title = _("Deploy the Mailman queues plugin"),
-                elements = [
-                   ( "queues",
-                     ListOfStrings(
-                       title = _("Queues to look into for mail files"),
-                       help = _("One queue name per line.<br />The default queues are <tt>bounces</tt>, <tt>in</tt>, <tt>out</tt> and <tt>shunt</tt>."),
-                       valuespec = TextAscii(
-                            size = 80,
-                            regex = "^[^ \t*/]+$",
-                            regex_error = _("Queues must not contain spaces, / and *."),
-                       ),
-                       allow_empty = False,
-                     )
-                   ),
-                ],
-                optional_keys = True,
-            ),
-            FixedValue(None, title = _("Do not deploy the Mailman queues plugin"), totext = _("(disabled)") ),
-        ]
+try:
+    from cmk.gui.i18n import _
+    from cmk.gui.plugins.wato import (
+        HostRulespec,
+        rulespec_registry,
+    )
+    from cmk.gui.cee.plugins.wato.agent_bakery.rulespecs.utils import RulespecGroupMonitoringAgentsAgentPlugins
+    from cmk.gui.valuespec import (
+        Alternative,
+        Dictionary,
+        FixedValue,
+        ListOfStrings,
+        TextAscii,
     )
 
-rulespec_registry.register(
-     HostRulespec(
-         group=RulespecGroupMonitoringAgentsAgentPlugins,
-         name="agent_config:mailman_queues",
-         valuespec=_valuespec_agent_config_mailman_queues,
-     ))
+    def _valuespec_agent_config_mailman_queues():
+        return Alternative(
+            title = _("Mailman queues (Linux)"),
+            help = _("This will deploy the agent plugin <tt>mailman_queues</tt> "
+                     "for checking Mailman queues.<br />The default "
+                     "queues are <tt>bounces</tt>, <tt>in</tt>, <tt>out</tt> and <tt>shunt</tt>."),
+            style = "dropdown",
+            elements = [
+                Dictionary(
+                    title = _("Deploy the Mailman queues plugin"),
+                    elements = [
+                       ( "queues",
+                         ListOfStrings(
+                           title = _("Queues to look into for mail files"),
+                           help = _("One queue name per line.<br />The default queues are <tt>bounces</tt>, <tt>in</tt>, <tt>out</tt> and <tt>shunt</tt>."),
+                           valuespec = TextAscii(
+                                size = 80,
+                                regex = "^[^ \t*/]+$",
+                                regex_error = _("Queues must not contain spaces, / and *."),
+                           ),
+                           allow_empty = False,
+                         )
+                       ),
+                    ],
+                    optional_keys = True,
+                ),
+                FixedValue(None, title = _("Do not deploy the Mailman queues plugin"), totext = _("(disabled)") ),
+            ]
+        )
+
+    rulespec_registry.register(
+         HostRulespec(
+             group=RulespecGroupMonitoringAgentsAgentPlugins,
+             name="agent_config:mailman_queues",
+             valuespec=_valuespec_agent_config_mailman_queues,
+         ))
+
+except ModuleNotFoundError:
+    # RAW edition
+    pass

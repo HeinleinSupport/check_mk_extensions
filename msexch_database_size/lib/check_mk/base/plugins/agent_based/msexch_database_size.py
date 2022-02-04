@@ -55,13 +55,16 @@ register.agent_section(
 )
 
 def discover_msexch_database_size(section) -> DiscoveryResult:
-    for instance, data in section.iteritems():
+    for instance, data in section.items():
         yield Service(item=instance)
 
 def check_msexch_database_size(item, params, section) -> CheckResult:
     size = section.get(item)
     if size is None:
         return
+
+    if params == {}:
+        params = None
 
     yield from check_levels(size,
                             metric_name='database_size',

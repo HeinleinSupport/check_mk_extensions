@@ -15,29 +15,34 @@
 # to the Free Software Foundation, Inc., 51 Franklin St,  Fifth Floor,
 # Boston, MA 02110-1301 USA.
 
-from cmk.gui.i18n import _
-from cmk.gui.plugins.wato import (
-    HostRulespec,
-    rulespec_registry,
-)
-from cmk.gui.cee.plugins.wato.agent_bakery.rulespecs.utils import RulespecGroupMonitoringAgentsAgentPlugins
-from cmk.gui.valuespec import (
-    DropdownChoice,
-)
-
-def _valuespec_agent_config_icpraid():
-    return DropdownChoice(
-        title = _("ICP RAID (Linux)"),
-        help = _("This will deploy the agent plugin <tt>icpraid</tt> for monitoring the status of ICP controllers using arcconf."),
-        choices = [
-            ( True, _("Deploy plugin for ICP RAID") ),
-            ( None, _("Do not deploy plugin for ICP RAID") ),
-        ]
+try:
+    from cmk.gui.i18n import _
+    from cmk.gui.plugins.wato import (
+        HostRulespec,
+        rulespec_registry,
+    )
+    from cmk.gui.cee.plugins.wato.agent_bakery.rulespecs.utils import RulespecGroupMonitoringAgentsAgentPlugins
+    from cmk.gui.valuespec import (
+        DropdownChoice,
     )
 
-rulespec_registry.register(
-     HostRulespec(
-         group=RulespecGroupMonitoringAgentsAgentPlugins,
-         name="agent_config:icpraid",
-         valuespec=_valuespec_agent_config_icpraid,
-     ))
+    def _valuespec_agent_config_icpraid():
+        return DropdownChoice(
+            title = _("ICP RAID (Linux)"),
+            help = _("This will deploy the agent plugin <tt>icpraid</tt> for monitoring the status of ICP controllers using arcconf."),
+            choices = [
+                ( True, _("Deploy plugin for ICP RAID") ),
+                ( None, _("Do not deploy plugin for ICP RAID") ),
+            ]
+        )
+
+    rulespec_registry.register(
+         HostRulespec(
+             group=RulespecGroupMonitoringAgentsAgentPlugins,
+             name="agent_config:icpraid",
+             valuespec=_valuespec_agent_config_icpraid,
+         ))
+
+except ModuleNotFoundError:
+    # RAW edition
+    pass
