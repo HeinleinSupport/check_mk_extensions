@@ -26,12 +26,17 @@ parser.add_argument('-r', '--remove',
                     action='store_true',
                     required=False,
                     help="remove the domainname from the hypervisor's name")
+parser.add_argument('-i', '--site',
+                    required=False)
 args = parser.parse_args()
 
 mapi = checkmkapi.MultisiteAPI(args.url, args.username, args.password)
 wato = checkmkapi.CMKRESTAPI(args.url, args.username, args.password)
 
-resp = mapi.view(view_name='servicedesc', service='ESX Hostsystem')
+if args.site:
+    resp = mapi.view(view_name='servicedesc', service='ESX Hostsystem', filled_in='filter', site=args.site)
+else:
+    resp = mapi.view(view_name='servicedesc', service='ESX Hostsystem')
 hosts = {}
 for item in resp:
     node = False
