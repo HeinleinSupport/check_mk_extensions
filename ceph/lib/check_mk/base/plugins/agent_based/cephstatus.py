@@ -68,9 +68,10 @@ def check_cephstatus(item, params, section) -> CheckResult:
                       'active+clean+remapped',
                       'active+clean+scrubbing',
                       'active+clean+scrubbing+deep',
+                      'active+clean+scrubbing+deep+repair',
+                      'active+clean+scrubbing+deep+snaptrim_wait',
                       'active+clean+snaptrim',
                       'active+clean+snaptrim_wait',
-                      'active+clean+scrubbing+deep+snaptrim_wait',
                       'active+clean+wait',
                       'active+degraded',
                       'active+recovering',
@@ -204,7 +205,7 @@ def check_cephstatus(item, params, section) -> CheckResult:
                     continue
                 if 'inconsistent' in pgstate['state_name'] or 'incomplete' in pgstate['state_name'] or 'active' not in pgstate['state_name']:
                     _ceph_pgstates[pgstate['state_name']]['state'] = State.CRIT
-                elif 'active+clean' != pgstate['state_name'] and 'active+clean+scrubbing' != pgstate['state_name'] and 'active+clean+scrubbing+deep' != pgstate['state_name']:
+                elif 'active+clean' not in pgstate['state_name']:
                     _ceph_pgstates[pgstate['state_name']]['state'] = State.WARN
                 if 'stale' in pgstate['state_name']:
                     _ceph_pgstates[pgstate['state_name']]['state'] = State.UNKNOWN
