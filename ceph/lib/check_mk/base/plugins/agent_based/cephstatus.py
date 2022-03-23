@@ -37,6 +37,7 @@ from .utils import df
 
 import json
 import time
+import re
 
 def parse_cephstatus(string_table):
     section = {}
@@ -220,6 +221,25 @@ def check_cephstatus(item, params, section) -> CheckResult:
                 yield Result(state=State.OK,
                              summary='Dashboard: %s' % section['mgrmap']['services']['dashboard'])
 
+def cluster_check_cephstatus(item, params, section) -> CheckResult:
+    results = {}
+    metrics = {}
+    for node_section in section.values():
+        for result in check_cephstatus(item, params, node_section):
+            if isinstance(result, Metric):
+                metrics[result.name] = result
+            elif isinstance(result, Result):
+                cleaned_summary = re.sub(r'\d', '', result.summary)
+                if cleaned_summary not in results or result.state == State.worst(
+                    results[cleaned_summary].state,
+                    result.state,
+                ):
+                    results[cleaned_summary] = result
+
+    yield from results.values()
+    yield from metrics.values()
+
+
 register.check_plugin(
     name="cephstatus",
     service_name="Ceph %s",
@@ -228,4 +248,5 @@ register.check_plugin(
     check_function=check_cephstatus,
     check_ruleset_name="filesystem",
     check_default_parameters=df.FILESYSTEM_DEFAULT_LEVELS,
+    cluster_check_function=cluster_check_cephstatus,
 )
