@@ -14,15 +14,18 @@
 # to the Free Software Foundation, Inc., 51 Franklin St,  Fifth Floor,
 # Boston, MA 02110-1301 USA.
 
+shopt -s lastpipe
+
 addNumbers () {
   local IFS='+'
   printf "%s\n" "$(( $* ))"
 }
 
 provisionedSpace () {
-  addNumbers $( find "$1" -type f | while read image; do
-    qemu-img info $image | awk '/^virtual size: / { print substr($5, 2) }'
-  done )
+  # shellcheck disable=SC2046
+  addNumbers $( find "$1" -type f | while read -r image; do
+    qemu-img info "$image"
+  done | awk '/^virtual size: / { print substr($5, 2) }' )
 }
 
 # provisionedSpace /mnt/ocfs2/PVE01-0006/images/
@@ -30,24 +33,23 @@ provisionedSpace () {
 # exit
 
 handleDirStorage() {
-  dir="$1"
-  if [ -d $dir/images ]; then
-    df=$(df -T -B 1 $dir | tail -1)
-    capacity=$(echo $df | awk '{ print $3; }')
-    total_used=$(echo $df | awk '{print $4; }')
-    typ=$(echo $df | awk '{ print $2 }' )
-    used=$(du -B 1 -s $dir/images | cut -f 1 -d "	")
+  local dir="$1" typ
+  local -i capacity total_used used prov total_cap
+  if [ -d "$dir/images" ]; then
+    df -T -B 1 "$dir" | tail -1 | read -r _ typ capacity total_used _
+    du -B 1 -s "$dir/images" | read -r used _
+    # shellcheck disable=SC2046
     # prov=$(addNumbers $(ls --block-size=1 -l $dir/images/*/* 2> /dev/null | awk '{ print $5; }'))
-    prov=$(provisionedSpace $dir/images/)
-    total_cap=$(($capacity - $total_used + $used))
+    prov="$(provisionedSpace "$dir/images")"
+    total_cap=$((capacity - total_used + used))
     echo "[$dsname]"
     echo "url $dir"
     echo "accessible True"
     echo "type $typ"
     echo "capacity $total_cap"
-    echo "freeSpace $(($total_cap - $used))"
-    if [ $prov -gt 0 ]; then
-      echo "uncommitted $(($prov - $used))"
+    echo "freeSpace $((total_cap - used))"
+    if [ "$prov" -gt 0 ]; then
+      echo "uncommitted $((prov - used))"
     else
       echo "uncommitted 0"
     fi
@@ -61,6 +63,7 @@ handleZfsStorage() {
   fi
   free="$(zfs get -Hpo value available "$pool")"
   used="$(zfs get -Hpo value used "$pool")"
+  # shellcheck disable=SC2046
   prov="$(addNumbers $(zfs get -rHpo value volsize "$pool" | grep -vx -- -))"
   echo "[$dsname]"
   echo "url $pool"
@@ -68,7 +71,7 @@ handleZfsStorage() {
   echo "type ZFS"
   echo "capacity $((free + used))"
   echo "freeSpace ${free}"
-  if [ $prov -gt 0 ]; then
+  if [ "$prov" -gt 0 ]; then
     echo "uncommitted $((prov - used))"
   else
     echo "uncommitted 0"
@@ -77,14 +80,14 @@ handleZfsStorage() {
 
 if [ -r /etc/pve/storage.cfg ]; then
   echo '<<<esx_vsphere_datastores>>>'
-  cat /etc/pve/storage.cfg | while read key value; do
+  while read -r key value; do
     if [[ "$key $value" =~ ^([^[:space:]]+):[[:space:]]*(.*)$ ]]; then
       dstype="${BASH_REMATCH[1]}"
       dsname="${BASH_REMATCH[2]}"
-    elif [ "$key" = "path" ] && [ "$dstype" = "dir" -o "$dstype" = "nfs" ]; then
+    elif [[ "$key" = "path" && ( "$dstype" = "dir" || "$dstype" = "nfs" ) ]]; then
       handleDirStorage "$value"
     elif [ "$key" = "pool" ] && [ "$dstype" = "zfspool" ]; then
       handleZfsStorage "$value"
     fi
-  done
+  done < /etc/pve/storage.cfg
 fi
