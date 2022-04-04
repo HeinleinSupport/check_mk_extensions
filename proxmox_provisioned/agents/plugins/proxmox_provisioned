@@ -29,40 +29,62 @@ provisionedSpace () {
 
 # exit
 
+handleDirStorage() {
+  dir="$1"
+  if [ -d $dir/images ]; then
+    df=$(df -T -B 1 $dir | tail -1)
+    capacity=$(echo $df | awk '{ print $3; }')
+    total_used=$(echo $df | awk '{print $4; }')
+    typ=$(echo $df | awk '{ print $2 }' )
+    used=$(du -B 1 -s $dir/images | cut -f 1 -d "	")
+    # prov=$(addNumbers $(ls --block-size=1 -l $dir/images/*/* 2> /dev/null | awk '{ print $5; }'))
+    prov=$(provisionedSpace $dir/images/)
+    total_cap=$(($capacity - $total_used + $used))
+    echo "[$dsname]"
+    echo "url $dir"
+    echo "accessible True"
+    echo "type $typ"
+    echo "capacity $total_cap"
+    echo "freeSpace $(($total_cap - $used))"
+    if [ $prov -gt 0 ]; then
+      echo "uncommitted $(($prov - $used))"
+    else
+      echo "uncommitted 0"
+    fi
+  fi
+}
+
+handleZfsStorage() {
+  pool="$1"
+  if ! command -V zfs > /dev/null; then
+    return
+  fi
+  free="$(zfs get -Hpo value available "$pool")"
+  used="$(zfs get -Hpo value used "$pool")"
+  prov="$(addNumbers $(zfs get -rHpo value volsize "$pool" | grep -vx -- -))"
+  echo "[$dsname]"
+  echo "url $pool"
+  echo "accessible True"
+  echo "type ZFS"
+  echo "capacity $((free + used))"
+  echo "freeSpace ${free}"
+  if [ $prov -gt 0 ]; then
+    echo "uncommitted $((prov - used))"
+  else
+    echo "uncommitted 0"
+  fi
+}
+
 if [ -r /etc/pve/storage.cfg ]; then
   echo '<<<esx_vsphere_datastores>>>'
   cat /etc/pve/storage.cfg | while read key value; do
-    case "$key" in
-      "dir:"|"nfs:")
-        dsname=$value
-	;;
-      "*:")
-	dsname=""
-	;;
-    esac
-    if [ "$key" = "path" -a -n "$dsname" ]; then
-      dir=$value
-      if [ -d $dir/images ]; then
-        df=$(df -T -B 1 $dir | tail -1)
-        capacity=$(echo $df | awk '{ print $3; }')
-	total_used=$(echo $df | awk '{print $4; }')
-	typ=$(echo $df | awk '{ print $2 }' )
-        used=$(du -B 1 -s $dir/images | cut -f 1 -d "	")
-        # prov=$(addNumbers $(ls --block-size=1 -l $dir/images/*/* 2> /dev/null | awk '{ print $5; }'))
-	prov=$(provisionedSpace $dir/images/)
-	total_cap=$(($capacity - $total_used + $used))
-        echo "[$dsname]"
-        echo "url $dir"
-        echo "accessible True"
-        echo "type $typ"
-        echo "capacity $total_cap"
-        echo "freeSpace $(($total_cap - $used))"
-        if [ $prov -gt 0 ]; then
-          echo "uncommitted $(($prov - $used))"
-	else
-	  echo "uncommitted 0"
-        fi
-      fi
+    if [[ "$key $value" =~ ^([^[:space:]]+):[[:space:]]*(.*)$ ]]; then
+      dstype="${BASH_REMATCH[1]}"
+      dsname="${BASH_REMATCH[2]}"
+    elif [ "$key" = "path" ] && [ "$dstype" = "dir" -o "$dstype" = "nfs" ]; then
+      handleDirStorage "$value"
+    elif [ "$key" = "pool" ] && [ "$dstype" = "zfspool" ]; then
+      handleZfsStorage "$value"
     fi
   done
 fi
