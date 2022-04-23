@@ -95,7 +95,7 @@ def check_wireguard(item, section):
                                  summary="latest handshake %s ago" % render.timespan(since))
                     yield Metric('last_updated', since)
                     if since > timeout:
-                        yield Result(state=State.OK,
+                        yield Result(state=State.WARN,
                                      summary="inactive")
                 else:
                     yield Result(state=State.OK,
