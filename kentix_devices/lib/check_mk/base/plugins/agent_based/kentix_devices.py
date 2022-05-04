@@ -533,3 +533,47 @@ register.check_plugin(
     check_function=check_kentix_devices_zone,
     check_default_parameters={},
 )
+
+#   .--battery-------------------------------------------------------------.
+#   |                                                                      |
+#   |                  _           _   _                                   |
+#   |                 | |__   __ _| |_| |_ ___ _ __ _   _                  |
+#   |                 | '_ \ / _` | __| __/ _ \ '__| | | |                 |
+#   |                 | |_) | (_| | |_| ||  __/ |  | |_| |                 |
+#   |                 |_.__/ \__,_|\__|\__\___|_|   \__, |                 |
+#   |                                               |___/                  |
+#   |                                                                      |
+#   +----------------------------------------------------------------------+
+#   |                                                                      |
+#   '----------------------------------------------------------------------'
+
+def battery_supported(devicetype):
+    battery_devicetypes = [28, 26]
+    return devicetype in battery_devicetypes
+
+def discover_kentix_devices_battery(section):
+    for sensoritem, sensordata in section['sensors'].items():
+        if battery_supported(int(sensordata['type'])):
+            yield Service(
+                item=sensoritem
+            )
+
+
+def check_kentix_devices_battery(item, section):
+    if item in section['sensors']:
+        sensordata = section['sensors'][item]
+        batterystatus = int(sensordata['info'][8])
+        summary = "Battery OK."
+        state = State.OK
+        if batterystatus != 0:
+            summary = "Battery not ok."
+            state = State.CRIT
+        yield Result(state=state, summary=summary)
+
+register.check_plugin(
+    name="kentix_devices_battery",
+    sections=['kentix_devices'],
+    service_name="Battery %s",
+    discovery_function=discover_kentix_devices_battery,
+    check_function=check_kentix_devices_battery,
+)
