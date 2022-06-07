@@ -67,7 +67,7 @@ def check_snmp_arguments(params):
         args += _creds_to_args(credentials)
 
     if "port" in params:
-        args += " -P %d" % params["port"]
+        args += " -p %d" % params["port"]
         
     if "timeout" in params:
         args += ' -t %d' % params["timeout"]
