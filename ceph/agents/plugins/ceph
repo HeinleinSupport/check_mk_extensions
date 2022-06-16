@@ -37,7 +37,7 @@ class RadosCMD(rados.Rados):
 cluster = RadosCMD(conffile='/etc/ceph/ceph.conf')
 cluster.connect()
 
-hostname = socket.gethostname()
+hostname = socket.gethostname().split('.', 1)[0]
 fqdn = socket.getfqdn()
 
 res = cluster.command_mon("status")
