@@ -12,7 +12,7 @@ try:
 
     def _valuespec_agent_config_openvpn_clients():
         return DropdownChoice(
-            title = _("CPU Frequencies (Linux)"),
+            title = _("OpenVPN Clients (Linux)"),
             help = _("This will deploy the agent plugin <tt>openvpn_clients</tt> to collect statistics of OpenVPN instances."),
             choices = [
                 ( True, _("Deploy plugin for OpenVPN clients") ),
