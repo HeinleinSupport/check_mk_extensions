@@ -66,9 +66,8 @@ def parse_openvpn_clients(string_table):
             insta = line[0][2:-2]
             if insta.startswith('ovpn-'):
                 insta = insta[5:]
+            section[insta] = {}
         else:
-            if insta not in section:
-                section[insta] = {}
             section[insta][line[0]] = {
                 'srcaddr': line[1],
                 'rx': int(line[2]),

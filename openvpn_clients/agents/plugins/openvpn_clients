@@ -15,10 +15,12 @@
 # Boston, MA 02110-1301 USA.
 
 ps aux | grep openvpn | sed -n  's/^.*--daemon \(\S*\) --status \(\S*\) .*$/\1 \2/p' | while read insta status; do
-  if [ -r "$status" ]; then 
-    echo '<<<openvpn_clients:sep(44)>>>'
-    echo "[[$insta]]"
-    sed -n -e '/CLIENT LIST/,/ROUTING TABLE/p' < $status | sed -e 1,3d -e '$d'
+  if [ -r "$status" ]; then
+    if grep -q "CLIENT LIST" "$status"; then
+      echo '<<<openvpn_clients:sep(44)>>>'
+      echo "[[$insta]]"
+      sed -n -e '/CLIENT LIST/,/ROUTING TABLE/p' < $status | sed -e 1,3d -e '$d'
+    fi
   fi
 done
 
