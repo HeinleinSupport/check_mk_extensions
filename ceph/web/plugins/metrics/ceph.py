@@ -58,7 +58,9 @@ metric_info['recovering'] = {
     'color' : '21/a',
 }
 
-_ceph_pgstates = ['pgstate_active_clean',
+_ceph_pgstates = ['pgstate_activating_undersized',
+                  'pgstate_activating_undersized_degraded'
+                  'pgstate_active_clean',
                   'pgstate_active_clean_inconsistent',
                   'pgstate_active_clean_remapped',
                   'pgstate_active_clean_scrubbing',
@@ -106,7 +108,10 @@ _ceph_pgstates = ['pgstate_active_clean',
                   'pgstate_peering',
                   'pgstate_remapped_peering',
                   'pgstate_stale_active_clean',
+                  'pgstate_stale+active_undersized';
                   'pgstate_stale_active_undersized_degraded',
+                  'pgstate_stale_undersized_degraded_peered',
+                  'pgstate_stale_undersized_peered',
                   'pgstate_undersized_degraded_peered',
                   'pgstate_undersized_peered',
                   'pgstate_unknown',

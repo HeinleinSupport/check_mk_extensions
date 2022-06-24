@@ -64,7 +64,9 @@ def discovery_cephstatus(section) -> DiscoveryResult:
 
 def check_cephstatus(item, params, section) -> CheckResult:
     _single_state = { 'state': State.OK, 'count': 0 }
-    _pgstates_list = ['active+clean',
+    _pgstates_list = ['activating+undersized',
+                      'activating+undersized+degraded',
+                      'active+clean',
                       'active+clean+inconsistent',
                       'active+clean+remapped',
                       'active+clean+scrubbing',
@@ -112,7 +114,10 @@ def check_cephstatus(item, params, section) -> CheckResult:
                       'peering',
                       'remapped+peering',
                       'stale+active+clean',
+                      'stale+active+undersized',
                       'stale+active+undersized+degraded',
+                      'stale+undersized+degraded+peered',
+                      'stale+undersized+peered',
                       'undersized+degraded+peered',
                       'undersized+peered',
                       'unknown',
