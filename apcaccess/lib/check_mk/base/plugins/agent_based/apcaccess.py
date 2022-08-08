@@ -162,7 +162,6 @@ def check_apcaccess_temp(item, params, section):
         itemp = section[item]['ITEMP'].split(' ')
         yield from temperature.check_temperature(float(itemp[0]),
                                                  params,
-                                                 unique_name='apcaccess_temp.%s' % item,
                                                  dev_unit=itemp[1].lower())
 
 register.check_plugin(
