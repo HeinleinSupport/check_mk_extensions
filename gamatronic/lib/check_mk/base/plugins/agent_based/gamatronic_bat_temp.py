@@ -52,8 +52,7 @@ def discover_gamatronic_bat_temp(section) -> DiscoveryResult:
 def check_gamatronic_bat_temp(item, params, section) -> CheckResult:
     if item in section:
         yield from check_temperature(section[item],
-                                     params,
-                                     unique_name="ups_bat_temp_%s" % item)
+                                     params)
 
 register.snmp_section(
     name="gamatronic_bat_temp",
