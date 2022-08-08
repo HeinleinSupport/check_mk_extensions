@@ -123,8 +123,7 @@ def check_dell_os10_chassis(item, params, section):
         yield Result(state=State.OK,
                      summary=data['type']['desc'] + ", " + data['servicetag'])
         yield from check_temperature(data['temp'],
-                                     params,
-                                     unique_name="dell_os10_chassis_%s" % item)
+                                     params)
 
 register.snmp_section(
     name="dell_os10_chassis",
@@ -230,8 +229,7 @@ def check_dell_os10_card(item, params, section):
         yield Result(state=data["state"]["state"],
                      summary="State: %s" % data["state"]["desc"])
         yield from check_temperature(data['temp'],
-                                     params,
-                                     unique_name="dell_os10_card_%s" % item)
+                                     params)
 
 register.snmp_section(
     name="dell_os10_card",
