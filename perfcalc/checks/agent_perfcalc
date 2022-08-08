@@ -7,7 +7,7 @@
 #
 
 from pickle import dumps
-from base64 import encodestring
+from base64 import b64encode
 from cmk.utils import debug
 
 def agent_perfcalc_arguments(servicespecs, hostname, ipaddress):
@@ -15,7 +15,7 @@ def agent_perfcalc_arguments(servicespecs, hostname, ipaddress):
               'debug': debug.enabled()}
 
     cmd = []
-    cmd += encodestring(dumps(params)).decode('ascii').split('\n')
+    cmd += b64encode(dumps(params)).split('\n')
 
     return " ".join(cmd)
 
