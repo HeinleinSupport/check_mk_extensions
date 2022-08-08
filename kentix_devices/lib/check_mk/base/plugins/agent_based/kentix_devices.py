@@ -27,6 +27,7 @@ from .agent_based_api.v1 import (
     OIDEnd,
     Result,
     Service,
+    ServiceLabel,
     SNMPTree,
     State,
 )
@@ -200,9 +201,13 @@ register.snmp_section(
 def discover_kentix_devices(section, params, sfunc) -> DiscoveryResult:
     for sensoritem, sensordata in section['sensors'].items():
         if sfunc in sensordata:
+            sl = []
+            if sensordata['zone'] in section['zones']:
+                sl.append( ServiceLabel('kentix/zoneid', sensordata['zone']) )
             yield Service(
                 item=sensoritem,
                 parameters=params,
+                labels=sl,
             )
 
 #   .--temperature---------------------------------------------------------.
@@ -224,7 +229,6 @@ def check_kentix_devices_temperature(item, params, section):
         dev_status = _get_dev_status_kentix_devices(sensordata['temp'][4])
         yield from check_temperature(float(sensordata['temp'][1]) / section['multiplier'][0],
                                      params,
-                                     unique_name="kentix_devices_%s" % item,
                                      dev_levels=(tempMax, tempMax),
                                      dev_levels_lower=(tempMin, tempMin),
                                      dev_status=dev_status,
@@ -312,14 +316,12 @@ def check_kentix_devices_dewpoint(item, params, section):
             tempValue = float(sensordata['temp'][1]) / section['multiplier'][0]
             yield from check_temperature(dewValue,
                                          params,
-                                         unique_name="kentix_devices_dewpoint_%s" % item,
                                          dev_levels=(tempValue - dewMax, tempValue - dewMax),
                                          dev_status=dev_status,
             )
         else:
             yield from check_temperature(dewValue,
                                          params,
-                                         unique_name="kentix_devices_dewpoint_%s" % item,
                                          dev_status=dev_status,
             )
         zone = ""
@@ -510,8 +512,11 @@ register.check_plugin(
 
 def discover_kentix_devices_zone(section):
     for zoneid, zoneinfo in section['zones'].items():
+        sl = [ ServiceLabel('kentix/zoneid', zoneid) ]
         yield Service(item=zoneid + " " + zoneinfo['name'],
-                      parameters={'armed': zoneinfo['armed']})
+                      parameters={'armed': zoneinfo['armed']},
+                      labels=sl
+        )
 
 def check_kentix_devices_zone(item, params, section):
     zoneid = item.split()[0]
