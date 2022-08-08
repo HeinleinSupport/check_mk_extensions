@@ -252,13 +252,11 @@ def check_wagner_racksens2_temp(item, params, section):
                 yield from temperature.check_temperature(
                     temp[1],
                     params,
-                    unique_name = 'wagner_recksens2_temperature_%s' % item,
                 )
             else:
                 yield from temperature.check_temperature(
                     temp[1],
                     params,
-                    unique_name = 'wagner_recksens2_temperature_%s' % item,
                     dev_levels = (temp[2], temp[2]),
                     dev_status = temp[3] * 2,
                     dev_status_name = 'Alarm',
