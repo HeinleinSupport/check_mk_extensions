@@ -22,7 +22,7 @@ metric_info['apachecount_http_sum_100'] = {
     'unit': '1/s',
     'color': '34/a',
 }
-for code in xrange(100, 200):
+for code in range(100, 200):
     metric_info['apachecount_http_%d' % code] = {
         'title': _('HTTP Code %d' % code),
         'unit': '1/s',
@@ -34,7 +34,7 @@ metric_info['apachecount_http_sum_200'] = {
     'unit': '1/s',
     'color': '32/a',
 }
-for code in xrange(200, 300):
+for code in range(200, 300):
     metric_info['apachecount_http_%d' % code] = {
         'title': _('HTTP Code %d' % code),
         'unit': '1/s',
@@ -46,7 +46,7 @@ metric_info['apachecount_http_sum_300'] = {
     'unit': '1/s',
     'color': '31/a',
 }
-for code in xrange(300, 400):
+for code in range(300, 400):
     metric_info['apachecount_http_%d' % code] = {
         'title': _('HTTP Code %d' % code),
         'unit': '1/s',
@@ -58,7 +58,7 @@ metric_info['apachecount_http_sum_400'] = {
     'unit': '1/s',
     'color': '23/a',
 }
-for code in xrange(400, 500):
+for code in range(400, 500):
     metric_info['apachecount_http_%d' % code] = {
         'title': _('HTTP Code %d' % code),
         'unit': '1/s',
@@ -70,20 +70,20 @@ metric_info['apachecount_http_sum_500'] = {
     'unit': '1/s',
     'color': '14/a',
 }
-for code in xrange(500, 600):
+for code in range(500, 600):
     metric_info['apachecount_http_%d' % code] = {
         'title': _('HTTP Code %d' % code),
         'unit': '1/s',
         'color': '14/a',
     }
 
-for code in xrange(6, 10):
+for code in range(6, 10):
     metric_info['apachecount_http_sum_%d00' % code] = {
         'title': _('HTTP Codes %d00 - %d99' % (code, code)),
         'unit': '1/s',
         'color': '45/a',
     }
-for code in xrange(600, 1000):
+for code in range(600, 1000):
     metric_info['apachecount_http_%d' % code] = {
         'title': _('HTTP Code %d' % code),
         'unit': '1/s',
