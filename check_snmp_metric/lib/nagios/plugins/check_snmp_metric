@@ -28,6 +28,10 @@ warn=0
 warnset=False
 crit=0
 critset=False
+lwarn=0
+lwarnset=False
+lcrit=0
+lcritset=False
 metric=False
 perfdata=''
 args = sys.argv[1:]
@@ -49,6 +53,12 @@ while args:
     elif a == "--crit":
         crit=float(args.pop(0))
         critset=True
+    elif a == "--lwarn":
+        lwarn=float(args.pop(0))
+        lwarnset=True
+    elif a == "--lcrit":
+        lcrit=float(args.pop(0))
+        lcritset=True
     elif a == "-h" or a == "--help":
         print("%s --factor FACTOR --unit UNIT --warn WARN --crit CRIT --metric METRIC …plus snmpget arguments…" % sys.argv[0])
         snmpgetcmd.append(a)
@@ -71,11 +81,21 @@ if res.returncode == 0:
     elif warnset and val > warn:
         state = 1
         info += ' (warn level is %0.2f %s)(!!)' % (warn, unit)
+    if lcritset and val < lcrit:
+        state = 2
+        info += ' (lower crit level is %0.2f %s)(!!)' % (lcrit, unit)
+    if lwarnset and val < lwarn:
+        state = 1
+        info += ' (lower warn level is %0.2f %s)(!)' % (lwarn, unit)
     if metric:
         perfdata = "|%s=%f;" % (metric, val)
+        if lwarnset:
+            perfdata += "%f:" % lwarn
         if warnset:
             perfdata += "%f" % warn
         perfdata += ";"
+        if lcritset:
+            perfdata += "%f:" % lcrit
         if critset:
             perfdata += "%f" % crit
     print("%s%s" % (info, perfdata))
