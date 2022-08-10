@@ -30,6 +30,7 @@ from .agent_based_api.v1 import (
     State,
     HostLabel,
     Service,
+    get_value_store,
     )
 
 from .utils import temperature
@@ -160,9 +161,11 @@ def check_apcaccess_temp(item, params, section):
         item = params['model']
     if item in section and 'ITEMP' in section[item]:
         itemp = section[item]['ITEMP'].split(' ')
+        value_store = get_value_store()
         yield from temperature.check_temperature(float(itemp[0]),
                                                  params,
                                                  unique_name='apcaccess_temp.%s' % item,
+                                                 value_store=value_store,
                                                  dev_unit=itemp[1].lower())
 
 register.check_plugin(
