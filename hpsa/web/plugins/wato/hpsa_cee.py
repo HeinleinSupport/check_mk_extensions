@@ -15,46 +15,51 @@
 # to the Free Software Foundation, Inc., 51 Franklin St,  Fifth Floor,
 # Boston, MA 02110-1301 USA.
 
-from cmk.gui.i18n import _
-from cmk.gui.plugins.wato import (
-    HostRulespec,
-    rulespec_registry,
-)
-from cmk.gui.cee.plugins.wato.agent_bakery.rulespecs.utils import RulespecGroupMonitoringAgentsAgentPlugins
-from cmk.gui.valuespec import (
-    Age,
-    Alternative,
-    Dictionary,
-    FixedValue,
-)
-
-def _valuespec_agent_config_hpsa():
-    return Alternative(
-        title = _("HP RAID Status (Linux)"),
-        help = _("This will deploy the agent plugin <tt>hpsa</tt> for monitoring the status of HP Raid controllers via <tt>ssacli</tt>, <tt>hpssacli</tt>, or <tt>hpacucli</tt>."),
-        style = 'dropdown',
-        elements = [
-            Dictionary(
-                title = _("Deploy plugin for HP RAID controllers"),
-                elements = [
-                    ("interval", Age(
-                        title = _("Run asynchronously"),
-                        label = _("Interval for collecting data"),
-                        default_value = 300
-                    )),
-                ],
-            ),
-            FixedValue(
-                None,
-                title = _("Do not deploy plugin for HP RAID controllers"),
-                totext = _("(disabled)")
-            ),
-        ]
+try:
+    from cmk.gui.i18n import _
+    from cmk.gui.plugins.wato import (
+        HostRulespec,
+        rulespec_registry,
+    )
+    from cmk.gui.cee.plugins.wato.agent_bakery.rulespecs.utils import RulespecGroupMonitoringAgentsAgentPlugins
+    from cmk.gui.valuespec import (
+        Age,
+        Alternative,
+        Dictionary,
+        FixedValue,
     )
 
-rulespec_registry.register(
-     HostRulespec(
-         group=RulespecGroupMonitoringAgentsAgentPlugins,
-         name="agent_config:hpsa",
-         valuespec=_valuespec_agent_config_hpsa,
-     ))
+    def _valuespec_agent_config_hpsa():
+        return Alternative(
+            title = _("HP RAID Status (Linux)"),
+            help = _("This will deploy the agent plugin <tt>hpsa</tt> for monitoring the status of HP Raid controllers via <tt>ssacli</tt>, <tt>hpssacli</tt>, or <tt>hpacucli</tt>."),
+            style = 'dropdown',
+            elements = [
+                Dictionary(
+                    title = _("Deploy plugin for HP RAID controllers"),
+                    elements = [
+                        ("interval", Age(
+                            title = _("Run asynchronously"),
+                            label = _("Interval for collecting data"),
+                            default_value = 300
+                        )),
+                    ],
+                ),
+                FixedValue(
+                    None,
+                    title = _("Do not deploy plugin for HP RAID controllers"),
+                    totext = _("(disabled)")
+                ),
+            ]
+        )
+
+    rulespec_registry.register(
+         HostRulespec(
+             group=RulespecGroupMonitoringAgentsAgentPlugins,
+             name="agent_config:hpsa",
+             valuespec=_valuespec_agent_config_hpsa,
+         ))
+
+except ModuleNotFoundError:
+    # RAW edition
+    pass

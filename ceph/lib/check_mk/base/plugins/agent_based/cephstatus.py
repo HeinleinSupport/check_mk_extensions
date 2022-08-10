@@ -37,6 +37,7 @@ from .utils import df
 
 import json
 import time
+import re
 
 def parse_cephstatus(string_table):
     section = {}
@@ -63,14 +64,18 @@ def discovery_cephstatus(section) -> DiscoveryResult:
 
 def check_cephstatus(item, params, section) -> CheckResult:
     _single_state = { 'state': State.OK, 'count': 0 }
-    _pgstates_list = ['active+clean',
+    _pgstates_list = ['activating+undersized',
+                      'activating+undersized+degraded',
+                      'active+clean',
                       'active+clean+inconsistent',
                       'active+clean+remapped',
                       'active+clean+scrubbing',
                       'active+clean+scrubbing+deep',
+                      'active+clean+scrubbing+deep+repair',
+                      'active+clean+scrubbing+deep+snaptrim_wait',
                       'active+clean+snaptrim',
                       'active+clean+snaptrim_wait',
-                      'active+clean+scrubbing+deep+snaptrim_wait',
+                      'active+clean+wait',
                       'active+degraded',
                       'active+recovering',
                       'active+recovering+degraded',
@@ -104,11 +109,15 @@ def check_cephstatus(item, params, section) -> CheckResult:
                       'active+undersized+degraded+remapped+inconsistent+backfill_wait',
                       'active+undersized+remapped',
                       'active+undersized+remapped+backfill_wait',
+                      'down',
                       'incomplete',
                       'peering',
                       'remapped+peering',
                       'stale+active+clean',
+                      'stale+active+undersized',
                       'stale+active+undersized+degraded',
+                      'stale+undersized+degraded+peered',
+                      'stale+undersized+peered',
                       'undersized+degraded+peered',
                       'undersized+peered',
                       'unknown',
@@ -125,12 +134,15 @@ def check_cephstatus(item, params, section) -> CheckResult:
                              summary='Overall Health OK')
             elif 'checks' in section['health']:
                 for check, data in section['health']['checks'].items():
-                    if data['severity'] == 'HEALTH_WARN':
-                        yield Result(state=State.WARN,
-                                     summary=check + ": " + data['summary']['message'])
+                    summary = check + ": " + data['summary']['message']
+                    if data.get('muted', False):
+                        state = State.OK
+                        summary += " (muted)"
+                    elif data['severity'] == 'HEALTH_WARN':
+                        state = State.WARN
                     else:
-                        yield Result(state=State.CRIT,
-                                     summary=check + ": " + data['summary']['message'])
+                        state = State.CRIT
+                    yield Result(state=state, summary=summary)
         elif 'overall_status' in section['health']:
             if section['health']['overall_status'] == 'HEALTH_OK':
                 yield Result(state=State.OK,
@@ -202,7 +214,7 @@ def check_cephstatus(item, params, section) -> CheckResult:
                     continue
                 if 'inconsistent' in pgstate['state_name'] or 'incomplete' in pgstate['state_name'] or 'active' not in pgstate['state_name']:
                     _ceph_pgstates[pgstate['state_name']]['state'] = State.CRIT
-                elif 'active+clean' != pgstate['state_name'] and 'active+clean+scrubbing' != pgstate['state_name'] and 'active+clean+scrubbing+deep' != pgstate['state_name']:
+                elif 'active+clean' not in pgstate['state_name']:
                     _ceph_pgstates[pgstate['state_name']]['state'] = State.WARN
                 if 'stale' in pgstate['state_name']:
                     _ceph_pgstates[pgstate['state_name']]['state'] = State.UNKNOWN
@@ -217,6 +229,25 @@ def check_cephstatus(item, params, section) -> CheckResult:
                 yield Result(state=State.OK,
                              summary='Dashboard: %s' % section['mgrmap']['services']['dashboard'])
 
+def cluster_check_cephstatus(item, params, section) -> CheckResult:
+    results = {}
+    metrics = {}
+    for node_section in section.values():
+        for result in check_cephstatus(item, params, node_section):
+            if isinstance(result, Metric):
+                metrics[result.name] = result
+            elif isinstance(result, Result):
+                cleaned_summary = re.sub(r'\d', '', result.summary)
+                if cleaned_summary not in results or result.state == State.worst(
+                    results[cleaned_summary].state,
+                    result.state,
+                ):
+                    results[cleaned_summary] = result
+
+    yield from results.values()
+    yield from metrics.values()
+
+
 register.check_plugin(
     name="cephstatus",
     service_name="Ceph %s",
@@ -225,4 +256,5 @@ register.check_plugin(
     check_function=check_cephstatus,
     check_ruleset_name="filesystem",
     check_default_parameters=df.FILESYSTEM_DEFAULT_LEVELS,
+    cluster_check_function=cluster_check_cephstatus,
 )

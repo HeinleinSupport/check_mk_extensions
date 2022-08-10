@@ -533,3 +533,111 @@ register.check_plugin(
     check_function=check_kentix_devices_zone,
     check_default_parameters={},
 )
+
+#   .--battery-------------------------------------------------------------.
+#   |                                                                      |
+#   |                  _           _   _                                   |
+#   |                 | |__   __ _| |_| |_ ___ _ __ _   _                  |
+#   |                 | '_ \ / _` | __| __/ _ \ '__| | | |                 |
+#   |                 | |_) | (_| | |_| ||  __/ |  | |_| |                 |
+#   |                 |_.__/ \__,_|\__|\__\___|_|   \__, |                 |
+#   |                                               |___/                  |
+#   |                                                                      |
+#   +----------------------------------------------------------------------+
+#   |                                                                      |
+#   '----------------------------------------------------------------------'
+
+def battery_supported(devicetype):
+    battery_devicetypes = [28, 26]
+    return devicetype in battery_devicetypes
+
+def discover_kentix_devices_battery(section):
+    for sensoritem, sensordata in section['sensors'].items():
+        if battery_supported(int(sensordata['type'])):
+            yield Service(
+                item=sensoritem
+            )
+
+
+def check_kentix_devices_battery(item, section):
+    if item in section['sensors']:
+        sensordata = section['sensors'][item]
+        batterystatus = int(sensordata['info'][8])
+        summary = "Battery OK."
+        state = State.OK
+        if batterystatus != 0:
+            summary = "Battery not ok."
+            state = State.CRIT
+        yield Result(state=state, summary=summary)
+
+register.check_plugin(
+    name="kentix_devices_battery",
+    sections=['kentix_devices'],
+    service_name="Battery %s",
+    discovery_function=discover_kentix_devices_battery,
+    check_function=check_kentix_devices_battery,
+)
+
+#   .--inputs--------------------------------------------------------------.
+#   |                     _                   _                            |
+#   |                    (_)_ __  _ __  _   _| |_ ___                      |
+#   |                    | | '_ \| '_ \| | | | __/ __|                     |
+#   |                    | | | | | |_) | |_| | |_\__ \                     |
+#   |                    |_|_| |_| .__/ \__,_|\__|___/                     |
+#   |                            |_|                                       |
+#   +----------------------------------------------------------------------+
+#   |                                                                      |
+#   '----------------------------------------------------------------------'
+#.
+
+_MAX_INPUT_SENSORS = 16
+
+def parse_kentix_devices_inputs(string_table):
+    section = {}
+    for inputline in range(_MAX_INPUT_SENSORS):
+        if string_table[inputline]:
+            section[inputline + 1] = string_table[inputline]
+        else:
+            section[inputline + 1] = None
+    return section
+
+register.snmp_section(
+    name="kentix_devices_inputs",
+    parse_function=parse_kentix_devices_inputs,
+    fetch=[
+        SNMPTree(
+            base=".1.3.6.1.4.1.37954.5.2.100.%d.1" % i,
+            oids=[
+                # "1", # KENTIXDEVICES::input1Index
+                "2", # KENTIXDEVICES::input1Name
+                "3", # KENTIXDEVICES::input1Zone
+                # "4", # KENTIXDEVICES::input1Value
+                "5", # KENTIXDEVICES::input1Alarm
+            ] )
+        for i in range(1, _MAX_INPUT_SENSORS + 1)
+        ],
+    detect=any_of(
+        contains(".1.3.6.1.2.1.1.2.0", ".1.3.6.1.4.1.37954.5"),
+        contains(".1.3.6.1.2.1.1.1.0", "kentix"),
+    ),
+)
+
+def discover_kentix_devices_inputs(section):
+    for inputline in section:
+        if section[inputline]:
+            yield Service(item="%d" % inputline)
+
+def check_kentix_devices_inputs(item, section):
+    item = int(item)
+    if section.get(item):
+        for data in section[item]:
+            yield Result(state=_get_dev_status_kentix_devices(data[2]),
+                         summary="%s in Zone %s" % (data[0], data[1]))
+
+register.check_plugin(
+    name="kentix_devices_inputs",
+    sections=['kentix_devices_inputs'],
+    service_name="Input %s",
+    discovery_function=discover_kentix_devices_inputs,
+    check_function=check_kentix_devices_inputs,
+)

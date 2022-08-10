@@ -15,31 +15,36 @@
 # to the Free Software Foundation, Inc., 51 Franklin St,  Fifth Floor,
 # Boston, MA 02110-1301 USA.
 
-from cmk.gui.i18n import _
-from cmk.gui.plugins.wato import (
-    HostRulespec,
-    rulespec_registry,
-)
-from cmk.gui.cee.plugins.wato.agent_bakery.rulespecs.utils import RulespecGroupMonitoringAgentsAgentPlugins
-from cmk.gui.valuespec import (
-    DropdownChoice,
-)
-
-def _valuespec_agent_config_updater_hostname():
-    return DropdownChoice(
-        title=_("Agent Updater Hostname (Linux)"),
-        help=_("Hosts configured via this rule get the <tt>updater_hostname</tt> plugin "
-               "deployed. This will create a service check that compares the host's name "
-               "with the value in /etc/cmk-update-agent.state."),
-        choices=[
-            (True, _("Deploy Updater Hostname plugin")),
-            (None, _("Do not deploy Updater Hostname plugin")),
-        ],
+try:
+    from cmk.gui.i18n import _
+    from cmk.gui.plugins.wato import (
+        HostRulespec,
+        rulespec_registry,
+    )
+    from cmk.gui.cee.plugins.wato.agent_bakery.rulespecs.utils import RulespecGroupMonitoringAgentsAgentPlugins
+    from cmk.gui.valuespec import (
+        DropdownChoice,
     )
 
-rulespec_registry.register(
-    HostRulespec(
-        group=RulespecGroupMonitoringAgentsAgentPlugins,
-        name="agent_config:updater_hostname",
-        valuespec=_valuespec_agent_config_updater_hostname,
-    ))
+    def _valuespec_agent_config_updater_hostname():
+        return DropdownChoice(
+            title=_("Agent Updater Hostname (Linux, Windows)"),
+            help=_("Hosts configured via this rule get the <tt>updater_hostname</tt> plugin "
+                   "deployed. This will create a service check that compares the host's name "
+                   "with the value in /etc/cmk-update-agent.state."),
+            choices=[
+                (True, _("Deploy Updater Hostname plugin")),
+                (None, _("Do not deploy Updater Hostname plugin")),
+            ],
+        )
+
+    rulespec_registry.register(
+        HostRulespec(
+            group=RulespecGroupMonitoringAgentsAgentPlugins,
+            name="agent_config:updater_hostname",
+            valuespec=_valuespec_agent_config_updater_hostname,
+        ))
+
+except ModuleNotFoundError:
+    # RAW edition
+    pass

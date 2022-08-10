@@ -23,6 +23,8 @@ from .bakery_api.v1 import FileGenerator, OS, Plugin, register
 def get_updater_hostname_files(conf: Dict[str, Any]) -> FileGenerator:
     yield Plugin(base_os=OS.LINUX,
                  source=Path("updater_hostname.py"))
+    yield Plugin(base_os=OS.WINDOWS,
+                 source=Path("updater_hostname.py"))
 
 register.bakery_plugin(
     name="updater_hostname",

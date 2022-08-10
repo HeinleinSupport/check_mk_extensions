@@ -1,4 +1,4 @@
-#!/usr/bin/python
+#!/usr/bin/env python3
 # -*- encoding: utf-8; py-indent-offset: 4 -*-
 
 # This is free software;  you can redistribute it and/or modify it
@@ -17,10 +17,6 @@ def inventory_seppmail(info):
         yield (line[0], {})
 
 def check_seppmail(item, params, info):
-    import cmk.debug
-    if cmk.debug.enabled():
-        pprint.pprint(item)
-        pprint.pprint(params)
     metric_map = {
         'mailsInQueueActive': 'mail_queue_active_length',
         'mailsInQueueDeferred': 'mail_queue_deferred_length',

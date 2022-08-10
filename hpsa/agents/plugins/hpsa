@@ -41,7 +41,7 @@
 #    SEP (Vendor ID PMCSIERA, Model  SRC 8x6G) 250  (WWID: 50014380230B12FF)
 # 
 
-if [ -e  /proc/driver/cciss -o  -e /sys/bus/cciss -o -e /sys/bus/pci/drivers/hpsa ]; then
+if [ -e /sys/module/smartpqi -o -e  /proc/driver/cciss -o  -e /sys/bus/cciss -o -e /sys/bus/pci/drivers/hpsa ]; then
 
 	# Do not check FC LUNs, speeds up processing
 	export INFOMGR_BYPASS_NONSA=1

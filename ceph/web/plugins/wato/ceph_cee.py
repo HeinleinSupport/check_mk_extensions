@@ -15,29 +15,34 @@
 # to the Free Software Foundation, Inc., 51 Franklin St,  Fifth Floor,
 # Boston, MA 02110-1301 USA.
 
-from cmk.gui.i18n import _
-from cmk.gui.plugins.wato import (
-    HostRulespec,
-    rulespec_registry,
-)
-from cmk.gui.cee.plugins.wato.agent_bakery.rulespecs.utils import RulespecGroupMonitoringAgentsAgentPlugins
-from cmk.gui.valuespec import (
-    DropdownChoice,
-)
-
-def _valuespec_agent_config_ceph():
-    return DropdownChoice(
-        title = _("Ceph Status (Linux)"),
-        help = _("This will deploy the agent plugin <tt>ceph</tt> for monitoring the status of Ceph. This plugin will be run asynchronously in the background."),
-        choices = [
-            ( True, _("Deploy plugin for Ceph") ),
-            ( None, _("Do not deploy plugin for Ceph") ),
-        ]
+try:
+    from cmk.gui.i18n import _
+    from cmk.gui.plugins.wato import (
+        HostRulespec,
+        rulespec_registry,
+    )
+    from cmk.gui.cee.plugins.wato.agent_bakery.rulespecs.utils import RulespecGroupMonitoringAgentsAgentPlugins
+    from cmk.gui.valuespec import (
+        DropdownChoice,
     )
 
-rulespec_registry.register(
-     HostRulespec(
-         group=RulespecGroupMonitoringAgentsAgentPlugins,
-         name="agent_config:ceph",
-         valuespec=_valuespec_agent_config_ceph,
-     ))
+    def _valuespec_agent_config_ceph():
+        return DropdownChoice(
+            title = _("Ceph Status (Linux)"),
+            help = _("This will deploy the agent plugin <tt>ceph</tt> for monitoring the status of Ceph. This plugin will be run asynchronously in the background."),
+            choices = [
+                ( True, _("Deploy plugin for Ceph") ),
+                ( None, _("Do not deploy plugin for Ceph") ),
+            ]
+        )
+
+    rulespec_registry.register(
+         HostRulespec(
+             group=RulespecGroupMonitoringAgentsAgentPlugins,
+             name="agent_config:ceph",
+             valuespec=_valuespec_agent_config_ceph,
+         ))
+
+except ModuleNotFoundError:
+    # RAW edition
+    pass
