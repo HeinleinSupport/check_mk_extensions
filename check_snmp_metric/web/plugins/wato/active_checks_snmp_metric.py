@@ -84,8 +84,16 @@ def _valuespec_active_checks_snmp_metric():
               Tuple(
                   title = _("Upper levels"),
                   elements = [
-                      Integer(title=_("Warning at"), unit='°C'),
-                      Integer(title=_("Critical at"), unit='°C'),
+                      Integer(title=_("Warning above")),
+                      Integer(title=_("Critical above")),
+                  ],
+              )),
+            ( "levels_lower",
+              Tuple(
+                  title = _("Upper levels"),
+                  elements = [
+                      Integer(title=_("Warning below")),
+                      Integer(title=_("Critical below")),
                   ],
               )),
             ( "factor",
@@ -105,7 +113,7 @@ def _valuespec_active_checks_snmp_metric():
                   help = _("Unit of the value. Used for display."),
               )),
         ],
-        optional_keys = [ 'hostname', 'port', 'timeout', 'creds', 'levels_upper', 'factor', 'metric', 'unit', ],
+        optional_keys = [ 'hostname', 'port', 'timeout', 'creds', 'levels_upper', 'levels_lower', 'factor', 'metric', 'unit', ],
     )
 
 rulespec_registry.register(

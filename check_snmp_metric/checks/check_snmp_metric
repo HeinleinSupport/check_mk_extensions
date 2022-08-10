@@ -17,11 +17,10 @@
 # to the Free Software Foundation, Inc., 51 Franklin St,  Fifth Floor,
 # Boston, MA 02110-1301 USA.
 
-from cmk.utils import quote_shell_string, debug
+from cmk.utils import quote_shell_string
 from cmk.base.check_api import host_name
 from cmk.base.config import get_config_cache
 from functools import reduce
-from pprint import pprint
 
 def _creds_to_args(creds):
     args = ''
@@ -45,8 +44,6 @@ def _creds_to_args(creds):
     return args
 
 def check_snmp_metric_arguments(params):
-    if debug.enabled():
-        pprint(params)
 
     args = ''
         
@@ -57,8 +54,6 @@ def check_snmp_metric_arguments(params):
         host_config = config_cache.get_host_config(host_name())
         snmp_config = host_config.snmp_config(None)
         credentials = snmp_config.credentials
-        if debug.enabled():
-            pprint(credentials)
         args += _creds_to_args(credentials)
 
     if "port" in params:
@@ -83,15 +78,16 @@ def check_snmp_metric_arguments(params):
         args += ' --warn %f' % params["levels_upper"][0]
         args += ' --crit %f' % params["levels_upper"][1]
 
+    if "levels_lower" in params:
+        args += ' --lwarn %f' % params["levels_lower"][0]
+        args += ' --lcrit %f' % params["levels_lower"][1]
+
     if 'hostname' in params:
         args += " %s" % quote_shell_string(params['hostname'])
     else:
         args += " $HOSTADDRESS$"
 
     args += " %s" % quote_shell_string(params['oid'])
-
-    if debug.enabled():
-        pprint(args)
         
     return args
 
