@@ -38,14 +38,19 @@ from .agent_based_api.v1 import (
 
 def parse_msexch_database_size(string_table):
     section = {}
-
     for line in string_table:
+        values = {}
         name = line[0].strip('"')
         if name == u'Name':
             continue
         sizestr = line[1].strip('"')
         size = int(sizestr.split('(')[1].split(' ')[0].replace(',', ''))
-        section[name] = size
+        values['size'] = size
+        if len(line) > 2:
+            availspacestr = line[2].strip('"')
+            availableSpace = int(availspacestr.split('(')[1].split(' ')[0].replace(',', ''))
+            values['availSpace'] = availableSpace
+        section[name] = values
 
     return section
 
@@ -59,18 +64,23 @@ def discover_msexch_database_size(section) -> DiscoveryResult:
         yield Service(item=instance)
 
 def check_msexch_database_size(item, params, section) -> CheckResult:
-    size = section.get(item)
-    if size is None:
+    values = section.get(item)
+    if values is None:
         return
 
-    if params == {}:
-        params = None
-
-    yield from check_levels(size,
+    yield from check_levels(values['size'],
                             metric_name='database_size',
-                            levels_upper=params,
+                            levels_upper=params['size'],
                             render_func=render.disksize,
                             label="Size")
+
+    if 'availSpace' in values:
+        availSpacePct = values['availSpace'] * 100 / values['size']
+        yield from check_levels(availSpacePct,
+                                metric_name='availableNewMailboxSpace',
+                                levels_upper=params['availSpace'],
+                                render_func=render.percent,
+                                label="Available New Mailbox Space (pct)")
 
 register.check_plugin(
     name="msexch_database_size",
@@ -78,6 +88,9 @@ register.check_plugin(
     sections=["msexch_database_size"],
     discovery_function=discover_msexch_database_size,
     check_function=check_msexch_database_size,
-    check_default_parameters={},
+    check_default_parameters={
+        'size': None,
+         'availSpace': (20.0,40.0)
+         },
     check_ruleset_name="msexch_database_size",
 )
