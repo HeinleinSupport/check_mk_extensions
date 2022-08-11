@@ -90,7 +90,7 @@ def _valuespec_active_checks_snmp_metric():
               )),
             ( "levels_lower",
               Tuple(
-                  title = _("Upper levels"),
+                  title = _("Lower levels"),
                   elements = [
                       Integer(title=_("Warning below")),
                       Integer(title=_("Critical below")),
