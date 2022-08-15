@@ -226,7 +226,8 @@ register.check_plugin(
     check_default_parameters={
         "smoke_levels": (3, 5),
         "chamber_levels": (10, 20),
-    }
+    },
+    check_ruleset_name="wagner_racksens2_detector",
 )
 
 #.
