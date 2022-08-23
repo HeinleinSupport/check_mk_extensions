@@ -2,7 +2,20 @@
 
 rspamc=$(which rspamc)
 
-if [ -x "$rspamc" -a -n "$(pidof rspamd)" ]; then
+pidof_rspamd() {
+    pgrep=$(which pgrep)
+
+    if [ -x "$pgrep" ]; then
+	$pgrep -x rspamd
+    else
+	pidof=$(which pidof)
+        if [ -x "$pidof" ]; then
+             $pidof rspamd
+        fi
+    fi
+}
+
+if [ -x "$rspamc" -a -n "$(pidof_rspamd)" ]; then
     echo '<<<rspamd>>>'
     $rspamc --compact stat
 fi
