@@ -91,3 +91,20 @@ if [ -r /etc/pve/storage.cfg ]; then
     fi
   done < /etc/pve/storage.cfg
 fi
+
+pvesm=$(which pvesm)
+if [ -x $pvesm ]; then
+  echo '<<<esx_vsphere_datastores>>>'
+  $pvesm status | grep lvm | while read dsname typ status total_cap used avail perc; do
+    echo "[$dsname]"
+    if [ "$status" = "active" ]; then
+      echo "accessible True"
+    else
+      echo "accessible False"
+    fi
+    echo "type $typ"
+    echo "capacity $total_cap"
+    echo "freeSpace $avail"
+    echo "uncommitted 0"
+  done
+fi
