@@ -36,6 +36,7 @@ from .agent_based_api.v1.type_defs import (
 from .utils.temperature import (
     check_temperature,
 )
+from cmk.base.check_legacy_includes.elphase import check_elphase
 
 class BatteryStatus(NamedTuple):
     Overall: str
@@ -236,4 +237,175 @@ register.check_plugin(
     service_name="eNexus Battery %s",
     discovery_function=discover_enexus_battery_current,
     check_function=check_enexus_battery_current,
+)
+
+def parse_enexus_battery_elphase(string_table) -> Dict:
+    item = 'Phase'
+    parsed = {item: {}}
+    if len(string_table) == 3:
+        if len(string_table[0]) == 1 and len(string_table[0][0]) == 5:
+            line = list(map(lambda x: int(x) / 100.0, string_table[0][0]))
+            r = next(check_levels(value=line[0], levels_upper=(line[1], line[2]), levels_lower=(line[3], line[4])))
+            if r.state == State.OK:
+                parsed[item]['voltage'] = line[0]
+            else:
+                parsed[item]['voltage'] = (line[0], (int(r.state), r.summary))
+        if len(string_table[1]) == 1 and len(string_table[1][0]) == 5:
+            line = list(map(int, string_table[1][0]))
+            r = next(check_levels(value=line[0], levels_upper=(line[1], line[2]), levels_lower=(line[3], line[4])))
+            if r.state == State.OK:
+                parsed[item]['current'] = line[0]
+            else:
+                parsed[item]['current'] = (line[0], (int(r.state), r.summary))
+        if len(string_table[2]) == 1 and len(string_table[2][0]) == 3:
+            line = list(map(int, string_table[2][0]))
+            parsed[item]['remcap'] = line
+    return parsed
+
+register.snmp_section(
+    name="enexus_battery_elphase",
+    parse_function=parse_enexus_battery_elphase,
+    fetch=[
+        SNMPTree(
+            base=".1.3.6.1.4.1.12148.10.10.5",
+            oids=[
+                "5.0", # SP2-MIB::batteryVoltageValue
+                "7.0", # SP2-MIB::batteryVoltageMinorHighLevel
+                "6.0", # SP2-MIB::batteryVoltageMajorHighLevel
+                "8.0", # SP2-MIB::batteryVoltageMinorLowLevel
+                "9.0", # SP2-MIB::batteryVoltageMajorLowLevel
+            ],
+        ),
+        SNMPTree(
+            base=".1.3.6.1.4.1.12148.10.10.6",
+            oids=[
+                "5.0", # SP2-MIB::batteryCurrentsValue
+                "7.0", # SP2-MIB::batteryCurrentsMinorHighLevel
+                "6.0", # SP2-MIB::batteryCurrentsMajorHighLevel
+                "8.0", # SP2-MIB::batteryCurrentsMinorLowLevel
+                "9.0", # SP2-MIB::batteryCurrentsMajorLowLevel
+            ],
+        ),
+        SNMPTree(
+            base=".1.3.6.1.4.1.12148.10.10.9",
+            oids=[
+                "5.0", # SP2-MIB::batteryRemainingCapacityValue
+                "6.0", # SP2-MIB::batteryRemainingCapacityMinorLowLevel
+                "7.0", # SP2-MIB::batteryRemainingCapacityMajorLowLevel
+            ],
+        ),
+    ],
+    detect=contains(".1.3.6.1.2.1.1.2.0", ".1.3.6.1.4.1.12148.10"),
+)
+
+def discover_enexus_battery_elphase(section_enexus_battery_elphase, section_enexus_status) -> DiscoveryResult:
+    for phase in section_enexus_battery_elphase:
+        yield Service(item=phase)
+
+def check_enexus_battery_elphase(item, params, section_enexus_battery_elphase, section_enexus_status) -> CheckResult:
+    if item in section_enexus_battery_elphase:
+        if 'current' in section_enexus_battery_elphase[item]:
+            factor = 1.0
+            if section_enexus_status.decimal == "1":
+                factor = 10.0
+            if isinstance(section_enexus_battery_elphase[item]['current'], tuple):
+                section_enexus_battery_elphase[item]['current'] = ( section_enexus_battery_elphase[item]['current'][0] / factor,
+                                                                    section_enexus_battery_elphase[item]['current'][1] )
+            else:
+                section_enexus_battery_elphase[item]['current'] /= factor
+        if 'remcap' in section_enexus_battery_elphase[item]:
+            data = section_enexus_battery_elphase[item]['remcap']
+            metric_name = None
+            render_func = lambda x: x
+            if section_enexus_status.capacity == "0":
+                metric_name = 'battery_capacity_ah'
+                render_func = lambda x: "%dAh" % x
+            if section_enexus_status.capacity == "1":
+                metric_name = 'battery_capacity'
+                render_func = lambda x: "%d%%" % x
+            yield from check_levels(
+                value=data[0],
+                levels_lower=(data[1], data[2]),
+                metric_name=metric_name,
+                render_func=render_func,
+                label='Remaining Capacity',
+            )
+    for state, text, perfdata in check_elphase(item, params, section_enexus_battery_elphase):
+        yield Result(state=State(state), summary=text)
+        for p in perfdata:
+            if len(p) == 4:
+                yield Metric(p[0], p[1], levels=(p[2], p[3]))
+            else:
+                yield Metric(p[0], p[1])
+
+register.check_plugin(
+    name="enexus_battery_elphase",
+    sections=["enexus_battery_elphase", 'enexus_status'],
+    service_name="eNexus Battery %s",
+    discovery_function=discover_enexus_battery_elphase,
+    check_function=check_enexus_battery_elphase,
+    check_ruleset_name='el_inphase',
+    check_default_parameters={},
+)
+
+def parse_enexus_load_elphase(string_table) -> Dict:
+    item = 'Phase'
+    parsed = {item: {}}
+    if len(string_table) == 1:
+        if len(string_table[0]) == 1 and len(string_table[0][0]) == 3:
+            line = list(map(int, string_table[0][0]))
+            r = next(check_levels(value=line[0], levels_upper=(line[1], line[2])))
+            if r.state == State.OK:
+                parsed[item]['current'] = line[0]
+            else:
+                parsed[item]['current'] = (line[0], (int(r.state), r.summary))
+    return parsed
+
+register.snmp_section(
+    name="enexus_load_elphase",
+    parse_function=parse_enexus_load_elphase,
+    fetch=[
+        SNMPTree(
+            base=".1.3.6.1.4.1.12148.10.9.2",
+            oids=[
+                "5.0", # SP2-MIB::loadCurrentValue
+                "7.0", # SP2-MIB::loadCurrentMinorHighLevel
+                "6.0", # SP2-MIB::loadCurrentMajorHighLevel
+            ],
+        ),
+    ],
+    detect=contains(".1.3.6.1.2.1.1.2.0", ".1.3.6.1.4.1.12148.10"),
+)
+
+def discover_enexus_load_elphase(section_enexus_load_elphase, section_enexus_status) -> DiscoveryResult:
+    for phase in section_enexus_load_elphase:
+        yield Service(item=phase)
+
+def check_enexus_load_elphase(item, params, section_enexus_load_elphase, section_enexus_status) -> CheckResult:
+    if item in section_enexus_load_elphase:
+        if 'current' in section_enexus_load_elphase[item]:
+            factor = 1.0
+            if section_enexus_status.decimal == "1":
+                factor = 10.0
+            if isinstance(section_enexus_load_elphase[item]['current'], tuple):
+                section_enexus_load_elphase[item]['current'] = ( section_enexus_load_elphase[item]['current'][0] / factor,
+                                                                 section_enexus_load_elphase[item]['current'][1] )
+            else:
+                section_enexus_load_elphase[item]['current'] /= factor
+    for state, text, perfdata in check_elphase(item, params, section_enexus_load_elphase):
+        yield Result(state=State(state), summary=text)
+        for p in perfdata:
+            if len(p) == 4:
+                yield Metric(p[0], p[1], levels=(p[2], p[3]))
+            else:
+                yield Metric(p[0], p[1])
+
+register.check_plugin(
+    name="enexus_load_elphase",
+    sections=["enexus_load_elphase", 'enexus_status'],
+    service_name="eNexus Load %s",
+    discovery_function=discover_enexus_load_elphase,
+    check_function=check_enexus_load_elphase,
+    check_ruleset_name='ups_outphase',
+    check_default_parameters={},
 )
