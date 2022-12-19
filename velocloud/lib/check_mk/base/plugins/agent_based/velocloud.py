@@ -14,6 +14,7 @@
 
 from .agent_based_api.v1 import (
     all_of,
+    any_of,
     check_levels,
     contains,
     equals,
@@ -55,9 +56,12 @@ def parse_velocloud_pathnum(string_table: StringTable):
 
 register.snmp_section(
     name="velocloud_pathnum",
-    detect=all_of(
-        contains(".1.3.6.1.2.1.1.1.0", "VeloCloud"),
-        equals(".1.3.6.1.2.1.1.2.0", ".1.3.6.1.4.1.8072.3.2.10"),
+    detect=any_of(
+        equals(".1.3.6.1.2.1.1.2.0", ".1.3.6.1.4.1.45346.1.1"),
+        all_of(
+          contains(".1.3.6.1.2.1.1.1.0", "VeloCloud"),
+          equals(".1.3.6.1.2.1.1.2.0", ".1.3.6.1.4.1.8072.3.2.10"),
+        ),
     ),
     parse_function=parse_velocloud_pathnum,
     fetch=SNMPTree(
@@ -128,9 +132,12 @@ def parse_velocloud_hastate(string_table: StringTable):
 
 register.snmp_section(
     name="velocloud_hastate",
-    detect=all_of(
-        contains(".1.3.6.1.2.1.1.1.0", "VeloCloud"),
-        equals(".1.3.6.1.2.1.1.2.0", ".1.3.6.1.4.1.8072.3.2.10"),
+    detect=any_of(
+        equals(".1.3.6.1.2.1.1.2.0", ".1.3.6.1.4.1.45346.1.1"),
+        all_of(
+          contains(".1.3.6.1.2.1.1.1.0", "VeloCloud"),
+          equals(".1.3.6.1.2.1.1.2.0", ".1.3.6.1.4.1.8072.3.2.10"),
+        ),
     ),
     parse_function=parse_velocloud_hastate,
     fetch=SNMPTree(
@@ -236,9 +243,12 @@ def parse_velocloud_link(string_table: StringTable):
 
 register.snmp_section(
     name="velocloud_link",
-    detect=all_of(
-        contains(".1.3.6.1.2.1.1.1.0", "VeloCloud"),
-        equals(".1.3.6.1.2.1.1.2.0", ".1.3.6.1.4.1.8072.3.2.10"),
+    detect=any_of(
+        equals(".1.3.6.1.2.1.1.2.0", ".1.3.6.1.4.1.45346.1.1"),
+        all_of(
+          contains(".1.3.6.1.2.1.1.1.0", "VeloCloud"),
+          equals(".1.3.6.1.2.1.1.2.0", ".1.3.6.1.4.1.8072.3.2.10"),
+        ),
     ),
     parse_function=parse_velocloud_link,
     fetch=SNMPTree(
@@ -318,9 +328,12 @@ def parse_velocloud_arp(string_table: StringTable):
 
 register.snmp_section(
     name="velocloud_arp",
-    detect=all_of(
-        contains(".1.3.6.1.2.1.1.1.0", "VeloCloud"),
-        equals(".1.3.6.1.2.1.1.2.0", ".1.3.6.1.4.1.8072.3.2.10"),
+    detect=any_of(
+        equals(".1.3.6.1.2.1.1.2.0", ".1.3.6.1.4.1.45346.1.1"),
+        all_of(
+          contains(".1.3.6.1.2.1.1.1.0", "VeloCloud"),
+          equals(".1.3.6.1.2.1.1.2.0", ".1.3.6.1.4.1.8072.3.2.10"),
+        ),
     ),
     parse_function=parse_velocloud_arp,
     fetch=SNMPTree(
@@ -413,9 +426,12 @@ register.check_plugin(
 
 # register.snmp_section(
 #     name="velocloud_path",
-#     detect=all_of(
-#         contains(".1.3.6.1.2.1.1.1.0", "VeloCloud"),
-#         equals(".1.3.6.1.2.1.1.2.0", ".1.3.6.1.4.1.8072.3.2.10"),
+#     detect=any_of(
+#         equals(".1.3.6.1.2.1.1.2.0", ".1.3.6.1.4.1.45346.1.1"),
+#         all_of(
+#           contains(".1.3.6.1.2.1.1.1.0", "VeloCloud"),
+#           equals(".1.3.6.1.2.1.1.2.0", ".1.3.6.1.4.1.8072.3.2.10"),
+#         ),
 #     ),
 #     parse_function=parse_velocloud_path,
 #     fetch=SNMPTree(
