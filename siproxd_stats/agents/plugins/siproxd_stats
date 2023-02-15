@@ -1,0 +1,8 @@
+#!/bin/bash
+
+siproxd_stats_filename='/var/lib/siproxd/siproxd_stats'
+
+if [ -f $siproxd_stats_filename ]; then
+    echo '<<<siproxd_stats:sep(0)>>>'
+    cat $siproxd_stats_filename
+fi
