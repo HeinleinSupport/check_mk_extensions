@@ -45,7 +45,7 @@ try:
                                 regex = "^/[^ \t]+$",
                                 regex_error = _("Directory paths must begin with <tt>/</tt> and must not contain spaces."),
                            ),
-                           allow_empty = False,
+                           allow_empty = True,
                          )
                        ),
                     ],
