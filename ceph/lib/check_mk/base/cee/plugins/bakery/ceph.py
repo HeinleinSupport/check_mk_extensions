@@ -22,7 +22,7 @@ from .bakery_api.v1 import FileGenerator, OS, Plugin, register
 
 def get_ceph_files(conf: Dict[str, Any]) -> FileGenerator:
     yield Plugin(base_os=OS.LINUX,
-                 source=Path("ceph"),
+                 source=Path("ceph.py"),
                  interval=58)
 
 register.bakery_plugin(
