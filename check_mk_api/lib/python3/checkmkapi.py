@@ -295,6 +295,8 @@ class CMKRESTAPI():
             "domain-types/activation_run/actions/activate-changes/invoke",
             data=postdata,
         )
+        if resp.status_code == 422:
+            return data, etag
         if resp.status_code == 200:
             return data, etag
         if resp.status_code == 302:
@@ -402,13 +404,13 @@ class CMKRESTAPI():
             return data, etag
         resp.raise_for_status()
 
-    def create_user(self, username, fullname, **kwargs):
+    def create_user(self, username, fullname, args):
         """Creates a new user
 
         Args:
             username: A unique username for the user
             fullname: The alias or full name of the user
-            kwargs: additional options (see REST API documentation)
+            args: additional options (see REST API documentation)
 
         Returns:
             (data, etag): new user object and eTag
@@ -417,7 +419,7 @@ class CMKRESTAPI():
             'username': username,
             'fullname': fullname,
         }
-        params.update(kwargs)
+        params.update(args)
         data, etag, resp = self._post_url(
             "domain-types/user_config/collections/all",
             data=params,
@@ -442,13 +444,13 @@ class CMKRESTAPI():
             return data, etag
         resp.raise_for_status()
 
-    def edit_user(self, username, etag=None, **kwargs):
+    def edit_user(self, username, etag=None, args=None):
         """Edit a user
 
         Args:
             username: The name of the user to edit
             etag: The value of the, to be modified, object's ETag header.
-            kwargs: additional options (see REST API documentation)
+            args: additional options (see REST API documentation)
 
         Returns:
             (data, etag): the user object and eTag
@@ -458,7 +460,7 @@ class CMKRESTAPI():
         data, etag, resp = self._put_url(
             f"objects/host_config/{username}",
             etag,
-            data=kwargs
+            data=args
         )
         if resp.status_code == 200:
             return data, etag
