@@ -123,7 +123,6 @@ class CMKRESTAPI():
         return self._check_response(
             self._session.delete(
                 f"{self._api_url}/{uri}",
-                headers={"If-Match": etag},
                 allow_redirects=False,
             )
         )
@@ -206,26 +205,22 @@ class CMKRESTAPI():
                     hosts[hinfo['title']] = hinfo['href']
         return hosts, etags
 
-    def delete_host(self, hostname, etag=None):
+    def delete_host(self, hostname):
         """Deletes a host from the CheckMK configuration.
 
         Args:
             hostname: name of the host
-            etag: (optional) etag value, if not provided the host will be looked up first using get_host().
 
         Returns:
             (data, etag)
             data: host's data
             etag: current etag value
         """
-        if not etag:
-            hostdata, etag = self.get_host(hostname)
         data, etag, resp = self._delete_url(
             f"objects/host_config/{hostname}",
-            etag
         )
-        if resp.status_code == 200:
-            return data, etag
+        if resp.status_code == 204:
+            return
         resp.raise_for_status()
 
     def edit_host(self, hostname, etag=None, set_attr={}, update_attr={}, unset_attr=[]):
@@ -405,6 +400,84 @@ class CMKRESTAPI():
         )
         if resp.status_code == 204:
             return data, etag
+        resp.raise_for_status()
+
+    def create_user(self, username, fullname, **kwargs):
+        """Creates a new user
+
+        Args:
+            username: A unique username for the user
+            fullname: The alias or full name of the user
+            kwargs: additional options (see REST API documentation)
+
+        Returns:
+            (data, etag): new user object and eTag
+        """
+        params={
+            'username': username,
+            'fullname': fullname,
+        }
+        params.update(kwargs)
+        data, etag, resp = self._post_url(
+            "domain-types/user_config/collections/all",
+            data=params,
+        )
+        if resp.status_code == 200:
+            return data, etag
+        resp.raise_for_status()
+
+    def get_user(self, username):
+        """Show a user
+
+        Args:
+            username: Username
+
+        Returns:
+            (data, etag): user object and eTag
+        """
+        data, etag, resp = self._get_url(
+            f"objects/user_config/{username}",
+        )
+        if resp.status_code == 200:
+            return data, etag
+        resp.raise_for_status()
+
+    def edit_user(self, username, etag=None, **kwargs):
+        """Edit a user
+
+        Args:
+            username: The name of the user to edit
+            etag: The value of the, to be modified, object's ETag header.
+            kwargs: additional options (see REST API documentation)
+
+        Returns:
+            (data, etag): the user object and eTag
+        """
+        if not etag:
+            userdata, etag = self.get_user(username)
+        data, etag, resp = self._put_url(
+            f"objects/host_config/{username}",
+            etag,
+            data=kwargs
+        )
+        if resp.status_code == 200:
+            return data, etag
+        resp.raise_for_status()
+
+    def delete_user(self, username):
+        """Delete a user
+
+        Args:
+            username: The name of the user to delete
+
+        Returns:
+            Nothing
+        """
+        data, etag, resp = self._delete_url(
+            f"objects/user_config/{username}",
+        )
+        if resp.status_code == 204:
+            return
         resp.raise_for_status()
 
 class MultisiteAPI():
