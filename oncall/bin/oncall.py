@@ -68,12 +68,17 @@ def get_csv_from_server():
     #
     if args.noproxy:
         os.environ['no_proxy'] = args.noproxy
-    r = requests.get(args.csvurl, auth=('api', args.apikey), verify=False)
-    print((r.content))
+    resp = requests.get(args.csvurl, auth=('api', args.apikey), verify=False)
 
-    with open(os.path.join(cmk.utils.paths.omd_root, 'etc', oncall_filename), 'w') as oncallfile:
-        oncallfile.write(r.content)
-        oncallfile.close
+    if resp.status_code == 200:
+        if args.debug:
+            pprint(resp.content)
+
+        with open(os.path.join(cmk.utils.paths.omd_root, 'etc', oncall_filename), 'w') as oncallfile:
+            oncallfile.write(str(resp.content))
+            oncallfile.close
+    else:
+        resp.raise_for_status()
 
 now = time.localtime()
 timeformat = '%Y-%m-%dT%H:%M'
