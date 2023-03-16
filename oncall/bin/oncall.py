@@ -30,6 +30,8 @@ import json
 import warnings
 import cmk.utils.paths
 import cmk.utils.store
+from cmk.gui.watolib.activate_changes import update_config_generation
+from copy import deepcopy
 
 def _check_mk_url(url):
     """ adds trailing check_mk path component to URL """
@@ -72,10 +74,10 @@ def get_csv_from_server():
 
     if resp.status_code == 200:
         if args.debug:
-            pprint(resp.content)
+            pprint(resp.content.decode('utf-8'))
 
         with open(os.path.join(cmk.utils.paths.omd_root, 'etc', oncall_filename), 'w') as oncallfile:
-            oncallfile.write(str(resp.content))
+            oncallfile.write(resp.content.decode('utf-8'))
             oncallfile.close
     else:
         resp.raise_for_status()
@@ -129,7 +131,7 @@ if args.debug:
 # Read list of contacts
 #
 contacts = cmk.utils.store.load_from_mk_file(contacts_filename, 'contacts', {}, lock=True)
-contacts_old = contacts.copy()
+contacts_old = deepcopy(contacts)
 
 if args.debug:
     print("contacts_old = %s" % pformat(contacts_old))
@@ -156,7 +158,7 @@ with open(os.path.join(cmk.utils.paths.omd_root, 'etc', oncall_filename), 'r') a
 
 if args.debug:
     print("onduty = %s" % pformat(onduty))
-    print("contacts = %s" % pformat(contacts))
+    # print("contacts = %s" % pformat(contacts))
             
 #
 # Set oncall rules
@@ -188,17 +190,17 @@ for user, data in contacts.items():
                 notify_plugins_onduty = onduty[user]
             else:
                 notify_plugins_onduty = onduty[groupduty]
-            for notify_plugin in notify_plugins_onduty:
-                rule = default_rule.copy()
+            for notify_plugin in sorted(notify_plugins_onduty):
+                rule = deepcopy(default_rule)
                 rule['contact_users'] = [ user ]
                 rule['notify_plugin'] = (notify_plugin, None)
                 rule['disabled'] = True
                 contacts[user]['notification_rules'].append(rule)
                 if args.debug:
                     print("%s is on duty for %s" % (user, notify_plugin))
-        for notify_plugin in notify_plugins:
-            if notify_plugin not in notify_plugins_onduty:
-                rule = default_rule.copy()
+        for notify_plugin in sorted(notify_plugins):
+            if notify_plugin not in sorted(notify_plugins_onduty):
+                rule = deepcopy(default_rule)
                 rule['contact_users'] = [ user ]
                 rule['notify_plugin'] = (notify_plugin, None)
                 contacts[user]['notification_rules'].append(rule)
@@ -213,11 +215,14 @@ for user, data in contacts.items():
     if args.debug:
         print()
 
-if args.debug:
-    print("contacts = %s" % pformat(contacts))
-    print("changes = %s" % (contacts != contacts_old))
+changes = pformat(contacts_old) != pformat(contacts)
 
-if contacts == contacts_old and not args.debug:
+if args.debug:
+    print("contacts_old = %s" % pformat(contacts_old))
+    print("contacts = %s" % pformat(contacts))
+    print("changes = %s" % changes)
+
+if not changes:
     cmk.utils.store.release_lock(contacts_filename)
 else:
     def gen_id():
@@ -234,6 +239,8 @@ else:
     # Write contacts
     #
     cmk.utils.store.save_to_mk_file(contacts_filename, 'contacts', contacts)
+    cmk.utils.store.release_lock(contacts_filename)
+    update_config_generation()
 
     #
     # Set Replication State
@@ -253,21 +260,22 @@ else:
     if args.debug:
         pprint(change_spec)
     for changes_file in glob.iglob(os.path.join(cmk.utils.paths.omd_root, "var/check_mk/wato/replication_changes_*.mk")):
-        if args.debug:
-            print(changes_file)
-        try:
-            cmk.utils.store.aquire_lock(changes_file)
-            with open(changes_file, 'a+') as f:
-                f.write(repr(change_spec)+'\0')
-                f.flush()
-                os.fsync(f.fileno())
-            os.chmod(changes_file, 0o660)
-        except Exception as e:
-            raise 'Cannot write file "%s": %s' % (path, e)
-        finally:
-            cmk.utils.store.release_lock(changes_file)
-        sites.append(changes_file.split('/')[-1][20:-3])
-        
+        site = changes_file.split('/')[-1][20:-3]
+        if site != os.environ.get('OMD_SITE'):
+            try:
+                cmk.utils.store.aquire_lock(changes_file)
+                with open(changes_file, 'a+') as f:
+                    f.write(repr(change_spec)+'\0')
+                    f.flush()
+                    os.fsync(f.fileno())
+                os.chmod(changes_file, 0o660)
+            except Exception as e:
+                raise 'Cannot write file "%s": %s' % (changes_file, e)
+            finally:
+                cmk.utils.store.release_lock(changes_file)
+                if args.debug:
+                    print(f'wrote {changes_file}')
+            sites.append(site)
     #
     # Activate Sites via WATO Web-API
     #
@@ -275,6 +283,8 @@ else:
     session.headers['Authorization'] = f"Bearer {args.username} {args.secret}"
     session.headers['Accept'] = 'application/json'
     postdata = { 'redirect': False, 'sites': sites, 'force_foreign_changes': False }
+    if args.debug:
+        print('activating changes: %s' % pformat(postdata))
     resp = session.post(
         f"{api_url}/domain-types/activation_run/actions/activate-changes/invoke",
         json=postdata,
@@ -285,3 +295,5 @@ else:
     )
     if resp.status_code >= 400:
         resp.raise_for_status()
+    if args.debug:
+        pprint(resp)
