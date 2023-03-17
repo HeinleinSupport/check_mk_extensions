@@ -81,7 +81,7 @@ def check_sslcertificates(item, params, section):
         else:
             infotext = "expires in %s on %s" % ( render.timespan(secondsremaining),
                                                  time.strftime("%c", time.gmtime(data['endtime'])))
-        if ignore and -secondsremaining > ignore[0]:
+        if ignore and -secondsremaining > ignore[0] * 86400:
             yield Result(state=State.OK, summary=infotext + ', ignored because "%s"' % ignore[1])
             ignored = True
         else:
