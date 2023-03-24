@@ -41,26 +41,11 @@ from .utils.temperature import (
     check_temperature,
 )
 
+from .utils.humidity import (
+    check_humidity,
+)
+
 import time
-
-def check_humidity(humidity, params):
-    if isinstance(params, dict):
-        levels = ((params.get("levels") or (None, None)) + (params.get("levels_lower") or
-                                                            (None, None)))
-    elif isinstance(params, (list, tuple)):
-        # old params = (crit_low , warn_low, warn, crit)
-        levels = (params[2], params[3], params[1], params[0])
-    else:
-        levels = (None, None, None, None)
-
-    yield from check_levels(
-        humidity,
-        metric_name="humidity",
-        levels_upper=(levels[0], levels[1]),
-        levels_lower=(levels[2], levels[3]),
-        render_func=render.percent,
-        boundaries=(0, 100),
-    )
 
 def _get_dev_status_kentix_devices(alarm):
     alarm_state_map = { "1": State.CRIT,
@@ -104,18 +89,18 @@ register.snmp_section(
         SNMPTree(
             base=".1.3.6.1.4.1.37954.5.1.1",
             oids=[
-                "1.0", # multiplierTemperature
-                "2.0", # multiplierHumidity
-                "3.0", # multiplierDewpoint
-                "4.0", # multiplierBatterylevel
-                "5.0", # multiplierVoltage
-                "6.0", # multiplierCurrent
-                "7.0", # multiplierActivepower
-                "8.0", # multiplierReactivepower
-                "9.0", # multiplierApparent
-                "10.0", # multiplierFrequency
-                "11.0", # multiplierConsumption
-                "12.0", # multiplierPue
+                "1.0", # 0 multiplierTemperature
+                "2.0", # 1 multiplierHumidity
+                "3.0", # 2 multiplierDewpoint
+                # "5.0", # 3 multiplierVoltage
+                # "6.0", # 4 multiplierCurrent
+                # "7.0", # 5 multiplierActivepower
+                # "8.0", # 6 multiplierReactivepower
+                # "9.0", # 7 multiplierApparent
+                # "10.0", # 8 multiplierFrequency
+                # "11.0", # 9 multiplierConsumption
+                # "12.0", # 10 multiplierPue
+                # "13.0", # 11 valuemultiplier.13
             ]),
         SNMPTree(
             base=".1.3.6.1.4.1.37954.5.3.1.1",
@@ -562,7 +547,6 @@ def discover_kentix_devices_battery(section):
             yield Service(
                 item=sensoritem
             )
-
 
 def check_kentix_devices_battery(item, section):
     if item in section['sensors']:
