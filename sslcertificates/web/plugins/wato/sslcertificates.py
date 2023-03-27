@@ -58,3 +58,24 @@ rulespec_registry.register(
         parameter_valuespec=_parameter_valuespec_sslcertificates,
         title=lambda: _("Parameters for SSL certificates"),
     ))
+
+def _valuespec_sslcertificates_inventory():
+    return Dictionary(
+        title=_("SSL certificates discovery"),
+        help=_("This selects which certificates are discovered."),
+        elements=[
+            ('min_lifetime',
+             Age(
+                 title=_("Minimal lifetime of certificate"),
+                 default_value=864000,
+                 help=_("Certificates with a lifetime less than this value will not be discovered."),
+            )),
+        ],
+    )
+
+rulespec_registry.register(
+    HostRulespec(
+        group=RulespecGroupCheckParametersDiscovery,
+        name="sslcertificates_inventory",
+        valuespec=_valuespec_sslcertificates_inventory,
+    ))

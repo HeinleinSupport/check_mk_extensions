@@ -17,34 +17,46 @@
 
 from .agent_based_api.v1 import register, render, Result, Metric, State, check_levels, ServiceLabel, Service
 import time
-
-def _sslcertificates_name(line):
-    return line[0]
+import json
 
 def parse_sslcertificates(string_table):
     section = {}
     for line in string_table:
-        name = _sslcertificates_name(line)
-        section[name] = {
-            'endtime': int(line[1])
-        }
-        algosign = '/'
-        if len(line) > 2:
-            algosign = line[2]
-        if algosign[0] == '/':
-            # old agent plugin
-            algosign = ''
-            subj = " ".join(line[2:])
+        if line[0][0] == '{':
+            # new json format for section
+            name = False
+            data = json.loads(line[0])
+            
+            if 'file' in data:
+                name = data['file']
+            if 'thumb' in data:
+                name = data['thumb']
+            if name and 'subj' in data and 'expires' in data:
+                section[name] = data
         else:
-            subj = " ".join(line[3:])
-        if subj.startswith('issuer_hash='):
-            issuer_hash = subj[12:20]
-            subj = subj[21:]
-        else:
-            issuer_hash = None
-        section[name]['algosign'] = algosign
-        section[name]['subj'] = subj
-        section[name]['issuer_hash'] = issuer_hash
+            name = line[0]
+            section[name] = {
+                'expires': int(line[1])
+            }
+            algosign = '/'
+            if len(line) > 2:
+                algosign = line[2]
+            if algosign[0] == '/':
+                # old agent plugin
+                algosign = ''
+                subjparts = line[2:]
+            else:
+                subjparts = line[3:]
+            if subjparts[0].startswith('issuer_hash='):
+                issuer_hash = subjparts[0][12:]
+                subjparts = subjparts[1:]
+            else:
+                issuer_hash = None
+            subject = " ".join(subjparts)
+
+            section[name]['algosign'] = algosign
+            section[name]['subj'] = subject
+            section[name]['issuer_hash'] = issuer_hash
     return section
 
 register.agent_section(
@@ -52,12 +64,15 @@ register.agent_section(
     parse_function=parse_sslcertificates,
 )
 
-def discover_sslcertificates(section):
+def discover_sslcertificates(params, section):
     for name, data in section.items():
+        if 'min_lifetime' in params and 'starts' in data:
+            if data['expires'] - data['starts'] < params['min_lifetime']:
+                continue
         sl = []
-        if data['issuer_hash']:
+        if 'issuer_hash' in data:
             sl.append(ServiceLabel(u'sslcertificates/issuer_hash', data['issuer_hash']))
-        if data['algosign']:
+        if 'algosign' in data:
             sl.append(ServiceLabel(u'sslcertificates/algorithm', data['algosign']))
         yield Service(item=name, labels=sl)
 
@@ -70,17 +85,17 @@ def check_sslcertificates(item, params, section):
         data = section[item]
         
         now = int(time.time())
-        secondsremaining = data['endtime'] - now
+        secondsremaining = data['expires'] - now
         ignored = False
 
         yield Result(state=State.OK, summary="Subject: %s" % data['subj'])
 
         if secondsremaining < 0:
             infotext = "expired %s ago on %s" % ( render.timespan(abs(secondsremaining)),
-                                                  time.strftime("%c", time.gmtime(data['endtime'])))
+                                                  time.strftime("%c", time.gmtime(data['expires'])))
         else:
             infotext = "expires in %s on %s" % ( render.timespan(secondsremaining),
-                                                 time.strftime("%c", time.gmtime(data['endtime'])))
+                                                 time.strftime("%c", time.gmtime(data['expires'])))
         if ignore and -secondsremaining > ignore[0] * 86400:
             yield Result(state=State.OK, summary=infotext + ', ignored because "%s"' % ignore[1])
             ignored = True
@@ -112,9 +127,9 @@ register.check_plugin(
     service_name="SSL Certificate in %s",
     sections=["sslcertificates"],
     discovery_function=discover_sslcertificates,
-    # discovery_default_parameters={},
-    # discovery_ruleset_name="",
-    # discovery_ruleset_type=register.RuleSetType.MERGED,
+    discovery_default_parameters={},
+    discovery_ruleset_name="sslcertificates_inventory",
+    discovery_ruleset_type=register.RuleSetType.MERGED,
     check_function=check_sslcertificates,
     check_default_parameters={
         'age': ( 90, 60 ),
