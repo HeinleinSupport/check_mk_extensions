@@ -15,6 +15,7 @@ from cmk.gui.plugins.wato import (
     rulespec_registry,
     CheckParameterRulespecWithItem,
     RulespecGroupCheckParametersApplications,
+    HostRulespec,
 )
 
 def _item_spec_sslcertificates():
