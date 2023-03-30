@@ -51,8 +51,10 @@ from .agent_based_api.v1 import (
 
 def parse_dir_size(string_table):
     section = {}
-    for size, path in string_table:
-        section[path] = int(size) * 1024
+    for line in string_table:
+        size = int(line[0])
+        path = ' '.join(line[1:])
+        section[path] = size * 1024
     return section
 
 register.agent_section(

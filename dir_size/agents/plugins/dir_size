@@ -33,7 +33,7 @@ then
     grep "^\/.*\/" $MK_CONFDIR/dir_size.cfg | \
     while read path
     do 
-        /usr/bin/du -s $path
+        /usr/bin/du -s "$path"
     done
 fi
 

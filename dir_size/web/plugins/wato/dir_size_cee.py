@@ -52,8 +52,8 @@ try:
                             title = _("Directories to compute size for"),
                             valuespec = TextAscii(
                                 size = 80,
-                                regex = "^/[^ \t]+/$",
-                                regex_error = _("Directory paths must begin and end with <tt>/</tt> and must not contain spaces."),
+                                regex = "^/[^\t]+/$",
+                                regex_error = _("Directory paths must begin and end with <tt>/</tt> and must not contain tabs."),
                            ),
                            allow_empty = False,
 
