@@ -24,7 +24,8 @@ from .bakery_api.v1 import FileGenerator, OS, Plugin, PluginConfig, register
 
 def get_dir_size_files(conf: Dict[str, Any]) -> FileGenerator:
     yield Plugin(base_os=OS.LINUX,
-                 source=Path("dir_size"))
+                 source=Path("dir_size"),
+                 interval=conf.get("interval"))
     yield PluginConfig(base_os=OS.LINUX,
                        lines=conf.get("directories"),
                        target=Path("dir_size.cfg"),

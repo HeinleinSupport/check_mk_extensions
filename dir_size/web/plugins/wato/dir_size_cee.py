@@ -57,10 +57,14 @@ try:
                            ),
                            allow_empty = False,
 
-                         )
-                       ),
+                         )),
+                        ("interval", Age(
+                            title = _("Run asynchronously"),
+                            label = _("Interval for collecting data"),
+                            default_value = 300
+                        )),
                     ],
-                    optional_keys = False,
+                    optional_keys = ['interval'],
                 ),
                 FixedValue(None, title = _("Do not deploy the directory size plugin"), totext = _("(disabled)") ),
             ]
