@@ -121,9 +121,14 @@ def check_apcaccess(item, params, section) -> CheckResult:
                     yield Result(state=State.OK,
                                  summary="%s: %s" % (text, human_readable[metric](value)))
                     yield Metric(metric, value)
-        if data.get('STATUS') != 'ONLINE' and data.get('STATUS') != 'ONLINE SLAVE' and data.get('SELFTEST') == 'NO':
-            yield Result(state=State.CRIT,
-                         summary='Status is ' + data.get('STATUS'))
+        if data.get('STATUS') != 'ONLINE' and data.get('STATUS') != 'ONLINE SLAVE':
+            if 'SELFTEST' in data:
+                if data['SELFTEST'] == 'NO':
+                    yield Result(state=State.CRIT,
+                                 summary='Status is ' + data.get('STATUS'))
+            else:
+                yield Result(state=State.CRIT,
+                             summary='Status is ' + data.get('STATUS'))
 
 register.check_plugin(
     name="apcaccess",
