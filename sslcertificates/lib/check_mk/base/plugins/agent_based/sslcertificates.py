@@ -70,9 +70,9 @@ def discover_sslcertificates(params, section):
             if data['expires'] - data['starts'] < params['min_lifetime']:
                 continue
         sl = []
-        if 'issuer_hash' in data:
+        if data.get('issuer_hash'):
             sl.append(ServiceLabel(u'sslcertificates/issuer_hash', data['issuer_hash']))
-        if 'algosign' in data:
+        if data.get('algosign'):
             sl.append(ServiceLabel(u'sslcertificates/algorithm', data['algosign']))
         yield Service(item=name, labels=sl)
 
@@ -115,7 +115,7 @@ def check_sslcertificates(item, params, section):
                     render_func=lambda x: "%s ago" % render.timespan(abs(x)),
                     )
 
-        if  data['algosign']:
+        if data.get('algosign'):
             infotext = "Signature Algorithm: %s" % data['algosign']
             if not ignored and data['algosign'] in warnalgos:
                 yield Result(state=State.WARN, summary=infotext)
