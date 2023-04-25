@@ -28,6 +28,8 @@ from cmk.gui.plugins.metrics import (
 
 from cmk.gui.plugins.metrics.translation import df_translation
 
+from cmk.gui.plugins.metrics.utils import indexed_color
+
 metric_info['num_objects'] = {
     'title' : _('Number of Objects'),
     'unit'  : 'count',
@@ -126,7 +128,7 @@ for idx, _ceph_pgstate in enumerate(_ceph_pgstates):
     metric_info[_ceph_pgstate] = {
         'title' : _('PGs %s' % _ceph_title),
         'unit'  : 'count',
-        'color' : indexed_color(idx+1, _ceph_num_pgstates),
+        'color' : indexed_color(idx+1, _ceph_num_pgstates + 7),
     }
     _ceph_pg_metrics.append( ( _ceph_pgstate, 'stack', _ceph_title ) )
     _ceph_pg_metrics_optional.append( _ceph_pgstate )
