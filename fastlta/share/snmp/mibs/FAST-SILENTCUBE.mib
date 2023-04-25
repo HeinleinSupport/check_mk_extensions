@@ -1,0 +1,645 @@
+
+--------------------------------------------------------------------------
+-- Copyright (c) 2010, All rights reserved by
+--
+-- FAST LTA GmbH
+-- Ruedesheimer Str. 11
+-- 80686 Muenchen
+-- Germany
+--
+-- This software is furnished under a license and may be used and copied
+-- inclusion of the above copyright notice. This software or  any  other
+-- only  in  accordance  with  the  terms  of such  license and with the
+-- copies thereof may not be provided or otherwise made available to any
+-- other person. No title to and ownership of  the  software  is  hereby
+-- transferred.
+--
+-- The information in this software is subject to change without notice
+-- and should not be construed as a commitment by FAST LTA GmbH.
+--
+-- FAST LTA GmbH assumes no responsibility for the use or reliability
+-- of this software.
+--
+----------------------------------------------------------------------------
+--
+--
+-- FAST LTA Silent Cubes Management Information Base description
+--
+----------------------------------------------------------------------------
+----------------------------------------------------------------------------
+--
+-- Author Identification
+--
+-- smr      Stefan Moeller, FAST LTA GmbH
+--
+----------------------------------------------------------------------------
+--
+--  000  smr   05-05-2010   Created 
+--
+----------------------------------------------------------------------------
+
+FAST-SILENTCUBE DEFINITIONS ::= BEGIN
+
+   IMPORTS
+       enterprises, Opaque 	  FROM RFC1155-SMI
+       DisplayString          FROM RFC1213-MIB
+       OBJECT-TYPE            FROM RFC-1212
+       TRAP-TYPE              FROM RFC-1215
+   	   Counter64			  FROM SNMPv2-SMI;
+
+fastLTA OBJECT IDENTIFIER ::= { enterprises 27417  }
+
+headUnit OBJECT IDENTIFIER ::= { fastLTA 2 }
+silentCubes OBJECT IDENTIFIER ::= { fastLTA 3 }
+silentCubesRepair OBJECT IDENTIFIER ::= { fastLTA 4 }
+volumes OBJECT IDENTIFIER ::= { fastLTA 5 }
+
+-------------------------------------------------------------------
+--
+--       SilentCubes Status Group
+--
+-------------------------------------------------------------------
+headUnitStatus OBJECT-TYPE
+    SYNTAX      INTEGER {
+							workerDefect (-1),
+							workerNotStarted (-2),
+							workerBooting (2),
+							workerRfRRunning (3),
+							appBooting(10),
+							appNoCubes(20),
+							appVirginCubes(30),
+							appRfrPossible(40),
+							appRfrMixedCubes(45),
+							appRfrActive(50),
+							appReady(60),
+							appMixedCubes(65),
+							appReadOnly(70),
+							appEnterpriseCubes(75),
+							appEnterpriseMixedCubes(80)
+						}
+    ACCESS      read-only
+    STATUS      mandatory
+    DESCRIPTION
+	"The HeadUnit Status. In a normally operating system you should see state appReady(60). "
+    DEFVAL { 2 }
+    ::= { headUnit 1 }
+
+replicationMode OBJECT-TYPE
+	    SYNTAX      INTEGER 
+	    ACCESS      read-only
+	    STATUS      mandatory
+	    DESCRIPTION
+		"The replication mode. 0 means Slave, 1 means Master and 255 is the value on a standalone system."
+	    DEFVAL { 255 }
+	    ::= { headUnit 2 }
+
+replicationSwitching OBJECT-TYPE
+	    SYNTAX      INTEGER
+	    ACCESS      read-only
+	    STATUS      mandatory
+	    DESCRIPTION
+		"1 if the replication mode is in a transient state, 0 otherwise"
+	    DEFVAL { 0 }
+	    ::= { headUnit 3 }
+
+replicationReadOnly OBJECT-TYPE
+	    SYNTAX      INTEGER
+	    ACCESS      read-only
+	    STATUS      mandatory
+	    DESCRIPTION
+		"1 if the system is in read-only mode, 0 if it is normal read-write mode"
+	    DEFVAL { 0 }
+	    ::= { headUnit 4 }
+
+replicationRunning OBJECT-TYPE
+	    SYNTAX      INTEGER
+	    ACCESS      read-only
+	    STATUS      mandatory
+	    DESCRIPTION
+		"1 if the replication is running normally, 0 otherwise"
+	    DEFVAL { 0 }
+	    ::= { headUnit 5 }
+
+---------------------------------------------------
+--
+-- The SilentCube Table
+--
+---------------------------------------------------
+
+silentCubesTable OBJECT-TYPE
+    SYNTAX      SEQUENCE OF SilentCubeEntryType
+    MAX-ACCESS  not-accessible
+    STATUS      current
+    DESCRIPTION
+	"The table of silent cubes" 
+    ::= { silentCubes 1 }
+
+silentCubeEntry OBJECT-TYPE
+	    SYNTAX      SilentCubeEntryType
+	    MAX-ACCESS  not-accessible
+	    STATUS      current
+	    DESCRIPTION
+		"A cube table entry"
+	    INDEX   { silentCubeIndex }
+	    ::= { silentCubesTable 1 }
+
+SilentCubeEntryType ::= SEQUENCE {
+	silentCubeIndex			INTEGER,
+    silentCubeMAC         	OCTET STRING,
+	scHostHeadUnit        	OCTET STRING,
+	scHeadUnitID			OCTET STRING,
+	scClusterID				OCTET STRING,
+	scIPAddress				OCTET STRING,
+	scStatus				INTEGER,
+	scCapacity				Counter64,
+	scHighWaterMark			Counter64,
+	scRelocationStatus		INTEGER,
+	scNumDisks				INTEGER,
+	scNumOKDisks			INTEGER,
+	scPowerMode				INTEGER
+}
+	
+silentCubeIndex OBJECT-TYPE
+	    SYNTAX     	INTEGER
+	    MAX-ACCESS  not-accessible
+	    STATUS      current
+	    DESCRIPTION
+		"Index of the Silent Cube"
+	    ::= { silentCubeEntry 1 }
+
+silentCubeMAC OBJECT-TYPE
+	    SYNTAX     OCTET STRING
+	    MAX-ACCESS  read-only
+	    STATUS      current
+	    DESCRIPTION
+		"MAC Address of the cube in hexadecimal format"
+	    ::= { silentCubeEntry 2 }
+
+scHostHeadUnit OBJECT-TYPE
+	    SYNTAX     OCTET STRING
+	    MAX-ACCESS  read-only
+	    STATUS      current
+	    DESCRIPTION
+		"ID of the headunit that the cube is physically connected to."
+	    ::= { silentCubeEntry 3 }
+	
+scHeadUnitID OBJECT-TYPE
+	    SYNTAX     OCTET STRING
+	    MAX-ACCESS  read-only
+	    STATUS      current
+	    DESCRIPTION
+		"ID of the headunit that the cube is logically connected to."
+	    ::= { silentCubeEntry 4 }	
+
+scClusterID OBJECT-TYPE
+	    SYNTAX     OCTET STRING
+	    MAX-ACCESS  read-only
+	    STATUS      current
+	    DESCRIPTION
+		"Cluster ID of the whole system."
+	    ::= { silentCubeEntry 5 }	
+
+scIPAddress OBJECT-TYPE
+	    SYNTAX     	OCTET STRING
+	    MAX-ACCESS  read-only
+	    STATUS      current
+	    DESCRIPTION
+		"IP of the cube in the internal network."
+	    ::= { silentCubeEntry 6 }	
+	
+scStatus OBJECT-TYPE
+        SYNTAX      INTEGER {
+                                ok             (1),
+                                defective      (2),
+                                degraded       (3),
+                                emergency      (4)
+                            }
+	    MAX-ACCESS  read-only
+	    STATUS      current
+	    DESCRIPTION
+		"Cube status"
+	    ::= { silentCubeEntry 7 }
+
+scPowerMode OBJECT-TYPE
+        SYNTAX      INTEGER {
+                                unknown           (-1),
+                                normal             (1),
+                                sleep              (2),
+                                wakeupRequested    (3),
+                                wakeupFailed       (4),
+                                shutdownRequested  (5)
+                            }
+	    MAX-ACCESS  read-only
+	    STATUS      current
+	    DESCRIPTION
+		"Cube power mode"
+	    ::= { silentCubeEntry 8 }
+	
+scCapacity OBJECT-TYPE
+	    SYNTAX     	Counter64
+	    MAX-ACCESS  read-only
+	    STATUS      current
+	    DESCRIPTION
+		"Total capacity of the cube, in bytes"
+	    ::= { silentCubeEntry 9 }
+
+scHighWaterMark OBJECT-TYPE
+	    SYNTAX     	Counter64
+	    MAX-ACCESS  read-only
+	    STATUS      current
+	    DESCRIPTION
+		"Current write position, in bytes"
+	    ::= { silentCubeEntry 10 }
+	
+scRelocationStatus OBJECT-TYPE
+	    SYNTAX     	INTEGER
+	    MAX-ACCESS  read-only
+	    STATUS      current
+	    DESCRIPTION
+		"Cube relocation status."
+	    ::= { silentCubeEntry 11 }
+
+scNumDisks OBJECT-TYPE
+	    SYNTAX     	INTEGER
+	    MAX-ACCESS  read-only
+	    STATUS      current
+	    DESCRIPTION
+		"Number of disks in the cube."
+		::= { silentCubeEntry 12 }
+
+scNumOKDisks OBJECT-TYPE
+	    SYNTAX     	INTEGER
+	    MAX-ACCESS  read-only
+	    STATUS      current
+	    DESCRIPTION
+		"Number of working disks in the cube"
+	    ::= { silentCubeEntry 13 }
+
+scNumPSUs OBJECT-TYPE
+	    SYNTAX     	INTEGER
+	    MAX-ACCESS  read-only
+	    STATUS      current
+	    DESCRIPTION
+		"Total number of powersupplies in the cube"
+		::= { silentCubeEntry 14 }
+
+scNumOKPSUs OBJECT-TYPE
+	    SYNTAX     	INTEGER
+	    MAX-ACCESS  read-only
+	    STATUS      current
+	    DESCRIPTION
+		"Number of working powersupplies"
+	    ::= { silentCubeEntry 15 }
+
+scNumFans OBJECT-TYPE
+	    SYNTAX     	INTEGER
+	    MAX-ACCESS  read-only
+	    STATUS      current
+	    DESCRIPTION
+		"Total number of fans in the cube"
+		::= { silentCubeEntry 16 }
+
+scNumOKFans OBJECT-TYPE
+	    SYNTAX     	INTEGER
+	    MAX-ACCESS  read-only
+	    STATUS      current
+	    DESCRIPTION
+		"Number of working fans in the cube."
+	    ::= { silentCubeEntry 17 }
+	
+---------------------------------------------------
+--
+--	Additional info about SilentCubes
+--
+---------------------------------------------------
+	
+scTotalCapacity OBJECT-TYPE
+	    SYNTAX      Counter64
+	    ACCESS      read-only
+	    STATUS      mandatory
+	    DESCRIPTION
+		"The total capacity of all cubes, in bytes"
+	    DEFVAL { 0 }
+	    ::= { silentCubes 2 }
+
+scTotalUsedCapacity OBJECT-TYPE
+	    SYNTAX      Counter64
+	    ACCESS      read-only
+	    STATUS      mandatory
+	    DESCRIPTION
+		"The total remaining capacity of all cubes, in bytes"
+	    DEFVAL { 0 }
+	    ::= { silentCubes 3 }
+
+---------------------------------------------------
+--
+-- Repair state and progress
+--
+---------------------------------------------------
+
+
+scRepairState OBJECT-TYPE
+	    SYNTAX      INTEGER {
+								startingUp             (   1),
+							    waitingForProxy        ( 200),
+							    preparing              ( 400),
+							    repairing              ( 600),
+							    cleaningUp             ( 800),
+							    waitingAfterFailure    (1000),
+							    idle                   (1200),
+							    shutDown	           (1400)
+							}
+	    ACCESS      read-only
+	    STATUS      mandatory
+	    DESCRIPTION
+		"The current status of the repair/migrate process"
+	    DEFVAL { 1 }
+	    ::= { silentCubes 4 }
+	
+scRepairStartItemsLeft OBJECT-TYPE
+	    SYNTAX      Counter64
+	    ACCESS      read-only
+	    STATUS      mandatory
+	    DESCRIPTION
+		"The number of items that were left to repair/migrate at repair start"
+	    DEFVAL { 0 }
+	    ::= { silentCubes 5 }
+
+scRepairItemsLeft OBJECT-TYPE
+	    SYNTAX      Counter64
+	    ACCESS      read-only
+	    STATUS      mandatory
+	    DESCRIPTION
+		"The number of items that are still left to repair/migrate"
+	    DEFVAL { 0 }
+	    ::= { silentCubes 6 }
+
+scRepairStartSizeLeft OBJECT-TYPE
+	    SYNTAX      Counter64
+	    ACCESS      read-only
+	    STATUS      mandatory
+	    DESCRIPTION
+		"The number of bytes that were left to repair/migrate at repair start"
+	    DEFVAL { 0 }
+	    ::= { silentCubes 7 }
+	
+scRepairSizeLeft OBJECT-TYPE
+    SYNTAX      Counter64
+    ACCESS      read-only
+    STATUS      mandatory
+    DESCRIPTION
+	"The number of bytes that are still left to repair/migrate bytes"
+    DEFVAL { 0 }
+    ::= { silentCubes 8 }
+
+scRepairStartTime OBJECT-TYPE
+	    SYNTAX      Counter64
+	    ACCESS      read-only
+	    STATUS      mandatory
+	    DESCRIPTION
+		"Start time of repair as timestamp (seconds since 1.1.1970)"
+	    DEFVAL { 0 }
+	    ::= { silentCubes 9 }
+
+scRepairCurrentTime OBJECT-TYPE
+	    SYNTAX      Counter64
+	    ACCESS      read-only
+	    STATUS      mandatory
+	    DESCRIPTION
+		"Current time of repair as timestamp (seconds since 1.1.1970)"
+	    DEFVAL { 0 }
+	    ::= { silentCubes 10 }
+
+scRepairImpending OBJECT-TYPE
+	    SYNTAX      INTEGER {
+								no(1),
+								yes(2)
+							}
+	    ACCESS      read-only
+	    STATUS      mandatory
+	    DESCRIPTION
+		"Returns 2 if a repair is about to begin, 1 otherwise"
+	    DEFVAL { 1 }
+	    ::= { silentCubes 11 }
+
+------------------------------------------------
+-- 
+-- The volumes table
+--
+------------------------------------------------
+
+volumesTable OBJECT-TYPE
+    SYNTAX      SEQUENCE OF VolumeEntryType
+    MAX-ACCESS  not-accessible
+    STATUS      current
+    DESCRIPTION
+	"The table of volumes" 
+    ::= { volumes 1 }
+
+volumeEntry OBJECT-TYPE
+	    SYNTAX      VolumeEntryType
+	    MAX-ACCESS  not-accessible
+	    STATUS      current
+	    DESCRIPTION
+		"A volume table entry"
+	    INDEX   { volumeIndex }
+	    ::= { volumesTable 1 }
+
+VolumeEntryType ::= SEQUENCE {
+	volumeIndex			INTEGER,
+    volumeID	       	OCTET STRING,
+	volInodeCount		Counter64,
+	volFileCount       	Counter64,
+	volDirectoryCount   Counter64,
+	volVersionCount		Counter64,
+	volPendingCount		Counter64,
+	volTriggeredCount	Counter64,
+	volQuotaAmount		Counter64,
+	volUsedSpace		Counter64,
+	volUsedCubeSpace    Counter64,
+	volVirtualUsedSpace Counter64
+}
+
+volumeIndex OBJECT-TYPE
+	    SYNTAX     	INTEGER
+	    MAX-ACCESS  not-accessible
+	    STATUS      current
+	    DESCRIPTION
+		"Volume index"
+	    ::= { volumeEntry 1 }
+	
+volumeID OBJECT-TYPE
+	    SYNTAX      OCTET STRING
+	    ACCESS      read-only
+	    STATUS      mandatory
+	    DESCRIPTION
+		"The internal ID of the volume."
+	    ::= { volumeEntry 2 }
+
+volInodeCount OBJECT-TYPE
+	    SYNTAX      Counter64
+	    ACCESS      read-only
+	    STATUS      mandatory
+	    DESCRIPTION
+		"The number of Inode entries in this volume"
+	    ::= { volumeEntry 3 }
+
+volFileCount OBJECT-TYPE
+	    SYNTAX      Counter64
+	    ACCESS      read-only
+	    STATUS      mandatory
+	    DESCRIPTION
+		"The number file Inode entries in this volume"
+	    ::= { volumeEntry 4 }
+
+volDirectoryCount OBJECT-TYPE
+	    SYNTAX      Counter64
+	    ACCESS      read-only
+	    STATUS      mandatory
+	    DESCRIPTION
+		"The number directory Inode entries in this volume"
+	    ::= { volumeEntry 5 }
+
+volVersionCount OBJECT-TYPE
+	    SYNTAX      Counter64
+	    ACCESS      read-only
+	    STATUS      mandatory
+	    DESCRIPTION
+		"The number versioned Inode entries in this volume"
+	    ::= { volumeEntry 6 }
+
+volPendingCount OBJECT-TYPE
+	    SYNTAX      Counter64
+	    ACCESS      read-only
+	    STATUS      mandatory
+	    DESCRIPTION
+		"The number of Inode entries in this volume that are pending for ingest"
+	    ::= { volumeEntry 7 }
+
+volTriggeredCount OBJECT-TYPE
+	    SYNTAX      Counter64
+	    ACCESS      read-only
+	    STATUS      mandatory
+	    DESCRIPTION
+		"The number of Inode entries in this volume that are triggered for ingest"
+	    ::= { volumeEntry 8 }
+
+volQuotaAmount OBJECT-TYPE
+	    SYNTAX      Counter64
+	    ACCESS      read-only
+	    STATUS      mandatory
+	    DESCRIPTION
+		"The quota assigned to this volume (in bytes)"
+	    ::= { volumeEntry 9 }
+
+volUsedSpace OBJECT-TYPE
+	    SYNTAX      Counter64
+	    ACCESS      read-only
+	    STATUS      mandatory
+	    DESCRIPTION
+		"The space already used on this volume (in bytes)"
+	    ::= { volumeEntry 10 }
+
+volUsedCubeSpace OBJECT-TYPE
+	    SYNTAX      Counter64
+	    ACCESS      read-only
+	    STATUS      mandatory
+	    DESCRIPTION
+		"The actual space used on the cubes(s) (in bytes)"
+	    ::= { volumeEntry 11 }
+
+volVirtualUsedSpace OBJECT-TYPE
+	    SYNTAX      Counter64
+	    ACCESS      read-only
+	    STATUS      mandatory
+	    DESCRIPTION
+		"The virtual space used on the volume (uncompressed etc.)(in bytes)"
+	    ::= { volumeEntry 12 }
+
+----------------------------------------------
+-- 
+-- Overall volumes info
+--
+----------------------------------------------
+
+volTotalInodeCount OBJECT-TYPE
+	    SYNTAX      Counter64
+	    ACCESS      read-only
+	    STATUS      mandatory
+	    DESCRIPTION
+		"The total number of inode entries"
+	    ::= { volumes 2 }
+
+volTotalFileCount OBJECT-TYPE
+	    SYNTAX      Counter64
+	    ACCESS      read-only
+	    STATUS      mandatory
+	    DESCRIPTION
+		"The total number of inode entries that represent files"
+	    ::= { volumes 3 }
+
+volTotalDirectoryCount OBJECT-TYPE
+	    SYNTAX      Counter64
+	    ACCESS      read-only
+	    STATUS      mandatory
+	    DESCRIPTION
+		"The total number of inode entries that represent directories"
+	    ::= { volumes 4 }
+
+volTotalVersionCount OBJECT-TYPE
+	    SYNTAX      Counter64
+	    ACCESS      read-only
+	    STATUS      mandatory
+	    DESCRIPTION
+		"The total number of versioned inode entries"
+	    ::= { volumes 5 }
+
+volTotalPendingCount OBJECT-TYPE
+	    SYNTAX      Counter64
+	    ACCESS      read-only
+	    STATUS      mandatory
+	    DESCRIPTION
+		"The total number of inode entries that are pending for archiving"
+	    ::= { volumes 6 }
+
+volTotalTriggeredCount OBJECT-TYPE
+	    SYNTAX      Counter64
+	    ACCESS      read-only
+	    STATUS      mandatory
+	    DESCRIPTION
+		"The total number of inode entries that are triggered for archiving"
+	    ::= { volumes 7 }
+
+volTotalQuotaAmount OBJECT-TYPE
+	    SYNTAX      Counter64
+	    ACCESS      read-only
+	    STATUS      mandatory
+	    DESCRIPTION
+		"The total quota assigned to this system (in bytes)"
+	    ::= { volumes 8 }
+
+volTotalUsedSpace OBJECT-TYPE
+	    SYNTAX      Counter64
+	    ACCESS      read-only
+	    STATUS      mandatory
+	    DESCRIPTION
+		"The total space already used on this system (in bytes)"
+	    ::= { volumes 9 }
+
+volTotalUsedCubeSpace OBJECT-TYPE
+	    SYNTAX      Counter64
+	    ACCESS      read-only
+	    STATUS      mandatory
+	    DESCRIPTION
+		"The total actual space used on the cubes(s) (in bytes)"
+	    ::= { volumes 10 }
+
+volTotalVirtualUsedSpace OBJECT-TYPE
+	    SYNTAX      Counter64
+	    ACCESS      read-only
+	    STATUS      mandatory
+	    DESCRIPTION
+		"The total virtual space used on the system (uncompressed etc.)(in bytes)"
+	    ::= { volumes 11 }
+END
+
