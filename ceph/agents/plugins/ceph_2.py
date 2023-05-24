@@ -63,26 +63,33 @@ if res[0] == 0:
     print("<<<cephosdbluefs:sep(0)>>>")
     out = {'end': {}}
     for osd in json.loads(res[1]):
-        if hostname == osd['hostname'] or fqdn == osd["hostname"]:
-            localosds.append(osd['id'])
-            if "container_hostname" in osd:
-                adminsocket = "/run/ceph/%s/ceph-osd.%d.asok" % (fsid, osd['id'])
-            else:
-                adminsocket = "/run/ceph/ceph-osd.%d.asok" % osd['id']
-            if os.path.exists(adminsocket):
-                chunks = []
-                try:
-                    sock = socket.socket(socket.AF_UNIX, socket.SOCK_STREAM)
-                    sock.connect(adminsocket)
-                    sock.sendall(b'{"prefix": "perf dump"}\n')
-                    sock.shutdown(socket.SHUT_WR)
-                    while len(chunks) == 0 or chunks[-1] != b'':
-                        chunks.append(sock.recv(4096))
-                    sock.close()
-                    chunks[0] = chunks[0][4:]
-                except:
-                    chunks = [b'{"bluefs": {}}']
-                out[osd['id']] = {'bluefs': json.loads(b"".join(chunks))['bluefs']}
+        try:
+            osd_hostname = osd['hostname']
+        except KeyError:
+            continue
+
+        if osd_hostname not in (hostname, fqdn):
+            continue
+
+        localosds.append(osd['id'])
+        if "container_hostname" in osd:
+            adminsocket = "/run/ceph/%s/ceph-osd.%d.asok" % (fsid, osd['id'])
+        else:
+            adminsocket = "/run/ceph/ceph-osd.%d.asok" % osd['id']
+        if os.path.exists(adminsocket):
+            chunks = []
+            try:
+                sock = socket.socket(socket.AF_UNIX, socket.SOCK_STREAM)
+                sock.connect(adminsocket)
+                sock.sendall(b'{"prefix": "perf dump"}\n')
+                sock.shutdown(socket.SHUT_WR)
+                while len(chunks) == 0 or chunks[-1] != b'':
+                    chunks.append(sock.recv(4096))
+                sock.close()
+                chunks[0] = chunks[0][4:]
+            except:
+                chunks = [b'{"bluefs": {}}']
+            out[osd['id']] = {'bluefs': json.loads(b"".join(chunks))['bluefs']}
     print(json.dumps(out))
 
 osddf_raw = cluster.command_mon("osd df")
