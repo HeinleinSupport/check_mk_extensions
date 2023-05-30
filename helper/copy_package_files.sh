@@ -13,7 +13,7 @@ if ! mkp show "$package" > /dev/null; then
   exit 1
 fi
 
-mkp list "$package" | while read file; do
+mkp files "$package" | while read file; do
 
   lfile=${file#$OMD_ROOT/local/share/check_mk}
   lfile=${lfile#$OMD_ROOT/local}
