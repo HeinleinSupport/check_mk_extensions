@@ -32,7 +32,7 @@ from cmk.gui.plugins.wato import (
     HostRulespec,
 )
 
-from cmk.gui.plugins.wato.active_checks import (
+from cmk.gui.plugins.wato.active_checks.common import (
     RulespecGroupIntegrateOtherServices,
 )
 
