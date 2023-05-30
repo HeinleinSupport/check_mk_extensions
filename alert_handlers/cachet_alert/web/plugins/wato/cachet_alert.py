@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 # -*- encoding: utf-8; py-indent-offset: 4 -*-
 
 # (c) 2020 Heinlein Support GmbH
@@ -15,6 +15,7 @@
 # to the Free Software Foundation, Inc., 51 Franklin St,  Fifth Floor,
 # Boston, MA 02110-1301 USA.
 
+from cmk.gui.valuespec import HTTPUrl, TextInput, Checkbox
 from cmk.gui.cee.plugins.wato.alert_handling import register_alert_handler_parameters
 
 register_alert_handler_parameters("cachet_alert", Dictionary(
@@ -24,17 +25,17 @@ register_alert_handler_parameters("cachet_alert", Dictionary(
             title = _("Cachet Server URL"),
             allow_empty = False,
         )),
-        ("api_key", TextAscii(
+        ("api_key", TextInput(
             title = _("Cachet API Key"),
             help = _("You need to provide a valid API key to be able to send notifications."),
             allow_empty = False,
         )),
-        ("componentid", TextAscii(
+        ("componentid", TextInput(
             title = _("Cachet Component ID"),
             help = _("Specify the component ID that should be triggered."),
             allow_empty = False,
         )),
-        ("incident_prefix", TextAscii(
+        ("incident_prefix", TextInput(
             title = _("Cachet Incident Prefix"),
             allow_empty = True,
         )),
