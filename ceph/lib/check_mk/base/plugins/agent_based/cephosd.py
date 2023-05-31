@@ -147,6 +147,6 @@ register.check_plugin(
     sections=["cephosd"],
     discovery_function=discovery_cephosd,
     check_function=check_cephosd,
-    check_default_parameters=df.FILESYSTEM_DEFAULT_LEVELS,
+    check_default_parameters=df.FILESYSTEM_DEFAULT_PARAMS,
     check_ruleset_name="filesystem",
 )

@@ -75,7 +75,7 @@ register.check_plugin(
     sections=["cephosdbluefs"],
     discovery_function=lambda section: (yield from discovery_cephosdbluefs('DB', section)),
     check_function=lambda item, params, section: (yield from check_cephosdbluefs('DB', item, params, section)),
-    check_default_parameters=df.FILESYSTEM_DEFAULT_LEVELS,
+    check_default_parameters=df.FILESYSTEM_DEFAULT_PARAMS,
     check_ruleset_name="filesystem",
 )
 
@@ -85,7 +85,7 @@ register.check_plugin(
     sections=["cephosdbluefs"],
     discovery_function=lambda section: (yield from discovery_cephosdbluefs('WAL', section)),
     check_function=lambda item, params, section: (yield from check_cephosdbluefs('WAL', item, params, section)),
-    check_default_parameters=df.FILESYSTEM_DEFAULT_LEVELS,
+    check_default_parameters=df.FILESYSTEM_DEFAULT_PARAMS,
     check_ruleset_name="filesystem",
 )
 
@@ -95,6 +95,6 @@ register.check_plugin(
     sections=["cephosdbluefs"],
     discovery_function=lambda section: (yield from discovery_cephosdbluefs('Slow', section)),
     check_function=lambda item, params, section: (yield from check_cephosdbluefs('Slow', item, params, section)),
-    check_default_parameters=df.FILESYSTEM_DEFAULT_LEVELS,
+    check_default_parameters=df.FILESYSTEM_DEFAULT_PARAMS,
     check_ruleset_name="filesystem",
 )

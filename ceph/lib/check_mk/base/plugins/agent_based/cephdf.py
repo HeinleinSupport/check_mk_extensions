@@ -151,7 +151,7 @@ register.check_plugin(
     discovery_function=discovery_cephdf,
     check_function=check_cephdf,
     check_ruleset_name="filesystem",
-    check_default_parameters=df.FILESYSTEM_DEFAULT_LEVELS,
+    check_default_parameters=df.FILESYSTEM_DEFAULT_PARAMS,
     cluster_check_function=cluster_check_cephdf,
 )
 
@@ -204,6 +204,6 @@ register.check_plugin(
     discovery_function=discovery_cephdfclass,
     check_function=check_cephdfclass,
     check_ruleset_name="filesystem",
-    check_default_parameters=df.FILESYSTEM_DEFAULT_LEVELS,
+    check_default_parameters=df.FILESYSTEM_DEFAULT_PARAMS,
     cluster_check_function=cluster_check_cephdfclass,
 )
