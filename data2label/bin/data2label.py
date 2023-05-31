@@ -74,7 +74,7 @@ else:
             raise
         for info in infos:
             for attr, patterns in conf_labelmap.items():
-                if attr in info:
+                if info.get(attr):
                     for pattern, setlabels in patterns.items():
                         if pattern.search(info[attr]):
                             # set labels if pattern matches
