@@ -17,7 +17,9 @@
 # to the Free Software Foundation, Inc., 51 Franklin St,  Fifth Floor,
 # Boston, MA 02110-1301 USA.
 
-from cmk.utils import quote_shell_string
+def quote_shell_string(s: str) -> str:
+    """Quote string for use as arguments on the shell"""
+    return "'" + s.replace("'", "'\"'\"'") + "'"
 
 def check_by_ssh_arguments(params):
     settings = params[1]
