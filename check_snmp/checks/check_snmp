@@ -17,7 +17,8 @@
 # to the Free Software Foundation, Inc., 51 Franklin St,  Fifth Floor,
 # Boston, MA 02110-1301 USA.
 
-from cmk.utils import quote_shell_string
+import shlex
+quote_shell_string = shlex.quote
 from cmk.base.check_api import host_name
 from cmk.base.config import get_config_cache
 from functools import reduce
