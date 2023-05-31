@@ -63,7 +63,7 @@ if res[0] == 0:
     print("<<<cephosdbluefs:sep(0)>>>")
     out = {'end': {}}
     for osd in json.loads(res[1]):
-        if hostname == osd['hostname'] or fqdn == osd["hostname"]:
+        if osd.get('hostname') in [hostname, fqdn]:
             localosds.append(osd['id'])
             if "container_hostname" in osd:
                 adminsocket = "/run/ceph/%s/ceph-osd.%d.asok" % (fsid, osd['id'])
