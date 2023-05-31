@@ -17,8 +17,20 @@
 # to the Free Software Foundation, Inc., 51 Franklin St,  Fifth Floor,
 # Boston, MA 02110-1301 USA.
 
-from cmk.gui.plugins.wato.active_checks import _ip_address_family_element
+from cmk.gui.plugins.wato.active_checks.common import ip_address_family_element
 from cmk.gui.plugins.wato.utils import IndividualOrStoredPassword
+from cmk.gui.valuespec import (
+    Alternative,
+    Checkbox,
+    Dictionary,
+    DropdownChoice,
+    Integer,
+    ListOf,
+    RegExp,
+    TextInput,
+    TextUnicode,
+    Tuple,
+)
 
 register_rule("activechecks",
               "active_checks:restapi",
@@ -44,7 +56,7 @@ register_rule("activechecks",
                                     Tuple(
                                         title = _("Virtual host"),
                                         elements = [
-                                            TextAscii(
+                                            TextInput(
                                                 title = _("Name of the virtual host"),
                                                 help = _("Set this in order to specify the name of the "
                                                          "virtual host for the query (using HTTP/1.1). If you "
@@ -75,8 +87,8 @@ register_rule("activechecks",
                           label = _('Use SSL and SNI'),
                           default_value = True,
                           )),
-                      _ip_address_family_element(),
-                      ('uri', TextAscii(
+                      ip_address_family_element(),
+                      ('uri', TextInput(
                           title = _("URI to fetch (default is <tt>/</tt>)"),
                           allow_empty = False,
                           default_value = "/"
@@ -87,7 +99,7 @@ register_rule("activechecks",
                               IndividualOrStoredPassword(title = _("API Token")),
                               Tuple(title = _("Credentials"),
                                     elements = [
-                                        TextAscii(title=_("Username")),
+                                        TextInput(title=_("Username")),
                                         IndividualOrStoredPassword(title=_("Password")),
                                         ],
                                     ),
@@ -96,14 +108,14 @@ register_rule("activechecks",
                           Tuple(
                               title = _("Header"),
                               elements = [
-                                  TextAscii(title = _("Name")),
-                                  TextAscii(title = _("Value"))
+                                  TextInput(title = _("Name")),
+                                  TextInput(title = _("Value"))
                                   ],
                               orientation = 'horizontal',
                               ),
                           title = _('Additional Headers'),
                         )),
-                      ("expect_response_header", TextAscii(
+                      ("expect_response_header", TextInput(
                           title = _("String to expect in response headers"),
                           )),
                       ( "expect_regex",
