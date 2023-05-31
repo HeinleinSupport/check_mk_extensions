@@ -17,6 +17,8 @@
 # to the Free Software Foundation, Inc., 51 Franklin St,  Fifth Floor,
 # Boston, MA 02110-1301 USA.
 
+from cmk.gui.plugins.metrics.utils import MAX_CORES
+
 metric_info["freq_cpu_avg"] = {
     "title" : _("Average Frequency"),
     "unit"  : "hz",
