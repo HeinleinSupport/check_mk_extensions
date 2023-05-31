@@ -17,12 +17,7 @@
 # to the Free Software Foundation, Inc., 51 Franklin St,  Fifth Floor,
 # Boston, MA 02110-1301 USA.
 
-from cmk.utils import quote_shell_string, debug
-from pprint import pprint
-
 def check_calculate_arguments(params):
-    if debug.enabled():
-        pprint(params)
 
     args = '-d "%s"' % params.get('description')
     args += ' -l "%s"' % params.get('label')
@@ -31,8 +26,6 @@ def check_calculate_arguments(params):
     args += ' -u "%s"' % params.get('levels_upper').__repr__()
     args += ' -e "%s"' % params.get('expression').replace('\n', '')
 
-    if debug.enabled():
-        pprint(args)
     return args
 
 def check_calculate_description(params):
