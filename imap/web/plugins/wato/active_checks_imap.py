@@ -34,7 +34,7 @@ from cmk.gui.plugins.wato import (
     HostRulespec,
 )
 
-from cmk.gui.plugins.wato.active_checks import RulespecGroupActiveChecks
+from cmk.gui.plugins.wato.active_checks.common import RulespecGroupActiveChecks
 
 def _valuespec_active_checks_imap():
     return Tuple(
