@@ -15,7 +15,7 @@
 # to the Free Software Foundation, Inc., 51 Franklin St,  Fifth Floor,
 # Boston, MA 02110-1301 USA.
 
-from cmk.gui.plugins.views.perfometers.utils import perfometer_linear
+from cmk.gui.views.perfometer.legacy_perfometers.utils import perfometer_linear
 
 def perfometer_motion(row, check_command, perf_data):
     motion = float(perf_data[0][1])
