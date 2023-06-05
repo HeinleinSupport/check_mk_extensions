@@ -1,4 +1,4 @@
-# Heinlein check**mk** 2.1 Plugins
+# Heinlein check**mk** 2.2 Plugins
 
 This repository contains [check**mk**](https://checkmk.com/) plugins developed by Heinlein Support GmbH and released to the general public.
 
