@@ -58,7 +58,7 @@ def check_netifaces_rbl(item, params, section) -> CheckResult:
     if_table, ip_stats = section
     for iface, info in ip_stats.items():
         for family in ["inet", "inet6"]:
-            for addr in map(lambda x: x.split('/')[0], info.get(family, [])):
+            for addr in map(lambda x: x.split('/')[0], getattr(info, family)):
                 if item == addr:
                     yield Result(state=State.OK,
                                  summary="bound on %s" % iface)
