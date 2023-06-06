@@ -41,7 +41,7 @@ def discovery_netifaces_rbl(params, section) -> DiscoveryResult:
         include_list = list(map(ipaddress.ip_network, params.get('include', [])))
         exclude_list = list(map(ipaddress.ip_network, params.get('exclude', [])))
         for iface, info in ip_stats.items():
-            for addr in map(lambda x: x.split('/')[0], info.get('inet', []) + info.get('inet6', [])):
+            for addr in map(lambda x: x.split('/')[0], info.inet + info.inet6):
                 a = ipaddress.ip_address(addr)
                 if reduce(lambda result, network: result or (a in network), include_list, False):
                     yield Service(item=addr)
