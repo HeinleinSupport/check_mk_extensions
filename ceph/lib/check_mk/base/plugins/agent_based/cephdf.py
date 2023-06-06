@@ -127,22 +127,8 @@ def check_cephdf(item, params, section) -> CheckResult:
             yield Metric("disk_write_throughput", wr_bytes)
 
 def cluster_check_cephdf(item, params, section) -> CheckResult:
-    results = {}
-    metrics = {}
-    for node_section in section.values():
-        for result in check_cephdf(item, params, node_section):
-            if isinstance(result, Metric):
-                metrics[result.name] = result
-            elif isinstance(result, Result):
-                cleaned_summary = re.sub(r'\d', '', result.summary)
-                if cleaned_summary not in results or result.state == State.worst(
-                    results[cleaned_summary].state,
-                    result.state,
-                ):
-                    results[cleaned_summary] = result
-
-    yield from results.values()
-    yield from metrics.values()
+    # always take data from first node
+    yield from check_cephdf(item, params, section[list(section.keys())[0]])
 
 register.check_plugin(
     name="cephdf",
@@ -179,22 +165,8 @@ def check_cephdfclass(item, params, section) -> CheckResult:
                                                  params=params)
 
 def cluster_check_cephdfclass(item, params, section) -> CheckResult:
-    results = {}
-    metrics = {}
-    for node_section in section.values():
-        for result in check_cephdfclass(item, params, node_section):
-            if isinstance(result, Metric):
-                metrics[result.name] = result
-            elif isinstance(result, Result):
-                cleaned_summary = re.sub(r'\d', '', result.summary)
-                if cleaned_summary not in results or result.state == State.worst(
-                    results[cleaned_summary].state,
-                    result.state,
-                ):
-                    results[cleaned_summary] = result
-
-    yield from results.values()
-    yield from metrics.values()
+    # always take data from first node
+    yield from check_cephdfclass(item, params, section[list(section.keys())[0]])
 
 
 register.check_plugin(

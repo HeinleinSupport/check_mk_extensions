@@ -22,7 +22,6 @@ from .agent_based_api.v1.type_defs import (
 )
 
 from .agent_based_api.v1 import (
-    get_rate,
     get_value_store,
     register,
     render,
@@ -230,22 +229,8 @@ def check_cephstatus(item, params, section) -> CheckResult:
                              summary='Dashboard: %s' % section['mgrmap']['services']['dashboard'])
 
 def cluster_check_cephstatus(item, params, section) -> CheckResult:
-    results = {}
-    metrics = {}
-    for node_section in section.values():
-        for result in check_cephstatus(item, params, node_section):
-            if isinstance(result, Metric):
-                metrics[result.name] = result
-            elif isinstance(result, Result):
-                cleaned_summary = re.sub(r'\d', '', result.summary)
-                if cleaned_summary not in results or result.state == State.worst(
-                    results[cleaned_summary].state,
-                    result.state,
-                ):
-                    results[cleaned_summary] = result
-
-    yield from results.values()
-    yield from metrics.values()
+    # always take data from first node
+    yield from check_cephstatus(item, params, section[list(section.keys())[0]])
 
 
 register.check_plugin(
