@@ -42,12 +42,12 @@ def _parameter_valuespec_msexch_database_size():
                ('availSpace',
                     Tuple(title=_('Percentage of free Mailbox space'),
                                    elements=[
-                                       Percentage(title=_("Warning at")),
-                                       Percentage(title=_("Critical at")),
+                                       Percentage(title=_("Warning at"), default_value=20.0),
+                                       Percentage(title=_("Critical at"), default_value=40.0),
                                    ],
-                    default_value=(20.0, 40.0),),
+                    ),
                ),
-            ]
+            ],
         ),
         forth=_transform_msexch_database_size,
     )
