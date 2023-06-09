@@ -54,7 +54,7 @@ try:
                          )
                        ),
                     ],
-                    optional_keys = True,
+                    optional_keys = ["queues"],
                 ),
                 FixedValue(None, title = _("Do not deploy the Mailman queues plugin"), totext = _("(disabled)") ),
             ]

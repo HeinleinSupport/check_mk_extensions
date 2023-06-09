@@ -26,12 +26,12 @@ try:
             elements = [
                 Dictionary(
                     title = _("Deploy the OTRS plugin"),
-                    optional_keys = False,
+                    optional_keys = [],
                     elements = [
                         ( "defaults",
                           Dictionary(
                               title = _("DB connection and default types."),
-                              optional_keys = False,
+                              optional_keys = [],
                               elements = [
                                   ( 'dbhost', TextAscii(title = _("Hostname"), default_value='localhost') ),
                                   ( 'dbname', TextAscii(title = _("DB-Name"), default_value='otrs') ),
@@ -43,7 +43,7 @@ try:
                         ( "queues",
                           ListOf(
                               Dictionary(
-                                  optional_keys = False,
+                                  optional_keys = [],
                                   elements = [
                                       ( 'name', TextAscii(title=_("Queue name"), allow_empty=False) ),
                                       ( 'id', Integer(title=_("Queue ID")) ),

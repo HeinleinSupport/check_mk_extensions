@@ -29,7 +29,7 @@ try:
                         ( "username", TextAscii(title = _("Username for OX admin master"), allow_empty = False )),
                         ( "password", Password(title = _("Password for OX admin master"), allow_empty = False )),
                     ],
-                    optional_keys = False,
+                    optional_keys = [],
                 ),
                 FixedValue(None, title = _("Do not deploy the OX filestores plugin"), totext = _("(disabled)") ),
             ]

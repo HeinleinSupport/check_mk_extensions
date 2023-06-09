@@ -29,7 +29,7 @@ try:
                         ( "1",
                           Dictionary(
                             title=_("First group"),
-                            optional_keys = False,
+                            optional_keys = [],
                             elements = [
                               ( 'QUEUES', TextAscii(title = _("Queues"), default_value='active incoming') ),
                               ( 'AGE', Age(title=_("Count emails older than:"), default_value=300 ) ),
@@ -39,7 +39,7 @@ try:
                         ( "2",
                           Dictionary(
                             title=_("Second group"),
-                            optional_keys = False,
+                            optional_keys = [],
                             elements = [
                               ( 'QUEUES', TextAscii(title = _("Queues"), default_value='deferred') ),
                               ( 'AGE', Age(title=_("Count emails younger than:"), default_value=300 ) ),

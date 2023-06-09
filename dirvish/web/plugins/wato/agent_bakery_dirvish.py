@@ -24,7 +24,7 @@ register_rule(group,
                      ),
                    ),
                 ],
-                optional_keys = False,
+                optional_keys = [],
             ),
             FixedValue(None, title = _("Do not deploy the Dirvish plugin"), totext = _("(disabled)") ),
         ]

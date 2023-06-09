@@ -43,7 +43,7 @@ def _parameter_valuespec_otrs():
                 title = 'List of States',
             )),
         ],
-        optional_keys = None,
+        optional_keys = [],
     )
 
 rulespec_registry.register(
