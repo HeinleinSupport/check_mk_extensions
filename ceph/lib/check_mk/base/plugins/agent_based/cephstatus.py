@@ -230,7 +230,7 @@ def check_cephstatus(item, params, section) -> CheckResult:
 
 def cluster_check_cephstatus(item, params, section) -> CheckResult:
     # always take data from first node
-    yield from check_cephstatus(item, params, section[list(section.keys())[0]])
+    yield from check_cephstatus(item, params, section[sorted(list(section.keys()))[0]])
 
 
 register.check_plugin(

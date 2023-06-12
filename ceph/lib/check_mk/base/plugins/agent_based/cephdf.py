@@ -128,7 +128,7 @@ def check_cephdf(item, params, section) -> CheckResult:
 
 def cluster_check_cephdf(item, params, section) -> CheckResult:
     # always take data from first node
-    yield from check_cephdf(item, params, section[list(section.keys())[0]])
+    yield from check_cephdf(item, params, section[sorted(list(section.keys()))[0]])
 
 register.check_plugin(
     name="cephdf",
@@ -166,7 +166,7 @@ def check_cephdfclass(item, params, section) -> CheckResult:
 
 def cluster_check_cephdfclass(item, params, section) -> CheckResult:
     # always take data from first node
-    yield from check_cephdfclass(item, params, section[list(section.keys())[0]])
+    yield from check_cephdfclass(item, params, section[sorted(list(section.keys()))[0]])
 
 
 register.check_plugin(
