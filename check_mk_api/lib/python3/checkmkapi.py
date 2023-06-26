@@ -119,7 +119,7 @@ class CMKRESTAPI():
             )
         )
     
-    def _delete_url(self, uri, etag):
+    def _delete_url(self, uri):
         return self._check_response(
             self._session.delete(
                 f"{self._api_url}/{uri}",
