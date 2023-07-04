@@ -94,14 +94,17 @@ class CMKRESTAPI():
             )
         )
 
-    def _post_url(self, uri, data={}):
+    def _post_url(self, uri, etag=None, data={}):
+        headers={
+            "Content-Type": 'application/json',
+        }
+        if etag:
+            headers['If-Match'] = etag
         return self._check_response(
             self._session.post(
                 f"{self._api_url}/{uri}",
                 json=data,
-                headers={
-                    "Content-Type": 'application/json',
-                },
+                headers=headers,
                 allow_redirects=False,
             )
         )
@@ -293,6 +296,7 @@ class CMKRESTAPI():
         postdata = { 'redirect': False, 'sites': sites, 'force_foreign_changes': False }
         data, etag, resp = self._post_url(
             "domain-types/activation_run/actions/activate-changes/invoke",
+            etag='*',
             data=postdata,
         )
         if resp.status_code == 422:
