@@ -21,6 +21,7 @@ from cmk.gui.i18n import _
 from cmk.gui.valuespec import (
     CascadingDropdown,
     Dictionary,
+    Float,
     Integer,
     ListOf,
     ListOfStrings,
