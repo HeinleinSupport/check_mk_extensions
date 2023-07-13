@@ -86,5 +86,5 @@ register.check_plugin(
     discovery_function=discover_virtuozzo_vstorage,
     check_function=check_virtuozzo_vstorage,
     check_ruleset_name='filesystem',
-    check_default_parameters=df.FILESYSTEM_DEFAULT_LEVELS,
+    check_default_parameters=df.FILESYSTEM_DEFAULT_PARAMS,
 )
