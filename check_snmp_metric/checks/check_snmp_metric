@@ -57,9 +57,6 @@ def check_snmp_metric_arguments(params):
         credentials = snmp_config.credentials
         args += _creds_to_args(credentials)
 
-    if "port" in params:
-        args += " -P %d" % params["port"]
-        
     if "timeout" in params:
         args += ' -t %d' % params["timeout"]
 
@@ -87,6 +84,9 @@ def check_snmp_metric_arguments(params):
         args += " %s" % quote_shell_string(params['hostname'])
     else:
         args += " $HOSTADDRESS$"
+
+    if "port" in params:
+        args += ":%d" % params["port"]
 
     args += " %s" % quote_shell_string(params['oid'])
         
