@@ -18,12 +18,22 @@
 from pathlib import Path
 from typing import Any, Dict
 
-from .bakery_api.v1 import FileGenerator, OS, Plugin, register
+from .bakery_api.v1 import FileGenerator, OS, Plugin, PluginConfig, register
 
 def get_ceph_files(conf: Dict[str, Any]) -> FileGenerator:
     yield Plugin(base_os=OS.LINUX,
                  source=Path("ceph.py"),
-                 interval=58)
+                 interval=conf['interval'])
+    config_lines = []
+    if 'config' in conf:
+        config_lines.append('CONFIG=%s' % conf['config'])
+    if 'client' in conf:
+        config_lines.append('CLIENT=%s' % conf['client'])
+    if config_lines:
+        yield PluginConfig(base_os=OS.LINUX,
+                           lines=config_lines,
+                           target=Path("ceph.cfg"),
+                           include_header=True)
 
 register.bakery_plugin(
     name="ceph",

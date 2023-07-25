@@ -34,7 +34,21 @@ class RadosCMD(rados.Rados):
     def command_pg(self, pgid, cmd):
         return self.pg_command(pgid, json.dumps({'prefix': cmd, 'format': 'json'}), b'', timeout=5)
 
-cluster = RadosCMD(conffile='/etc/ceph/ceph.conf')
+ceph_config='/etc/ceph/ceph.conf'
+ceph_client='client.admin'
+try:
+    with open(os.path.join(os.environ['MK_CONFDIR'], 'ceph.cfg'), 'r') as config:
+        for line in config.readlines():
+            if '=' in line:
+                key, value = line.strip().split('=')
+                if key == 'CONFIG':
+                    ceph_config = value
+                if key == 'CLIENT':
+                    ceph_client = value
+except FileNotFoundError:
+    pass
+
+cluster = RadosCMD(conffile=ceph_config, name=ceph_client)
 cluster.connect()
 
 hostname = socket.gethostname().split('.', 1)[0]

@@ -23,17 +23,53 @@ try:
     )
     from cmk.gui.cee.plugins.wato.agent_bakery.rulespecs.utils import RulespecGroupMonitoringAgentsAgentPlugins
     from cmk.gui.valuespec import (
-        DropdownChoice,
+        Alternative,
+        Dictionary,
+        Filename,
+        TextInput,
+        Transform,
     )
 
+    def _transform_agent_config_ceph(p):
+        if isinstance(p, bool):
+            if p:
+                return {'interval': 58}
+            return None
+        return p
+
     def _valuespec_agent_config_ceph():
-        return DropdownChoice(
-            title = _("Ceph Status (Linux)"),
-            help = _("This will deploy the agent plugin <tt>ceph</tt> for monitoring the status of Ceph. This plugin will be run asynchronously in the background."),
-            choices = [
-                ( True, _("Deploy plugin for Ceph") ),
-                ( None, _("Do not deploy plugin for Ceph") ),
-            ]
+        return Transform(
+            Alternative(
+                title = _("Ceph Status (Linux)"),
+                help = _("This will deploy the agent plugin <tt>ceph</tt> for monitoring the status of Ceph. This plugin will be run asynchronously in the background."),
+                style = "dropdown",
+                elements = [
+                    Dictionary(
+                        title = _("Deploy plugin for Ceph"),
+                        elements = [
+                            ( "interval",
+                              Age(
+                                  title = _("Run asynchronously"),
+                                  label = _("Interval for collecting data from Ceph"),
+                                  default_value = 58,
+                                  )),
+                            ( "config",
+                              Filename(
+                                  title = _("Path to ceph.conf"),
+                                  default_value = "/etc/ceph/ceph.conf",
+                                  )),
+                            ( "client",
+                              TextInput(
+                                  title = _("Client name"),
+                                  default_value = "client.admin",
+                                  )),
+                        ],
+                        optional_keys = ['config', 'client'],
+                    ),
+                    FixedValue( None, title = _("Do not deploy plugin for Ceph"), totext = _('(disabled)') ),
+                ],
+            ),
+            forth=_transform_agent_config_ceph,
         )
 
     rulespec_registry.register(
