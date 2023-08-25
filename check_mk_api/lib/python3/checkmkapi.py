@@ -607,6 +607,42 @@ class CMKRESTAPI():
             resp.raise_for_status()
         return None, None
 
+    def get_rulesets(self):
+        """Show all rulesets
+
+        Args:
+            None
+
+        Returns:
+            list of rulesets
+            etag
+        """
+        data, etag, resp = self._get_url(
+            "domain-types/ruleset/collections/all",
+        )
+        if resp.status_code == 200:
+            return data, etag
+        resp.raise_for_status()
+
+    def get_rules(self, ruleset_name):
+        """Gets rules from ruleset by name
+
+        Args:
+            ruleset_name
+
+        Returns:
+            rules
+            etag
+        """
+        data, etag, resp = self._get_url(
+            "domain-types/rule/collections/all",
+            data={'ruleset_name': ruleset_name},
+        )
+        if resp.status_code == 200:
+            return data, etag
+        resp.raise_for_status()
+        
+    
 class MultisiteAPI():
     def __init__(self, site_url=None, api_user=None, api_secret=None):
         if not site_url:
