@@ -121,11 +121,17 @@ class CMKRESTAPI():
                 allow_redirects=False,
             )
         )
-    
-    def _delete_url(self, uri):
+
+    def _delete_url(self, uri, etag=None):
+        headers={
+            "Content-Type": 'application/json',
+        }
+        if etag:
+            headers['If-Match'] = etag
         return self._check_response(
             self._session.delete(
                 f"{self._api_url}/{uri}",
+                headers=headers,
                 allow_redirects=False,
             )
         )
@@ -485,6 +491,121 @@ class CMKRESTAPI():
         if resp.status_code == 204:
             return
         resp.raise_for_status()
+
+    def create_timeperiod(self, name, alias, active_time_ranges, exceptions = [], exclude = []):
+        """Create a time period
+
+        Args:
+            name: A unique name for the time period.
+            alias: An alias for the time period.
+            active_time_ranges: The list of active time ranges.
+            exceptions: A list of additional time ranges to be added.
+            exclude: A list of time period aliases whose periods are excluded.
+
+        Returns:
+            Nothing
+        """
+        params={
+            'name': name,
+            'alias': alias,
+            'active_time_ranges': active_time_ranges,
+        }
+        if exceptions:
+            params['exceptions'] = exceptions
+        if exclude:
+            params['exclude'] = exclude
+        data, etag, resp = self._post_url(
+            "domain-types/time_period/collections/all",
+            data=params,
+        )
+        if resp.status_code == 200:
+            return data, etag
+        resp.raise_for_status()
+
+    def get_timeperiods(self):
+        """Show all time periods
+
+        Args:
+            None
+
+        Returns:
+            list of timeperiods
+            etag
+        """
+        data, etag, resp = self._get_url(
+            "domain-types/time_period/collections/all",
+        )
+        if resp.status_code == 200:
+            return data, etag
+        resp.raise_for_status()
+
+    def delete_timeperiod(self, name, etag):
+        """Delete a time period
+
+        Args:
+            name: name of the time period
+            etag: The value of the, to be modified, object's ETag header.
+
+        Returns:
+            Nothing
+        """
+        data, etag, resp = self._delete_url(
+            f"objects/time_period/{name}",
+            etag
+        )
+        if resp.status_code == 204:
+            return
+        resp.raise_for_status()
+
+    def get_timeperiod(self, name):
+        """Show a time period
+
+        Args:
+            name: name of the time period
+
+        Returns:
+            timeperiod
+            etag
+        """
+        data, etag, resp = self._get_url(
+            f"objects/time_period/{name}",
+        )
+        if resp.status_code == 200:
+            return data, etag
+        resp.raise_for_status()
+
+    def edit_timeperiod(self, name, etag, alias=None, active_time_ranges=[], exceptions=[], exclude=[]):
+        """Update a time period
+
+        Args:
+            name: name of the time period
+            etag: The value of the, to be modified, object's ETag header.
+            active_time_ranges: The list of active time ranges.
+            exceptions: A list of additional time ranges to be added.
+            exclude: A list of time period aliases whose periods are excluded.
+
+        Returns:
+            edited timeperiod
+        """
+        params={}
+        if alias:
+            params['alias'] = alias
+        if active_time_ranges:
+            params['active_time_ranges'] = active_time_ranges
+        if exceptions:
+            params['exceptions'] = exceptions
+        if exclude:
+            params['exclude'] = exclude
+        if params:
+            data, etag, resp = self._put_url(
+                f"objects/time_period/{name}",
+                etag,
+                data=params
+            )
+            if resp.status_code == 200:
+                return data, etag
+            resp.raise_for_status()
+        return None, None
 
 class MultisiteAPI():
     def __init__(self, site_url=None, api_user=None, api_secret=None):
