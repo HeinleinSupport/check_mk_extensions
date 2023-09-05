@@ -34,3 +34,4 @@ foreach ($_ in Get-ChildItem -Recurse Cert:\CurrentUser\My) {
 
   $data | ConvertTo-Json -Compress
 }
+Write-Host '<<<>>>'
