@@ -1,5 +1,10 @@
 #!/usr/bin/env python3
 
+#
+# (C) 2023 Heinlein Support GmbH - License: GNU General Public License v2
+# Robert Sander <r.sander@heinlein-support.de>
+#
+
 import sys
 import argparse
 import checkmkapi
