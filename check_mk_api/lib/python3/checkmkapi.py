@@ -242,6 +242,8 @@ class CMKRESTAPI():
             update_attr: Just update the hosts attributes with these attributes. The previously set attributes will not be touched.
             unset_attr: A list of attributes which should be removed.
 
+            Only pass one of set_attr, update_attr or unset_attr.
+
         Returns:
             (data, etag)
             data: host's data
@@ -249,18 +251,23 @@ class CMKRESTAPI():
         """
         if not etag:
             hostdata, etag = self.get_host(hostname)
-        data, etag, resp = self._put_url(
-            f"objects/host_config/{hostname}",
-            etag,
-            data={
-                'attributes': set_attr,
-                'update_attributes': update_attr,
-                'remove_attributes': unset_attr,
-            },
-        )
-        if resp.status_code == 200:
-            return data, etag
-        resp.raise_for_status()
+        changes = {}
+        if set_attr:
+            changes['attributes'] = set_attr
+        elif update_attr:
+            changes['update_attributes'] = update_attr
+        elif unset_attr:
+            changes['remove_attributes'] = unset_attr
+        if changes:
+            data, etag, resp = self._put_url(
+                f"objects/host_config/{hostname}",
+                etag,
+                data=changes,
+            )
+            if resp.status_code == 200:
+                return data, etag
+            resp.raise_for_status()
+        return None, None
 
     def disc_host(self, hostname):
         """Discovers services on a host.
