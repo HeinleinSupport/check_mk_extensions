@@ -1,0 +1,22 @@
+#!/bin/bash
+
+function count_neigh() {
+  WARN=$( cat /proc/sys/net/ipv${family}/neigh/default/gc_thresh2 )
+  CRIT=$( cat /proc/sys/net/ipv${family}/neigh/default/gc_thresh3 )
+
+  echo -n "ipneigh_total=${COUNT};${WARN};${CRIT}"
+
+  awk '{print $(NF);}' <<<${IPNEIGH} | sort | uniq -c | tr '[:upper:]' '[:lower:]' | while read count nud; do
+    echo -n "|ipneigh_${nud}=${count}"
+  done
+}
+
+for family in 4 6; do
+
+  IPNEIGH=$( ip -${family} neigh sh )
+
+  COUNT=$( wc -l <<<${IPNEIGH} )
+  
+  echo "P \"Neighbors IPv${family}\" $(count_neigh) ${COUNT} Entries in ARP cache"
+
+done
