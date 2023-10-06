@@ -2,7 +2,6 @@ title: Check_MK Updater Hostname
 agents: linux
 catalog: os
 license: GPL
-distribution: heinlein
 description:
  Monitor the configured hostname of the agent updater plugin
 
