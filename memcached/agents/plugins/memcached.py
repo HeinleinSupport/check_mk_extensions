@@ -53,24 +53,48 @@ instances = None
 if os.path.exists(config_file):
     execfile(config_file)
 
+def parse_address_and_port(address_and_port):
+    """
+    parse address:port section from netstat or ss
+    return address, port
+    """
+    server_address, _server_port = address_and_port.rsplit(":", 1)
+    server_port = int(_server_port)
+
+    # Use localhost when listening globally
+    if server_address == "0.0.0.0":  # nosec - B104
+        server_address = "127.0.0.1"
+    elif server_address in ("::", "*", "[::]"):
+        server_address = "[::1]"
+    elif ":" in server_address and server_address[0] != "[":
+        server_address = "[%s]" % server_address
+
+    return server_address, server_port
+
 def try_detect_servers():
+    procs = [ 'memcached' ]
     pids    = []
     results = []
-    for line in os.popen('netstat -tlnp 2>/dev/null').readlines():
-        parts = line.split()
+
+    #  ss lists parent and first level child processes
+    #  last process in line is the parent:
+    #    users:(("apache2",pid=123456,fd=3),...,("apache2",pid=123,fd=3))
+    #  capture content of last brackets (...))
+    pattern = re.compile(r"users:.*\(([^\(\)]*?)\)\)$")
+
+    for ss_line in os.popen("ss -tlnp 2>/dev/null | sort -k 4").readlines():
+        parts = ss_line.split()
         # Skip lines with wrong format
-        if len(parts) < 7 or '/' not in parts[6]:
+        if len(parts) < 6 or "users:" not in parts[5]:
             continue
 
-        pid, proc = parts[6].split('/', 1)
-        to_replace = re.compile('^.*/')
-        proc = to_replace.sub('', proc)
-
-        procs = [ 'memcached' ]
-        # the pid/proc field length is limited to 19 chars. Thus in case of
-        # long PIDs, the process names are stripped of by that length.
-        # Workaround this problem here
-        procs = [ p[:19 - len(pid) - 1] for p in procs ]
+        match = re.match(pattern, parts[5])
+        if match is None:
+            continue
+        proc_info = match.group(1)
+        proc, pid, _fd = proc_info.split(",")
+        proc = proc.replace('"', "")
+        pid = pid.replace("pid=", "")
 
         # Skip unwanted processes
         if proc not in procs:
@@ -81,21 +105,51 @@ def try_detect_servers():
             continue
         pids.append(pid)
 
-        address, port = parts[3].rsplit(':', 1)
-        port = int(port)
+        server_address, server_port = parse_address_and_port(parts[3])
 
-        # Use localhost when listening globally
-        if address == '0.0.0.0':
-            address = '127.0.0.1'
-        elif address == '::':
-            address = '::1'
+        results.append((server_address, server_port))
 
-        results.append((address, port))
+    if not results:
+        # if ss output was empty (maybe not installed), try netstat instead
+        # (plugin silently fails without any section output,
+        #  if neither netstat nor ss are installed.)
 
+        for netstat_line in os.popen("netstat -tlnp 2>/dev/null | sort -k 4").readlines():
+            parts = netstat_line.split()
+            # Skip lines with wrong format
+            if len(parts) < 7 or "/" not in parts[6]:
+                continue
+
+            pid, proc = parts[6].split("/", 1)
+            to_replace = re.compile("^.*/")
+            proc = to_replace.sub("", proc)
+
+            # the pid/proc field length is limited to 19 chars. Thus in case of
+            # long PIDs, the process names are stripped of by that length.
+            # Workaround this problem here
+            stripped_procs = [p[: 19 - len(pid) - 1] for p in procs]
+
+            # Skip unwanted processes
+            if proc not in stripped_procs:
+                continue
+            # Add only the first found port of a single server process
+            if pid in pids:
+                continue
+            pids.append(pid)
+
+            server_address, server_port = parse_address_and_port(parts[3])
+
+            results.append((server_address, server_port))
+    
     return results
 
 def netcat(address, port, command):
-    s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+    if ':' in address:
+        if address.startswith('[') and address.endswith(']'):
+            address = address[1:-1]
+        s = socket.socket(socket.AF_INET6, socket.SOCK_STREAM)
+    else:
+        s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
     s.connect((address, port))
     s.sendall(b'%b\r\n' % bytes(command, 'ascii'))
     s.shutdown(socket.SHUT_WR)
