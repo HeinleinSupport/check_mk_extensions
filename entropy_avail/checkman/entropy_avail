@@ -1,5 +1,5 @@
 title: Entropy Available
-agents: linux, aix, freebsd, macosx, netbsd, openbsd, solaris
+agents: linux
 catalog: os/kernel
 license: GPL
 description:
