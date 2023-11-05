@@ -421,6 +421,62 @@ class CMKRESTAPI():
             return data, etag
         resp.raise_for_status()
 
+    def acknowledge_host_problem(self, hostname, comment, sticky=True, persistent=False, notify=False):
+        """Acknowledges host problem
+
+        Args:
+            hostname: name of host
+            comment: ack comment
+            sticky, persistent, notify: options for ack
+
+        Returns:
+            (data, etag): usually empty
+        """
+        params={
+            'acknowledge_type': 'host',
+            'host_name': hostname,
+            'comment': comment,
+            'sticky': sticky,
+            'persistent': persistent,
+            'notify': notify,
+        }
+        data, etag, resp = self._post_url(
+            "/domain-types/acknowledge/collections/host",
+            data=params,
+        )
+        if resp.status_code == 204:
+            return data, etag
+        resp.raise_for_status()       
+
+    def acknowledge_service_problem(self, hostname, service, comment, sticky=True, persistent=False, notify=False):
+        """Acknowledges service problem
+
+        Args:
+            hostname: name of host
+            service: service description
+            comment: ack comment
+            sticky, persistent, notify: options for ack
+
+        Returns:
+            (data, etag): usually empty
+        """
+        params={
+            'acknowledge_type': 'service',
+            'host_name': hostname,
+            'service_description': service,
+            'comment': comment,
+            'sticky': sticky,
+            'persistent': persistent,
+            'notify': notify,
+        }
+        data, etag, resp = self._post_url(
+            "/domain-types/acknowledge/collections/service",
+            data=params,
+        )
+        if resp.status_code == 204:
+            return data, etag
+        resp.raise_for_status()       
+    
     def create_user(self, username, fullname, args):
         """Creates a new user
 

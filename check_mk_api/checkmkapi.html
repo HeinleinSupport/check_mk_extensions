@@ -8,7 +8,7 @@
 <table class="heading">
 <tr class="heading-text decor">
 <td class="title">&nbsp;<br><strong class="title">checkmkapi</strong></td>
-<td class="extra"><a href=".">index</a><br><a href="file:/home/dev22/check_mk_heinlein/check_mk_api/checkmkapi.py">/home/dev22/check_mk_heinlein/check_mk_api/checkmkapi.py</a></td></tr></table>
+<td class="extra"><a href=".">index</a><br><a href="checkmkapi.py">checkmkapi.py</a></td></tr></table>
     <p><span class="code">API-Wrapper&nbsp;for&nbsp;the&nbsp;CheckMK&nbsp;2.0&nbsp;REST&nbsp;API&nbsp;and&nbsp;the&nbsp;Multisite&nbsp;API&nbsp;(Views)</span></p>
 <p>
 <table class="section">
@@ -58,6 +58,27 @@ Args:<br>
 &nbsp;<br>
 Returns:<br>
 &nbsp;&nbsp;&nbsp;&nbsp;instance&nbsp;of&nbsp;<a href="#CMKRESTAPI">CMKRESTAPI</a></span></dd></dl>
+
+<dl><dt><a name="CMKRESTAPI-acknowledge_host_problem"><strong>acknowledge_host_problem</strong></a>(self, hostname, comment, sticky=True, persistent=False, notify=False)</dt><dd><span class="code">Acknowledges&nbsp;host&nbsp;problem<br>
+&nbsp;<br>
+Args:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;hostname:&nbsp;name&nbsp;of&nbsp;host<br>
+&nbsp;&nbsp;&nbsp;&nbsp;comment:&nbsp;ack&nbsp;comment<br>
+&nbsp;&nbsp;&nbsp;&nbsp;sticky,&nbsp;persistent,&nbsp;notify:&nbsp;options&nbsp;for&nbsp;ack<br>
+&nbsp;<br>
+Returns:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;(data,&nbsp;etag):&nbsp;usually&nbsp;empty</span></dd></dl>
+
+<dl><dt><a name="CMKRESTAPI-acknowledge_service_problem"><strong>acknowledge_service_problem</strong></a>(self, hostname, service, comment, sticky=True, persistent=False, notify=False)</dt><dd><span class="code">Acknowledges&nbsp;service&nbsp;problem<br>
+&nbsp;<br>
+Args:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;hostname:&nbsp;name&nbsp;of&nbsp;host<br>
+&nbsp;&nbsp;&nbsp;&nbsp;service:&nbsp;service&nbsp;description<br>
+&nbsp;&nbsp;&nbsp;&nbsp;comment:&nbsp;ack&nbsp;comment<br>
+&nbsp;&nbsp;&nbsp;&nbsp;sticky,&nbsp;persistent,&nbsp;notify:&nbsp;options&nbsp;for&nbsp;ack<br>
+&nbsp;<br>
+Returns:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;(data,&nbsp;etag):&nbsp;usually&nbsp;empty</span></dd></dl>
 
 <dl><dt><a name="CMKRESTAPI-activate"><strong>activate</strong></a>(self, sites=[])</dt><dd><span class="code">Activates&nbsp;pending&nbsp;changes<br>
 &nbsp;<br>
