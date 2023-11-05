@@ -67,7 +67,7 @@ class CMKRESTAPI():
             site_url = _site_url()
         if not api_secret:
             api_user, api_secret = _site_creds(api_user)
-        self._api_url = '%sapi/v0' % _check_mk_url(site_url)
+        self._api_url = '%sapi/1.0' % _check_mk_url(site_url)
         self._session = requests.session()
         self._session.headers['Authorization'] = f"Bearer {api_user} {api_secret}"
         self._session.headers['Accept'] = 'application/json'
