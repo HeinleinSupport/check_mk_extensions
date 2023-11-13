@@ -25,10 +25,10 @@ if ls /var/run/openvpn_*.pid 1> /dev/null 2>&1; then
     conffile="`echo $f | sed -n -e 's/sock/config.ovpn/p'`"
     insta="`cat $conffile | grep \"dev \" | sed -n -e \"s/dev //p\"`"
 
-    status="`( echo \"status\" ; sleep 1 ; echo \"quit\" ) | nc -U $f 2>/dev/null`"
+    status="`( echo \"status\" ; sleep 1 ; echo \"quit\" ) | nc -U $f`"
 
     echo '<<<openvpn_clients:sep(44)>>>'
     echo "[[$insta]]"
-    echo $status | sed -n -e '/CLIENT LIST/,/ROUTING TABLE/p' | sed -e 1,3d -e '$d'
+    echo "$status" | sed -n -e '/CLIENT LIST/,/ROUTING TABLE/p' | sed -e 1,3d -e '$d'
   done
 fi
