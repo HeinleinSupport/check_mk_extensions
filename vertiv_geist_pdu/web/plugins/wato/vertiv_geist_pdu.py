@@ -6,6 +6,7 @@ from cmk.gui.valuespec import (
     Dictionary,
     DropdownChoice,
     Integer,
+    TextInput,
     Tuple,
 )
 
