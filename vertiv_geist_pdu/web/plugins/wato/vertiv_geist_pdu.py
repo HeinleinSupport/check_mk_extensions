@@ -4,6 +4,7 @@
 from cmk.gui.i18n import _
 from cmk.gui.valuespec import (
     Dictionary,
+    DropdownChoice,
     Integer,
     Tuple,
 )
