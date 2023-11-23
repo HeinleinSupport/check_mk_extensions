@@ -104,6 +104,15 @@ Returns:<br>
 Returns:<br>
 &nbsp;&nbsp;&nbsp;&nbsp;(data,&nbsp;etag):&nbsp;usually&nbsp;both&nbsp;empty</span></dd></dl>
 
+<dl><dt><a name="CMKRESTAPI-create_contactgroup"><strong>create_contactgroup</strong></a>(self, name, alias)</dt><dd><span class="code">Create&nbsp;a&nbsp;contact&nbsp;group<br>
+&nbsp;<br>
+Args:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;name:&nbsp;A&nbsp;unique&nbsp;name&nbsp;for&nbsp;the&nbsp;contact&nbsp;group.<br>
+&nbsp;&nbsp;&nbsp;&nbsp;alias:&nbsp;An&nbsp;alias&nbsp;for&nbsp;the&nbsp;contact&nbsp;group.<br>
+&nbsp;<br>
+Returns:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;(data,&nbsp;etag):&nbsp;contact&nbsp;group&nbsp;<a href="builtins.html#object">object</a>&nbsp;and&nbsp;eTag</span></dd></dl>
+
 <dl><dt><a name="CMKRESTAPI-create_folder"><strong>create_folder</strong></a>(self, title, parent, name=None, attributes={})</dt><dd><span class="code">Adds&nbsp;a&nbsp;folder&nbsp;to&nbsp;a&nbsp;parent&nbsp;folder.<br>
 &nbsp;<br>
 Args:<br>
@@ -137,6 +146,11 @@ Args:<br>
 &nbsp;<br>
 Returns:<br>
 &nbsp;&nbsp;&nbsp;&nbsp;(data,&nbsp;etag):&nbsp;new&nbsp;user&nbsp;<a href="builtins.html#object">object</a>&nbsp;and&nbsp;eTag</span></dd></dl>
+
+<dl><dt><a name="CMKRESTAPI-delete_contactgroup"><strong>delete_contactgroup</strong></a>(self, name)</dt><dd><span class="code">Delete&nbsp;the&nbsp;contact&nbsp;group<br>
+&nbsp;<br>
+Args:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;name:&nbsp;The&nbsp;name&nbsp;of&nbsp;the&nbsp;contact&nbsp;group.</span></dd></dl>
 
 <dl><dt><a name="CMKRESTAPI-delete_folder"><strong>delete_folder</strong></a>(self, folder)</dt></dl>
 
@@ -176,6 +190,16 @@ Returns:<br>
 &nbsp;&nbsp;&nbsp;&nbsp;(data,&nbsp;etag)<br>
 &nbsp;&nbsp;&nbsp;&nbsp;data:&nbsp;discovery&nbsp;data<br>
 &nbsp;&nbsp;&nbsp;&nbsp;etag:&nbsp;current&nbsp;etag&nbsp;value</span></dd></dl>
+
+<dl><dt><a name="CMKRESTAPI-edit_contactgroup"><strong>edit_contactgroup</strong></a>(self, name, alias, etag=None)</dt><dd><span class="code">Change&nbsp;the&nbsp;contact&nbsp;group's&nbsp;alias<br>
+&nbsp;<br>
+Args:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;name:&nbsp;The&nbsp;name&nbsp;of&nbsp;the&nbsp;contact&nbsp;group.<br>
+&nbsp;&nbsp;&nbsp;&nbsp;alias:&nbsp;The&nbsp;new&nbsp;alias.<br>
+&nbsp;&nbsp;&nbsp;&nbsp;etag:&nbsp;The&nbsp;value&nbsp;of&nbsp;the,&nbsp;to&nbsp;be&nbsp;modified,&nbsp;<a href="builtins.html#object">object</a>'s&nbsp;ETag&nbsp;header.<br>
+&nbsp;<br>
+Returns:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;(data,&nbsp;etag):&nbsp;contact&nbsp;group&nbsp;<a href="builtins.html#object">object</a>&nbsp;and&nbsp;eTag</span></dd></dl>
 
 <dl><dt><a name="CMKRESTAPI-edit_folder"><strong>edit_folder</strong></a>(self, folder, etag=None, title=None, attributes={}, update_attr={}, remove_attr=[])</dt><dd><span class="code">Edit&nbsp;a&nbsp;folder<br>
 &nbsp;<br>
@@ -232,6 +256,11 @@ Args:<br>
 Returns:<br>
 &nbsp;&nbsp;&nbsp;&nbsp;(data,&nbsp;etag):&nbsp;the&nbsp;user&nbsp;<a href="builtins.html#object">object</a>&nbsp;and&nbsp;eTag</span></dd></dl>
 
+<dl><dt><a name="CMKRESTAPI-get_all_contactgroups"><strong>get_all_contactgroups</strong></a>(self)</dt><dd><span class="code">Get&nbsp;all&nbsp;contact&nbsp;groups<br>
+&nbsp;<br>
+Returns:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;(data,&nbsp;etag):&nbsp;contact&nbsp;group&nbsp;objects&nbsp;and&nbsp;eTag</span></dd></dl>
+
 <dl><dt><a name="CMKRESTAPI-get_all_folders"><strong>get_all_folders</strong></a>(self, parent='/', recursive=False, show_hosts=False)</dt><dd><span class="code">Gets&nbsp;a&nbsp;folder&nbsp;subtree<br>
 &nbsp;<br>
 Args:<br>
@@ -252,6 +281,14 @@ Args:<br>
 &nbsp;<br>
 Returns:<br>
 &nbsp;&nbsp;&nbsp;&nbsp;hosts:&nbsp;Dictionary&nbsp;of&nbsp;host&nbsp;data&nbsp;or&nbsp;dict&nbsp;of&nbsp;hostname&nbsp;-&gt;&nbsp;URL&nbsp;depending&nbsp;on&nbsp;aatributes&nbsp;parameter</span></dd></dl>
+
+<dl><dt><a name="CMKRESTAPI-get_contactgroup"><strong>get_contactgroup</strong></a>(self, name)</dt><dd><span class="code">Get&nbsp;a&nbsp;contact&nbsp;group<br>
+&nbsp;<br>
+Args:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;name:&nbsp;The&nbsp;name&nbsp;of&nbsp;the&nbsp;contact&nbsp;group.<br>
+&nbsp;<br>
+Returns:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;(data,&nbsp;etag):&nbsp;contact&nbsp;group&nbsp;<a href="builtins.html#object">object</a>&nbsp;and&nbsp;eTag</span></dd></dl>
 
 <dl><dt><a name="CMKRESTAPI-get_folder"><strong>get_folder</strong></a>(self, folder, show_hosts=False)</dt><dd><span class="code">Gets&nbsp;a&nbsp;single&nbsp;folder<br>
 &nbsp;<br>

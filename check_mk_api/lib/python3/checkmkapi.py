@@ -800,6 +800,105 @@ class CMKRESTAPI():
             return
         resp.raise_for_status()
 
+#   .--Contact Group-------------------------------------------------------.
+#   |   ____            _             _      ____                          |
+#   |  / ___|___  _ __ | |_ __ _  ___| |_   / ___|_ __ ___  _   _ _ __     |
+#   | | |   / _ \| '_ \| __/ _` |/ __| __| | |  _| '__/ _ \| | | | '_ \    |
+#   | | |__| (_) | | | | || (_| | (__| |_  | |_| | | | (_) | |_| | |_) |   |
+#   |  \____\___/|_| |_|\__\__,_|\___|\__|  \____|_|  \___/ \__,_| .__/    |
+#   |                                                            |_|       |
+#   +----------------------------------------------------------------------+
+#   |                                                                      |
+#   '----------------------------------------------------------------------'
+#.
+
+    def create_contactgroup(self, name, alias):
+        """Create a contact group
+
+        Args:
+            name: A unique name for the contact group.
+            alias: An alias for the contact group.
+
+        Returns:
+            (data, etag): contact group object and eTag    
+        """
+        data, etag, resp = self._post_url(
+            "domain-types/contact_group_config/collections/all",
+            data={
+                "name": name,
+                "alias": alias,
+            },
+        )
+        if resp.status_code == 200:
+            return data, etag
+        resp.raise_for_status()
+
+    def get_contactgroup(self, name):
+        """Get a contact group
+
+        Args:
+            name: The name of the contact group.
+
+        Returns:
+            (data, etag): contact group object and eTag    
+        """
+        data, etag, resp = self._get_url(
+            f"objects/contact_group_config/{name}"
+        )
+        if resp.status_code == 200:
+            return data, etag
+        resp.raise_for_status()
+
+    def get_all_contactgroups(self):
+        """Get all contact groups
+
+        Returns:
+            (data, etag): contact group objects and eTag    
+        """
+        data, etag, resp = self._get_url(
+            f"domain-types/contact_group_config/collections/all"
+        )
+        if resp.status_code == 200:
+            return data, etag
+        resp.raise_for_status()
+
+    def edit_contactgroup(self, name, alias, etag=None):
+        """Change the contact group's alias
+
+        Args:
+            name: The name of the contact group.
+            alias: The new alias.
+            etag: The value of the, to be modified, object's ETag header.
+
+        Returns:
+            (data, etag): contact group object and eTag    
+        """
+        if not etag:
+            data, etag = self.get_contactgroup(name)
+        data, etag, resp = self._put_url(
+            f"objects/contact_group_config/{name}",
+            etag,
+            data={
+                "alias": alias,
+            }
+        )
+        if resp.status_code == 200:
+            return data, etag
+        resp.raise_for_status()
+
+    def delete_contactgroup(self, name):
+        """Delete the contact group
+
+        Args:
+            name: The name of the contact group.
+        """
+        data, etag, resp = self._delete_url(
+            f"objects/contact_group_config/{name}"
+        )
+        if resp.status_code == 204:
+            return
+        resp.raise_for_status()
+
 #   .--Timeperiod----------------------------------------------------------.
 #   |        _____ _                                _           _          |
 #   |       |_   _(_)_ __ ___   ___ _ __   ___ _ __(_) ___   __| |         |
