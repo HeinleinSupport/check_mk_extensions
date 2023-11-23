@@ -104,6 +104,18 @@ Returns:<br>
 Returns:<br>
 &nbsp;&nbsp;&nbsp;&nbsp;(data,&nbsp;etag):&nbsp;usually&nbsp;both&nbsp;empty</span></dd></dl>
 
+<dl><dt><a name="CMKRESTAPI-create_folder"><strong>create_folder</strong></a>(self, title, parent, name=None, attributes={})</dt><dd><span class="code">Adds&nbsp;a&nbsp;folder&nbsp;to&nbsp;a&nbsp;parent&nbsp;folder.<br>
+&nbsp;<br>
+Args:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;title:&nbsp;The&nbsp;folder&nbsp;title&nbsp;as&nbsp;displayed&nbsp;in&nbsp;the&nbsp;user&nbsp;interface.<br>
+&nbsp;&nbsp;&nbsp;&nbsp;parent:&nbsp;The&nbsp;folder&nbsp;in&nbsp;which&nbsp;the&nbsp;new&nbsp;folder&nbsp;shall&nbsp;be&nbsp;placed&nbsp;in.&nbsp;The&nbsp;root-folder&nbsp;is&nbsp;specified&nbsp;by&nbsp;'/'.<br>
+&nbsp;&nbsp;&nbsp;&nbsp;name:&nbsp;The&nbsp;filesystem&nbsp;directory&nbsp;name&nbsp;(not&nbsp;path!)&nbsp;of&nbsp;the&nbsp;folder.&nbsp;No&nbsp;slashes&nbsp;are&nbsp;allowed.&nbsp;Will&nbsp;be&nbsp;deduced&nbsp;from&nbsp;the&nbsp;title&nbsp;if&nbsp;not&nbsp;specified.<br>
+&nbsp;<br>
+Returns:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;(data,&nbsp;etag)<br>
+&nbsp;&nbsp;&nbsp;&nbsp;data:&nbsp;folder's&nbsp;data<br>
+&nbsp;&nbsp;&nbsp;&nbsp;etag:&nbsp;current&nbsp;etag&nbsp;value</span></dd></dl>
+
 <dl><dt><a name="CMKRESTAPI-create_timeperiod"><strong>create_timeperiod</strong></a>(self, name, alias, active_time_ranges, exceptions=[], exclude=[])</dt><dd><span class="code">Create&nbsp;a&nbsp;time&nbsp;period<br>
 &nbsp;<br>
 Args:<br>
@@ -125,6 +137,8 @@ Args:<br>
 &nbsp;<br>
 Returns:<br>
 &nbsp;&nbsp;&nbsp;&nbsp;(data,&nbsp;etag):&nbsp;new&nbsp;user&nbsp;<a href="builtins.html#object">object</a>&nbsp;and&nbsp;eTag</span></dd></dl>
+
+<dl><dt><a name="CMKRESTAPI-delete_folder"><strong>delete_folder</strong></a>(self, folder)</dt></dl>
 
 <dl><dt><a name="CMKRESTAPI-delete_host"><strong>delete_host</strong></a>(self, hostname)</dt><dd><span class="code">Deletes&nbsp;a&nbsp;host&nbsp;from&nbsp;the&nbsp;CheckMK&nbsp;configuration.<br>
 &nbsp;<br>
@@ -161,6 +175,23 @@ Args:<br>
 Returns:<br>
 &nbsp;&nbsp;&nbsp;&nbsp;(data,&nbsp;etag)<br>
 &nbsp;&nbsp;&nbsp;&nbsp;data:&nbsp;discovery&nbsp;data<br>
+&nbsp;&nbsp;&nbsp;&nbsp;etag:&nbsp;current&nbsp;etag&nbsp;value</span></dd></dl>
+
+<dl><dt><a name="CMKRESTAPI-edit_folder"><strong>edit_folder</strong></a>(self, folder, etag=None, title=None, attributes={}, update_attr={}, remove_attr=[])</dt><dd><span class="code">Edit&nbsp;a&nbsp;folder<br>
+&nbsp;<br>
+Args:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;folder:&nbsp;The&nbsp;path&nbsp;of&nbsp;the&nbsp;folder&nbsp;being&nbsp;requested.<br>
+&nbsp;&nbsp;&nbsp;&nbsp;etag:&nbsp;(optional)&nbsp;etag&nbsp;value,&nbsp;if&nbsp;not&nbsp;provided&nbsp;the&nbsp;folder&nbsp;will&nbsp;be&nbsp;looked&nbsp;up&nbsp;first&nbsp;using&nbsp;<a href="#CMKRESTAPI-get_folder">get_folder</a>().<br>
+&nbsp;&nbsp;&nbsp;&nbsp;title:&nbsp;(optional)&nbsp;The&nbsp;title&nbsp;of&nbsp;the&nbsp;folder.&nbsp;Used&nbsp;in&nbsp;the&nbsp;GUI.<br>
+&nbsp;&nbsp;&nbsp;&nbsp;set_attr:&nbsp;Replace&nbsp;all&nbsp;currently&nbsp;set&nbsp;attributes&nbsp;on&nbsp;the&nbsp;folder&nbsp;with&nbsp;these&nbsp;attributes.&nbsp;Any&nbsp;previously&nbsp;set&nbsp;attributes&nbsp;which&nbsp;are&nbsp;not&nbsp;given&nbsp;here&nbsp;will&nbsp;be&nbsp;removed.<br>
+&nbsp;&nbsp;&nbsp;&nbsp;update_attr:&nbsp;Just&nbsp;update&nbsp;the&nbsp;folder's&nbsp;attributes&nbsp;with&nbsp;these&nbsp;attributes.&nbsp;The&nbsp;previously&nbsp;set&nbsp;attributes&nbsp;will&nbsp;not&nbsp;be&nbsp;touched.<br>
+&nbsp;&nbsp;&nbsp;&nbsp;unset_attr:&nbsp;A&nbsp;list&nbsp;of&nbsp;attributes&nbsp;which&nbsp;should&nbsp;be&nbsp;removed.<br>
+&nbsp;<br>
+&nbsp;&nbsp;&nbsp;&nbsp;Only&nbsp;pass&nbsp;one&nbsp;of&nbsp;set_attr,&nbsp;update_attr&nbsp;or&nbsp;unset_attr.<br>
+&nbsp;<br>
+Returns:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;(data,&nbsp;etag)<br>
+&nbsp;&nbsp;&nbsp;&nbsp;data:&nbsp;folder's&nbsp;data<br>
 &nbsp;&nbsp;&nbsp;&nbsp;etag:&nbsp;current&nbsp;etag&nbsp;value</span></dd></dl>
 
 <dl><dt><a name="CMKRESTAPI-edit_host"><strong>edit_host</strong></a>(self, hostname, etag=None, set_attr={}, update_attr={}, unset_attr=[])</dt><dd><span class="code">Edit&nbsp;a&nbsp;host&nbsp;in&nbsp;the&nbsp;CheckMK&nbsp;configuration.<br>
@@ -201,6 +232,18 @@ Args:<br>
 Returns:<br>
 &nbsp;&nbsp;&nbsp;&nbsp;(data,&nbsp;etag):&nbsp;the&nbsp;user&nbsp;<a href="builtins.html#object">object</a>&nbsp;and&nbsp;eTag</span></dd></dl>
 
+<dl><dt><a name="CMKRESTAPI-get_all_folders"><strong>get_all_folders</strong></a>(self, parent='/', recursive=False, show_hosts=False)</dt><dd><span class="code">Gets&nbsp;a&nbsp;folder&nbsp;subtree<br>
+&nbsp;<br>
+Args:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;parent:&nbsp;Show&nbsp;all&nbsp;sub-folders&nbsp;of&nbsp;this&nbsp;folder.&nbsp;The&nbsp;default&nbsp;is&nbsp;the&nbsp;root-folder.<br>
+&nbsp;&nbsp;&nbsp;&nbsp;recursive:&nbsp;List&nbsp;the&nbsp;folder&nbsp;(default:&nbsp;root)&nbsp;and&nbsp;all&nbsp;its&nbsp;sub-folders&nbsp;recursively.<br>
+&nbsp;&nbsp;&nbsp;&nbsp;show_hosts:&nbsp;When&nbsp;True,&nbsp;all&nbsp;hosts&nbsp;that&nbsp;are&nbsp;stored&nbsp;in&nbsp;this&nbsp;folder&nbsp;will&nbsp;also&nbsp;be&nbsp;shown.<br>
+&nbsp;<br>
+Returns:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;(data,&nbsp;etag)<br>
+&nbsp;&nbsp;&nbsp;&nbsp;data:&nbsp;list&nbsp;of&nbsp;folders<br>
+&nbsp;&nbsp;&nbsp;&nbsp;etag:&nbsp;current&nbsp;etag&nbsp;value</span></dd></dl>
+
 <dl><dt><a name="CMKRESTAPI-get_all_hosts"><strong>get_all_hosts</strong></a>(self, effective_attr=False, attributes=True)</dt><dd><span class="code">Gets&nbsp;all&nbsp;hosts&nbsp;from&nbsp;the&nbsp;CheckMK&nbsp;configuration.<br>
 &nbsp;<br>
 Args:<br>
@@ -209,6 +252,17 @@ Args:<br>
 &nbsp;<br>
 Returns:<br>
 &nbsp;&nbsp;&nbsp;&nbsp;hosts:&nbsp;Dictionary&nbsp;of&nbsp;host&nbsp;data&nbsp;or&nbsp;dict&nbsp;of&nbsp;hostname&nbsp;-&gt;&nbsp;URL&nbsp;depending&nbsp;on&nbsp;aatributes&nbsp;parameter</span></dd></dl>
+
+<dl><dt><a name="CMKRESTAPI-get_folder"><strong>get_folder</strong></a>(self, folder, show_hosts=False)</dt><dd><span class="code">Gets&nbsp;a&nbsp;single&nbsp;folder<br>
+&nbsp;<br>
+Args:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;folder:&nbsp;The&nbsp;path&nbsp;of&nbsp;the&nbsp;folder&nbsp;being&nbsp;requested.<br>
+&nbsp;&nbsp;&nbsp;&nbsp;show_hosts:&nbsp;When&nbsp;True,&nbsp;all&nbsp;hosts&nbsp;that&nbsp;are&nbsp;stored&nbsp;in&nbsp;this&nbsp;folder&nbsp;will&nbsp;also&nbsp;be&nbsp;shown.<br>
+&nbsp;<br>
+Returns:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;(data,&nbsp;etag)<br>
+&nbsp;&nbsp;&nbsp;&nbsp;data:&nbsp;folder's&nbsp;data<br>
+&nbsp;&nbsp;&nbsp;&nbsp;etag:&nbsp;current&nbsp;etag&nbsp;value</span></dd></dl>
 
 <dl><dt><a name="CMKRESTAPI-get_host"><strong>get_host</strong></a>(self, hostname, effective_attr=False)</dt><dd><span class="code">Gets&nbsp;host&nbsp;configuration&nbsp;including&nbsp;eTag&nbsp;value.<br>
 &nbsp;<br>
@@ -264,6 +318,18 @@ Args:<br>
 &nbsp;<br>
 Returns:<br>
 &nbsp;&nbsp;&nbsp;&nbsp;(data,&nbsp;etag):&nbsp;user&nbsp;<a href="builtins.html#object">object</a>&nbsp;and&nbsp;eTag</span></dd></dl>
+
+<dl><dt><a name="CMKRESTAPI-move_folder"><strong>move_folder</strong></a>(self, folder, destination, etag=None)</dt><dd><span class="code">Moves&nbsp;a&nbsp;folder&nbsp;into&nbsp;a&nbsp;destination&nbsp;folder.<br>
+&nbsp;<br>
+Args:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;folder:&nbsp;The&nbsp;path&nbsp;of&nbsp;the&nbsp;folder&nbsp;being&nbsp;requested.<br>
+&nbsp;&nbsp;&nbsp;&nbsp;destination:&nbsp;Where&nbsp;the&nbsp;folder&nbsp;has&nbsp;to&nbsp;be&nbsp;moved&nbsp;to.<br>
+&nbsp;&nbsp;&nbsp;&nbsp;etag:&nbsp;(optional)&nbsp;etag&nbsp;value,&nbsp;if&nbsp;not&nbsp;provided&nbsp;the&nbsp;folder&nbsp;will&nbsp;be&nbsp;looked&nbsp;up&nbsp;first&nbsp;using&nbsp;<a href="#CMKRESTAPI-get_folder">get_folder</a>().<br>
+&nbsp;<br>
+Returns:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;(data,&nbsp;etag)<br>
+&nbsp;&nbsp;&nbsp;&nbsp;data:&nbsp;folder's&nbsp;data<br>
+&nbsp;&nbsp;&nbsp;&nbsp;etag:&nbsp;current&nbsp;etag&nbsp;value</span></dd></dl>
 
 <dl><dt><a name="CMKRESTAPI-revoke_downtime"><strong>revoke_downtime</strong></a>(self, hostname, services=None)</dt><dd><span class="code">Revokes&nbsp;scheduled&nbsp;downtime<br>
 &nbsp;<br>

@@ -67,7 +67,7 @@ class CMKRESTAPI():
             site_url = _site_url()
         if not api_secret:
             api_user, api_secret = _site_creds(api_user)
-        self._api_url = '%sapi/1.0' % _check_mk_url(site_url)
+        self._api_url = '%sapi/v0' % _check_mk_url(site_url)
         self._session = requests.session()
         self._session.headers['Authorization'] = f"Bearer {api_user} {api_secret}"
         self._session.headers['Accept'] = 'application/json'
@@ -135,6 +135,161 @@ class CMKRESTAPI():
                 allow_redirects=False,
             )
         )
+
+    def create_folder(self, title, parent, name=None, attributes={}):
+        """Adds a folder to a parent folder.
+
+        Args:
+            title: The folder title as displayed in the user interface.
+            parent: The folder in which the new folder shall be placed in. The root-folder is specified by '/'.
+            name: The filesystem directory name (not path!) of the folder. No slashes are allowed. Will be deduced from the title if not specified.
+
+        Returns:
+            (data, etag)
+            data: folder's data
+            etag: current etag value
+        """
+        params={
+                'title': title,
+                'parent': parent,
+                'attributes': attributes,
+        }
+        if name:
+            params['name'] = name
+        data, etag, resp = self._post_url(
+            "domain-types/folder_config/collections/all",
+            data=params
+        )
+        if resp.status_code == 200:
+            return data, etag
+        resp.raise_for_status()
+
+    def get_folder(self, folder, show_hosts=False):
+        """Gets a single folder
+
+        Args:
+            folder: The path of the folder being requested.
+            show_hosts: When True, all hosts that are stored in this folder will also be shown.
+
+        Returns:
+            (data, etag)
+            data: folder's data
+            etag: current etag value
+        """
+        folder = folder.replace('/', '~')
+        data, etag, resp = self._get_url(
+            f"objects/folder_config/{folder}",
+            data={
+                "show_hosts": show_hosts,
+            }
+        )
+        if resp.status_code == 200:
+            return data, etag
+        resp.raise_for_status()
+
+    def get_all_folders(self, parent='/', recursive=False, show_hosts=False):
+        """Gets a folder subtree
+
+        Args:
+            parent: Show all sub-folders of this folder. The default is the root-folder.
+            recursive: List the folder (default: root) and all its sub-folders recursively.
+            show_hosts: When True, all hosts that are stored in this folder will also be shown.
+
+        Returns:
+            (data, etag)
+            data: list of folders
+            etag: current etag value
+        """
+        parent = parent.replace('/', '~')
+        data, etag, resp = self._get_url(
+            f"domain-types/folder_config/collections/all",
+            data={
+                "parent": parent,
+                "recursive": recursive,
+                "show_hosts": show_hosts,
+            }
+        )
+        if resp.status_code == 200:
+            return data, etag
+        resp.raise_for_status()
+
+    def delete_folder(self, folder):
+        folder = folder.replace('/', '~')
+        data, etag, resp = self._delete_url(
+            f"objects/folder_config/{folder}"
+        )
+        if resp.status_code == 204:
+            return
+        resp.raise_for_status()
+
+    def edit_folder(self, folder, etag=None, title=None, attributes={}, update_attr={}, remove_attr=[]):
+        """Edit a folder
+
+        Args:
+            folder: The path of the folder being requested.
+            etag: (optional) etag value, if not provided the folder will be looked up first using get_folder().
+            title: (optional) The title of the folder. Used in the GUI.
+            set_attr: Replace all currently set attributes on the folder with these attributes. Any previously set attributes which are not given here will be removed.
+            update_attr: Just update the folder's attributes with these attributes. The previously set attributes will not be touched.
+            unset_attr: A list of attributes which should be removed.
+
+            Only pass one of set_attr, update_attr or unset_attr.
+
+        Returns:
+            (data, etag)
+            data: folder's data
+            etag: current etag value
+        """
+        folder = folder.replace('/', '~')
+        if not etag:
+            folderdata, etag = self.get_folder(folder)
+        changes = {}
+        if title:
+            changes['title'] = title
+        if attributes:
+            changes['attributes'] = attributes
+        elif update_attr:
+            changes['update_attributes'] = update_attr
+        elif remove_attr:
+            changes['remove_attributes'] = remove_attr
+        if changes:
+            data, etag, resp = self._put_url(
+                f"objects/folder_config/{folder}",
+                etag,
+                data=changes,
+            )
+            if resp.status_code == 200:
+                return data, etag
+            resp.raise_for_status()
+        return None, None
+
+    def move_folder(self, folder, destination, etag=None):
+        """Moves a folder into a destination folder.
+
+        Args:
+            folder: The path of the folder being requested.
+            destination: Where the folder has to be moved to.
+            etag: (optional) etag value, if not provided the folder will be looked up first using get_folder().
+
+        Returns:
+            (data, etag)
+            data: folder's data
+            etag: current etag value
+        """
+        folder = folder.replace('/', '~')
+        destination = destination.replace('/', '~')
+        if not etag:
+            folderdata, etag = self.get_folder(folder)
+        data, etag, resp = self._post_url(
+            f"objects/folder_config/{folder}/actions/move/invoke",
+            etag,
+            data={
+                "destination": destination,
+            },
+        )
+        if resp.status_code == 200:
+            return data, etag
+        resp.raise_for_status()
 
     def add_host(self, hostname, folder, attributes={}):
         """Adds a host to a folder in the CheckMK configuration.
@@ -446,7 +601,7 @@ class CMKRESTAPI():
         )
         if resp.status_code == 204:
             return data, etag
-        resp.raise_for_status()       
+        resp.raise_for_status()
 
     def acknowledge_service_problem(self, hostname, service, comment, sticky=True, persistent=False, notify=False):
         """Acknowledges service problem
@@ -475,8 +630,8 @@ class CMKRESTAPI():
         )
         if resp.status_code == 204:
             return data, etag
-        resp.raise_for_status()       
-    
+        resp.raise_for_status()
+
     def create_user(self, username, fullname, args):
         """Creates a new user
 
