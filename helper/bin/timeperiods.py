@@ -5,10 +5,6 @@
 # Robert Sander <r.sander@heinlein-support.de>
 #
 
-
-
-
-
 import sys
 import argparse
 import checkmkapi
@@ -147,4 +143,4 @@ if args.func == 'create_timeperiod':
 
                 cmk.edit_timeperiod(args.exclude_in, etag, exclude=exclude)
 
-            cmk.activate_changes()
+            cmk.activate()
