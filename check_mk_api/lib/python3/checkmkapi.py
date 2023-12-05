@@ -1085,6 +1085,259 @@ class CMKRESTAPI():
             return data, etag
         resp.raise_for_status()
 
+#   .--Host Tag Groups-----------------------------------------------------.
+#   |                _   _           _     _____                           |
+#   |               | | | | ___  ___| |_  |_   _|_ _  __ _                 |
+#   |               | |_| |/ _ \/ __| __|   | |/ _` |/ _` |                |
+#   |               |  _  | (_) \__ \ |_    | | (_| | (_| |                |
+#   |               |_| |_|\___/|___/\__|   |_|\__,_|\__, |                |
+#   |                                                |___/                 |
+#   |                    ____                                              |
+#   |                   / ___|_ __ ___  _   _ _ __  ___                    |
+#   |                  | |  _| '__/ _ \| | | | '_ \/ __|                   |
+#   |                  | |_| | | | (_) | |_| | |_) \__ \                   |
+#   |                   \____|_|  \___/ \__,_| .__/|___/                   |
+#   |                                        |_|                           |
+#   +----------------------------------------------------------------------+
+#   |                                                                      |
+#   '----------------------------------------------------------------------'
+#.
+
+    def create_host_tag_group(self, name, title, tags, topic = None, help = None):
+        """Create a host tag group
+
+        Args:
+            name: A unique name for the host tag group.
+            title: An alias for the host tag group.
+            tags: A list of host tags belonging to the host tag group (list of dict)
+            topic: Different tags can be grouped in a topic (string)
+            help: A help description for the tag group (string)
+
+        Returns:
+            (taggroup, etag)
+        """
+        params={
+            'ident': name,
+            'title': title,
+            'tags': tags,
+        }
+        if topic:
+            params['topic'] = topic
+        if help:
+            params['help'] = help
+        data, etag, resp = self._post_url(
+            "domain-types/host_tag_group/collections/all",
+            data=params,
+        )
+        if resp.status_code == 200:
+            return data, etag
+        resp.raise_for_status()
+
+    def get_host_tag_groups(self):
+        """Show all host tag groups
+
+        Args:
+            None
+
+        Returns:
+            list of host tag groups
+            etag
+        """
+        data, etag, resp = self._get_url(
+            "domain-types/host_tag_group/collections/all",
+        )
+        if resp.status_code == 200:
+            return data, etag
+        resp.raise_for_status()
+
+    def get_host_tag_group(self, name):
+        """Show a host tag group
+
+        Args:
+            name: name of the host tag group
+
+        Returns:
+            host tag group
+            etag
+        """
+        data, etag, resp = self._get_url(
+            f"objects/host_tag_group/{name}",
+        )
+        if resp.status_code == 200:
+            return data, etag
+        resp.raise_for_status()
+
+    def delete_host_tag_group(self, name):
+        """Delete a host tag group
+
+        Args:
+            name: name of the host tag group
+
+        Returns:
+            Nothing
+        """
+        data, etag, resp = self._delete_url(
+            f"objects/host_tag_group/{name}",
+        )
+        if resp.status_code == 204:
+            return
+        resp.raise_for_status()
+
+    def edit_host_tag_group(self, name, etag, title = None, topic = None, help = None, tags = []):
+        """Update a host tag group
+
+        Args:
+            name: name of the host tag group
+            etag: The value of the, to be modified, object's ETag header.
+            title: A title for the host tag
+            topic: Different tags can be grouped in a topic
+            help: A help description for the tag group
+            tags: A list of host tags belonging to the host tag group
+
+        Returns:
+            host tag group
+            etag
+        """
+        params = {}
+        if title:
+            params['title'] = title
+        if topic:
+            params['topic'] = topic
+        if help:
+            params['help'] = help
+        if len(tags) > 0:
+            params['tags'] = tags
+        if params:
+            data, etag, resp = self._put_url(
+                f"objects/host_tag_group/{name}",
+                etag,
+                data=params
+            )
+            if resp.status_code == 200:
+                return data, etag
+            resp.raise_for_status()
+        return None, None
+
+#   .--Auxiliary Tags------------------------------------------------------.
+#   |      _              _ _ _                    _____                   |
+#   |     / \  _   ___  _(_) (_) __ _ _ __ _   _  |_   _|_ _  __ _ ___     |
+#   |    / _ \| | | \ \/ / | | |/ _` | '__| | | |   | |/ _` |/ _` / __|    |
+#   |   / ___ \ |_| |>  <| | | | (_| | |  | |_| |   | | (_| | (_| \__ \    |
+#   |  /_/   \_\__,_/_/\_\_|_|_|\__,_|_|   \__, |   |_|\__,_|\__, |___/    |
+#   |                                      |___/             |___/         |
+#   +----------------------------------------------------------------------+
+#   |                                                                      |
+#   '----------------------------------------------------------------------'
+#.
+
+    def create_aux_tag(self, name, title, topic, help = None):
+        """Create an auxiliary tag
+
+        Args:
+            name: A unique name for the auxliary tag.
+            title: An alias for the auxiliary tag.
+            topic: Different tags can be grouped in a topic (string)
+            help: A help description for the auxiliary tag (string)
+
+        Returns:
+            (auxtag, etag)
+        """
+        params={
+            'aux_tag_id': name,
+            'title': title,
+            'topic': topic,
+        }
+        if help:
+            params['help'] = help
+        data, etag, resp = self._post_url(
+            "domain-types/aux_tag/collections/all",
+            data=params,
+        )
+        if resp.status_code == 200:
+            return data, etag
+        resp.raise_for_status()
+
+    def get_aux_tags(self):
+        """Show all auxiliary tags
+
+        Args:
+            None
+
+        Returns:
+            list of auxiliary tags
+            etag
+        """
+        data, etag, resp = self._get_url(
+            "domain-types/aux_tag/collections/all",
+        )
+        if resp.status_code == 200:
+            return data, etag
+        resp.raise_for_status()
+
+    def get_aux_tag(self, name):
+        """Show an auxiliary tag
+
+        Args:
+            name: name of the auxiliary tag
+
+        Returns:
+            auxiliary tag
+            etag
+        """
+        data, etag, resp = self._get_url(
+            f"objects/aux_tag/{name}",
+        )
+        if resp.status_code == 200:
+            return data, etag
+        resp.raise_for_status()
+
+    def delete_aux_tag(self, name):
+        """Delete an auxiliary tag
+
+        Args:
+            name: name of the auxiliary tag
+
+        Returns:
+            Nothing
+        """
+        data, etag, resp = self._post_url(
+            f"objects/aux_tag/{name}/actions/delete/invoke",
+        )
+        if resp.status_code == 204:
+            return
+        resp.raise_for_status()
+
+    def edit_aux_tag(self, name, title = None, topic = None, help = None):
+        """Update an auxiliary tag
+
+        Args:
+            name: name of the auxiliary tag
+            title: A title for the host tag
+            topic: Different tags can be grouped in a topic
+            help: A help description for the tag group
+
+        Returns:
+            auxiliary tag
+            etag
+        """
+        params = {}
+        if title:
+            params['title'] = title
+        if topic:
+            params['topic'] = topic
+        if help:
+            params['help'] = help
+        if params:
+            data, etag, resp = self._put_url(
+                f"objects/aux_tag/{name}",
+                '*',
+                data=params
+            )
+            if resp.status_code == 200:
+                return data, etag
+            resp.raise_for_status()
+        return None, None
+        
 #
 #
 #   .--MULTISITE-----------------------------------------------------------.

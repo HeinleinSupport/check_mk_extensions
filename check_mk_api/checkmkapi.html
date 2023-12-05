@@ -104,6 +104,17 @@ Returns:<br>
 Returns:<br>
 &nbsp;&nbsp;&nbsp;&nbsp;(data,&nbsp;etag):&nbsp;usually&nbsp;both&nbsp;empty</span></dd></dl>
 
+<dl><dt><a name="CMKRESTAPI-create_aux_tag"><strong>create_aux_tag</strong></a>(self, name, title, topic, help=None)</dt><dd><span class="code">Create&nbsp;an&nbsp;auxiliary&nbsp;tag<br>
+&nbsp;<br>
+Args:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;name:&nbsp;A&nbsp;unique&nbsp;name&nbsp;for&nbsp;the&nbsp;auxliary&nbsp;tag.<br>
+&nbsp;&nbsp;&nbsp;&nbsp;title:&nbsp;An&nbsp;alias&nbsp;for&nbsp;the&nbsp;auxiliary&nbsp;tag.<br>
+&nbsp;&nbsp;&nbsp;&nbsp;topic:&nbsp;Different&nbsp;tags&nbsp;can&nbsp;be&nbsp;grouped&nbsp;in&nbsp;a&nbsp;topic&nbsp;(string)<br>
+&nbsp;&nbsp;&nbsp;&nbsp;help:&nbsp;A&nbsp;help&nbsp;description&nbsp;for&nbsp;the&nbsp;auxiliary&nbsp;tag&nbsp;(string)<br>
+&nbsp;<br>
+Returns:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;(auxtag,&nbsp;etag)</span></dd></dl>
+
 <dl><dt><a name="CMKRESTAPI-create_contactgroup"><strong>create_contactgroup</strong></a>(self, name, alias)</dt><dd><span class="code">Create&nbsp;a&nbsp;contact&nbsp;group<br>
 &nbsp;<br>
 Args:<br>
@@ -124,6 +135,18 @@ Returns:<br>
 &nbsp;&nbsp;&nbsp;&nbsp;(data,&nbsp;etag)<br>
 &nbsp;&nbsp;&nbsp;&nbsp;data:&nbsp;folder's&nbsp;data<br>
 &nbsp;&nbsp;&nbsp;&nbsp;etag:&nbsp;current&nbsp;etag&nbsp;value</span></dd></dl>
+
+<dl><dt><a name="CMKRESTAPI-create_host_tag_group"><strong>create_host_tag_group</strong></a>(self, name, title, tags, topic=None, help=None)</dt><dd><span class="code">Create&nbsp;a&nbsp;host&nbsp;tag&nbsp;group<br>
+&nbsp;<br>
+Args:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;name:&nbsp;A&nbsp;unique&nbsp;name&nbsp;for&nbsp;the&nbsp;host&nbsp;tag&nbsp;group.<br>
+&nbsp;&nbsp;&nbsp;&nbsp;title:&nbsp;An&nbsp;alias&nbsp;for&nbsp;the&nbsp;host&nbsp;tag&nbsp;group.<br>
+&nbsp;&nbsp;&nbsp;&nbsp;tags:&nbsp;A&nbsp;list&nbsp;of&nbsp;host&nbsp;tags&nbsp;belonging&nbsp;to&nbsp;the&nbsp;host&nbsp;tag&nbsp;group&nbsp;(list&nbsp;of&nbsp;dict)<br>
+&nbsp;&nbsp;&nbsp;&nbsp;topic:&nbsp;Different&nbsp;tags&nbsp;can&nbsp;be&nbsp;grouped&nbsp;in&nbsp;a&nbsp;topic&nbsp;(string)<br>
+&nbsp;&nbsp;&nbsp;&nbsp;help:&nbsp;A&nbsp;help&nbsp;description&nbsp;for&nbsp;the&nbsp;tag&nbsp;group&nbsp;(string)<br>
+&nbsp;<br>
+Returns:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;(taggroup,&nbsp;etag)</span></dd></dl>
 
 <dl><dt><a name="CMKRESTAPI-create_timeperiod"><strong>create_timeperiod</strong></a>(self, name, alias, active_time_ranges, exceptions=[], exclude=[])</dt><dd><span class="code">Create&nbsp;a&nbsp;time&nbsp;period<br>
 &nbsp;<br>
@@ -147,6 +170,14 @@ Args:<br>
 Returns:<br>
 &nbsp;&nbsp;&nbsp;&nbsp;(data,&nbsp;etag):&nbsp;new&nbsp;user&nbsp;<a href="builtins.html#object">object</a>&nbsp;and&nbsp;eTag</span></dd></dl>
 
+<dl><dt><a name="CMKRESTAPI-delete_aux_tag"><strong>delete_aux_tag</strong></a>(self, name)</dt><dd><span class="code">Delete&nbsp;an&nbsp;auxiliary&nbsp;tag<br>
+&nbsp;<br>
+Args:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;name:&nbsp;name&nbsp;of&nbsp;the&nbsp;auxiliary&nbsp;tag<br>
+&nbsp;<br>
+Returns:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;Nothing</span></dd></dl>
+
 <dl><dt><a name="CMKRESTAPI-delete_contactgroup"><strong>delete_contactgroup</strong></a>(self, name)</dt><dd><span class="code">Delete&nbsp;the&nbsp;contact&nbsp;group<br>
 &nbsp;<br>
 Args:<br>
@@ -163,6 +194,14 @@ Returns:<br>
 &nbsp;&nbsp;&nbsp;&nbsp;(data,&nbsp;etag)<br>
 &nbsp;&nbsp;&nbsp;&nbsp;data:&nbsp;host's&nbsp;data<br>
 &nbsp;&nbsp;&nbsp;&nbsp;etag:&nbsp;current&nbsp;etag&nbsp;value</span></dd></dl>
+
+<dl><dt><a name="CMKRESTAPI-delete_host_tag_group"><strong>delete_host_tag_group</strong></a>(self, name)</dt><dd><span class="code">Delete&nbsp;a&nbsp;host&nbsp;tag&nbsp;group<br>
+&nbsp;<br>
+Args:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;name:&nbsp;name&nbsp;of&nbsp;the&nbsp;host&nbsp;tag&nbsp;group<br>
+&nbsp;<br>
+Returns:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;Nothing</span></dd></dl>
 
 <dl><dt><a name="CMKRESTAPI-delete_timeperiod"><strong>delete_timeperiod</strong></a>(self, name, etag)</dt><dd><span class="code">Delete&nbsp;a&nbsp;time&nbsp;period<br>
 &nbsp;<br>
@@ -190,6 +229,18 @@ Returns:<br>
 &nbsp;&nbsp;&nbsp;&nbsp;(data,&nbsp;etag)<br>
 &nbsp;&nbsp;&nbsp;&nbsp;data:&nbsp;discovery&nbsp;data<br>
 &nbsp;&nbsp;&nbsp;&nbsp;etag:&nbsp;current&nbsp;etag&nbsp;value</span></dd></dl>
+
+<dl><dt><a name="CMKRESTAPI-edit_aux_tag"><strong>edit_aux_tag</strong></a>(self, name, title=None, topic=None, help=None)</dt><dd><span class="code">Update&nbsp;an&nbsp;auxiliary&nbsp;tag<br>
+&nbsp;<br>
+Args:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;name:&nbsp;name&nbsp;of&nbsp;the&nbsp;auxiliary&nbsp;tag<br>
+&nbsp;&nbsp;&nbsp;&nbsp;title:&nbsp;A&nbsp;title&nbsp;for&nbsp;the&nbsp;host&nbsp;tag<br>
+&nbsp;&nbsp;&nbsp;&nbsp;topic:&nbsp;Different&nbsp;tags&nbsp;can&nbsp;be&nbsp;grouped&nbsp;in&nbsp;a&nbsp;topic<br>
+&nbsp;&nbsp;&nbsp;&nbsp;help:&nbsp;A&nbsp;help&nbsp;description&nbsp;for&nbsp;the&nbsp;tag&nbsp;group<br>
+&nbsp;<br>
+Returns:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;auxiliary&nbsp;tag<br>
+&nbsp;&nbsp;&nbsp;&nbsp;etag</span></dd></dl>
 
 <dl><dt><a name="CMKRESTAPI-edit_contactgroup"><strong>edit_contactgroup</strong></a>(self, name, alias, etag=None)</dt><dd><span class="code">Change&nbsp;the&nbsp;contact&nbsp;group's&nbsp;alias<br>
 &nbsp;<br>
@@ -233,6 +284,20 @@ Returns:<br>
 &nbsp;&nbsp;&nbsp;&nbsp;(data,&nbsp;etag)<br>
 &nbsp;&nbsp;&nbsp;&nbsp;data:&nbsp;host's&nbsp;data<br>
 &nbsp;&nbsp;&nbsp;&nbsp;etag:&nbsp;current&nbsp;etag&nbsp;value</span></dd></dl>
+
+<dl><dt><a name="CMKRESTAPI-edit_host_tag_group"><strong>edit_host_tag_group</strong></a>(self, name, etag, title=None, topic=None, help=None, tags=[])</dt><dd><span class="code">Update&nbsp;a&nbsp;host&nbsp;tag&nbsp;group<br>
+&nbsp;<br>
+Args:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;name:&nbsp;name&nbsp;of&nbsp;the&nbsp;host&nbsp;tag&nbsp;group<br>
+&nbsp;&nbsp;&nbsp;&nbsp;etag:&nbsp;The&nbsp;value&nbsp;of&nbsp;the,&nbsp;to&nbsp;be&nbsp;modified,&nbsp;<a href="builtins.html#object">object</a>'s&nbsp;ETag&nbsp;header.<br>
+&nbsp;&nbsp;&nbsp;&nbsp;title:&nbsp;A&nbsp;title&nbsp;for&nbsp;the&nbsp;host&nbsp;tag<br>
+&nbsp;&nbsp;&nbsp;&nbsp;topic:&nbsp;Different&nbsp;tags&nbsp;can&nbsp;be&nbsp;grouped&nbsp;in&nbsp;a&nbsp;topic<br>
+&nbsp;&nbsp;&nbsp;&nbsp;help:&nbsp;A&nbsp;help&nbsp;description&nbsp;for&nbsp;the&nbsp;tag&nbsp;group<br>
+&nbsp;&nbsp;&nbsp;&nbsp;tags:&nbsp;A&nbsp;list&nbsp;of&nbsp;host&nbsp;tags&nbsp;belonging&nbsp;to&nbsp;the&nbsp;host&nbsp;tag&nbsp;group<br>
+&nbsp;<br>
+Returns:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;host&nbsp;tag&nbsp;group<br>
+&nbsp;&nbsp;&nbsp;&nbsp;etag</span></dd></dl>
 
 <dl><dt><a name="CMKRESTAPI-edit_timeperiod"><strong>edit_timeperiod</strong></a>(self, name, etag, alias=None, active_time_ranges=[], exceptions=[], exclude=[])</dt><dd><span class="code">Update&nbsp;a&nbsp;time&nbsp;period<br>
 &nbsp;<br>
@@ -282,6 +347,24 @@ Args:<br>
 Returns:<br>
 &nbsp;&nbsp;&nbsp;&nbsp;hosts:&nbsp;Dictionary&nbsp;of&nbsp;host&nbsp;data&nbsp;or&nbsp;dict&nbsp;of&nbsp;hostname&nbsp;-&gt;&nbsp;URL&nbsp;depending&nbsp;on&nbsp;aatributes&nbsp;parameter</span></dd></dl>
 
+<dl><dt><a name="CMKRESTAPI-get_aux_tag"><strong>get_aux_tag</strong></a>(self, name)</dt><dd><span class="code">Show&nbsp;an&nbsp;auxiliary&nbsp;tag<br>
+&nbsp;<br>
+Args:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;name:&nbsp;name&nbsp;of&nbsp;the&nbsp;auxiliary&nbsp;tag<br>
+&nbsp;<br>
+Returns:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;auxiliary&nbsp;tag<br>
+&nbsp;&nbsp;&nbsp;&nbsp;etag</span></dd></dl>
+
+<dl><dt><a name="CMKRESTAPI-get_aux_tags"><strong>get_aux_tags</strong></a>(self)</dt><dd><span class="code">Show&nbsp;all&nbsp;auxiliary&nbsp;tags<br>
+&nbsp;<br>
+Args:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;None<br>
+&nbsp;<br>
+Returns:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;list&nbsp;of&nbsp;auxiliary&nbsp;tags<br>
+&nbsp;&nbsp;&nbsp;&nbsp;etag</span></dd></dl>
+
 <dl><dt><a name="CMKRESTAPI-get_contactgroup"><strong>get_contactgroup</strong></a>(self, name)</dt><dd><span class="code">Get&nbsp;a&nbsp;contact&nbsp;group<br>
 &nbsp;<br>
 Args:<br>
@@ -311,6 +394,24 @@ Returns:<br>
 &nbsp;&nbsp;&nbsp;&nbsp;(data,&nbsp;etag)<br>
 &nbsp;&nbsp;&nbsp;&nbsp;data:&nbsp;host's&nbsp;data<br>
 &nbsp;&nbsp;&nbsp;&nbsp;etag:&nbsp;current&nbsp;etag&nbsp;value</span></dd></dl>
+
+<dl><dt><a name="CMKRESTAPI-get_host_tag_group"><strong>get_host_tag_group</strong></a>(self, name)</dt><dd><span class="code">Show&nbsp;a&nbsp;host&nbsp;tag&nbsp;group<br>
+&nbsp;<br>
+Args:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;name:&nbsp;name&nbsp;of&nbsp;the&nbsp;host&nbsp;tag&nbsp;group<br>
+&nbsp;<br>
+Returns:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;host&nbsp;tag&nbsp;group<br>
+&nbsp;&nbsp;&nbsp;&nbsp;etag</span></dd></dl>
+
+<dl><dt><a name="CMKRESTAPI-get_host_tag_groups"><strong>get_host_tag_groups</strong></a>(self)</dt><dd><span class="code">Show&nbsp;all&nbsp;host&nbsp;tag&nbsp;groups<br>
+&nbsp;<br>
+Args:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;None<br>
+&nbsp;<br>
+Returns:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;list&nbsp;of&nbsp;host&nbsp;tag&nbsp;groups<br>
+&nbsp;&nbsp;&nbsp;&nbsp;etag</span></dd></dl>
 
 <dl><dt><a name="CMKRESTAPI-get_rules"><strong>get_rules</strong></a>(self, ruleset_name)</dt><dd><span class="code">Gets&nbsp;rules&nbsp;from&nbsp;ruleset&nbsp;by&nbsp;name<br>
 &nbsp;<br>
