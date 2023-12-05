@@ -72,7 +72,7 @@ else:
             if attr in info:
                 for pattern, settags in patterns.items():
                     for value in info[attr]:
-                        if pattern.search(value):
+                        if value and pattern.search(value):
                             for taggroup, tag in settags.items():
                                 if host_tags.get(taggroup) != tag:
                                     tags[taggroup] = tag
