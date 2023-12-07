@@ -1,4 +1,5 @@
 #!/usr/bin/env python3
+# -*- encoding: utf-8; py-indent-offset: 4 -*-
 
 #
 # (C) 2023 Heinlein Support GmbH - License: GNU General Public License v2
@@ -19,7 +20,8 @@ apifeiertage = 'https://get.api-feiertage.de/'
 #
 # defaults
 #
-country = "de"
+countries = ["de"]
+default_country = "de"
 states  = {
     'de': {
         'bb': 'Brandenburg',
@@ -42,7 +44,43 @@ states  = {
 }
 always = [{'day': 'all', 'time_ranges': [{'start': '00:00', 'end': '24:00'}]}]
 
-def exclude_in(name, exclude_in_tp):
+
+parser = argparse.ArgumentParser()
+parser.add_argument('-s', '--url', help='URL to Check_MK site')
+parser.add_argument('-u', '--username', help='name of the automation user')
+parser.add_argument('-p', '--password', help='secret of the automation user')
+parser.add_argument('-c', '--config-file', help='config file (JSON)',
+                    default=os.path.join(os.environ.get('OMD_ROOT'), 'etc', 'holidays'))
+parser.add_argument('-D', '--debug', action='store_true')
+subparsers = parser.add_subparsers(title='available commands', help='call "subcommand --help" for more information')
+delete_timeperiod = subparsers.add_parser('delete', help='delete timeperiod')
+delete_timeperiod.set_defaults(func='delete_timeperiod')
+delete_timeperiod.add_argument('name', help='name of timeperiod')
+delete_old = subparsers.add_parser('delete_old', help='delete old holiday timeperiods')
+delete_old.set_defaults(func='delete_old')
+dump_timeperiods = subparsers.add_parser('dump', help='dump timeperiods')
+dump_timeperiods.set_defaults(func='dump_timeperiods')
+add_holidays = subparsers.add_parser('add_holidays', help='add timeperiod from api-feiertage.de')
+add_holidays.set_defaults(func='add_holidays')
+add_holidays.add_argument('-a', '--all-states', action='store_true', help='Nur bundesweite Feiertage')
+add_holidays.add_argument('-l', '--country', choices=countries, default=default_country, help='Land (default=de)')
+add_holidays.add_argument('-s', '--state', choices=states[default_country].keys(), help='Bundesland')
+add_holidays.add_argument('-y', '--year')
+add_holidays.add_argument('-Y', '--current-year', action='store_true')
+add_holidays.add_argument('-e', '--exclude-in-default', action='store_true', help='Exclude in passender Standard-Timeperiod')
+add_holidays.add_argument('-E', '--exclude-in', help='Exclude in anderer Timeperiod')
+add_region = subparsers.add_parser('add_region', help='add a new region to the configuration (base timeperiods and tag)')
+add_region.set_defaults(func='add_region')
+add_region.add_argument('-l', '--country', choices=countries, default=default_country, help='Land')
+add_region.add_argument('-s', '--state', choices=states['de'].keys(), help='Bundesland', required=True)
+add_auto_holidays = subparsers.add_parser('add_auto_holidays', help='add timeperiods from api-feiertage.de for all regions')
+add_auto_holidays.set_defaults(func='add_auto_holidays')
+add_auto_holidays.add_argument('-y', '--year')
+add_auto_holidays.add_argument('-Y', '--current-year', action='store_true')
+cleanup = subparsers.add_parser('cleanup', help='remove timeperiods and tag group. Use with caution!')
+cleanup.set_defaults(func='cleanup')
+
+def exclude_in_timeperiod(name, exclude_in_tp):
     etp, etag = cmk.get_timeperiod(exclude_in_tp)
 
     if args.debug:
@@ -57,36 +95,76 @@ def exclude_in(name, exclude_in_tp):
 
     cmk.edit_timeperiod(exclude_in_tp, etag, exclude=exclude)
 
-parser = argparse.ArgumentParser()
-parser.add_argument('-s', '--url', help='URL to Check_MK site')
-parser.add_argument('-u', '--username', help='name of the automation user')
-parser.add_argument('-p', '--password', help='secret of the automation user')
-parser.add_argument('-c', '--config-file', help='config file',
-                    default=os.path.join(os.environ.get('OMD_ROOT'), 'etc', 'holidays'))
-parser.add_argument('-D', '--debug', action='store_true')
-subparsers = parser.add_subparsers(title='available commands', help='call "subcommand --help" for more information')
-delete_timeperiod = subparsers.add_parser('delete', help='delete timeperiod')
-delete_timeperiod.set_defaults(func='delete_timeperiod')
-delete_timeperiod.add_argument('name', help='name of timeperiod')
-delete_old = subparsers.add_parser('delete_old', help='delete old holiday timeperiods')
-delete_old.set_defaults(func='delete_old')
-dump_timeperiods = subparsers.add_parser('dump', help='dump timeperiods')
-dump_timeperiods.set_defaults(func='dump_timeperiods')
-create_timeperiod = subparsers.add_parser('create', help='create timeperiod from api-feiertage.de')
-create_timeperiod.set_defaults(func='create_timeperiod')
-create_timeperiod.add_argument('-a', '--all-states', action='store_true', help='Nur bundesweite Feiertage')
-create_timeperiod.add_argument('-l', '--country', default=country, help='Land')
-create_timeperiod.add_argument('-s', '--state', choices=states['de'].keys(), help='Bundesland')
-create_timeperiod.add_argument('-y', '--year')
-create_timeperiod.add_argument('-c', '--current-year', action='store_true')
-create_timeperiod.add_argument('-e', '--exclude-in-default', action='store_true', help='Exclude in passender Standard-Timeperiod')
-create_timeperiod.add_argument('-E', '--exclude-in', help='Exclude in anderer Timeperiod')
-add_region = subparsers.add_parser('addregion', help='add a new region to the configuration (base timeperiods and tag)')
-add_region.set_defaults(func='add_region')
-add_region.add_argument('-l', '--country', default=country, help='Land')
-add_region.add_argument('-s', '--state', choices=states['de'].keys(), help='Bundesland', required=True)
-cleanup = subparsers.add_parser('cleanup', help='remove timeperiods and tag group. Use with caution!')
-cleanup.set_defaults(func='cleanup')
+def add_holiday_timeperiod(country=default_country, state=None, all_states=False, current_year=False, set_year=None, exclude_in_default=True, exclude_in=None):
+    params = {}
+    name = config['timeperiods']['holidays']['name'] + '_'
+    alias = config['timeperiods']['holidays']['title'] + ' '
+    year = None
+    if current_year:
+        year = str(date.today().year)
+    elif set_year:
+        year = set_year
+    if year:
+        params['years'] = year
+        name += year
+        alias += year
+    name += "_" + country
+    alias += " " + country.upper()
+    if all_states:
+        params['all_states'] = "true"
+        name += '_bundeseinheitlich'
+        alias += ' bundeseinheitlich'
+    elif state:
+        params['states'] = state
+        name += '_%s' % state
+        alias += ' %s' % states[country][state]
+
+    if args.debug:
+        pprint(params)
+
+    if not params:
+        print('Please give at least a year or a state.\n')
+        add_holidays.print_help()
+        sys.exit(1)
+        
+    resp = requests.get(apifeiertage, params=params)
+    if resp.content:
+        try:
+            data = resp.json()
+        except json.decoder.JSONDecodeError:
+            data = resp.content
+    else:
+        data = {}
+    if resp.status_code >= 400:
+        sys.stderr.write("%r\n" % data)
+
+    if data.get('feiertage'):
+        exceptions = []
+        for feiertag in data['feiertage']:
+            exceptions.append({
+                'date': feiertag['date'],
+                'time_ranges': [ { 'start': '00:00:00', 'end': '24:00:00' } ]
+            })
+
+        if args.debug:
+            pprint(name)
+            pprint(alias)
+            pprint(exceptions)
+
+        if exceptions:
+            tp, etag = cmk.create_timeperiod(name, alias, [], exceptions=exceptions)
+
+            if args.debug:
+                pprint(tp)
+
+            if exclude_in_default:
+                exclude_in_timeperiod(name, config['timeperiods']['workhours']['name'] + "_" + country + "_" + state)
+                
+            if exclude_in:
+                exclude_in_timeperiod(name, exclude_in)
+    else:
+        print('Error: %s' % data.get('additional_note'))
+        sys.exit(1)
 
 args = parser.parse_args()
 if 'func' not in args:
@@ -145,78 +223,9 @@ if args.func == 'delete_old':
     if to_delete:
         cmk.activate()
 
-if args.func == 'create_timeperiod':
-    params = {}
-    name = config['timeperiods']['holidays']['name'] + '_'
-    alias = config['timeperiods']['holidays']['title'] + ' '
-    year = None
-    if args.current_year:
-        year = str(date.today().year)
-    elif args.year:
-        year = args.year
-    if year:
-        params['years'] = year
-        name += year
-        alias += year
-    name += "_" + args.country
-    alias += " " + args.country.upper()
-    if args.all_states:
-        params['all_states'] = "true"
-        name += '_bundeseinheitlich'
-        alias += ' bundeseinheitlich'
-    elif args.state:
-        params['states'] = args.state
-        name += '_%s' % args.state
-        alias += ' %s' % states[args.country][args.state]
-
-    if args.debug:
-        pprint(params)
-
-    if not params:
-        print('Please give at least a year or a state.\n')
-        create_timeperiod.print_help()
-        sys.exit(1)
-        
-    resp = requests.get(apifeiertage, params=params)
-    if resp.content:
-        try:
-            data = resp.json()
-        except json.decoder.JSONDecodeError:
-            data = resp.content
-    else:
-        data = {}
-    if resp.status_code >= 400:
-        sys.stderr.write("%r\n" % data)
-
-    if not data.get('feiertage'):
-        print('Error: %s' % data.get('additional_note'))
-        sys.exit(1)
-    else:
-        exceptions = []
-        for feiertag in data['feiertage']:
-            exceptions.append({
-                'date': feiertag['date'],
-                'time_ranges': [ { 'start': '00:00:00', 'end': '24:00:00' } ]
-            })
-
-        if args.debug:
-            pprint(name)
-            pprint(alias)
-            pprint(exceptions)
-
-        if exceptions:
-            tp, etag = cmk.create_timeperiod(name, alias, [], exceptions=exceptions)
-
-            if args.debug:
-                pprint(tp)
-
-            if args.exclude_in_default:
-                exclude_in(name, config['timeperiods']['workhours']['name'] + "_" + args.country + "_" + args.state)
-                
-            if args.exclude_in:
-                exclude_in(name, args.exclude_in)
-
-            cmk.activate()
+if args.func == 'add_holidays':
+    add_holiday_timeperiod(args.country, args.state, args.all_states, args.current_year, args.year, args.exclude_in_default, args.exclude_in)
+    cmk.activate()
 
 if args.func == "add_region":
     workhoursname = '%s_%s_%s' % ( config['timeperiods']['workhours']['name'],
@@ -240,6 +249,8 @@ if args.func == "add_region":
                                      exclude=[workhoursname])
     if args.debug:
         pprint(tp)
+
+    add_holiday_timeperiod(country=args.country, state=args.state, current_year=True)
 
     tg = None
     try:
@@ -275,6 +286,19 @@ if args.func == "add_region":
         )
         cmk.activate()
     
+if args.func == 'add_auto_holidays':
+    tps, etag = cmk.get_timeperiods()
+    changes = False
+    for tp in tps['value']:
+        if tp['id'].startswith(config['timeperiods']['workhours']['name']):
+            if args.debug:
+                print(f"found {tp['id']}")
+            _, country, state = tp['id'].split('_')
+            add_holiday_timeperiod(country=country, state=state, current_year=args.current_year, set_year=args.year)
+            changes = True
+    if changes:
+        cmk.activate()
+
 if args.func == "cleanup":
     tps, etag = cmk.get_timeperiods()
 
@@ -294,7 +318,8 @@ if args.func == "cleanup":
 
     try:
         cmk.delete_host_tag_group(config['taggroup']['name'])
-        print(f"remove host tag group {config['taggroup']['name']}")
+        if args.debug:
+            print(f"remove host tag group {config['taggroup']['name']}")
         changes = True
     except:
         pass

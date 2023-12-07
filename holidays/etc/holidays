@@ -1,0 +1,33 @@
+{
+    "comment": "Configuration for ~/local/bin/holidays.py",
+
+    "workdays": [
+        {"day": "monday",    "time_ranges": [{"start": "09:00", "end": "18:00"}]},
+        {"day": "tuesday",   "time_ranges": [{"start": "09:00", "end": "18:00"}]},
+        {"day": "wednesday", "time_ranges": [{"start": "09:00", "end": "18:00"}]},
+        {"day": "thursday",  "time_ranges": [{"start": "09:00", "end": "18:00"}]},
+        {"day": "friday",    "time_ranges": [{"start": "09:00", "end": "15:00"}]}
+    ],
+
+    "taggroup": {
+        "name": "holidays",
+        "title": "Feiertage",
+	"empty_title": "Keine Feiertage",
+        "topic": "Notifications"
+    },
+
+    "timeperiods": {
+        "oncall": {
+            "name": "oncall",
+            "title": "Bereitschaft"
+        },
+        "workhours": {
+            "name": "workhours",
+            "title": "Arbeitszeit"
+        },
+        "holidays": {
+            "name": "holidays",
+            "title": "Feiertage"
+        }
+    }
+}
