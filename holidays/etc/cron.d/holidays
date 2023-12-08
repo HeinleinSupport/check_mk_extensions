@@ -3,6 +3,6 @@
 #
 1 1	12 2 *	$OMD_ROOT/local/bin/holidays.py delete_old
 #
-# Automatically add new holiday timeperiods in November
+# Automatically add new holiday timeperiods for next year in November
 #
-1 1	12 11 *	$OMD_ROOT/local/bin/holidays.py add_auto_holidays
+1 1	12 11 *	$OMD_ROOT/local/bin/holidays.py add_auto_holidays -y $(($(date '+%Y') + 1))
