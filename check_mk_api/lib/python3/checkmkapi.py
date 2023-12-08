@@ -1345,8 +1345,107 @@ class CMKRESTAPI():
                 return data, etag
             resp.raise_for_status()
         return None, None
-        
-#
+
+#   .--Notifications-------------------------------------------------------.
+#   |       _   _       _   _  __ _           _   _                        |
+#   |      | \ | | ___ | |_(_)/ _(_) ___ __ _| |_(_) ___  _ __  ___        |
+#   |      |  \| |/ _ \| __| | |_| |/ __/ _` | __| |/ _ \| '_ \/ __|       |
+#   |      | |\  | (_) | |_| |  _| | (_| (_| | |_| | (_) | | | \__ \       |
+#   |      |_| \_|\___/ \__|_|_| |_|\___\__,_|\__|_|\___/|_| |_|___/       |
+#   |                                                                      |
+#   +----------------------------------------------------------------------+
+#   |                                                                      |
+#   '----------------------------------------------------------------------'
+#.
+
+    def create_notification_rule(self, rule_config):
+        """Create a notification rule
+
+        Args:
+            rule_config: the configuration of the rule as described in the API documentation
+
+        Returns:
+            (rule, etag)
+        """
+        data, etag, resp = self._post_url(
+            "domain-types/notification_rule/collections/all",
+            data=rule_config,
+        )
+        if resp.status_code == 200:
+            return data, etag
+        resp.raise_for_status()
+
+    def get_notification_rules(self):
+        """Show all notification rules
+
+        Args:
+            None
+
+        Returns:
+            list of notification rules
+            etag
+        """
+        data, etag, resp = self._get_url(
+            "domain-types/notification_rule/collections/all",
+        )
+        if resp.status_code == 200:
+            return data, etag
+        resp.raise_for_status()
+
+    def get_notification_rule(self, rule_id):
+        """Show a notification rule
+
+        Args:
+            rule_id: UUID of the notification rule
+
+        Returns:
+            notification rule
+            etag
+        """
+        data, etag, resp = self._get_url(
+            f"objects/notification_rule/{rule_id}",
+        )
+        if resp.status_code == 200:
+            return data, etag
+        resp.raise_for_status()
+
+    def delete_notification_rule(self, rule_id):
+        """Delete a notification rule
+
+        Args:
+            rule_id: UUID of the notification rule
+
+        Returns:
+            Nothing
+        """
+        data, etag, resp = self._post_url(
+            f"objects/notification_rule/{rule_id}/actions/delete/invoke",
+        )
+        if resp.status_code == 204:
+            return
+        resp.raise_for_status()
+
+    def edit_notification_rule(self, rule_id, rule_config):
+        """Replace a notification rule
+
+        Args:
+            rule_id: UUID of the notification rule
+            rule_config: the configuration of the rule as described in the API documentation
+
+        Returns:
+            notification rule
+            etag
+        """
+        data, etag, resp = self._put_url(
+            f"objects/notification_rule/{rule_id}",
+            data=params
+        )
+        if resp.status_code == 200:
+            return data, etag
+        resp.raise_for_status()
+
+
+
 #
 #   .--MULTISITE-----------------------------------------------------------.
 #   |           __  __ _   _ _   _____ ___ ____ ___ _____ _____            |

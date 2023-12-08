@@ -148,6 +148,14 @@ Args:<br>
 Returns:<br>
 &nbsp;&nbsp;&nbsp;&nbsp;(taggroup,&nbsp;etag)</span></dd></dl>
 
+<dl><dt><a name="CMKRESTAPI-create_notification_rule"><strong>create_notification_rule</strong></a>(self, rule_config)</dt><dd><span class="code">Create&nbsp;a&nbsp;notification&nbsp;rule<br>
+&nbsp;<br>
+Args:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;rule_config:&nbsp;the&nbsp;configuration&nbsp;of&nbsp;the&nbsp;rule&nbsp;as&nbsp;described&nbsp;in&nbsp;the&nbsp;API&nbsp;documentation<br>
+&nbsp;<br>
+Returns:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;(rule,&nbsp;etag)</span></dd></dl>
+
 <dl><dt><a name="CMKRESTAPI-create_timeperiod"><strong>create_timeperiod</strong></a>(self, name, alias, active_time_ranges, exceptions=[], exclude=[])</dt><dd><span class="code">Create&nbsp;a&nbsp;time&nbsp;period<br>
 &nbsp;<br>
 Args:<br>
@@ -199,6 +207,14 @@ Returns:<br>
 &nbsp;<br>
 Args:<br>
 &nbsp;&nbsp;&nbsp;&nbsp;name:&nbsp;name&nbsp;of&nbsp;the&nbsp;host&nbsp;tag&nbsp;group<br>
+&nbsp;<br>
+Returns:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;Nothing</span></dd></dl>
+
+<dl><dt><a name="CMKRESTAPI-delete_notification_rule"><strong>delete_notification_rule</strong></a>(self, rule_id)</dt><dd><span class="code">Delete&nbsp;a&nbsp;notification&nbsp;rule<br>
+&nbsp;<br>
+Args:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;rule_id:&nbsp;UUID&nbsp;of&nbsp;the&nbsp;notification&nbsp;rule<br>
 &nbsp;<br>
 Returns:<br>
 &nbsp;&nbsp;&nbsp;&nbsp;Nothing</span></dd></dl>
@@ -297,6 +313,16 @@ Args:<br>
 &nbsp;<br>
 Returns:<br>
 &nbsp;&nbsp;&nbsp;&nbsp;host&nbsp;tag&nbsp;group<br>
+&nbsp;&nbsp;&nbsp;&nbsp;etag</span></dd></dl>
+
+<dl><dt><a name="CMKRESTAPI-edit_notification_rule"><strong>edit_notification_rule</strong></a>(self, rule_id, rule_config)</dt><dd><span class="code">Replace&nbsp;a&nbsp;notification&nbsp;rule<br>
+&nbsp;<br>
+Args:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;rule_id:&nbsp;UUID&nbsp;of&nbsp;the&nbsp;notification&nbsp;rule<br>
+&nbsp;&nbsp;&nbsp;&nbsp;rule_config:&nbsp;the&nbsp;configuration&nbsp;of&nbsp;the&nbsp;rule&nbsp;as&nbsp;described&nbsp;in&nbsp;the&nbsp;API&nbsp;documentation<br>
+&nbsp;<br>
+Returns:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;notification&nbsp;rule<br>
 &nbsp;&nbsp;&nbsp;&nbsp;etag</span></dd></dl>
 
 <dl><dt><a name="CMKRESTAPI-edit_timeperiod"><strong>edit_timeperiod</strong></a>(self, name, etag, alias=None, active_time_ranges=[], exceptions=[], exclude=[])</dt><dd><span class="code">Update&nbsp;a&nbsp;time&nbsp;period<br>
@@ -411,6 +437,24 @@ Args:<br>
 &nbsp;<br>
 Returns:<br>
 &nbsp;&nbsp;&nbsp;&nbsp;list&nbsp;of&nbsp;host&nbsp;tag&nbsp;groups<br>
+&nbsp;&nbsp;&nbsp;&nbsp;etag</span></dd></dl>
+
+<dl><dt><a name="CMKRESTAPI-get_notification_rule"><strong>get_notification_rule</strong></a>(self, rule_id)</dt><dd><span class="code">Show&nbsp;a&nbsp;notification&nbsp;rule<br>
+&nbsp;<br>
+Args:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;rule_id:&nbsp;UUID&nbsp;of&nbsp;the&nbsp;notification&nbsp;rule<br>
+&nbsp;<br>
+Returns:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;notification&nbsp;rule<br>
+&nbsp;&nbsp;&nbsp;&nbsp;etag</span></dd></dl>
+
+<dl><dt><a name="CMKRESTAPI-get_notification_rules"><strong>get_notification_rules</strong></a>(self)</dt><dd><span class="code">Show&nbsp;all&nbsp;notification&nbsp;rules<br>
+&nbsp;<br>
+Args:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;None<br>
+&nbsp;<br>
+Returns:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;list&nbsp;of&nbsp;notification&nbsp;rules<br>
 &nbsp;&nbsp;&nbsp;&nbsp;etag</span></dd></dl>
 
 <dl><dt><a name="CMKRESTAPI-get_rules"><strong>get_rules</strong></a>(self, ruleset_name)</dt><dd><span class="code">Gets&nbsp;rules&nbsp;from&nbsp;ruleset&nbsp;by&nbsp;name<br>
