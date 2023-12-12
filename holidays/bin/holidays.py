@@ -250,7 +250,7 @@ if args.func == "add_region":
     if args.debug:
         pprint(tp)
 
-    add_holiday_timeperiod(country=args.country, state=args.state, current_year=True)
+    # add_holiday_timeperiod(country=args.country, state=args.state, current_year=True)
 
     tg = None
     try:
@@ -282,6 +282,14 @@ if args.func == "add_region":
             topic = config['taggroup'].get('topic'),
             help = config['taggroup'].get('help')
         )
+
+    # nrs, etag = cmk.get_notification_rules()
+
+    # if args.debug:
+    #     pprint(nrs)
+
+    # for nr in nrs['value']:
+        
         
     cmk.activate()
     
