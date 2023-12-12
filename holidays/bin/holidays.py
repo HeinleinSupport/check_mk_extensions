@@ -266,8 +266,6 @@ if args.func == "add_region":
 
         cmk.edit_host_tag_group(config['taggroup']['name'], etag, tags=tags)
 
-        cmk.activate()
-
     else:
         tg, etag = cmk.create_host_tag_group(
             config['taggroup']['name'],
@@ -284,7 +282,8 @@ if args.func == "add_region":
             topic = config['taggroup'].get('topic'),
             help = config['taggroup'].get('help')
         )
-        cmk.activate()
+        
+    cmk.activate()
     
 if args.func == 'add_auto_holidays':
     tps, etag = cmk.get_timeperiods()
