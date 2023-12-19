@@ -75,5 +75,9 @@ for host, parent in hosts.items():
             wato.edit_host(host, etag=etag, unset_attr=['parents'])
             changes = True
 if changes:
-    wato.activate()
-
+    try:
+        wato.activate()
+    except checkmkapi.requests.exceptions.HTTPError as er:
+        resp = er.response
+        if resp.status_code != 401:
+            raise
