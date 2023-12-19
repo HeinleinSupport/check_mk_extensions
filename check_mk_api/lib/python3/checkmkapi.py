@@ -15,7 +15,7 @@ import warnings
 import os
 import json
 import time
-import sys
+# import sys
 import configparser
 import json
 
@@ -89,8 +89,8 @@ class CMKRESTAPI():
         else:
             data = {}
         etag = resp.headers.get('ETag', '').strip('"')
-        if resp.status_code >= 400:
-            sys.stderr.write("%r\n" % data)
+        # if resp.status_code >= 400:
+        #     sys.stderr.write("%r\n" % data)
         return data, etag, resp
 
     def _get_url(self, uri, data={}):
@@ -1369,7 +1369,9 @@ class CMKRESTAPI():
         """
         data, etag, resp = self._post_url(
             "domain-types/notification_rule/collections/all",
-            data=rule_config,
+            data={
+                "rule_config": rule_config,
+            },
         )
         if resp.status_code == 200:
             return data, etag
@@ -1438,7 +1440,9 @@ class CMKRESTAPI():
         """
         data, etag, resp = self._put_url(
             f"objects/notification_rule/{rule_id}",
-            data=params
+            data={
+                "rule_config": rule_config,
+            },
         )
         if resp.status_code == 200:
             return data, etag
@@ -1503,7 +1507,7 @@ class MultisiteAPI():
                 else:
                     return eval(resp.text)
             else:
-                sys.stderr.write("%s\n" % resp.text)
+                # sys.stderr.write("%s\n" % resp.text)
                 resp.raise_for_status()
 
     def view(self, view_name, **kwargs):
