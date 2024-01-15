@@ -24,6 +24,7 @@ from .agent_based_api.v1.type_defs import (
 from .agent_based_api.v1 import (
     check_levels,
     register,
+    render,
     Result,
     State,
     HostLabel,
@@ -35,7 +36,12 @@ import socket
 import dns.reversename
 import ipaddress
 
-def discovery_netifaces_rbl(params, section) -> DiscoveryResult:
+_reverse_domain = {
+    'inet': dns.reversename.ipv4_reverse_domain,
+    'inet6': dns.reversename.ipv6_reverse_domain,
+}
+
+def discovery_netifaces(params, section) -> DiscoveryResult:
     if_table, ip_stats = section
     if params.get('active'):
         include_list = list(map(ipaddress.ip_network, params.get('include', [])))
@@ -52,9 +58,6 @@ def discovery_netifaces_rbl(params, section) -> DiscoveryResult:
 def check_netifaces_rbl(item, params, section) -> CheckResult:
     levels = { 'warn': State.WARN,
                'crit': State.CRIT }
-    reverse_domain = { 'inet': dns.reversename.ipv4_reverse_domain,
-                       'inet6': dns.reversename.ipv6_reverse_domain,
-                     }
     if_table, ip_stats = section
     for iface, info in ip_stats.items():
         for family in ["inet", "inet6"]:
@@ -65,7 +68,7 @@ def check_netifaces_rbl(item, params, section) -> CheckResult:
                     count = 0
                     for level, levelres in levels.items():
                         for rbl in params.get(level, []):
-                            ptr = "%s.%s." % (dns.reversename.from_address(addr) - reverse_domain[family], rbl)
+                            ptr = "%s.%s." % (dns.reversename.from_address(addr) - _reverse_domain[family], rbl)
                             try:
                                 ip = socket.gethostbyname(ptr)
                                 count += 1
@@ -86,7 +89,7 @@ register.check_plugin(
     name="netifaces_rbl",
     service_name="RBL %s",
     sections=["lnx_if"],
-    discovery_function=discovery_netifaces_rbl,
+    discovery_function=discovery_netifaces,
     discovery_ruleset_name="discovery_rbl_rules",
     discovery_default_parameters={
         'active': False,
@@ -106,4 +109,61 @@ register.check_plugin(
         'crit': [ "bl.spamcop.org", "zen.spamhaus.org", "ix.dnsbl.manitu.net" ]
     },
     check_ruleset_name="netifaces_rbl",
+)
+
+def check_netifaces_senderscore(item, params, section) -> CheckResult:
+    if_table, ip_stats = section
+    rbl = "score.senderscore.com"
+    for iface, info in ip_stats.items():
+        for family in ["inet", "inet6"]:
+            for addr in map(lambda x: x.split('/')[0], getattr(info, family)):
+                if item == addr:
+                    yield Result(state=State.OK,
+                                 summary="bound on %s" % iface)
+                    ptr = "%s.%s." % (dns.reversename.from_address(addr) - _reverse_domain[family], rbl)
+                    try:
+                        ip = socket.gethostbyname(ptr)
+                        if ip.startswith("127.0.4."):
+                            score = int(ip[8:])
+                            yield from check_levels(
+                                score,
+                                levels_lower=params.get("score_levels"),
+                                metric_name="sender_score",
+                                boundaries=(0.0, 100.0),
+                                label="Sender Score",
+                                render_func=render.percent,
+                            )
+                    except socket.gaierror as er:
+                        if er.args[0] == socket.EAI_NONAME:
+                            yield Result(state=State.OK,
+                                         notice='not found in %s' % rbl)
+                        else:
+                            yield Result(state=State.WARN,
+                                         notice='%s yields %s' % (rbl, er))
+
+
+register.check_plugin(
+    name="netifaces_senderscore",
+    service_name="SenderScore %s",
+    sections=["lnx_if"],
+    discovery_function=discovery_netifaces,
+    discovery_ruleset_name="discovery_senderscore_rules",
+    discovery_default_parameters={
+        'active': False,
+        'include': [],
+        'exclude': [
+            '10.0.0.0/8',
+            '127.0.0.0/8',
+            '172.16.0.0/12',
+            '192.168.0.0/16',
+            '::1/128',
+            'fe80::/10',
+            'fc00::/7',
+        ],
+    },
+    check_function=check_netifaces_senderscore,
+    check_default_parameters={
+        'score_levels': (80, 70),
+    },
+    check_ruleset_name="netifaces_senderscore",
 )
