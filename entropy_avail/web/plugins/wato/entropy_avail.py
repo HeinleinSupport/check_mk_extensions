@@ -6,6 +6,7 @@ from cmk.gui.valuespec import (
     Dictionary,
     Percentage,
     Tuple,
+    Integer,
 )
 
 from cmk.gui.plugins.wato import (
