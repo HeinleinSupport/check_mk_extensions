@@ -14,6 +14,9 @@
 # to the Free Software Foundation, Inc., 51 Franklin St,  Fifth Floor,
 # Boston, MA 02110-1301 USA.
 
+from .agent_based_api.v1 import (
+    get_value_store,
+)
 
 from .agent_based_api.v1.type_defs import (
     CheckResult,
@@ -167,6 +170,7 @@ def check_apcaccess_temp(item, params, section):
         itemp = section[item]['ITEMP'].split(' ')
         yield from temperature.check_temperature(float(itemp[0]),
                                                  params,
+                                                 unique_name='apcaccess_temp.%s' % item,
                                                  dev_unit=itemp[1].lower())
 
 register.check_plugin(
