@@ -7,6 +7,7 @@ from cmk.gui.valuespec import (
     Tuple,
     Integer,
     IPNetwork,
+    ListOf,
     ListOfStrings,
     MonitoringState,
     TextAscii,
