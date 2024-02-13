@@ -20,9 +20,10 @@
 <a href="json.html">json</a><br>
 </td><td class="multicolumn"><a href="os.html">os</a><br>
 <a href="requests.html">requests</a><br>
-</td><td class="multicolumn"><a href="time.html">time</a><br>
-<a href="warnings.html">warnings</a><br>
-</td><td class="multicolumn"></td></tr></table></td></tr></table><p>
+</td><td class="multicolumn"><a href="sys.html">sys</a><br>
+<a href="time.html">time</a><br>
+</td><td class="multicolumn"><a href="warnings.html">warnings</a><br>
+</td></tr></table></td></tr></table><p>
 <table class="section">
 <tr class="decor index-decor heading-text">
 <td class="section-title" colspan=3>&nbsp;<br><strong class="bigsection">Classes</strong></td></tr>
@@ -103,6 +104,30 @@ Returns:<br>
 Returns:<br>
 &nbsp;&nbsp;&nbsp;&nbsp;(data,&nbsp;etag):&nbsp;usually&nbsp;both&nbsp;empty</span></dd></dl>
 
+<dl><dt><a name="CMKRESTAPI-bulk_create_host_groups"><strong>bulk_create_host_groups</strong></a>(self, entries={})</dt><dd><span class="code">Bulk&nbsp;create&nbsp;host&nbsp;groups<br>
+&nbsp;<br>
+Args:<br>
+&nbsp;&nbsp;&nbsp;entries:&nbsp;Mapping&nbsp;of&nbsp;host&nbsp;group&nbsp;name&nbsp;to&nbsp;alias&nbsp;(title)<br>
+&nbsp;<br>
+Returns:<br>
+&nbsp;&nbsp;(list&nbsp;of&nbsp;host&nbsp;groups,&nbsp;etag)</span></dd></dl>
+
+<dl><dt><a name="CMKRESTAPI-bulk_delete_host_groups"><strong>bulk_delete_host_groups</strong></a>(self, entries=[])</dt><dd><span class="code">Bulk&nbsp;delete&nbsp;host&nbsp;groups<br>
+&nbsp;<br>
+Args:<br>
+&nbsp;&nbsp;&nbsp;entries:&nbsp;list&nbsp;of&nbsp;host&nbsp;group&nbsp;names<br>
+&nbsp;<br>
+Returns:<br>
+&nbsp;&nbsp;None</span></dd></dl>
+
+<dl><dt><a name="CMKRESTAPI-bulk_edit_host_groups"><strong>bulk_edit_host_groups</strong></a>(self, entries={})</dt><dd><span class="code">Bulk&nbsp;update&nbsp;host&nbsp;groups&nbsp;(change&nbsp;alias)<br>
+&nbsp;<br>
+Args:<br>
+&nbsp;&nbsp;&nbsp;entries:&nbsp;Mapping&nbsp;of&nbsp;host&nbsp;group&nbsp;name&nbsp;to&nbsp;alias&nbsp;(title)<br>
+&nbsp;<br>
+Returns:<br>
+&nbsp;&nbsp;(list&nbsp;of&nbsp;host&nbsp;groups,&nbsp;etag)</span></dd></dl>
+
 <dl><dt><a name="CMKRESTAPI-create_aux_tag"><strong>create_aux_tag</strong></a>(self, name, title, topic, help=None)</dt><dd><span class="code">Create&nbsp;an&nbsp;auxiliary&nbsp;tag<br>
 &nbsp;<br>
 Args:<br>
@@ -134,6 +159,15 @@ Returns:<br>
 &nbsp;&nbsp;&nbsp;&nbsp;(data,&nbsp;etag)<br>
 &nbsp;&nbsp;&nbsp;&nbsp;data:&nbsp;folder's&nbsp;data<br>
 &nbsp;&nbsp;&nbsp;&nbsp;etag:&nbsp;current&nbsp;etag&nbsp;value</span></dd></dl>
+
+<dl><dt><a name="CMKRESTAPI-create_host_group"><strong>create_host_group</strong></a>(self, name, title)</dt><dd><span class="code">Create&nbsp;host&nbsp;group<br>
+&nbsp;<br>
+Args:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;name:&nbsp;internal&nbsp;name&nbsp;of&nbsp;host&nbsp;group<br>
+&nbsp;&nbsp;&nbsp;&nbsp;title:&nbsp;human&nbsp;readable&nbsp;alias&nbsp;of&nbsp;host&nbsp;group<br>
+&nbsp;<br>
+Returns:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;(host&nbsp;group,&nbsp;etag)</span></dd></dl>
 
 <dl><dt><a name="CMKRESTAPI-create_host_tag_group"><strong>create_host_tag_group</strong></a>(self, name, title, tags, topic=None, help=None)</dt><dd><span class="code">Create&nbsp;a&nbsp;host&nbsp;tag&nbsp;group<br>
 &nbsp;<br>
@@ -190,7 +224,13 @@ Returns:<br>
 Args:<br>
 &nbsp;&nbsp;&nbsp;&nbsp;name:&nbsp;The&nbsp;name&nbsp;of&nbsp;the&nbsp;contact&nbsp;group.</span></dd></dl>
 
-<dl><dt><a name="CMKRESTAPI-delete_folder"><strong>delete_folder</strong></a>(self, folder)</dt></dl>
+<dl><dt><a name="CMKRESTAPI-delete_folder"><strong>delete_folder</strong></a>(self, folder)</dt><dd><span class="code">Delete&nbsp;a&nbsp;folder<br>
+&nbsp;<br>
+Args:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;folder:&nbsp;Folder&nbsp;path<br>
+&nbsp;<br>
+Returns:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;({},&nbsp;'')</span></dd></dl>
 
 <dl><dt><a name="CMKRESTAPI-delete_host"><strong>delete_host</strong></a>(self, hostname)</dt><dd><span class="code">Deletes&nbsp;a&nbsp;host&nbsp;from&nbsp;the&nbsp;CheckMK&nbsp;configuration.<br>
 &nbsp;<br>
@@ -201,6 +241,14 @@ Returns:<br>
 &nbsp;&nbsp;&nbsp;&nbsp;(data,&nbsp;etag)<br>
 &nbsp;&nbsp;&nbsp;&nbsp;data:&nbsp;host's&nbsp;data<br>
 &nbsp;&nbsp;&nbsp;&nbsp;etag:&nbsp;current&nbsp;etag&nbsp;value</span></dd></dl>
+
+<dl><dt><a name="CMKRESTAPI-delete_host_group"><strong>delete_host_group</strong></a>(self, name)</dt><dd><span class="code">Delete&nbsp;a&nbsp;host&nbsp;group<br>
+&nbsp;<br>
+Args:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;name:&nbsp;internal&nbsp;name&nbsp;of&nbsp;host&nbsp;group<br>
+&nbsp;<br>
+Returns:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;None</span></dd></dl>
 
 <dl><dt><a name="CMKRESTAPI-delete_host_tag_group"><strong>delete_host_tag_group</strong></a>(self, name)</dt><dd><span class="code">Delete&nbsp;a&nbsp;host&nbsp;tag&nbsp;group<br>
 &nbsp;<br>
@@ -235,7 +283,7 @@ Args:<br>
 Returns:<br>
 &nbsp;&nbsp;&nbsp;&nbsp;Nothing</span></dd></dl>
 
-<dl><dt><a name="CMKRESTAPI-disc_host"><strong>disc_host</strong></a>(self, hostname)</dt><dd><span class="code">Discovers&nbsp;services&nbsp;on&nbsp;a&nbsp;host.<br>
+<dl><dt><a name="CMKRESTAPI-disc_host"><strong>disc_host</strong></a>(self, hostname, mode='new')</dt><dd><span class="code">Discovers&nbsp;services&nbsp;on&nbsp;a&nbsp;host.<br>
 &nbsp;<br>
 Args:<br>
 &nbsp;&nbsp;&nbsp;&nbsp;hostname:&nbsp;name&nbsp;of&nbsp;the&nbsp;host<br>
@@ -244,6 +292,15 @@ Returns:<br>
 &nbsp;&nbsp;&nbsp;&nbsp;(data,&nbsp;etag)<br>
 &nbsp;&nbsp;&nbsp;&nbsp;data:&nbsp;discovery&nbsp;data<br>
 &nbsp;&nbsp;&nbsp;&nbsp;etag:&nbsp;current&nbsp;etag&nbsp;value</span></dd></dl>
+
+<dl><dt><a name="CMKRESTAPI-download_agent"><strong>download_agent</strong></a>(self, hostname, ostype)</dt><dd><span class="code">Download&nbsp;agent&nbsp;package&nbsp;for&nbsp;a&nbsp;host<br>
+&nbsp;<br>
+Args:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;hostname:&nbsp;name&nbsp;of&nbsp;the&nbsp;host<br>
+&nbsp;&nbsp;&nbsp;&nbsp;ostype:&nbsp;type&nbsp;of&nbsp;agent&nbsp;("aix_tgz",&nbsp;"linux_deb",&nbsp;"linux_rpm",&nbsp;"linux_tgz",&nbsp;"solaris_pkg",&nbsp;"solaris_tgz"&nbsp;or&nbsp;"windows_msi")<br>
+&nbsp;<br>
+Returns:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;filename,&nbsp;filecontent</span></dd></dl>
 
 <dl><dt><a name="CMKRESTAPI-edit_aux_tag"><strong>edit_aux_tag</strong></a>(self, name, title=None, topic=None, help=None)</dt><dd><span class="code">Update&nbsp;an&nbsp;auxiliary&nbsp;tag<br>
 &nbsp;<br>
@@ -257,7 +314,7 @@ Returns:<br>
 &nbsp;&nbsp;&nbsp;&nbsp;auxiliary&nbsp;tag<br>
 &nbsp;&nbsp;&nbsp;&nbsp;etag</span></dd></dl>
 
-<dl><dt><a name="CMKRESTAPI-edit_contactgroup"><strong>edit_contactgroup</strong></a>(self, name, alias, etag=None)</dt><dd><span class="code">Change&nbsp;the&nbsp;contact&nbsp;group's&nbsp;alias<br>
+<dl><dt><a name="CMKRESTAPI-edit_contactgroup"><strong>edit_contactgroup</strong></a>(self, name, alias, etag='*')</dt><dd><span class="code">Change&nbsp;the&nbsp;contact&nbsp;group's&nbsp;alias<br>
 &nbsp;<br>
 Args:<br>
 &nbsp;&nbsp;&nbsp;&nbsp;name:&nbsp;The&nbsp;name&nbsp;of&nbsp;the&nbsp;contact&nbsp;group.<br>
@@ -299,6 +356,15 @@ Returns:<br>
 &nbsp;&nbsp;&nbsp;&nbsp;(data,&nbsp;etag)<br>
 &nbsp;&nbsp;&nbsp;&nbsp;data:&nbsp;host's&nbsp;data<br>
 &nbsp;&nbsp;&nbsp;&nbsp;etag:&nbsp;current&nbsp;etag&nbsp;value</span></dd></dl>
+
+<dl><dt><a name="CMKRESTAPI-edit_host_group"><strong>edit_host_group</strong></a>(self, name, title, etag='*')</dt><dd><span class="code">Update&nbsp;a&nbsp;host&nbsp;group<br>
+&nbsp;<br>
+Args:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;name:&nbsp;internal&nbsp;name&nbsp;of&nbsp;host&nbsp;group<br>
+&nbsp;&nbsp;&nbsp;&nbsp;title:&nbsp;human&nbsp;readable&nbsp;alias&nbsp;of&nbsp;host&nbsp;group<br>
+&nbsp;<br>
+Returns:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;(host&nbsp;group,&nbsp;etag)</span></dd></dl>
 
 <dl><dt><a name="CMKRESTAPI-edit_host_tag_group"><strong>edit_host_tag_group</strong></a>(self, name, etag, title=None, topic=None, help=None, tags=[])</dt><dd><span class="code">Update&nbsp;a&nbsp;host&nbsp;tag&nbsp;group<br>
 &nbsp;<br>
@@ -363,6 +429,15 @@ Returns:<br>
 &nbsp;&nbsp;&nbsp;&nbsp;data:&nbsp;list&nbsp;of&nbsp;folders<br>
 &nbsp;&nbsp;&nbsp;&nbsp;etag:&nbsp;current&nbsp;etag&nbsp;value</span></dd></dl>
 
+<dl><dt><a name="CMKRESTAPI-get_all_host_groups"><strong>get_all_host_groups</strong></a>(self)</dt><dd><span class="code">Show&nbsp;all&nbsp;host&nbsp;groups<br>
+&nbsp;<br>
+Args:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;None<br>
+&nbsp;<br>
+Returns:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;list&nbsp;of&nbsp;host&nbsp;groups<br>
+&nbsp;&nbsp;&nbsp;&nbsp;etag</span></dd></dl>
+
 <dl><dt><a name="CMKRESTAPI-get_all_hosts"><strong>get_all_hosts</strong></a>(self, effective_attr=False, attributes=True)</dt><dd><span class="code">Gets&nbsp;all&nbsp;hosts&nbsp;from&nbsp;the&nbsp;CheckMK&nbsp;configuration.<br>
 &nbsp;<br>
 Args:<br>
@@ -371,6 +446,15 @@ Args:<br>
 &nbsp;<br>
 Returns:<br>
 &nbsp;&nbsp;&nbsp;&nbsp;hosts:&nbsp;Dictionary&nbsp;of&nbsp;host&nbsp;data&nbsp;or&nbsp;dict&nbsp;of&nbsp;hostname&nbsp;-&gt;&nbsp;URL&nbsp;depending&nbsp;on&nbsp;aatributes&nbsp;parameter</span></dd></dl>
+
+<dl><dt><a name="CMKRESTAPI-get_all_notification_rules"><strong>get_all_notification_rules</strong></a>(self)</dt><dd><span class="code">Show&nbsp;all&nbsp;notification&nbsp;rules<br>
+&nbsp;<br>
+Args:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;None<br>
+&nbsp;<br>
+Returns:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;list&nbsp;of&nbsp;notification&nbsp;rules<br>
+&nbsp;&nbsp;&nbsp;&nbsp;etag</span></dd></dl>
 
 <dl><dt><a name="CMKRESTAPI-get_aux_tag"><strong>get_aux_tag</strong></a>(self, name)</dt><dd><span class="code">Show&nbsp;an&nbsp;auxiliary&nbsp;tag<br>
 &nbsp;<br>
@@ -420,6 +504,14 @@ Returns:<br>
 &nbsp;&nbsp;&nbsp;&nbsp;data:&nbsp;host's&nbsp;data<br>
 &nbsp;&nbsp;&nbsp;&nbsp;etag:&nbsp;current&nbsp;etag&nbsp;value</span></dd></dl>
 
+<dl><dt><a name="CMKRESTAPI-get_host_group"><strong>get_host_group</strong></a>(self, name)</dt><dd><span class="code">Show&nbsp;a&nbsp;host&nbsp;group<br>
+&nbsp;<br>
+Args:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;name:&nbsp;internal&nbsp;name&nbsp;of&nbsp;host&nbsp;group<br>
+&nbsp;<br>
+Returns:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;(host&nbsp;group,&nbsp;etag)</span></dd></dl>
+
 <dl><dt><a name="CMKRESTAPI-get_host_tag_group"><strong>get_host_tag_group</strong></a>(self, name)</dt><dd><span class="code">Show&nbsp;a&nbsp;host&nbsp;tag&nbsp;group<br>
 &nbsp;<br>
 Args:<br>
@@ -445,15 +537,6 @@ Args:<br>
 &nbsp;<br>
 Returns:<br>
 &nbsp;&nbsp;&nbsp;&nbsp;notification&nbsp;rule<br>
-&nbsp;&nbsp;&nbsp;&nbsp;etag</span></dd></dl>
-
-<dl><dt><a name="CMKRESTAPI-get_notification_rules"><strong>get_notification_rules</strong></a>(self)</dt><dd><span class="code">Show&nbsp;all&nbsp;notification&nbsp;rules<br>
-&nbsp;<br>
-Args:<br>
-&nbsp;&nbsp;&nbsp;&nbsp;None<br>
-&nbsp;<br>
-Returns:<br>
-&nbsp;&nbsp;&nbsp;&nbsp;list&nbsp;of&nbsp;notification&nbsp;rules<br>
 &nbsp;&nbsp;&nbsp;&nbsp;etag</span></dd></dl>
 
 <dl><dt><a name="CMKRESTAPI-get_rules"><strong>get_rules</strong></a>(self, ruleset_name)</dt><dd><span class="code">Gets&nbsp;rules&nbsp;from&nbsp;ruleset&nbsp;by&nbsp;name<br>
@@ -500,7 +583,7 @@ Args:<br>
 Returns:<br>
 &nbsp;&nbsp;&nbsp;&nbsp;(data,&nbsp;etag):&nbsp;user&nbsp;<a href="builtins.html#object">object</a>&nbsp;and&nbsp;eTag</span></dd></dl>
 
-<dl><dt><a name="CMKRESTAPI-move_folder"><strong>move_folder</strong></a>(self, folder, destination, etag=None)</dt><dd><span class="code">Moves&nbsp;a&nbsp;folder&nbsp;into&nbsp;a&nbsp;destination&nbsp;folder.<br>
+<dl><dt><a name="CMKRESTAPI-move_folder"><strong>move_folder</strong></a>(self, folder, destination, etag='*')</dt><dd><span class="code">Moves&nbsp;a&nbsp;folder&nbsp;into&nbsp;a&nbsp;destination&nbsp;folder.<br>
 &nbsp;<br>
 Args:<br>
 &nbsp;&nbsp;&nbsp;&nbsp;folder:&nbsp;The&nbsp;path&nbsp;of&nbsp;the&nbsp;folder&nbsp;being&nbsp;requested.<br>
