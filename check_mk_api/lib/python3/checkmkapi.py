@@ -1395,7 +1395,155 @@ class CMKRESTAPI():
             },
         )
 
+#   .--Host Groups---------------------------------------------------------.
+#   |        _   _           _      ____                                   |
+#   |       | | | | ___  ___| |_   / ___|_ __ ___  _   _ _ __  ___         |
+#   |       | |_| |/ _ \/ __| __| | |  _| '__/ _ \| | | | '_ \/ __|        |
+#   |       |  _  | (_) \__ \ |_  | |_| | | | (_) | |_| | |_) \__ \        |
+#   |       |_| |_|\___/|___/\__|  \____|_|  \___/ \__,_| .__/|___/        |
+#   |                                                   |_|                |
+#   +----------------------------------------------------------------------+
+#   |                                                                      |
+#   '----------------------------------------------------------------------'
+#.
 
+    def bulk_create_host_groups(self, entries = {}):
+        """Bulk create host groups
+
+        Args:
+           entries: Mapping of host group name to alias (title)
+
+        Returns:
+          (list of host groups, etag)
+        """
+        list_of_host_groups = []
+        for name, title in entries.items():
+            list_of_host_groups.append({'name': name, 'alias': title})
+        return self._request(
+            self._post_url,
+            "domain-types/host_group_config/actions/bulk-create/invoke",
+            data={
+                "entries": list_of_host_groups,
+            })
+        
+
+    def bulk_delete_host_groups(self, entries = []):
+        """Bulk delete host groups
+
+        Args:
+           entries: list of host group names
+
+        Returns:
+          None
+        """
+        return self._request(
+            self._post_url,
+            "domain-types/host_group_config/actions/bulk-delete/invoke",
+            ok_code=204,
+            data={
+                "entries": entries,
+            })
+
+    def bulk_edit_host_groups(self, entries = {}):
+        """Bulk update host groups (change alias)
+
+        Args:
+           entries: Mapping of host group name to alias (title)
+
+        Returns:
+          (list of host groups, etag)
+        """
+        list_of_host_groups = []
+        for name, title in entries.items():
+            list_of_host_groups.append({'name': name, 'attributes': {'alias': title}})
+        return self._request(
+            self._put_url,
+            "domain-types/host_group_config/actions/bulk-update/invoke",
+            etag='*',
+            data={
+                "entries": list_of_host_groups,
+            })
+
+    def create_host_group(self, name, title):
+        """Create host group
+
+        Args:
+            name: internal name of host group
+            title: human readable alias of host group
+
+        Returns:
+            (host group, etag)
+        """
+        return self._request(
+            self._post_url,
+            "domain-types/host_group_config/collections/all",
+            data={
+                "name": name,
+                "alias": title,
+            })
+
+    def get_all_host_groups(self):
+        """Show all host groups
+
+        Args:
+            None
+
+        Returns:
+            list of host groups
+            etag
+        """
+        return self._request(
+            self._get_url,
+            "domain-types/host_group_config/collections/all",
+        )
+
+    def delete_host_group(self, name):
+        """Delete a host group
+
+        Args:
+            name: internal name of host group
+
+        Returns:
+            None
+        """
+        return self._request(
+            self._delete_url,
+            f"objects/host_group_config/{name}",
+            ok_code=204,
+        )
+        
+    def get_host_group(self, name):
+        """Show a host group
+
+        Args:
+            name: internal name of host group
+
+        Returns:
+            (host group, etag)
+        """
+        return self._request(
+            self._get_url,
+            f"objects/host_group_config/{name}"
+        )
+
+    def edit_host_group(self, name, title, etag="*"):
+        """Update a host group
+
+        Args:
+            name: internal name of host group
+            title: human readable alias of host group
+
+        Returns:
+            (host group, etag)
+        """
+        return self._request(
+            self._put_url,
+            f"objects/host_group_config/{name}",
+            etag=etag,
+            data={
+                "alias": title,
+            })
+        
 
 #
 #   .--MULTISITE-----------------------------------------------------------.
