@@ -15,7 +15,7 @@ import warnings
 import os
 import json
 import time
-# import sys
+import sys
 import configparser
 import json
 
@@ -93,7 +93,7 @@ class CMKRESTAPI():
         #     sys.stderr.write("%r\n" % data)
         return data, etag, resp
 
-    def _get_url(self, uri, data={}):
+    def _get_url(self, uri, etag=None, data={}):
         return self._check_response(
             self._session.get(
                 f"{self._api_url}/{uri}",
@@ -117,20 +117,22 @@ class CMKRESTAPI():
             )
         )
 
-    def _put_url(self, uri, etag, data={}):
+    def _put_url(self, uri, etag=None, data={}):
+        headers={
+            "Content-Type": 'application/json',
+        }
+        if etag:
+            headers['If-Match'] = etag
         return self._check_response(
             self._session.put(
                 f"{self._api_url}/{uri}",
                 json=data,
-                headers={
-                    "Content-Type": 'application/json',
-                    "If-Match": etag,
-                },
+                headers=headers,
                 allow_redirects=False,
             )
         )
 
-    def _delete_url(self, uri, etag=None):
+    def _delete_url(self, uri, etag=None, data=None):
         headers={
             "Content-Type": 'application/json',
         }
@@ -143,6 +145,14 @@ class CMKRESTAPI():
                 allow_redirects=False,
             )
         )
+
+    def _request(self, method, uri, ok_code=200, etag=None, data=None):
+        if isinstance(ok_code, int):
+            ok_code=[ok_code]
+        data, etag, resp = method(uri, etag, data)
+        if resp.status_code in ok_code:
+            return data, etag
+        resp.raise_for_status()        
 
 #   .--Folder--------------------------------------------------------------.
 #   |                     _____     _     _                                |
@@ -176,13 +186,11 @@ class CMKRESTAPI():
         }
         if name:
             params['name'] = name
-        data, etag, resp = self._post_url(
+        return self._request(
+            self._post_url,
             "domain-types/folder_config/collections/all",
-            data=params
+            data=params,
         )
-        if resp.status_code == 200:
-            return data, etag
-        resp.raise_for_status()
 
     def get_folder(self, folder, show_hosts=False):
         """Gets a single folder
@@ -197,15 +205,13 @@ class CMKRESTAPI():
             etag: current etag value
         """
         folder = folder.replace('/', '~')
-        data, etag, resp = self._get_url(
+        return self._request(
+            self._get_url,
             f"objects/folder_config/{folder}",
             data={
                 "show_hosts": show_hosts,
             }
         )
-        if resp.status_code == 200:
-            return data, etag
-        resp.raise_for_status()
 
     def get_all_folders(self, parent='/', recursive=False, show_hosts=False):
         """Gets a folder subtree
@@ -221,7 +227,8 @@ class CMKRESTAPI():
             etag: current etag value
         """
         parent = parent.replace('/', '~')
-        data, etag, resp = self._get_url(
+        return self._request(
+            self._get_url,
             f"domain-types/folder_config/collections/all",
             data={
                 "parent": parent,
@@ -229,18 +236,22 @@ class CMKRESTAPI():
                 "show_hosts": show_hosts,
             }
         )
-        if resp.status_code == 200:
-            return data, etag
-        resp.raise_for_status()
 
     def delete_folder(self, folder):
+        """Delete a folder
+
+        Args:
+            folder: Folder path
+
+        Returns:
+            ({}, '')
+        """
         folder = folder.replace('/', '~')
-        data, etag, resp = self._delete_url(
-            f"objects/folder_config/{folder}"
+        return self._request(
+            self._delete_url,
+            f"objects/folder_config/{folder}",
+            ok_code=204,
         )
-        if resp.status_code == 204:
-            return
-        resp.raise_for_status()
 
     def edit_folder(self, folder, etag=None, title=None, attributes={}, update_attr={}, remove_attr=[]):
         """Edit a folder
@@ -273,17 +284,15 @@ class CMKRESTAPI():
         elif remove_attr:
             changes['remove_attributes'] = remove_attr
         if changes:
-            data, etag, resp = self._put_url(
+            return self._request(
+                self._put_url,
                 f"objects/folder_config/{folder}",
-                etag,
+                etag=etag,
                 data=changes,
             )
-            if resp.status_code == 200:
-                return data, etag
-            resp.raise_for_status()
         return None, None
 
-    def move_folder(self, folder, destination, etag=None):
+    def move_folder(self, folder, destination, etag="*"):
         """Moves a folder into a destination folder.
 
         Args:
@@ -298,18 +307,14 @@ class CMKRESTAPI():
         """
         folder = folder.replace('/', '~')
         destination = destination.replace('/', '~')
-        if not etag:
-            folderdata, etag = self.get_folder(folder)
-        data, etag, resp = self._post_url(
+        return self._request(
+            self._post_url,
             f"objects/folder_config/{folder}/actions/move/invoke",
-            etag,
+            etag=etag,
             data={
                 "destination": destination,
             },
         )
-        if resp.status_code == 200:
-            return data, etag
-        resp.raise_for_status()
 
 #   .--Host----------------------------------------------------------------.
 #   |                         _   _           _                            |
@@ -335,7 +340,8 @@ class CMKRESTAPI():
             data: host's data
             etag: current etag value
         """
-        data, etag, resp = self._post_url(
+        return self._request(
+            self._post_url,
             f"domain-types/host_config/collections/all",
             data={
                 'host_name': hostname,
@@ -343,9 +349,6 @@ class CMKRESTAPI():
                 'attributes': attributes,
             },
         )
-        if resp.status_code == 200:
-            return data, etag
-        resp.raise_for_status()
 
     def get_host(self, hostname, effective_attr=False):
         """Gets host configuration including eTag value.
@@ -359,13 +362,11 @@ class CMKRESTAPI():
             data: host's data
             etag: current etag value
         """
-        data, etag, resp = self._get_url(
+        return self._request(
+            self._get_url,
             f"objects/host_config/{hostname}",
             data={"effective_attributes": "true" if effective_attr else "false"}
         )
-        if resp.status_code == 200:
-            return data, etag
-        resp.raise_for_status()
 
     def get_all_hosts(self, effective_attr=False, attributes=True):
         """Gets all hosts from the CheckMK configuration.
@@ -377,12 +378,11 @@ class CMKRESTAPI():
         Returns:
             hosts: Dictionary of host data or dict of hostname -> URL depending on aatributes parameter
         """
-        data, etag, resp = self._get_url(
+        data, etag = self._request(
+            self._get_url,
             f"domain-types/host_config/collections/all",
             data={"effective_attributes": "true" if effective_attr else "false"}
         )
-        if resp.status_code != 200:
-            resp.raise_for_status()
         hosts = {}
         etags = {}
         for hinfo in data.get('value', []):
@@ -412,12 +412,11 @@ class CMKRESTAPI():
             data: host's data
             etag: current etag value
         """
-        data, etag, resp = self._delete_url(
+        return self._request(
+            self._delete_url,
             f"objects/host_config/{hostname}",
+            ok_code=204,
         )
-        if resp.status_code == 204:
-            return
-        resp.raise_for_status()
 
     def edit_host(self, hostname, etag=None, set_attr={}, update_attr={}, unset_attr=[]):
         """Edit a host in the CheckMK configuration.
@@ -446,17 +445,15 @@ class CMKRESTAPI():
         elif unset_attr:
             changes['remove_attributes'] = unset_attr
         if changes:
-            data, etag, resp = self._put_url(
+            return self._request(
+                self._put_url,
                 f"objects/host_config/{hostname}",
-                etag,
+                etag=etag,
                 data=changes,
             )
-            if resp.status_code == 200:
-                return data, etag
-            resp.raise_for_status()
         return None, None
 
-    def disc_host(self, hostname):
+    def disc_host(self, hostname, mode="new"):
         """Discovers services on a host.
 
         Args:
@@ -467,12 +464,12 @@ class CMKRESTAPI():
             data: discovery data
             etag: current etag value
         """
-        data, etag, resp = self._post_url(
-            f"objects/host/{hostname}/actions/discover-services/mode/tabula-rasa"
+        return self._request(
+            self._post_url,
+            f"domain-types/service_discovery_run/actions/start/invoke",
+            ok_code=[200, 204, 302],
+            data={"host_name": hostname, "mode": mode},
         )
-        if resp.status_code == 204:
-            return data, etag
-        resp.raise_for_status()
 
 #   .--Activation----------------------------------------------------------.
 #   |              _        _   _            _   _                         |
@@ -543,24 +540,34 @@ class CMKRESTAPI():
         Returns:
             (data, etag): usually both empty
         """
-        data, etag, resp = self._post_url(
+        return self._request(
+            self._post_url,
             "domain-types/agent/actions/bake/invoke",
         )
-        if resp.status_code == 200:
-            return data, etag
-        resp.raise_for_status()
 
-    # def download_agent(self, hostname, ostype):
-    #     data, etag, resp = self._get_url(
-    #         "objects/agent/ed81f94eb95181ca",
-    #         data={
-    #             "os_type": ostype,
-    #             # "host_name": hostname,
-    #         },
-    #     )
-    #     if resp.status_code == 204:
-    #         return data, etag
-    #     resp.raise_for_status()
+    def download_agent(self, hostname, ostype):
+        """Download agent package for a host
+
+        Args:
+            hostname: name of the host
+            ostype: type of agent ("aix_tgz", "linux_deb", "linux_rpm", "linux_tgz", "solaris_pkg", "solaris_tgz" or "windows_msi")
+
+        Returns:
+            filename, filecontent
+        """
+
+        data, etag, resp = self._get_url(
+            "domain-types/agent/actions/download_by_host/invoke",
+            data={
+                "agent_type": "host_name",
+                "host_name": hostname,
+                "os_type": ostype,
+            })
+        if resp.status_code == 200:
+            filename = resp.headers["content-disposition"].split("filename=")[1].strip('"')
+            resp.raw.decode_content = True
+            return filename, resp.raw
+        resp.raise_for_status()
 
 #   .--Downtime------------------------------------------------------------.
 #   |           ____                      _   _                            |
@@ -591,8 +598,10 @@ class CMKRESTAPI():
         if services:
             if not isinstance(services, list):
                 services = [ services ]
-            data, etag, resp = self._post_url(
+            return self._request(
+                self._post_url,
                 "domain-types/downtime/collections/service",
+                ok_code=204,
                 data={
                     'downtime_type': 'service',
                     'start_time':    start_time, # 2017-07-21T17:32:28Z
@@ -603,8 +612,10 @@ class CMKRESTAPI():
                 }
             )
         else:
-            data, etag, resp = self._post_url(
+            return self._request(
+                self._post_url,
                 "domain-types/downtime/collections/host",
+                ok_code=204,
                 data={
                     'downtime_type': 'host',
                     'start_time':    start_time, # 2017-07-21T17:32:28Z
@@ -613,9 +624,6 @@ class CMKRESTAPI():
                     'host_name':     hostname,
                 }
             )
-        if resp.status_code == 204:
-            return data, etag
-        resp.raise_for_status()
 
     def revoke_downtime(self, hostname, services = None):
         """Revokes scheduled downtime
@@ -636,13 +644,12 @@ class CMKRESTAPI():
                 services = [ services ]
             params['services'] = services
 
-        data, etag, resp = self._post_url(
+        return self._request(
+            self._post_url,
             "domain-types/downtime/actions/delete/invoke",
+            ok_code=204,
             data=params,
         )
-        if resp.status_code == 204:
-            return data, etag
-        resp.raise_for_status()
 
 #   .--Acknowledge Problem-------------------------------------------------.
 #   |       _        _                        _          _                 |
@@ -681,13 +688,12 @@ class CMKRESTAPI():
             'persistent': persistent,
             'notify': notify,
         }
-        data, etag, resp = self._post_url(
+        return self._request(
+            self._post_url,
             "/domain-types/acknowledge/collections/host",
+            ok_code=204,
             data=params,
         )
-        if resp.status_code == 204:
-            return data, etag
-        resp.raise_for_status()
 
     def acknowledge_service_problem(self, hostname, service, comment, sticky=True, persistent=False, notify=False):
         """Acknowledges service problem
@@ -710,13 +716,12 @@ class CMKRESTAPI():
             'persistent': persistent,
             'notify': notify,
         }
-        data, etag, resp = self._post_url(
+        return self._request(
+            self._post_url,
             "/domain-types/acknowledge/collections/service",
+            ok_code=204,
             data=params,
         )
-        if resp.status_code == 204:
-            return data, etag
-        resp.raise_for_status()
 
 #   .--User----------------------------------------------------------------.
 #   |                         _   _                                        |
@@ -746,13 +751,11 @@ class CMKRESTAPI():
             'fullname': fullname,
         }
         params.update(args)
-        data, etag, resp = self._post_url(
+        return self._request(
+            self._post_url,
             "domain-types/user_config/collections/all",
             data=params,
         )
-        if resp.status_code == 200:
-            return data, etag
-        resp.raise_for_status()
 
     def get_user(self, username):
         """Show a user
@@ -763,12 +766,10 @@ class CMKRESTAPI():
         Returns:
             (data, etag): user object and eTag
         """
-        data, etag, resp = self._get_url(
+        return self._request(
+            self._get_url,
             f"objects/user_config/{username}",
         )
-        if resp.status_code == 200:
-            return data, etag
-        resp.raise_for_status()
 
     def edit_user(self, username, etag=None, args=None):
         """Edit a user
@@ -783,14 +784,12 @@ class CMKRESTAPI():
         """
         if not etag:
             userdata, etag = self.get_user(username)
-        data, etag, resp = self._put_url(
+        return self._request(
+            self._put_url,
             f"objects/host_config/{username}",
             etag,
             data=args
         )
-        if resp.status_code == 200:
-            return data, etag
-        resp.raise_for_status()
 
     def delete_user(self, username):
         """Delete a user
@@ -801,12 +800,11 @@ class CMKRESTAPI():
         Returns:
             Nothing
         """
-        data, etag, resp = self._delete_url(
+        return self._request(
+            self._delete_url,
             f"objects/user_config/{username}",
+            ok_code=204,
         )
-        if resp.status_code == 204:
-            return
-        resp.raise_for_status()
 
 #   .--Contact Group-------------------------------------------------------.
 #   |   ____            _             _      ____                          |
@@ -830,16 +828,14 @@ class CMKRESTAPI():
         Returns:
             (data, etag): contact group object and eTag    
         """
-        data, etag, resp = self._post_url(
+        return self._request(
+            self._post_url,
             "domain-types/contact_group_config/collections/all",
             data={
                 "name": name,
                 "alias": alias,
             },
         )
-        if resp.status_code == 200:
-            return data, etag
-        resp.raise_for_status()
 
     def get_contactgroup(self, name):
         """Get a contact group
@@ -850,12 +846,10 @@ class CMKRESTAPI():
         Returns:
             (data, etag): contact group object and eTag    
         """
-        data, etag, resp = self._get_url(
+        return self._request(
+            self._get_url,
             f"objects/contact_group_config/{name}"
         )
-        if resp.status_code == 200:
-            return data, etag
-        resp.raise_for_status()
 
     def get_all_contactgroups(self):
         """Get all contact groups
@@ -863,14 +857,12 @@ class CMKRESTAPI():
         Returns:
             (data, etag): contact group objects and eTag    
         """
-        data, etag, resp = self._get_url(
+        return self._request(
+            self._get_url,
             f"domain-types/contact_group_config/collections/all"
         )
-        if resp.status_code == 200:
-            return data, etag
-        resp.raise_for_status()
 
-    def edit_contactgroup(self, name, alias, etag=None):
+    def edit_contactgroup(self, name, alias, etag="*"):
         """Change the contact group's alias
 
         Args:
@@ -881,18 +873,14 @@ class CMKRESTAPI():
         Returns:
             (data, etag): contact group object and eTag    
         """
-        if not etag:
-            data, etag = self.get_contactgroup(name)
-        data, etag, resp = self._put_url(
+        return self._request(
+            self._put_url,
             f"objects/contact_group_config/{name}",
-            etag,
+            etag=etag,
             data={
                 "alias": alias,
             }
         )
-        if resp.status_code == 200:
-            return data, etag
-        resp.raise_for_status()
 
     def delete_contactgroup(self, name):
         """Delete the contact group
@@ -900,12 +888,11 @@ class CMKRESTAPI():
         Args:
             name: The name of the contact group.
         """
-        data, etag, resp = self._delete_url(
-            f"objects/contact_group_config/{name}"
+        return self._request(
+            self._delete_url,
+            f"objects/contact_group_config/{name}",
+            ok_code=204,
         )
-        if resp.status_code == 204:
-            return
-        resp.raise_for_status()
 
 #   .--Timeperiod----------------------------------------------------------.
 #   |        _____ _                                _           _          |
@@ -941,13 +928,11 @@ class CMKRESTAPI():
             params['exceptions'] = exceptions
         if exclude:
             params['exclude'] = exclude
-        data, etag, resp = self._post_url(
+        return self._request(
+            self._post_url,
             "domain-types/time_period/collections/all",
             data=params,
         )
-        if resp.status_code == 200:
-            return data, etag
-        resp.raise_for_status()
 
     def get_timeperiods(self):
         """Show all time periods
@@ -959,12 +944,10 @@ class CMKRESTAPI():
             list of timeperiods
             etag
         """
-        data, etag, resp = self._get_url(
+        return self._request(
+            self._get_url,
             "domain-types/time_period/collections/all",
         )
-        if resp.status_code == 200:
-            return data, etag
-        resp.raise_for_status()
 
     def delete_timeperiod(self, name, etag):
         """Delete a time period
@@ -976,13 +959,12 @@ class CMKRESTAPI():
         Returns:
             Nothing
         """
-        data, etag, resp = self._delete_url(
+        return self._request(
+            self._delete_url,
             f"objects/time_period/{name}",
-            etag
+            ok_code=204,
+            etag=etag,
         )
-        if resp.status_code == 204:
-            return
-        resp.raise_for_status()
 
     def get_timeperiod(self, name):
         """Show a time period
@@ -994,12 +976,10 @@ class CMKRESTAPI():
             timeperiod
             etag
         """
-        data, etag, resp = self._get_url(
+        return self._request(
+            self._get_url,
             f"objects/time_period/{name}",
         )
-        if resp.status_code == 200:
-            return data, etag
-        resp.raise_for_status()
 
     def edit_timeperiod(self, name, etag, alias=None, active_time_ranges=[], exceptions=[], exclude=[]):
         """Update a time period
@@ -1024,14 +1004,12 @@ class CMKRESTAPI():
         if exclude:
             params['exclude'] = exclude
         if params:
-            data, etag, resp = self._put_url(
+            return self._request(
+                self._put_url,
                 f"objects/time_period/{name}",
-                etag,
-                data=params
+                etag=etag,
+                data=params,
             )
-            if resp.status_code == 200:
-                return data, etag
-            resp.raise_for_status()
         return None, None
 
 #   .--Ruleset-------------------------------------------------------------.
@@ -1056,12 +1034,10 @@ class CMKRESTAPI():
             list of rulesets
             etag
         """
-        data, etag, resp = self._get_url(
+        return self._request(
+            self._get_url,
             "domain-types/ruleset/collections/all",
         )
-        if resp.status_code == 200:
-            return data, etag
-        resp.raise_for_status()
 
 #   .--Rule----------------------------------------------------------------.
 #   |                         ____        _                                |
@@ -1085,13 +1061,11 @@ class CMKRESTAPI():
             rules
             etag
         """
-        data, etag, resp = self._get_url(
+        return self._request(
+            self._get_url,
             "domain-types/rule/collections/all",
             data={'ruleset_name': ruleset_name},
         )
-        if resp.status_code == 200:
-            return data, etag
-        resp.raise_for_status()
 
 #   .--Host Tag Groups-----------------------------------------------------.
 #   |                _   _           _     _____                           |
@@ -1133,13 +1107,11 @@ class CMKRESTAPI():
             params['topic'] = topic
         if help:
             params['help'] = help
-        data, etag, resp = self._post_url(
+        return self._request(
+            self._post_url,
             "domain-types/host_tag_group/collections/all",
             data=params,
         )
-        if resp.status_code == 200:
-            return data, etag
-        resp.raise_for_status()
 
     def get_host_tag_groups(self):
         """Show all host tag groups
@@ -1151,12 +1123,10 @@ class CMKRESTAPI():
             list of host tag groups
             etag
         """
-        data, etag, resp = self._get_url(
+        return self._request(
+            self._get_url,
             "domain-types/host_tag_group/collections/all",
         )
-        if resp.status_code == 200:
-            return data, etag
-        resp.raise_for_status()
 
     def get_host_tag_group(self, name):
         """Show a host tag group
@@ -1168,12 +1138,10 @@ class CMKRESTAPI():
             host tag group
             etag
         """
-        data, etag, resp = self._get_url(
+        return self._request(
+            self._get_url,
             f"objects/host_tag_group/{name}",
         )
-        if resp.status_code == 200:
-            return data, etag
-        resp.raise_for_status()
 
     def delete_host_tag_group(self, name):
         """Delete a host tag group
@@ -1184,12 +1152,11 @@ class CMKRESTAPI():
         Returns:
             Nothing
         """
-        data, etag, resp = self._delete_url(
+        return self._request(
+            self._delete_url,
             f"objects/host_tag_group/{name}",
+            ok_code=204,
         )
-        if resp.status_code == 204:
-            return
-        resp.raise_for_status()
 
     def edit_host_tag_group(self, name, etag, title = None, topic = None, help = None, tags = []):
         """Update a host tag group
@@ -1216,14 +1183,12 @@ class CMKRESTAPI():
         if len(tags) > 0:
             params['tags'] = _repair_tags(tags)
         if params:
-            data, etag, resp = self._put_url(
+            return self._request(
+                self._put_url,
                 f"objects/host_tag_group/{name}",
-                etag,
-                data=params
+                etag=etag,
+                data=params,
             )
-            if resp.status_code == 200:
-                return data, etag
-            resp.raise_for_status()
         return None, None
 
 #   .--Auxiliary Tags------------------------------------------------------.
@@ -1257,13 +1222,11 @@ class CMKRESTAPI():
         }
         if help:
             params['help'] = help
-        data, etag, resp = self._post_url(
+        return self._request(
+            self._post_url,
             "domain-types/aux_tag/collections/all",
             data=params,
         )
-        if resp.status_code == 200:
-            return data, etag
-        resp.raise_for_status()
 
     def get_aux_tags(self):
         """Show all auxiliary tags
@@ -1275,12 +1238,10 @@ class CMKRESTAPI():
             list of auxiliary tags
             etag
         """
-        data, etag, resp = self._get_url(
+        return self._request(
+            self._get_url,
             "domain-types/aux_tag/collections/all",
         )
-        if resp.status_code == 200:
-            return data, etag
-        resp.raise_for_status()
 
     def get_aux_tag(self, name):
         """Show an auxiliary tag
@@ -1292,12 +1253,10 @@ class CMKRESTAPI():
             auxiliary tag
             etag
         """
-        data, etag, resp = self._get_url(
+        return self._request(
+            self._get_url,
             f"objects/aux_tag/{name}",
         )
-        if resp.status_code == 200:
-            return data, etag
-        resp.raise_for_status()
 
     def delete_aux_tag(self, name):
         """Delete an auxiliary tag
@@ -1308,12 +1267,11 @@ class CMKRESTAPI():
         Returns:
             Nothing
         """
-        data, etag, resp = self._post_url(
+        return self._request(
+            self._post_url,
             f"objects/aux_tag/{name}/actions/delete/invoke",
+            ok_code=204,
         )
-        if resp.status_code == 204:
-            return
-        resp.raise_for_status()
 
     def edit_aux_tag(self, name, title = None, topic = None, help = None):
         """Update an auxiliary tag
@@ -1336,14 +1294,12 @@ class CMKRESTAPI():
         if help:
             params['help'] = help
         if params:
-            data, etag, resp = self._put_url(
+            return self._request(
+                self._put_url,
                 f"objects/aux_tag/{name}",
-                '*',
-                data=params
+                etag='*',
+                data=params,
             )
-            if resp.status_code == 200:
-                return data, etag
-            resp.raise_for_status()
         return None, None
 
 #   .--Notifications-------------------------------------------------------.
@@ -1367,17 +1323,15 @@ class CMKRESTAPI():
         Returns:
             (rule, etag)
         """
-        data, etag, resp = self._post_url(
+        return self._request(
+            self._post_url,
             "domain-types/notification_rule/collections/all",
             data={
                 "rule_config": rule_config,
             },
         )
-        if resp.status_code == 200:
-            return data, etag
-        resp.raise_for_status()
 
-    def get_notification_rules(self):
+    def get_all_notification_rules(self):
         """Show all notification rules
 
         Args:
@@ -1387,12 +1341,10 @@ class CMKRESTAPI():
             list of notification rules
             etag
         """
-        data, etag, resp = self._get_url(
+        return self._request(
+            self._get_url,
             "domain-types/notification_rule/collections/all",
         )
-        if resp.status_code == 200:
-            return data, etag
-        resp.raise_for_status()
 
     def get_notification_rule(self, rule_id):
         """Show a notification rule
@@ -1404,12 +1356,10 @@ class CMKRESTAPI():
             notification rule
             etag
         """
-        data, etag, resp = self._get_url(
+        return self._request(
+            self._get_url,
             f"objects/notification_rule/{rule_id}",
         )
-        if resp.status_code == 200:
-            return data, etag
-        resp.raise_for_status()
 
     def delete_notification_rule(self, rule_id):
         """Delete a notification rule
@@ -1420,12 +1370,11 @@ class CMKRESTAPI():
         Returns:
             Nothing
         """
-        data, etag, resp = self._post_url(
+        return self._request(
+            self._post_url,
             f"objects/notification_rule/{rule_id}/actions/delete/invoke",
+            ok_code=204,
         )
-        if resp.status_code == 204:
-            return
-        resp.raise_for_status()
 
     def edit_notification_rule(self, rule_id, rule_config):
         """Replace a notification rule
@@ -1438,15 +1387,13 @@ class CMKRESTAPI():
             notification rule
             etag
         """
-        data, etag, resp = self._put_url(
+        return self._request(
+            self._put_url,
             f"objects/notification_rule/{rule_id}",
             data={
                 "rule_config": rule_config,
             },
         )
-        if resp.status_code == 200:
-            return data, etag
-        resp.raise_for_status()
 
 
 
