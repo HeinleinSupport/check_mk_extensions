@@ -57,9 +57,12 @@ def check_cpufreq(section) -> CheckResult:
     freqs = []
     perfdata = []
     errors = []
+    cpus_seen = set()
     for line in section:
-        res = State.OK
         cpu = line[0]
+        if cpu in cpus_seen:
+            continue
+        cpus_seen.add(cpu)
         governor = line[1]
         cur_freq = int(line[2]) * 1000.0
         if line[3] != 'unknown':
