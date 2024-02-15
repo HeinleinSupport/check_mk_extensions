@@ -6,6 +6,7 @@ from cmk.gui.valuespec import (
     Dictionary,
     Tuple,
     Integer,
+    TextInput,
 )
 
 from cmk.gui.plugins.wato.utils import (
