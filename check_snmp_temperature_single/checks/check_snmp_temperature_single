@@ -20,6 +20,7 @@
 import shlex
 from cmk.base.check_api import host_name
 import cmk.base.config as config
+from cmk.checkers import SourceType
 
 def _creds_to_args(creds):
     args = ''
@@ -51,7 +52,7 @@ def check_snmp_temperature_single_arguments(params):
         config_cache = config.get_config_cache()
         ipaddress = config.lookup_ip_address(config_cache, host_name())
         snmp_config = config_cache.make_snmp_config(host_name(), ipaddress, SourceType.HOST)
-        args += _creds_to_args(credentials)
+        args += _creds_to_args(snmp_config.credentials)
 
     if "port" in params:
         args += " -P %d" % params["port"]
