@@ -261,7 +261,7 @@ if args.func == "add_region":
     if tg:
         tags = tg['extensions']['tags']
 
-        tags.append({'ident': "%s_%s_%s" % (config['taggroup']['name'], args.country, args.state),
+        tags.append({'id': "%s_%s_%s" % (config['taggroup']['name'], args.country, args.state),
                      'title': "%s %s %s" % (config['taggroup']['title'], args.country.upper(), states[args.country][args.state])})
 
         cmk.edit_host_tag_group(config['taggroup']['name'], etag, tags=tags)
@@ -272,7 +272,7 @@ if args.func == "add_region":
             config['taggroup']['title'],
             [
                 {'title': config['taggroup']['empty_title']},
-                {'ident': "%s_%s_%s" % (config['taggroup']['name'],
+                {'id': "%s_%s_%s" % (config['taggroup']['name'],
                                      args.country,
                                      args.state),
                  'title': "%s %s %s" % (config['taggroup']['title'],

@@ -51,14 +51,6 @@ def _site_creds(username=None):
                 'automation.secret')).read().strip()
     return username, password
 
-def _repair_tags(tags):
-    for tag in tags:
-        if "id" in tag:
-            if "ident" not in tag:
-                tag["ident"] = tag["id"]
-            del(tag["id"])
-    return tags
-
 class CMKRESTAPI():
     def __init__(self, site_url=None, api_user=None, api_secret=None):
         """Initialize a REST-API instance. URL, User and Secret can be automatically taken from local site if running as site user.
@@ -1101,7 +1093,7 @@ class CMKRESTAPI():
         params={
             'ident': name,
             'title': title,
-            'tags': _repair_tags(tags),
+            'tags': tags,
         }
         if topic:
             params['topic'] = topic
@@ -1181,7 +1173,7 @@ class CMKRESTAPI():
         if help:
             params['help'] = help
         if len(tags) > 0:
-            params['tags'] = _repair_tags(tags)
+            params['tags'] = tags
         if params:
             return self._request(
                 self._put_url,
