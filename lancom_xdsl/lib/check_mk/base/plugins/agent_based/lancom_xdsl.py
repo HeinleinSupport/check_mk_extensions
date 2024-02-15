@@ -35,8 +35,8 @@ from .agent_based_api.v1.type_defs import (
 )
 
 from .utils.interfaces import (
-    get_traffic_levels,
-    get_specific_traffic_levels,
+    bandwidth_levels,
+    BandwidthUnit,
 )
 
 def parse_lancom_xdsl(string_table):
@@ -67,36 +67,20 @@ def discover_lancom_xdsl(section) -> DiscoveryResult:
 
 def _check_lancom_xdsl_metric(value, discovered, metric_name, params, direction, label, render_func):
     p = { 'traffic': params }
-    levels = get_traffic_levels(p)
-    
-    both = levels.get((direction, 'both'), (None, (None, None)))
-    lower = levels.get((direction, 'lower'), (None, (None, None)))
-    upper = levels.get((direction, 'upper'), (None, (None, None)))
 
-    if upper[0] is None:
-        upper = both
-    if lower[0] is None:
-        lower = both
-
-    upper_levels = None
-    if upper[0] == 'perc':
-        upper_levels = ( discovered * (100 + upper[1][0]) / 100.0,
-                         discovered * (100 + upper[1][1]) / 100.0 )
-    elif upper[0] == 'abs':
-        upper_levels = ( discovered + upper[1][0] / 8,
-                         discovered + upper[1][1] / 8 )
-    lower_levels = None
-    if lower[0] == 'perc':
-        lower_levels = ( discovered * (100 - lower[1][0]) / 100.0,
-                         discovered * (100 - lower[1][1]) / 100.0 )
-    elif lower[0] == 'abs':
-        lower_levels = ( discovered - lower[1][0] / 8,
-                         discovered - lower[1][1] / 8 )
+    if direction == 'in':
+        levels = bandwidth_levels(params=p, speed_in=discovered, speed_out=None, speed_total=None, unit=BandwidthUnit.BYTE)
+        upper = levels.input.upper
+        lower = levels.input.lower
+    if direction == 'out':
+        levels = bandwidth_levels(params=p, speed_in=None, speed_out=discovered, speed_total=None, unit=BandwidthUnit.BYTE)
+        upper = levels.output.upper
+        lower = levels.output.lower
 
     yield from check_levels(
         value,
-        levels_upper=upper_levels,
-        levels_lower=lower_levels,
+        levels_upper=upper,
+        levels_lower=lower,
         metric_name=metric_name,
         render_func=render_func,
         label=label,
