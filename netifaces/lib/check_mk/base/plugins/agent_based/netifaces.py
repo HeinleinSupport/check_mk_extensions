@@ -78,6 +78,9 @@ def check_netifaces_rbl(item, params, section) -> CheckResult:
                                 if er.args[0] == socket.EAI_NONAME:
                                     yield Result(state=State.OK,
                                                  notice='not found in %s' % rbl)
+                                if er.args[0] in [ socket.EAI_AGAIN, socket.EAI_NONAME ] :
+                                    yield Result(state=State.OK,
+                                                 notice='%s yields %s' % (rbl, er))
                                 else:
                                     yield Result(state=State.WARN,
                                                  notice='%s yields %s' % (rbl, er))
