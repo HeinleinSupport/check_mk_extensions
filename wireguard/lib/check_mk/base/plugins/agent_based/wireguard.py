@@ -3,6 +3,7 @@
 
 # (c) 2020 Heinlein Support GmbH
 #          Robert Sander <r.sander@heinlein-support.de>
+#          Matthias Henze <mahescho@gmail.com>
 
 # This is free software;  you can redistribute it and/or modify it
 # under the  terms of the  GNU General Public License  as published by
@@ -65,8 +66,11 @@ def discover_wireguard(section) -> DiscoveryResult:
             yield Service(item='%s Peer %s' % (interface, peer),
                           parameters={'allowed-ips': data['allowed-ips']})
 
-def check_wireguard(item, section):
-    timeout = 300 # from wireguard technical white paper Reject-After-Time + Rekey-Attempt-Time + 30s
+def check_wireguard(item,  params, section):
+
+    timeout_warn = params['timeout'][0]
+    timeout_crit = params['timeout'][1]
+    
     if 'Peer' in item:
         interface, x, peer = item.split(' ')
         if interface in section:
@@ -94,9 +98,14 @@ def check_wireguard(item, section):
                     yield Result(state=State.OK,
                                  summary="latest handshake %s ago" % render.timespan(since))
                     yield Metric('last_updated', since)
-                    if since > timeout:
-                        yield Result(state=State.WARN,
-                                     summary="inactive")
+                    if timeout_warn > 0:
+                        if since > timeout_warn:
+                            yield Result(state=State.WARN, 
+                                         summary="inactive")
+                    if timeout_crit > 0:
+                        if since > timeout_crit:
+                            yield Result(state=State.CRIT,
+                                         summary="inactive")
                 else:
                     yield Result(state=State.OK,
                                  summary="never connected")
@@ -109,7 +118,7 @@ def check_wireguard(item, section):
             for peer, data in peers.items():
                 if data['latest-handshake'] > 0:
                     since = now - data['latest-handshake']
-                    if since < timeout:
+                    if since < timeout_warn or since < timeout_crit:
                         activepeers += 1
             yield Result(state=State.OK,
                          summary="%d configured peer(s)" % numpeers)
@@ -124,8 +133,8 @@ register.check_plugin(
     sections=["wireguard"],
     discovery_function=discover_wireguard,
     check_function=check_wireguard,
-    # check_default_parameters={
-    #     'busy_childs': (75, 95),
-    # },
-    # check_ruleset_name="vpn_tunnel",
+    check_default_parameters = {
+        "timeout": (-1, -1), # disable by default
+    },
+    check_ruleset_name = "wireguard_data",
 )
