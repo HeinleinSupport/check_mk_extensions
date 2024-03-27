@@ -67,7 +67,7 @@ class CMKRESTAPI():
             site_url = _site_url()
         if not api_secret:
             api_user, api_secret = _site_creds(api_user)
-        self._api_url = '%sapi/v0' % _check_mk_url(site_url)
+        self._api_url = '%sapi/1.0' % _check_mk_url(site_url)
         self._session = requests.session()
         self._session.headers['Authorization'] = f"Bearer {api_user} {api_secret}"
         self._session.headers['Accept'] = 'application/json'
@@ -89,6 +89,15 @@ class CMKRESTAPI():
         return self._check_response(
             self._session.get(
                 f"{self._api_url}/{uri}",
+                params=data,
+                allow_redirects=False,
+            )
+        )
+
+    def _get_abolute_url(self, uri, etag=None, data={}):
+        return self._check_response(
+            self._session.get(
+                f"{uri}",
                 params=data,
                 allow_redirects=False,
             )
@@ -391,6 +400,24 @@ class CMKRESTAPI():
                         etags[hostdata['id']] = etag
                 else:
                     hosts[hinfo['title']] = hinfo['href']
+            elif hinfo.get('domainType') == 'host_config':
+                if attributes:
+                    self_urls = [
+                        link['href'] 
+                        for link in hinfo.get("links", [])
+                        if link["rel"] == "self"]
+                    hostdata, etag, resp = self._get_abolute_url(
+                        self_urls[0],
+                        data={"effective_attributes": "true" if effective_attr else "false"}
+                    )
+                    if resp.status_code != 200:
+                        resp.raise_for_status()
+                    if hostdata.get('domainType') == 'host_config':
+                        hosts[hostdata['id']] = hostdata['extensions']
+                        etags[hostdata['id']] = etag
+                else:
+                    hosts[hinfo['title']] = hinfo['extensions']
+
         return hosts, etags
 
     def delete_host(self, hostname):
