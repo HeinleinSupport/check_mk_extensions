@@ -94,10 +94,10 @@ class CMKRESTAPI():
             )
         )
 
-    def _get_abolute_url(self, uri, etag=None, data={}):
+    def _get_absolute_url(self, url, etag=None, data={}):
         return self._check_response(
             self._session.get(
-                f"{uri}",
+                url,
                 params=data,
                 allow_redirects=False,
             )
@@ -406,7 +406,7 @@ class CMKRESTAPI():
                         link['href'] 
                         for link in hinfo.get("links", [])
                         if link["rel"] == "self"]
-                    hostdata, etag, resp = self._get_abolute_url(
+                    hostdata, etag, resp = self._get_absolute_url(
                         self_urls[0],
                         data={"effective_attributes": "true" if effective_attr else "false"}
                     )
