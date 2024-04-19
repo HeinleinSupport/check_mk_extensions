@@ -389,12 +389,11 @@ class CMKRESTAPI():
         for hinfo in data.get('value', []):
             if hinfo.get('domainType') == 'link':
                 if attributes:
-                    hostdata, etag, resp = self._get_url(
+                    hostdata, etag = self._request(
+                        self._get_url,
                         hinfo['href'],
                         data={"effective_attributes": "true" if effective_attr else "false"}
                     )
-                    if resp.status_code != 200:
-                        resp.raise_for_status()
                     if hostdata.get('domainType') == 'host_config':
                         hosts[hostdata['id']] = hostdata['extensions']
                         etags[hostdata['id']] = etag
