@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 # SMS via ConiuGo SMS gateway
 # -*- encoding: utf-8; py-indent-offset: 4 -*-
 
