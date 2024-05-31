@@ -33,13 +33,13 @@ def check_infortrend_disks1(item, params, info):
         2   : "Used Drive",
         3   : "Spare Drive",
         4   : "Drive Initialization in Progress",
-        5   : "Drive Rebuild in Progress",
+        5   : "Drive Rebuild in Progress (!)",
         6   : "Add Drive to Logical Drive in Progress",
         9   : "Global Spare Drive",
         17  : "Drive is in process of Cloning another Drive",
         18  : "Drive is a valid Clone of another Drive",
         19  : "Drive is in process of Copying from another Drive (for Copy/Replace LD Expansion function)",
-        63  : "Drive Absent",
+        63  : "Drive Absent (!)",
         128 : "SCSI Device (Type 0)",
         129 : "SCSI Device (Type 1)",
         130 : "SCSI Device (Type 2)",
@@ -56,10 +56,10 @@ def check_infortrend_disks1(item, params, info):
         141 : "SCSI Device (Type 13)",
         142 : "SCSI Device (Type 14)",
         143 : "SCSI Device (Type 15)",
-        252 : "Missing Global Spare Drive",
-        253 : "Missing Spare Drive",
-        254 : "Missing Drive",
-        255 : "Failed Drive"
+        252 : "Missing Global Spare Drive (!)",
+        253 : "Missing Spare Drive (!)",
+        254 : "Missing Drive (!)",
+        255 : "Failed Drive (!!)"
         }
     for slot, status in info:
         status = int(status)
@@ -76,13 +76,14 @@ def check_infortrend_disks1(item, params, info):
 def rename_dups(l):
     d = {}
     for i in range(len(l)):
-        if l[i][0] in d:
-            d[l[i][0]] += 1
+        lowl = l[i][0].lower()
+        if lowl in d:
+            d[lowl] += 1
         else:
-            d[l[i][0]] = 1
+            d[lowl] = 1
 
         if l[i][0]:
-            l[i][0] = '[{}] Disk Slot {:02d}'.format(str(d[l[i][0]]), int(l[i][0]))
+            l[i][0] = '[{}] Disk Slot {:02d}'.format(str(d[lowl]), int(l[i][0]))
     return l
 
 def parse_infortrend_disks1(string_table: StringTable) -> StringTable | None:

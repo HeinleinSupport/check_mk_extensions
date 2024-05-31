@@ -33,130 +33,131 @@ def inventory_infortrend_chassis1(info):
 def check_infortrend_chassis1(item, params, info):
     status_info = {
         # Power supply
-        "1": { 'bits': { 0: ( "Power supply functioning normally", "Power supply malfunctioning" ),
-                         6: ( "Power supply is ON", "Power supply is OFF" ),
-                         7: ( "Power supply IS present", "Power supply is NOT present" ),
+        "1": { 'bits': { 0: ( "Power supply functioning normally", "Power supply malfunctioning (!!)" ),
+                         6: ( "Power supply is ON", "Power supply is OFF (!)" ),
+                         7: ( "Power supply IS present", "Power supply is NOT present (!)" ),
                          },
                },
         # Fan
-        "2": { 'bits': { 0: ( "Fan functioning normally", "Fan malfunctioning" ),
-                         6: ( "Fan is ON", "Fan is OFF" ),
-                         7: ( "Fan IS present", "Fan is NOT present" ),
+        "2": { 'bits': { 0: ( "Fan functioning normally", "Fan malfunctioning (!!)" ),
+                         6: ( "Fan is ON", "Fan is OFF (!!)" ),
+                         7: ( "Fan IS present", "Fan is NOT present (!)" ),
                          },
                },
         # Temperature sensor
-        "3": { 'bits': { 0: ( "Temp. sensor functioning normally", "Temp. sensor malfunctioning" ),
-                         6: ( "Temp. Sensor is Activated", "Temp. Sensor is NOT Activated" ),
-                         7: ( "Temperature sensor IS present", "Temperature sensor is NOT present" ),
+        "3": { 'bits': { 0: ( "Temp. sensor functioning normally", "Temp. sensor malfunctioning (!!)" ),
+                         6: ( "Temp. Sensor is Activated", "Temp. Sensor is NOT Activated (!)" ),
+                         7: ( "Temperature sensor IS present", "Temperature sensor is NOT present (!)" ),
                          },
                'adtl_info': { 0: "Temp. within safe range",
-                              2: "Cold Temp. Warning",
-                              3: "Hot Temp. Warning",
-                              4: "Cold Temp. Limit Exceeded",
-                              5: "Hot Temp. Limit Exceeded",
+                              2: "Cold Temp. Warning (!)",
+                              3: "Hot Temp. Warning (!)",
+                              4: "Cold Temp. Limit Exceeded (!!)",
+                              5: "Hot Temp. Limit Exceeded (!!)",
                               },
                'adtl_func': lambda status: status >> 1 & 7,
                },
         # UPS
-        "4": { 'bits': { 0: ( "Unit functioning normally", "Unit malfunctioning" ),
-                         1: ( "AC Power present", "AC Power NOT present" ),
-                         6: ( "UPS is ON", "UPS is OFF" ),
+        "4": { 'bits': { 0: ( "Unit functioning normally", "Unit malfunctioning (!!)" ),
+                         1: ( "AC Power present", "AC Power NOT present (!)" ),
+                         6: ( "UPS is ON", "UPS is OFF (!)" ),
                          7: ( "UPS IS present", "UPS is NOT present" ),
                          },
                'adtl_info': { 0: "battery fully charged",
                               1: "battery not fully charged",
-                              2: "battery charge critically low",
-                              3: "battery completely drained",
+                              2: "battery charge critically low (!!)",
+                              3: "battery completely drained (!!)",
                               },
                'adtl_func': lambda status: status >> 2 & 3,
                },
         # Voltage sensors
-        "5": { 'bits': { 0: ( "Voltage sensor functioning normally", "Voltage sensor malfunctioning" ),
-                         6: ( "Voltage Sensor is Activated", "Voltage Sensor is NOT Activated" ),
-                         7: ( "Voltage sensor IS present", "Voltage sensor is NOT present" ),
+        "5": { 'bits': { 0: ( "Voltage sensor functioning normally", "Voltage sensor malfunctioning (!!)" ),
+                         6: ( "Voltage Sensor is Activated", "Voltage Sensor is NOT Activated (!)" ),
+                         7: ( "Voltage sensor IS present", "Voltage sensor is NOT present (!)" ),
                          },
                'adtl_info': { 0: "Voltage within acceptable range",
-                              2: "Low Voltage Warning",
-                              3: "High Voltage Warning",
-                              4: "Low Voltage Limit Exceeded",
-                              5: "High Voltage Limit Exceeded",
+                              2: "Low Voltage Warning (!)",
+                              3: "High Voltage Warning (!)",
+                              4: "Low Voltage Limit Exceeded (!!)",
+                              5: "High Voltage Limit Exceeded (!!)",
                               },
                'adtl_func': lambda status: status >> 1 & 7,
                },
         # Current sensors
-        "6": { 'bits': { 0: ( "Current sensor functioning normally", "Current sensor malfunctioning" ),
-                         6: ( "Current Sensor is Activated", "Current Sensor is NOT Activated" ),
-                         7: ( "Current sensor IS present", "Current sensor is NOT present" ),
+        "6": { 'bits': { 0: ( "Current sensor functioning normally", "Current sensor malfunctioning (!!)" ),
+                         6: ( "Current Sensor is Activated", "Current Sensor is NOT Activated (!)" ),
+                         7: ( "Current sensor IS present", "Current sensor is NOT present (!)" ),
                          },
                'adtl_info': { 0: "Current within acceptable range",
-                              3: "Over Current Warning",
-                              5: "Over Current Limit Exceeded",
+                              3: "Over Current Warning (!)",
+                              5: "Over Current Limit Exceeded (!!)",
                               },
                'adtl_func': lambda status: status >> 1 & 7,
                },
         # Temperature Out-of-Range Flags
         "8": { },
         # Door
-        "9": { 'bits': { 0: ( "Door OK", "Door, door lock, or door sensor malfunctioning" ),
-                         1: ( "Door is shut", "Door is open" ),
-                         6: ( "Door lock engaged", "Door lock NOT engaged" ),
+        "9": { 'bits': { 0: ( "Door OK", "Door, door lock, or door sensor malfunctioning (!!)" ),
+                         1: ( "Door is shut", "Door is open (!)" ),
+                         6: ( "Door lock engaged", "Door lock NOT engaged (!)" ),
                          7: ( "Door IS present", "Door is NOT present" ),
                          },
                },
         # Speaker
-        "10": { 'bits': { 0: ("Speaker functioning normally", "Speaker malfunctioning" ),
-                          6: ("Speaker is ON", "Speaker is OFF" ),
+        "10": { 'bits': { 0: ("Speaker functioning normally", "Speaker malfunctioning (!!)" ),
+                          6: ("Speaker is ON", "Speaker is OFF (!)" ),
                           7: ("Speaker IS present", "Speaker is NOT present" ),
                           },
                 },
         # Battery-backup battery
-        "11": { 'bits': { 0: ( "Battery functioning normally", "Battery malfunctioning" ),
-                          1: ( "Battery charging OFF (or trickle)", "Battery charging ON" ),
-                          6: ( "Battery-backup is enabled", "Battery-backup is disabled" ),
-                          7: ( "Battery IS present", "Battery is NOT present" ),
+        "11": { 'bits': { 0: ( "Battery functioning normally", "Battery malfunctioning (!!)" ),
+                          1: ( "Battery charging OFF (or trickle)", "Battery charging ON (!)" ),
+                          6: ( "Battery-backup is enabled", "Battery-backup is disabled (!)" ),
+                          7: ( "Battery IS present", "Battery is NOT present (!)" ),
                           },
                 'adtl_info': { 0: "battery fully charged",
-                               1: "battery not fully charged",
-                               2: "battery charge critically low",
-                               3: "battery completely drained",
+                               1: "battery not fully charged (!)",
+                               2: "battery charge critically low (!!)",
+                               3: "battery completely drained (!!)",
                                },
                 'adtl_func': lambda status: status >> 2 & 3,
                 },
         # LED
-        "12": { 'bits': { 6: ( "LED is active", "LED is inactive" ),
-                          7: ( "LED is present", "LED is NOT present" ),
+        "12": { 'bits': { 0: ( "", "" ),
+                          6: ( "LED is active (!)", "LED is inactive" ),
+                          7: ( "LED is present", "LED is NOT present (!)" ),
                           },
                 },
         # Cache-Data-Backup Flash Device
-        "13": { 'bits': { 0: ( "Flash Device functioning normally", "Flash Device malfunctioning" ),
-                          6: ( "Flash Device is enabled", "Flash Device is disabled" ),
+        "13": { 'bits': { 0: ( "Flash Device functioning normally", "Flash Device malfunctioning (!!)" ),
+                          6: ( "Flash Device is enabled", "Flash Device is disabled (!)" ),
                           7: ( "Flash Device is present", "Flash Device is NOT present" ),
                           },
                 },
         # Host Board
         "14": { 'bits': { 0: ( "Host Board IS present", "" ),
-                          7: ( "Host Board IS present", "Host Board is NOT present" )
+                          7: ( "Host Board IS present", "Host Board is NOT present (!!)" )
                           },
                 },
         # Midplane/Backplane
         "15": { 'bits': { 0: ( "Midplane/Backplane", "" ) } },
         # Slot states
-        "17": { 'bits': { 0: ( "Slot sense circuitry functioning normally", "Slot sense circuitry malfunctioning" ),
-                          1: ( "Device in slot has not been marked 'needing replacement' or a replacement drive has been inserted", "Device in slot has been marked BAD and is awaiting replacement" ),
-                          2: ( "Slot is activated so that drive can be accessed", "Slot NOT activated" ),
+        "17": { 'bits': { 0: ( "Slot sense circuitry functioning normally", "Slot sense circuitry malfunctioning (!!)" ),
+                          1: ( "Device in slot has not been marked 'needing replacement' or a replacement drive has been inserted", "Device in slot has been marked BAD and is awaiting replacement (!)" ),
+                          2: ( "Slot is activated so that drive can be accessed", "Slot NOT activated (!)" ),
                           6: ( "Slot is NOT ready for insertion/removal", "Slot is ready for insertion/removal" ),
                           7: ( "Device inserted in slot", "Slot is empty" ),
                           },
                 },
         # Enclosure drawer
-        "18": { 'bits': { 0: ( "Enclosure Drawer functioning normally", "Enclosure Drawer malfunctioning" ),
-                          6: ( "Enclosure Drawer is closed", "Enclosure Drawer is opened" ),
+        "18": { 'bits': { 0: ( "Enclosure Drawer functioning normally", "Enclosure Drawer malfunctioning (!!)" ),
+                          6: ( "Enclosure Drawer is closed", "Enclosure Drawer is opened (!)" ),
                           7: ( "Enclosure Drawer is present", "Enclosure Drawer is NOT present" ),
                           },
                 },
         # Enclosure Management Services Controller
-        "31": { 'bits': { 0: ( "Enclosure Management Services Controller functioning normally", "Enclosure Management Services Controller malfunctioning" ),
-                          6: ( "Enclosure Management Services Controller is closed", "Enclosure Management Services Controller is opened" ),
+        "31": { 'bits': { 0: ( "Enclosure Management Services Controller functioning normally", "Enclosure Management Services Controller malfunctioning (!!)" ),
+                          6: ( "Enclosure Management Services Controller is closed", "Enclosure Management Services Controller is opened (!)" ),
                           7: ( "Enclosure Management Services Controller is present", "Enclosure Management Services Controller is NOT present" ),
                           },
                 },
@@ -165,49 +166,136 @@ def check_infortrend_chassis1(item, params, info):
     for name, status, devtype, value, unit in info:
         status = int(status)
         if name == item:
-            if status == 0:
-                return (0, status_info[devtype]['bits'][0][0])
             if status == 255:
                 return (3, "Status unknown")
+
             output = []
+            perfdata = []
+            text = None
+            warn = None
+            crit = None
+            # collect perfdata for temp/volate/fan sensors
+            if devtype == '3': # temp sensor
+                unit_symbol = " °C"
+                val = (float(value) * float(unit) / 1000.0) - 273.0
+                warn, crit = params.get('temp')
+                perfdata = [(name.replace(' ', '-'), val, warn, crit)]
+                text = "%.1f%s (warn/crit at %.1f%s/%.1f%s)" % (
+                    val,
+                    unit_symbol,
+                    warn,
+                    unit_symbol,
+                    crit,
+                    unit_symbol,
+                )
+            elif devtype == '5': # voltage sensor
+                unit_symbol = " V"
+                val = (float(value) * float(unit) / 1000.0)
+                if "12V" in name:
+                    warn, crit = params.get('voltage12')
+                else:
+                    warn, crit = params.get('voltage5')
+                perfdata = [(name.replace(' ', '-'), val, warn, crit)]
+                text = "%.1f%s (warn/crit at %.1f%s/%.1f%s)" % (
+                    val,
+                    unit_symbol,
+                    warn,
+                    unit_symbol,
+                    crit,
+                    unit_symbol,
+                )
+            elif devtype == '2': # fan
+                if int(unit) == 0:
+                    speed = 'Unknown (!)'
+                    val = int(value)
+                    if val == 0:
+                        speed = 'Normal'
+                    elif val == 1:
+                        speed = 'Lowest speed'
+                    elif val == 2:
+                        speed = 'Second lowest speed'
+                    elif val == 3:
+                        speed = 'Third lowest speed'
+                    elif val == 4:
+                        speed = 'Intermediate speed'
+                    elif val == 5:
+                        speed = 'Third highest speed'
+                    elif val == 6:
+                        speed = 'Second highest speed'
+                    elif val == 7:
+                        speed = 'Highest speed'
+
+                    perfdata = [(name.replace(' ', '-'), val)]
+                    text = "Status: %s" % (
+                        speed,
+                    )
+
+                else:
+                    unit_symbol = " rpm"
+                    val = int(value)
+                    warn, crit = params.get('fan')
+                    perfdata = [(name.replace(' ', '-'), val, warn, crit)]
+                    text = "%d%s (warn/crit at %d%s/%d%s)" % (
+                        val,
+                        unit_symbol,
+                        warn,
+                        unit_symbol,
+                        crit,
+                        unit_symbol,
+                    )
+
+            if text:
+                if crit and warn:
+                    if val >= crit:
+                        text += "(!!)"
+                    elif val >= warn:
+                        text += "(!)"
+
+                output.append(text)
+
             for bit in status_info[devtype]['bits'].keys():
                 bit_set = ( status & 1 << bit ) >> bit
-                if bit_set and status_info[devtype]['bits'][bit][bit_set] != "LED is inactive":
-                    output.append("%s (!)" % status_info[devtype]['bits'][bit][bit_set])
-                else:
-                    output.append(status_info[devtype]['bits'][bit][bit_set])
+                if status_info[devtype]['bits'][bit][bit_set]:
+                  output.append(status_info[devtype]['bits'][bit][bit_set])
+
             if 'adtl_info' in status_info[devtype]:
                 adtl_status = status_info[devtype]['adtl_func'](status)
-                if adtl_status > 0:
-                    output.append("%s (!)" % status_info[devtype]['adtl_info'][adtl_status])
-                else:
+                if status_info[devtype]['adtl_info'][adtl_status]:
                     output.append(status_info[devtype]['adtl_info'][adtl_status])
+
+            outstr = ", ".join(output)
+            state = 0
+            if "(!)" in outstr:
+                state = 1 # warn
+            elif "(!!)" in outstr:
+                state = 2 # crit
+
             if status == 64:
                 if devtype == '12':
-                    if any("(!)" in s for s in output):
-                        return (1, ", ".join(output))
-                    else:
-                        return (0, ", ".join(output))
+                    return (state, outstr, perfdata)
                 else:
-                    return (1, "%d %s" % ( status, ", ".join(output)))
+                    return (state, "%d %s" % ( status, outstr), perfdata)
+            elif status == 0:
+                return (state, outstr, perfdata)
             else:
-                return (2, "%d %s" % ( status, ", ".join(output)))
+                return (state, "%d %s" % ( status, outstr), perfdata)
     return (3, "not yet implemented")
 
 def rename_dups(l):
     d = {}
     for i in range(len(l)):
-        if l[i][0] in d:
-            d[l[i][0]] += 1
+        lowl = l[i][0].lower()
+        if lowl in d:
+            d[lowl] += 1
         else:
-            d[l[i][0]] = 1
+            d[lowl] = 1
 
         if l[i][0]:
             if "Device Slot" in l[i][0]:
                 slot = int(l[i][0][-1])
-                l[i][0] = '[{}] Device Slot {:02d}'.format(str(d[l[i][0]]), slot)
+                l[i][0] = '[{}] Device Slot {:02d}'.format(str(d[lowl]), slot)
             else:
-                l[i][0] = '[{}] {}'.format(str(d[l[i][0]]), l[i][0])
+                l[i][0] = '[{}] {}'.format(str(d[lowl]), l[i][0])
     return l
 
 def parse_infortrend_chassis1(string_table: StringTable) -> StringTable | None:
@@ -227,4 +315,10 @@ check_info["infortrend_chassis1"] = LegacyCheckDefinition(
     discovery_function=inventory_infortrend_chassis1,
     check_function=check_infortrend_chassis1,
     check_ruleset_name="infortend_chassis1",
+    check_default_parameters={
+        "temp": (65.0, 75.0),
+        "voltage12": (12.5, 13.0),
+        "voltage5": (5.5, 6.0),
+        "fan": (0.0, 1.0),
+    },
 )

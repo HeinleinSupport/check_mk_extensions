@@ -29,14 +29,14 @@ def inventory_infortrend_ldrives1(info):
 def check_infortrend_ldrives1(item, params, info):
     status_info = { 
         0   : "Good",
-        1   : "Rebuilding",
-        2   : "Initializing",
-        3   : "Degraded",
-        4   : "Dead",
-        5   : "Invalid",
-        6   : "Incomplete",
-        7   : "Drive Missing",
-	64  : "Good"
+        1   : "Rebuilding (!)",
+        2   : "Initializing (!)",
+        3   : "Degraded (!)",
+        4   : "Dead (!!)",
+        5   : "Invalid (!!)",
+        6   : "Incomplete (!!)",
+        7   : "Drive Missing (!!)",
+        64  : "Good"
         }
     for slot, status in info:
         status = int(status)
@@ -61,13 +61,14 @@ def check_infortrend_ldrives1(item, params, info):
 def rename_dups(l):
     d = {}
     for i in range(len(l)):
-        if l[i][0] in d:
-            d[l[i][0]] += 1
+        lowl = l[i][0].lower()
+        if lowl in d:
+            d[lowl] += 1
         else:
-            d[l[i][0]] = 1
+            d[lowl] = 1
 
         if l[i][0]:
-            l[i][0] = '[{}] Logical Drive [{}]'.format(str(d[l[i][0]]), l[i][0])
+            l[i][0] = '[{}] Logical Drive [{}]'.format(str(d[lowl]), l[i][0])
     return l
 
 def parse_infortrend_ldrives1(string_table: StringTable) -> StringTable | None:
