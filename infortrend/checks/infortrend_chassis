@@ -4,7 +4,12 @@
 #
 # (c) 2013 Heinlein Support GmbH
 #          Robert Sander <r.sander@heinlein-support.de>
+# (c) 2024 Jens Maus <mail@jens-maus.de>
 #
+
+from cmk.base.check_api import LegacyCheckDefinition, saveint
+from cmk.base.config import check_info
+from cmk.agent_based.v2 import all_of, contains, startswith, SNMPTree, StringTable
 
 # This is free software;  you can redistribute it and/or modify it
 # under the  terms of the  GNU General Public License  as published by
@@ -137,11 +142,18 @@ def check_infortrend_chassis(item, params, info):
                 adtl_status = status_info[type]['adtl_func'](status)
                 yield status_info[type]['adtl_info'][adtl_status][0], status_info[type]['adtl_info'][adtl_status][1]
 
-check_info["infortrend_chassis"] = {
-    'check_function'        : check_infortrend_chassis,
-    'service_description'   : "IFT %s",
-    'has_perfdata'          : False,
-    'inventory_function'    : inventory_infortrend_chassis,
-    'snmp_scan_function'    : lambda oid: oid(".1.3.6.1.2.1.1.2.0").startswith(".1.3.6.1.4.1.1714.1.2"),
-    'snmp_info'             : ( ".1.3.6.1.4.1.1714.1.1.9.1", [ "8", "13", "6", "9", "10", "12" ] ),
-}
+def parse_infortrend_chassis(string_table: StringTable) -> StringTable | None:
+    return string_table or None
+
+check_info["infortrend_chassis"] = LegacyCheckDefinition(
+    detect=startswith(".1.3.6.1.2.1.1.2.0", ".1.3.6.1.4.1.1714.1.2"),
+    parse_function=parse_infortrend_chassis,
+    fetch=SNMPTree(
+        base=".1.3.6.1.4.1.1714.1.1.9.1",
+        oids=["8", "13", "6", "9", "10", "12"],
+    ),
+    service_name="IFT %s",
+    discovery_function=inventory_infortrend_chassis,
+    check_function=check_infortrend_chassis,
+    check_ruleset_name="infortend_chassis",
+)

@@ -4,7 +4,12 @@
 #
 # (c) 2013 Heinlein Support GmbH
 #          Robert Sander <r.sander@heinlein-support.de>
+# (c) 2024 Jens Maus <mail@jens-maus.de>
 #
+
+from cmk.base.check_api import LegacyCheckDefinition, saveint
+from cmk.base.config import check_info
+from cmk.agent_based.v2 import all_of, contains, startswith, SNMPTree, StringTable
 
 # This is free software;  you can redistribute it and/or modify it
 # under the  terms of the  GNU General Public License  as published by
@@ -18,15 +23,12 @@
 # Boston, MA 02110-1301 USA.
 
 def inventory_infortrend_chassis1(info):
-    # Debug: lets see how the data we get looks like
-    inventory = []
     for name, status, devtype, value, unit in info:
-        if devtype == '15' and not name:
+        if not name:
             continue
         if devtype == '14' and status == '128':
             continue
-        inventory.append( (name, status) )
-    return inventory
+        yield name, {}
 
 def check_infortrend_chassis1(item, params, info):
     status_info = {
@@ -121,8 +123,7 @@ def check_infortrend_chassis1(item, params, info):
                 'adtl_func': lambda status: status >> 2 & 3,
                 },
         # LED
-        "12": { 'bits': { 0: ( "", "" ),
-                          6: ( "LED is active", "LED is inactive" ),
+        "12": { 'bits': { 6: ( "LED is active", "LED is inactive" ),
                           7: ( "LED is present", "LED is NOT present" ),
                           },
                 },
@@ -171,7 +172,7 @@ def check_infortrend_chassis1(item, params, info):
             output = []
             for bit in status_info[devtype]['bits'].keys():
                 bit_set = ( status & 1 << bit ) >> bit
-                if bit_set:
+                if bit_set and status_info[devtype]['bits'][bit][bit_set] != "LED is inactive":
                     output.append("%s (!)" % status_info[devtype]['bits'][bit][bit_set])
                 else:
                     output.append(status_info[devtype]['bits'][bit][bit_set])
@@ -183,18 +184,47 @@ def check_infortrend_chassis1(item, params, info):
                     output.append(status_info[devtype]['adtl_info'][adtl_status])
             if status == 64:
                 if devtype == '12':
-                    return (0, ", ".join(output))
+                    if any("(!)" in s for s in output):
+                        return (1, ", ".join(output))
+                    else:
+                        return (0, ", ".join(output))
                 else:
                     return (1, "%d %s" % ( status, ", ".join(output)))
             else:
                 return (2, "%d %s" % ( status, ", ".join(output)))
     return (3, "not yet implemented")
 
-check_info["infortrend_chassis1"] = {
-    'check_function'        : check_infortrend_chassis1,
-    'service_description'   : "IFT %s",
-    'has_perfdata'          : False,
-    'inventory_function'    : inventory_infortrend_chassis1,
-    'snmp_scan_function'    : lambda oid: "infortrend" in oid(".1.3.6.1.2.1.1.1.0").lower() and oid(".1.3.6.1.2.1.1.2.0").startswith(".1.3.6.1.4.1.1714.1.1"),
-    'snmp_info'             : ( ".1.3.6.1.4.1.1714.1.1.9.1", [ "8", "13", "6", "9", "10" ] ),
-}
+def rename_dups(l):
+    d = {}
+    for i in range(len(l)):
+        if l[i][0] in d:
+            d[l[i][0]] += 1
+        else:
+            d[l[i][0]] = 1
+
+        if l[i][0]:
+            if "Device Slot" in l[i][0]:
+                slot = int(l[i][0][-1])
+                l[i][0] = '[{}] Device Slot {:02d}'.format(str(d[l[i][0]]), slot)
+            else:
+                l[i][0] = '[{}] {}'.format(str(d[l[i][0]]), l[i][0])
+    return l
+
+def parse_infortrend_chassis1(string_table: StringTable) -> StringTable | None:
+    return rename_dups(string_table) or None
+
+check_info["infortrend_chassis1"] = LegacyCheckDefinition(
+    detect=all_of(
+        contains(".1.3.6.1.2.1.1.1.0", "Infortrend"),
+        startswith(".1.3.6.1.2.1.1.2.0", ".1.3.6.1.4.1.1714.1.1"),
+    ),
+    parse_function=parse_infortrend_chassis1,
+    fetch=SNMPTree(
+        base=".1.3.6.1.4.1.1714.1.1.9.1",
+        oids=["8", "13", "6", "9", "10"],
+    ),
+    service_name="IFT %s",
+    discovery_function=inventory_infortrend_chassis1,
+    check_function=check_infortrend_chassis1,
+    check_ruleset_name="infortend_chassis1",
+)
