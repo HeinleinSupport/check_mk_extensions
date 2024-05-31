@@ -209,7 +209,7 @@ def check_infortrend_chassis1(item, params, info):
                     speed = 'Unknown (!)'
                     val = int(value)
                     if val == 0:
-                        speed = 'Normal'
+                        speed = 'Normal speed'
                     elif val == 1:
                         speed = 'Lowest speed'
                     elif val == 2:
@@ -226,7 +226,8 @@ def check_infortrend_chassis1(item, params, info):
                         speed = 'Highest speed'
 
                     perfdata = [(name.replace(' ', '-'), val)]
-                    text = "Status: %s" % (
+                    text = "Level %d (%s)" % (
+                        val,
                         speed,
                     )
 
