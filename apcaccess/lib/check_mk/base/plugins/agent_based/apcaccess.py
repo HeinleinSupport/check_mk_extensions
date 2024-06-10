@@ -1,7 +1,8 @@
 #!/usr/bin/env python3
 # -*- encoding: utf-8; py-indent-offset: 4 -*-
 
-# (c) Robert Sander <r.sander@heinlein-support.de>
+# (c) 2017 Heinlein Support GmbH
+#          Robert Sander <r.sander@heinlein-support.de>
 
 # This is free software;  you can redistribute it and/or modify it
 # under the  terms of the  GNU General Public License  as published by
@@ -129,6 +130,9 @@ def check_apcaccess(item, params, section) -> CheckResult:
             else:
                 yield Result(state=State.CRIT,
                              summary='Status is ' + data.get('STATUS'))
+        if data.get('SELFTEST') != 'NO':
+            yield Result(state=State.WARN,
+                         summary='Self-Test is ' + data.get('SELFTEST'))
 
 register.check_plugin(
     name="apcaccess",
