@@ -15,6 +15,9 @@
 # to the Free Software Foundation, Inc., 51 Franklin St,  Fifth Floor,
 # Boston, MA 02110-1301 USA.
 
+from cmk.base.check_api import LegacyCheckDefinition
+from cmk.base.config import check_info
+
 def item_name(line):
 	return line[0] + "_" + line[1] + "_" + line[2]
 
@@ -41,12 +44,13 @@ def check_dirvish(item, params, info):
 				return (2, "CRITICAL - Backup %s failed" % image)
 	return (3, "UNKNOWN - Backup %s not found" % item)
 
-check_info["dirvish"] = {
-    'check_function'        : check_dirvish,
-    'inventory_function'    : inventory_dirvish,
-    'service_description'   : 'Backup status %s',
-    'has_perfdata'          : False,
-}
+check_info["dirvish"] = LegacyCheckDefinition(
+        sections=["dirvish"],
+        parse_function=lambda x: x,
+        check_function=check_dirvish,
+        discovery_function=inventory_dirvish,
+        service_name='Backup status %s',
+)
 
 
 		
