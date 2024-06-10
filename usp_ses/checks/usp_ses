@@ -1,4 +1,4 @@
-#!/usr/bin/python
+#!/usr/bin/env python3
 # -*- encoding: utf-8; py-indent-offset: 4 -*-
 
 # (c) 2018 Heinlein Support GmbH
@@ -15,34 +15,48 @@
 # to the Free Software Foundation, Inc., 51 Franklin St,  Fifth Floor,
 # Boston, MA 02110-1301 USA.
 
-def inventory_usp_ses(info):
-    for line in info:
-        yield line[1], {}
+from cmk.base.check_api import LegacyCheckDefinition
+from cmk.base.config import check_info
+from cmk.agent_based.v2 import all_of, any_of, contains, endswith, exists, OIDEnd, SNMPTree, get_rate, get_value_store
+from cmk.agent_based.v2.render import timespan
 
-def check_usp_ses(item, params, info):
-    for line in info:
-        if item == line[1]:
-            connections = saveint(line[2])
-            requests = savefloat(line[3])
-            activeusers = saveint(line[4])
-            reqtime = savefloat(line[5])
-            yield 0, "%d client connections" % connections, [('connections', connections)]
-            yield 0, "%.2f requests per second" % requests, [('requests_per_second', requests)]
-            yield 0, "%d active users" % activeusers, [('current_users', activeusers)]
-            yield 0, "average request time: %s" % get_age_human_readable(reqtime), [('average_request_time', reqtime)]
+def parse_usp_ses(string_table):
+    parsed = {}
+    for line in string_table:
+        parsed[line[1]] = {
+            "connections": int(line[2]),
+            "requests": float(line[3]),
+            "activeusers": int(line[4]),
+            "reqtime": float(line[5]),
+        }
+    return parsed
 
-check_info["usp_ses"] = {
-    "inventory_function"      : inventory_usp_ses,
-    "check_function"          : check_usp_ses,
-    "service_description"     : "USP SES %s",
-    "has_perfdata"            : True,
-    "snmp_info"               : (".1.3.6.1.4.1.26458.5911.100.2.2.1", [
-                                        1, # vhostIndex
-                                        2, # vhostName
-                                        3, # vhostClientConnections
-                                        4, # vhostRequestPerSecond
-                                        5, # vhostActiveUsers
-                                        6, # vhostAvgRequestTime
-                               ]),
-    "snmp_scan_function"      : lambda oid: oid(".1.3.6.1.2.1.1.2.0") == ".1.3.6.1.4.1.26458.7419",
-}
+def inventory_usp_ses(section):
+    for item in section.keys():
+        yield item, {}
+
+def check_usp_ses(item, params, section):
+    if item in section:
+        data = section[item]
+        yield 0, "%d client connections" % data["connections"], [('connections', data["connections"])]
+        yield 0, "%.2f requests per second" % data["requests"], [('requests_per_second', data["requests"])]
+        yield 0, "%d active users" % data["activeusers"], [('current_users', data["activeusers"])]
+        yield 0, "average request time: %s" % timespan(data["reqtime"]), [('average_request_time', data["reqtime"])]
+
+check_info["usp_ses"] = LegacyCheckDefinition(
+    discovery_function=inventory_usp_ses,
+    check_function=check_usp_ses,
+    service_name="USP SES %s",
+    parse_function=parse_usp_ses,
+    fetch=SNMPTree(
+        base=".1.3.6.1.4.1.26458.5911.100.2.2.1",
+        oids=[
+            "1", # vhostIndex
+            "2", # vhostName
+            "3", # vhostClientConnections
+            "4", # vhostRequestPerSecond
+            "5", # vhostActiveUsers
+            "6", # vhostAvgRequestTime
+        ]),
+    detect=contains(".1.3.6.1.2.1.1.2.0", ".1.3.6.1.4.1.26458.7419"),
+)
