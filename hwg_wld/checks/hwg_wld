@@ -21,6 +21,10 @@
 # http://www.hw-group.com/products/HWg-WLD/WLD_water_leak_detection_en.html
 #
 
+from cmk.base.check_api import LegacyCheckDefinition
+from cmk.base.config import check_info
+from cmk.agent_based.v2 import all_of, any_of, contains, endswith, exists, OIDEnd, SNMPTree
+
 def inventory_hwg_wld(info):
     for line in info:
         yield line[0], {}
@@ -41,18 +45,20 @@ def check_hwg_wld(item, _no_params, info):
             yield wldState.get(line[1], '0')[0], 'State is %s' % wldState.get(line[1], '0')[1]
             yield wldValue.get(line[4], '3')[0], 'Value is %s' % wldValue.get(line[4], '3')[1]
 
-check_info['hwg_wld'] = {
-    'inventory_function'    : inventory_hwg_wld,
-    'check_function'        : check_hwg_wld,
-    'service_description'   : 'WLD %s',
-    'has_perfdata'          : False,
-    'snmp_info'             : ( '.1.3.6.1.4.1.21796.4.5.4.1', [
-                                '2', # wldName
-                                '3', # wldState
-                                '4', # wldSN
-                                '5', # wldID
-                                '6', # wldValue
-                                ] ),
-    'snmp_scan_function'    : lambda oid: oid('.1.3.6.1.2.1.1.2.0') == '.1.3.6.1.4.1.21796.4.1',
-}
+check_info['hwg_wld'] = LegacyCheckDefinition(
+    parse_function=lambda x: x,
+    discovery_function=inventory_hwg_wld,
+    check_function=check_hwg_wld,
+    service_name='WLD %s',
+    fetch=SNMPTree(
+        base='.1.3.6.1.4.1.21796.4.5.4.1',
+        oids=[
+            '2', # wldName
+            '3', # wldState
+            '4', # wldSN
+            '5', # wldID
+            '6', # wldValue
+        ]),
+    detect=contains('.1.3.6.1.2.1.1.2.0', '.1.3.6.1.4.1.21796.4.1'),
+)
 
