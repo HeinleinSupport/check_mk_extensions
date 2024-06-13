@@ -4,7 +4,12 @@
 #
 # (c) 2013 Heinlein Support GmbH
 #          Robert Sander <r.sander@heinlein-support.de>
+# (c) 2024 Jens Maus <mail@jens-maus.de>
 #
+
+from cmk.base.check_api import LegacyCheckDefinition, saveint
+from cmk.base.config import check_info
+from cmk.agent_based.v2 import all_of, contains, startswith, exists, SNMPTree, StringTable
 
 # This is free software;  you can redistribute it and/or modify it
 # under the  terms of the  GNU General Public License  as published by
@@ -69,11 +74,18 @@ def check_infortrend_disks(item, params, info):
                 return (2, info + status_info[status])
             return (1, info + status_info[status])
 
-check_info["infortrend_disks"] = {
-    'check_function'        : check_infortrend_disks,
-    'service_description'   : "IFT Disk Slot %s",
-    'has_perfdata'          : False,
-    'inventory_function'    : inventory_infortrend_disks,
-    'snmp_scan_function'    : lambda oid: oid(".1.3.6.1.4.1.1714.1.1.1.1.0"),
-    'snmp_info'             : ( ".1.3.6.1.4.1.1714.1.6.1", [ "13", "11", "15", "16", "17", "7", "8" ] ),
-}
+def parse_infortrend_disks(string_table: StringTable) -> StringTable | None:
+    return string_table or None
+
+check_info["infortrend_disks"] = LegacyCheckDefinition(
+    detect=exists(".1.3.6.1.4.1.1714.1.1.1.1.0"),
+    parse_function=parse_infortrend_disks,
+    fetch=SNMPTree(
+        base=".1.3.6.1.4.1.1714.1.6.1",
+        oids=["13", "11", "15", "16", "17", "7", "8"],
+    ),
+    service_name="IFT Disk Slot %s",
+    discovery_function=inventory_infortrend_disks,
+    check_function=check_infortrend_disks,
+    check_ruleset_name="infortend_disks",
+)
