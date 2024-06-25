@@ -512,6 +512,16 @@ Args:<br>
 Returns:<br>
 &nbsp;&nbsp;&nbsp;&nbsp;(host&nbsp;group,&nbsp;etag)</span></dd></dl>
 
+<dl><dt><a name="CMKRESTAPI-get_host_status"><strong>get_host_status</strong></a>(self, sites=[], query='', columns=[])</dt><dd><span class="code">Get&nbsp;host&nbsp;status<br>
+&nbsp;<br>
+Args:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;sites:&nbsp;Restrict&nbsp;the&nbsp;query&nbsp;to&nbsp;this&nbsp;particular&nbsp;site.<br>
+&nbsp;&nbsp;&nbsp;&nbsp;query:&nbsp;An&nbsp;query&nbsp;expression&nbsp;of&nbsp;the&nbsp;Livestatus&nbsp;'hosts'&nbsp;table&nbsp;in&nbsp;nested&nbsp;dictionary&nbsp;form.<br>
+&nbsp;&nbsp;&nbsp;&nbsp;columns:&nbsp;The&nbsp;desired&nbsp;columns&nbsp;of&nbsp;the&nbsp;hosts&nbsp;table.&nbsp;If&nbsp;left&nbsp;empty,&nbsp;a&nbsp;default&nbsp;set&nbsp;of&nbsp;columns&nbsp;is&nbsp;used.<br>
+&nbsp;<br>
+Returns:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;(list&nbsp;of&nbsp;dicts&nbsp;in&nbsp;"value",&nbsp;etag)</span></dd></dl>
+
 <dl><dt><a name="CMKRESTAPI-get_host_tag_group"><strong>get_host_tag_group</strong></a>(self, name)</dt><dd><span class="code">Show&nbsp;a&nbsp;host&nbsp;tag&nbsp;group<br>
 &nbsp;<br>
 Args:<br>
@@ -556,6 +566,17 @@ Args:<br>
 Returns:<br>
 &nbsp;&nbsp;&nbsp;&nbsp;list&nbsp;of&nbsp;rulesets<br>
 &nbsp;&nbsp;&nbsp;&nbsp;etag</span></dd></dl>
+
+<dl><dt><a name="CMKRESTAPI-get_service_status"><strong>get_service_status</strong></a>(self, sites=[], query='', columns=[], host_name='')</dt><dd><span class="code">Get&nbsp;service&nbsp;status<br>
+&nbsp;<br>
+Args:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;sites:&nbsp;Restrict&nbsp;the&nbsp;query&nbsp;to&nbsp;this&nbsp;particular&nbsp;site.<br>
+&nbsp;&nbsp;&nbsp;&nbsp;query:&nbsp;An&nbsp;query&nbsp;expression&nbsp;of&nbsp;the&nbsp;Livestatus&nbsp;'services'&nbsp;table&nbsp;in&nbsp;nested&nbsp;dictionary&nbsp;form.<br>
+&nbsp;&nbsp;&nbsp;&nbsp;columns:&nbsp;The&nbsp;desired&nbsp;columns&nbsp;of&nbsp;the&nbsp;services&nbsp;table.&nbsp;If&nbsp;left&nbsp;empty,&nbsp;a&nbsp;default&nbsp;set&nbsp;of&nbsp;columns&nbsp;is&nbsp;used.<br>
+&nbsp;&nbsp;&nbsp;&nbsp;host_name:&nbsp;A&nbsp;hostname.<br>
+&nbsp;<br>
+Returns:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;(list&nbsp;of&nbsp;dicts&nbsp;in&nbsp;"value",&nbsp;etag)</span></dd></dl>
 
 <dl><dt><a name="CMKRESTAPI-get_timeperiod"><strong>get_timeperiod</strong></a>(self, name)</dt><dd><span class="code">Show&nbsp;a&nbsp;time&nbsp;period<br>
 &nbsp;<br>
