@@ -20,7 +20,7 @@
 import shlex
 from cmk.base.check_api import host_name
 import cmk.base.config as config
-from cmk.checkers import SourceType
+from cmk.checkengine.fetcher import SourceType
 
 def _creds_to_args(creds):
     args = ''
