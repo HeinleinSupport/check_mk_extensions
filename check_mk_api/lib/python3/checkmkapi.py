@@ -1561,6 +1561,82 @@ class CMKRESTAPI():
             data={
                 "alias": title,
             })
+
+#   .--Host Status---------------------------------------------------------.
+#   |         _   _           _     ____  _        _                       |
+#   |        | | | | ___  ___| |_  / ___|| |_ __ _| |_ _   _ ___           |
+#   |        | |_| |/ _ \/ __| __| \___ \| __/ _` | __| | | / __|          |
+#   |        |  _  | (_) \__ \ |_   ___) | || (_| | |_| |_| \__ \          |
+#   |        |_| |_|\___/|___/\__| |____/ \__\__,_|\__|\__,_|___/          |
+#   |                                                                      |
+#   +----------------------------------------------------------------------+
+#   |                                                                      |
+#   '----------------------------------------------------------------------'
+#.
+
+    def get_host_status(self, sites=[], query="", columns=[]):
+        """Get host status
+
+        Args:
+            sites: Restrict the query to this particular site.
+            query: An query expression of the Livestatus 'hosts' table in nested dictionary form.
+            columns: The desired columns of the hosts table. If left empty, a default set of columns is used.
+
+        Returns:
+            (list of dicts in "value", etag)
+        """
+        data = {}
+        if sites:
+            data["sites"] = sites
+        if query:
+            data["query"] = query
+        if columns:
+            data["columns"] = columns
+        return self._request(
+            self._get_url,
+            "/domain-types/host/collections/all",
+            data = data,
+        )
+            
+#   .--Service Status------------------------------------------------------.
+#   |   ____                  _            ____  _        _                |
+#   |  / ___|  ___ _ ____   _(_) ___ ___  / ___|| |_ __ _| |_ _   _ ___    |
+#   |  \___ \ / _ \ '__\ \ / / |/ __/ _ \ \___ \| __/ _` | __| | | / __|   |
+#   |   ___) |  __/ |   \ V /| | (_|  __/  ___) | || (_| | |_| |_| \__ \   |
+#   |  |____/ \___|_|    \_/ |_|\___\___| |____/ \__\__,_|\__|\__,_|___/   |
+#   |                                                                      |
+#   +----------------------------------------------------------------------+
+#   |                                                                      |
+#   '----------------------------------------------------------------------'
+#.
+
+    def get_service_status(self, sites=[], query="", columns=[], host_name=""):
+        """Get service status
+
+        Args:
+            sites: Restrict the query to this particular site.
+            query: An query expression of the Livestatus 'services' table in nested dictionary form.
+            columns: The desired columns of the services table. If left empty, a default set of columns is used.
+            host_name: A hostname.
+
+        Returns:
+            (list of dicts in "value", etag)
+        """
+        
+        data = {}
+        if sites:
+            data["sites"] = sites
+        if query:
+            data["query"] = query
+        if columns:
+            data["columns"] = columns
+        if hsot_name:
+            data["host_name"] = host_name
+        return self._request(
+            self._get_url,
+            "/domain-types/service/collections/all",
+            data = data,
+        )
         
 
 #
