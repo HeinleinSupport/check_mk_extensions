@@ -37,7 +37,7 @@ from cmk.gui.plugins.wato import (
 # 'CacheHitRatio': { 'lower': (60, 40) },
 # 'CacheKeyCount': { 'upper': (90000, 100000) },
 # 'CacheSize': { 'lower': (10737418240, 0), 'upper': (32212254720, 42949672960) },
-# 'MedianKeyProcessTimeMillis': { 'upper': (10, None) },
+# 'MedianKeyProcessTimeMillis': { 'upper': (10, 100000) },
 
 def _parameter_valuespec_ox_imageconverter_cache():
     return Dictionary(
@@ -77,7 +77,7 @@ def _parameter_valuespec_ox_imageconverter_cache():
                   title = _('Median Key Processing Time'),
                   elements = [
                       ('upper',
-                       SimpleLevels(Integer, title=_("Upper Levels"), default_levels = (10, None), unit = "s")),
+                       SimpleLevels(Integer, title=_("Upper Levels"), default_levels = (10, 1000000), unit = "s")),
                   ],
                   optional_keys = [],
             )),
