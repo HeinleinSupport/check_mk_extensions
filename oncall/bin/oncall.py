@@ -105,7 +105,7 @@ parser.add_argument('-n', '--noproxy', required=False, help='noproxy setting')
 parser.add_argument('-d', '--debug', action='store_true', default=False, required=False)
 args = parser.parse_args()
 
-api_url = _check_mk_url(_site_url()) + 'api/v0'
+api_url = _check_mk_url(_site_url()) + 'api/1.0'
 if not args.secret:
     args.username, args.secret = _site_creds(args.username)
 
@@ -263,7 +263,7 @@ else:
         site = changes_file.split('/')[-1][20:-3]
         if site != os.environ.get('OMD_SITE'):
             try:
-                cmk.utils.store.aquire_lock(changes_file)
+                cmk.utils.store.acquire_lock(changes_file)
                 with open(changes_file, 'a+') as f:
                     f.write(repr(change_spec)+'\0')
                     f.flush()
@@ -290,6 +290,7 @@ else:
         json=postdata,
         headers={
             "Content-Type": 'application/json',
+            "If-Match": '*',
         },
         allow_redirects=False,
     )
