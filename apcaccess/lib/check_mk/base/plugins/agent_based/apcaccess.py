@@ -130,9 +130,9 @@ def check_apcaccess(item, params, section) -> CheckResult:
             else:
                 yield Result(state=State.CRIT,
                              summary='Status is ' + data.get('STATUS'))
-        if data.get('SELFTEST') != 'NO':
+        if 'SELFTEST' in data and data['SELFTEST'] != 'NO':
             yield Result(state=State.WARN,
-                         summary='Self-Test is ' + data.get('SELFTEST'))
+                         summary='Self-Test is ' + data['SELFTEST'])
 
 register.check_plugin(
     name="apcaccess",
