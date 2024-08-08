@@ -30,9 +30,9 @@ from .agent_based_api.v1.type_defs import (
     DiscoveryResult,
 )
 
-from .utils.elphase import check_elphase
-from .utils.temperature import check_temperature
-from .utils.humidity import check_humidity
+from cmk.plugins.lib.elphase import check_elphase
+from cmk.plugins.lib.temperature import check_temperature
+from cmk.plugins.lib.humidity import check_humidity
 
 def parse_vertiv_geist_pdu(string_table):
     section = {
