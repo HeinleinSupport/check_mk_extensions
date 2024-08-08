@@ -17,24 +17,29 @@
 # to the Free Software Foundation, Inc., 51 Franklin St,  Fifth Floor,
 # Boston, MA 02110-1301 USA.
 
-from cmk.utils.render import physical_precision
-from cmk.gui.plugins.metrics.unit import physical_precision_list
+from cmk.graphing.v1 import Title
+from cmk.graphing.v1.metrics import (
+    Color,
+    DecimalNotation,
+    IECNotation,
+    Metric,
+    StrictPrecision,
+    Unit,
+)
 
-unit_info["m/s"] = {
-    "title": _("Meters per second"),
-    "symbol": _("m/s"),
-    "render": lambda v: physical_precision(v, 3, _("m/s")),
-    "graph_unit": lambda v: physical_precision_list(v, 3, _("m/s")),
-}
+UNIT_METERS_PER_SECOND = Unit(IECNotation("m/s"))
+UNIT_PERCENT = Unit(DecimalNotation("%"), StrictPrecision(2))
 
-metric_info["chamber_perc"] = {
-    "title": _("Chamber Deviation"),
-    "unit": "%",
-    "color": "#88f060",
-}
+metric_chamber_perc = Metric(
+    name = "chamber_perc",
+    title = Title("Chamber Deviation"),
+    unit = UNIT_PERCENT,
+    color = Color.LIGHT_GREEN,
+)
 
-metric_info["airflow_meter"] = {
-    "title": _("Airflow"),
-    "unit": "m/s",
-    "color": "#123456",
-}
+metric_airflow_meter = Metric(
+    name = "airflow_meter",
+    title = Title("Airflow"),
+    unit = UNIT_METERS_PER_SECOND,
+    color = Color.PURPLE,
+)

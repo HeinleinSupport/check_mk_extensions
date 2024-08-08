@@ -16,22 +16,26 @@
 # to the Free Software Foundation, Inc., 51 Franklin St,  Fifth Floor,
 # Boston, MA 02110-1301 USA.
 
-from .agent_based_api.v1 import (
+from cmk.agent_based.v2 import (
     check_levels,
+    CheckPlugin,
+    CheckResult,
     contains,
-    register,
-    render,
+    DiscoveryResult,
     Metric,
+    render,
     OIDEnd,
     Result,
     Service,
+    SNMPSection,
     SNMPTree,
     State,
+    StringTable,
 )
 
-from .utils import temperature
+from cmk.plugins.lib import temperature
 
-def parse_wagner_racksens2(string_table):
+def parse_wagner_racksens2(string_table: StringTable):
     section = {
         'info': [
             ('Manufacturer', string_table[0][0][0]),
@@ -77,7 +81,7 @@ def parse_wagner_racksens2(string_table):
                                       int(string_table[0][0][temp + 9])) )
     return section
 
-register.snmp_section(
+snmp_section_wagner_racksens2 = SNMPSection(
     name="wagner_racksens2",
     detect=contains(".1.3.6.1.2.1.1.2.0", ".1.3.6.1.4.1.34187.57949"),
     parse_function=parse_wagner_racksens2,
@@ -164,7 +168,7 @@ def check_wagner_racksens2_info(section):
         yield Result(state=State.OK,
                      summary="%s: %s" % (key, value))
 
-register.check_plugin(
+check_plugin_wagner_racksens2_info = CheckPlugin(
     name="wagner_racksens2_info",
     sections=['wagner_racksens2'],
     service_name="Racksens2 Info",
@@ -199,7 +203,7 @@ def check_wagner_racksens2_detector(item, params, section):
                 yield Result(state=State.CRIT, summary="Fire Alarm")
             yield from check_levels(
                 vals['smoke'],
-                levels_upper=params.get('smoke_levels'),
+                levels_upper=("fixed", params.get('smoke_levels')),
                 metric_name="smoke_perc",
                 label="Smoke detected",
                 render_func=render.percent,
@@ -207,17 +211,17 @@ def check_wagner_racksens2_detector(item, params, section):
             levels_lower = params.get('chamber_levels')
             if isinstance(levels_lower, tuple):
                 warn, crit = levels_lower
-                levels_lower = (-warn, -crit)
+                levels_lower = ("fixed", (-warn, -crit))
             yield from check_levels(
                 vals['chamber'],
-                levels_upper=params.get('chamber_levels'),
+                levels_upper=("fixed", params.get('chamber_levels')),
                 levels_lower=levels_lower,
                 metric_name="chamber_perc",
                 label="Chamber Deviation",
                 render_func=render.percent,
             )
 
-register.check_plugin(
+check_plugin_wagner_racksens2_detector = CheckPlugin(
     name="wagner_racksens2_detector",
     sections=['wagner_racksens2'],
     service_name="Racksens2 Detector %s",
@@ -263,7 +267,7 @@ def check_wagner_racksens2_temp(item, params, section):
                     dev_status_name = 'Alarm',
                 )
 
-register.check_plugin(
+check_plugin_wagner_racksens2_temp = CheckPlugin(
     name="wagner_racksens2_temp",
     sections=['wagner_racksens2'],
     service_name="Racksens2 Temp %s",
@@ -298,7 +302,7 @@ def check_wagner_racksens2_alarm(item, section):
         status = map_status.get(section['alarms'][item], State.UNKNOWN)
         yield Result(state=status, summary="Status: %d" % section['alarms'][item])
 
-register.check_plugin(
+check_plugin_wagner_racksens2_alarm = CheckPlugin(
     name="wagner_racksens2_alarm",
     sections=['wagner_racksens2'],
     service_name="Racksens2 Alarm %s",
@@ -330,14 +334,14 @@ def check_wagner_racksens2_airflow(section):
         yield Metric('airflow_meter', airflow[1])
         yield from check_levels(
             airflow[2],
-            levels_upper=(None, airflow[3]),
-            levels_lower=(None, -airflow[3]),
+            levels_upper=("fixed", (airflow[3], airflow[3])),
+            levels_lower=("fixed", (-airflow[3], -airflow[3])),
             metric_name='deviation_airflow',
             label='Deviation',
             render_func=render.percent,
         )
 
-register.check_plugin(
+check_plugin_wagner_racksens2_airflow = CheckPlugin(
     name="wagner_racksens2_airflow",
     sections=['wagner_racksens2'],
     service_name="Racksens2 Airflow",
