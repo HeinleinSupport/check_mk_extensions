@@ -34,11 +34,8 @@ from .utils.temperature import (
     TempParamDict,
     check_temperature,
 )
-from .utils.fan import check_fan
-from .utils.elphase import check_elphase
-
-from cmk.utils import debug
-from pprint import pprint
+from cmk.plugins.lib.fan import check_fan
+from cmk.plugins.lib.elphase import check_elphase
 
 _map_component_status = {
     -1: (State.UNKNOWN, "not present"),
@@ -231,16 +228,12 @@ register.check_plugin(
 
 def parse_forcepoint_firewall_voltage(string_table):
     section = {}
-    if debug.enabled():
-        pprint(string_table)
     for line in string_table:
         status = _map_component_status.get(int(line[2]), (3, 'Unknown status: %s' % line[2]))
         section[line[0]] = {
             'voltage': float(line[1]) / 1000.0,
             'device_state': status,
         }
-    if debug.enabled():
-        pprint(section)
     return section
 
 register.snmp_section(
