@@ -21,6 +21,7 @@ from cmk.gui.valuespec import (
     CascadingDropdown,
     Dictionary,
     Float,
+    ListOf,
     Percentage,
     Tuple,
 )
