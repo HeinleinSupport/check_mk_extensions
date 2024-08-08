@@ -30,7 +30,7 @@ from .agent_based_api.v1.type_defs import (
     CheckResult,
     DiscoveryResult,
 )
-from .utils.elphase import check_elphase
+from cmk.plugins.lib.elphase import check_elphase
 
 def parse_netpdu_elphase(string_table: StringTable) -> Dict[str, Dict[str, int]]:
     section = {}
