@@ -1,8 +1,0 @@
-#
-# Settings for apachecount.py
-#
-
-LOGFILE=/var/log/apache2/access.log
-OUTPUT=/var/lib/check_mk_agent/spool/apachecount
-SLEEP=30
-DEBUG=--debug
