@@ -1,0 +1,3 @@
+The Perl based Nagios plugin needs Net::SNMP.
+
+On Debian this is available in the package libnet-snmp-perl.
