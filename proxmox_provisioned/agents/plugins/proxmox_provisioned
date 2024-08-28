@@ -28,10 +28,6 @@ provisionedSpace () {
   done | awk '/^virtual size: / { print substr($5, 2) }' )
 }
 
-# provisionedSpace /mnt/ocfs2/PVE01-0006/images/
-
-# exit
-
 handleDirStorage() {
   local dir="$1" typ
   local -i capacity total_used used prov total_cap
@@ -103,8 +99,8 @@ if [ -x $pvesm ]; then
       echo "accessible False"
     fi
     echo "type $typ"
-    echo "capacity $total_cap"
-    echo "freeSpace $avail"
+    echo "capacity $(( $total_cap * 1024 ))"
+    echo "freeSpace $(( $avail * 1024 ))"
     echo "uncommitted 0"
   done
 fi
