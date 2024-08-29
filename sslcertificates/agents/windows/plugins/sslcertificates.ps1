@@ -10,11 +10,17 @@ foreach ($CertLocation in $CertLocations) {
     ElseIf ($_.Subject) {$subject = $_.Subject}
     Else {$subject = $_.Thumbprint}
 
+    # Reverse issuer, so it starts with e.g. C=US to match the output of the Linux agent.
+    $issuer = $_.Issuer -split ',' | ForEach-Object { $_.Trim() }
+    [array]::Reverse($issuer)
+    $issuer = $issuer -join ','
+
     $data = [ordered]@{
       starts = (New-TimeSpan -Start $UnixEpoch -End $_.NotBefore).TotalSeconds ;
       expires = (New-TimeSpan -Start $UnixEpoch -End $_.NotAfter).TotalSeconds ;
       subj = $subject.Unicode ;
       thumb = $_.Thumbprint ;
+      issuer = $issuer ;
       algosign = $_.SignatureAlgorithm.FriendlyName ;
     }
 

@@ -72,6 +72,8 @@ def discover_sslcertificates(params, section):
         sl = []
         if data.get('issuer_hash'):
             sl.append(ServiceLabel(u'sslcertificates/issuer_hash', data['issuer_hash']))
+        if data.get('issuer'):
+            sl.append(ServiceLabel(u'sslcertificates/issuer', data['issuer']))
         if data.get('algosign'):
             sl.append(ServiceLabel(u'sslcertificates/algorithm', data['algosign']))
         yield Service(item=name, labels=sl)
