@@ -63,6 +63,9 @@ def check_snmp_metric_arguments(params):
     if "factor" in params:
         args += ' --factor %f' % params["factor"]
 
+    if "offset" in params:
+        args += ' --offset %f' % params["offset"]
+
     if "unit" in params:
         args += ' --unit %s' % quote_shell_string(params["unit"])
 

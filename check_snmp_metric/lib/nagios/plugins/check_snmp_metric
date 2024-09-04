@@ -23,6 +23,7 @@ from pprint import pprint
 
 snmpgetcmd=['snmpget', '-O', 'nq']
 factor=1.0
+offset=0.0
 unit=""
 warn=0
 warnset=False
@@ -43,6 +44,8 @@ while args:
     a = args.pop(0)
     if a == "--factor":
         factor=float(args.pop(0))
+    elif a == "--offset":
+        offset=float(args.pop(0))
     elif a == "--unit":
         unit=args.pop(0)
     elif a == "--metric":
@@ -72,7 +75,7 @@ res = exec_snmpget(snmpgetcmd)
 
 if res.returncode == 0:
     oid, v = res.stdout.strip().split()
-    val = float(v) / factor
+    val = (float(v) / factor) + offset
     state = 0
     info = '%s is %0.2f %s' % (oid, val, unit)
     if critset and val > crit:

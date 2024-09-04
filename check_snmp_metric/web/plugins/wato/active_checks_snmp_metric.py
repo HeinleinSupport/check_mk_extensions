@@ -103,6 +103,12 @@ def _valuespec_active_checks_snmp_metric():
                   help = _("A Factor of 10 means that the value reported is ten times the real value, e.g. the OID contains 245, but the real temperature is 24,5°C"),
                   default_value = 1.0,
               )),
+            ( "offset",
+              Float(
+                  title = _("Value offset"),
+                  help = _("An offset that gets added (with a positive value) to the value or subtracted (with a negative value) from the value after applying the value factor."),
+                  default_value = 0.0,
+              )),
             ( "metric",
               TextAscii(
                   title = _("Metric name"),
@@ -114,7 +120,7 @@ def _valuespec_active_checks_snmp_metric():
                   help = _("Unit of the value. Used for display."),
               )),
         ],
-        optional_keys = [ 'hostname', 'port', 'timeout', 'creds', 'levels_upper', 'levels_lower', 'factor', 'metric', 'unit', ],
+        optional_keys = [ 'hostname', 'port', 'timeout', 'creds', 'levels_upper', 'levels_lower', 'factor', 'offset', 'metric', 'unit', ],
     )
 
 rulespec_registry.register(
