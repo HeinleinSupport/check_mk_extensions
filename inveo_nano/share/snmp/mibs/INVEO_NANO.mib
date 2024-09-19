@@ -1,0 +1,107 @@
+Nano DEFINITIONS ::= BEGIN
+
+IMPORTS
+   enterprises, IpAddress, Gauge, TimeTicks     FROM RFC1155-SMI
+   DisplayString                                FROM RFC1213-MIB
+   OBJECT-TYPE                                  FROM RFC-1212
+   TRAP-TYPE                                    FROM RFC-1215;
+
+inveo                           OBJECT IDENTIFIER ::=  { enterprises 42814 }
+
+nano                           OBJECT IDENTIFIER ::=  { inveo 14 }
+
+product                            OBJECT IDENTIFIER ::=  { nano 1 }
+setup                              OBJECT IDENTIFIER ::=  { nano 2 }
+control                            OBJECT IDENTIFIER ::=  { nano 3 }
+
+on                             OBJECT IDENTIFIER ::=  { control 1 }
+out                            OBJECT IDENTIFIER ::=  { control 2 }
+in                             OBJECT IDENTIFIER ::=  { control 3 }
+countera                        OBJECT IDENTIFIER ::=  { control 4 }
+temperature                    OBJECT IDENTIFIER ::=  { control 5 }
+
+   
+name    OBJECT-TYPE
+   SYNTAX DisplayString
+   ACCESS read-only
+   STATUS mandatory
+   DESCRIPTION
+      "Name of product"
+   ::= { product 1 }
+   
+
+version    OBJECT-TYPE
+   SYNTAX DisplayString
+   ACCESS read-only
+   STATUS mandatory
+   DESCRIPTION
+      "Version string"
+   ::= { product 2 }
+   
+date    OBJECT-TYPE
+   SYNTAX DisplayString
+   ACCESS read-only
+   STATUS mandatory
+   DESCRIPTION
+      "Date of version"
+   ::= { product 3 }
+
+
+   
+ch1-on OBJECT-TYPE
+    SYNTAX INTEGER
+    ACCESS read-write
+    STATUS mandatory
+    DESCRIPTION 
+        "Channel On State"
+    ::= { on 1 } 
+   
+ch1-out OBJECT-TYPE
+    SYNTAX INTEGER
+    ACCESS read-only
+    STATUS mandatory
+    DESCRIPTION 
+        "Channel Out State"
+    ::= { out 1 }
+
+ch1-in OBJECT-TYPE
+    SYNTAX INTEGER
+    ACCESS read-only
+    STATUS mandatory
+    DESCRIPTION 
+        "Channel In State"
+    ::= { in 1 }
+	
+ch1-cnt OBJECT-TYPE
+    SYNTAX INTEGER
+    ACCESS read-write
+    STATUS mandatory
+    DESCRIPTION 
+        "Counter"
+    ::= { countera 1 }
+
+ch1-temp OBJECT-TYPE
+    SYNTAX DisplayString
+    ACCESS read-only
+    STATUS mandatory
+    DESCRIPTION 
+        "Temperature String"
+    ::= { temperature 1 }
+
+ch1-tempint OBJECT-TYPE
+    SYNTAX INTEGER
+    ACCESS read-only
+    STATUS mandatory
+    DESCRIPTION 
+        "Temperature Integer"
+    ::= { temperature 2 }
+
+ch1-tempint10 OBJECT-TYPE
+    SYNTAX INTEGER
+    ACCESS read-only
+    STATUS mandatory
+    DESCRIPTION 
+        "Temperature x10 Integer"
+    ::= { temperature 3 }
+	
+END   
