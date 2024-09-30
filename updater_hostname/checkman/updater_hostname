@@ -1,6 +1,6 @@
 title: Check_MK Updater Hostname
 agents: linux
-catalog: os
+catalog: app/Checkmk
 license: GPL
 distribution: heinlein
 description:

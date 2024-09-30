@@ -3,6 +3,7 @@ agents: snmp
 author: Robert Sander <r.sander@heinlein-support.de>
 license: GPL
 distribution: heinlein
+catalog: os/linux
 description:
  Stonesoft firewalls present the filesystem information on their own OIDs.
 

@@ -2,6 +2,7 @@ title: MS Exchange: Size of mailbox databases
 agents: windows
 author: Robert Sander <r.sander@heinlein-support.de>
 license: GPL
+catalog: app/Microsoft Exchange
 distribution: heinlein
 description:
  This check receives data from the agent plugin msexch_database_size.ps1
