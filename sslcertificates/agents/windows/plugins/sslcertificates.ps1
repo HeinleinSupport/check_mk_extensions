@@ -1,11 +1,10 @@
-
 function Get-CertificateTemplateName($certificate)
 {
   # The template name is stored in the Extension data.
   # If available, the best is the extension named "Certificate Template Name", since it contains the exact name.
   $templateExt = $certificate.Extensions | Where-Object{ ( $_.Oid.Value -eq '1.3.6.1.4.1.311.20.2' ) } | Select-Object -First 1
   if ($templateExt) {
-    return $templateExt.Format(1)
+    return [string]::join("", $templateExt.Format(1).Split("`r`n"))
   }
 
   # Our fallback option is the "Certificate Template Information" extension, it contains the name as part of a string like:
@@ -16,10 +15,10 @@ function Get-CertificateTemplateName($certificate)
 
     # Extract just the template name in $Matches[1]
     if($information -match "^\w+=(.+)\([0-9\.]+\)") {
-      return $Matches[1]
+      return [string]::join("", $Matches[1].Split("`r`n"))
     } else {
       # No regex match, just return the complete information then
-      return $information
+      return [string]::join("", $information.Split("`r`n"))
     }
   } else {
     # No template name found
