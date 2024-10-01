@@ -36,22 +36,23 @@ get_cert_info() {
     certfile="$1"
     single="$2"
     if [ -f "$certfile" -a -r "$certfile" -a \( ! -L "$certfile" -o "$single" \) ] && ! [[ $certfile =~ .*~$ ]] && ! [[ $certfile =~ .*_CA.crt$ ]] && ! [[ $certfile =~ .*/ca-certificates.crt$ ]]; then
-	inform='DER'
-	if grep -q -- '-----BEGIN CERTIFICATE-----' "$certfile"; then
-	    inform='PEM'
-	fi
+        inform='DER'
+        if grep -q -- '-----BEGIN CERTIFICATE-----' "$certfile"; then
+            inform='PEM'
+        fi
 
-	cert_subject=$($OPENSSL x509 -inform $inform -noout -subject -nameopt utf8 -in "$certfile" 2> /dev/null) || return
-	cert_subject=$(cut -d "=" -f 2- <<<"$cert_subject" | sed -e 's/"/\\"/g')
+        cert_subject=$($OPENSSL x509 -inform $inform -noout -subject -nameopt utf8 -in "$certfile" 2> /dev/null) || return
+        cert_subject=$(cut -d "=" -f 2- <<<"$cert_subject" | sed -e 's/"/\\"/g')
         if ! grep -q '@snakeoil.dom' <<<"$cert_subject"; then
-	    cert_startdate=$($OPENSSL x509 -inform $inform -noout -startdate -in "$certfile" | cut -d "=" -f 2 )
-	    cert_startdate_epoch=$(date --date "$cert_startdate" '+%s')
+            cert_startdate=$($OPENSSL x509 -inform $inform -noout -startdate -in "$certfile" | cut -d "=" -f 2 )
+            cert_startdate_epoch=$(date --date "$cert_startdate" '+%s')
             cert_enddate=$($OPENSSL x509 -inform $inform -noout -enddate -in "$certfile" | cut -d "=" -f 2 )
             cert_enddate_epoch=$(date --date "$cert_enddate" '+%s')
             cert_algosign=$($OPENSSL x509 -inform $inform -noout -text -in "$certfile" | awk '/Signature Algorithm: / { print $3; exit;}' )
             cert_issuer_hash=$($OPENSSL x509 -inform $inform -noout -issuer_hash -in "$certfile" )
+            cert_issuer=$($OPENSSL x509 -inform $inform -noout -issuer -in "$certfile" | sed -e 's/ = /=/g' -e 's/, /,/g' -e 's/issuer=//')
 
-            echo "{\"file\": \"$certfile\", \"starts\": $cert_startdate_epoch, \"expires\": $cert_enddate_epoch, \"algosign\": \"$cert_algosign\", \"issuer_hash\": \"$cert_issuer_hash\", \"subj\": \"$cert_subject\"}"
+            echo "{\"file\": \"$certfile\", \"starts\": $cert_startdate_epoch, \"expires\": $cert_enddate_epoch, \"algosign\": \"$cert_algosign\", \"issuer_hash\": \"$cert_issuer_hash\", \"issuer\": \"$cert_issuer\", \"subj\": \"$cert_subject\"}"
         fi
     fi
 }
@@ -61,10 +62,10 @@ echo '<<<sslcertificates:sep(0)>>>'
 for dir in $CERT_DIRS; do
     if [ -d "$dir" ]; then
         for certfile in "$dir"/*; do
-	    get_cert_info "$certfile"
+            get_cert_info "$certfile"
         done
     else
-	get_cert_info "$dir" 1
+        get_cert_info "$dir" 1
     fi
 done
 
