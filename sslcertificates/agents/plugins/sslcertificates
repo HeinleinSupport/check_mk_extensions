@@ -50,7 +50,7 @@ get_cert_info() {
             cert_enddate_epoch=$(date --date "$cert_enddate" '+%s')
             cert_algosign=$($OPENSSL x509 -inform $inform -noout -text -in "$certfile" | awk '/Signature Algorithm: / { print $3; exit;}' )
             cert_issuer_hash=$($OPENSSL x509 -inform $inform -noout -issuer_hash -in "$certfile" )
-            cert_issuer=$($OPENSSL x509 -inform $inform -noout -issuer -in "$certfile" | sed -e 's/ = /=/g' -e 's/, /,/g' -e 's/issuer=//')
+            cert_issuer=$($OPENSSL x509 -inform $inform -noout -issuer -in "$certfile" | sed -e 's/ = /=/g' -e 's/, /,/g' -e 's/issuer=//' -e 's/"//g')
 
             echo "{\"file\": \"$certfile\", \"starts\": $cert_startdate_epoch, \"expires\": $cert_enddate_epoch, \"algosign\": \"$cert_algosign\", \"issuer_hash\": \"$cert_issuer_hash\", \"issuer\": \"$cert_issuer\", \"subj\": \"$cert_subject\"}"
         fi
