@@ -7,18 +7,15 @@ root = true
 [*]
 end_of_line = lf
 insert_final_newline = true
-
-# Matches multiple files with brace expansion notation
-# Set default charset
-[*]
 charset = utf-8
+indent_style = space
+indent_size = 2
 
-# 4 space indentation
-[*.{py}]
+# 4 space indentation for Python
+[*.py]
 indent_style = space
 indent_size = 4
 
-# 2 space indentation
-[*.{sh,ps1}]
-indent_style = space
-indent_size = 2
+# Windows end of line for Powershell
+[*.ps1]
+end_of_line = crlf
