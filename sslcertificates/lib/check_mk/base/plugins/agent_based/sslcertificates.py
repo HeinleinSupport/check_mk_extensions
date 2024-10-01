@@ -76,6 +76,8 @@ def discover_sslcertificates(params, section):
             sl.append(ServiceLabel(u'sslcertificates/issuer', data['issuer']))
         if data.get('algosign'):
             sl.append(ServiceLabel(u'sslcertificates/algorithm', data['algosign']))
+        if data.get('template'):
+            sl.append(ServiceLabel(u'sslcertificates/template', data['template']))
         yield Service(item=name, labels=sl)
 
 def check_sslcertificates(item, params, section):
@@ -91,6 +93,9 @@ def check_sslcertificates(item, params, section):
         ignored = False
 
         yield Result(state=State.OK, summary="Subject: %s" % data['subj'])
+
+        if data.get('template'):
+            yield Result(state=State.OK, summary="Template: %s" % data['template'])
 
         if secondsremaining < 0:
             infotext = "expired %s ago on %s" % ( render.timespan(abs(secondsremaining)),
