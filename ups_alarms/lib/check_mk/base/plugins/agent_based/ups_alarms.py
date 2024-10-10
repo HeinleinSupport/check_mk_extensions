@@ -105,6 +105,8 @@ def parse_ups_alarms(string_table):
                       '.1.3.6.1.2.1.33.1.6.3.24': 'Test In Progress',
     }
 
+    section = None
+
     if len(string_table) == 2:
         section = {'count': 0, 'alarms': []}
         if len(string_table[0]) == 1:
@@ -113,9 +115,7 @@ def parse_ups_alarms(string_table):
             for line in string_table[1]:
                 section['alarms'].append((parse_snmp_uptime(line[1]), transUpsAlarm.get(line[0], 'Unknown')))
 
-        return section
-    else:
-        return None
+    return section
 
 register.snmp_section(
     name="ups_alarms",
@@ -141,13 +141,13 @@ def discover_ups_alarms(section_ups_alarms, section_uptime):
         yield Service()
 
 def check_ups_alarms(section_ups_alarms, section_uptime):
-    if section_ups_alarms['count'] > 0:
-        alarms = []
-        for alarm in section_ups_alarms['alarms']:
-            alarms.append("%s (was %s ago)" % (alarm[1],
-                                               render.timespan(section_uptime.uptime_sec - alarm[0])))
+    alarms = []
+    for alarm in section_ups_alarms['alarms']:
+        alarms.append("%s (was %s ago)" % (alarm[1],
+                                           render.timespan(section_uptime.uptime_sec - alarm[0])))
+    if alarms:
         yield Result(state=State.CRIT,
-                     summary='%d Alarms found (see long output)' % section_ups_alarms['count'],
+                     summary='%d Alarms found (see long output)' % len(alarms),
                      details="\n".join(alarms))
     else:
         yield Result(state=State.OK,
