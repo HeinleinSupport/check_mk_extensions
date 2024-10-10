@@ -24,7 +24,6 @@ from cmk.agent_based.v2 import (
     DiscoveryResult,
     Metric,
     render,
-    OIDEnd,
     Result,
     Service,
     SNMPSection,
@@ -159,11 +158,11 @@ snmp_section_wagner_racksens2 = SNMPSection(
 #   |                                                                      |
 #   '----------------------------------------------------------------------'
 
-def discover_wagner_racksens2_info(section):
+def discover_wagner_racksens2_info(section) -> DiscoveryResult:
     if 'info' in section:
         yield Service()
 
-def check_wagner_racksens2_info(section):
+def check_wagner_racksens2_info(section) -> CheckResult:
     for key, value in section.get('info', []):
         yield Result(state=State.OK,
                      summary="%s: %s" % (key, value))
@@ -188,11 +187,11 @@ check_plugin_wagner_racksens2_info = CheckPlugin(
 #   |                                                                      |
 #   '----------------------------------------------------------------------'
 
-def discover_wagner_racksens2_detector(section):
+def discover_wagner_racksens2_detector(section) -> DiscoveryResult:
     for d in section.get('detectors', {}).keys():
         yield Service(item=d)
 
-def check_wagner_racksens2_detector(item, params, section):
+def check_wagner_racksens2_detector(item, params, section) -> CheckResult:
     for d, vals in section.get('detectors', {}).items():
         if item == d:
             yield Result(state=State.OK,
@@ -246,11 +245,11 @@ check_plugin_wagner_racksens2_detector = CheckPlugin(
 #   |                                                                      |
 #   '----------------------------------------------------------------------'
 
-def discover_wagner_racksens2_temp(section):
+def discover_wagner_racksens2_temp(section) -> DiscoveryResult:
     for temp in section.get('temps', []):
         yield Service(item=temp[0])
 
-def check_wagner_racksens2_temp(item, params, section):
+def check_wagner_racksens2_temp(item, params, section) -> CheckResult:
     for temp in section.get('temps', []):
         if temp[0] == item:
             if temp[2] is None or temp[3] is None:
@@ -289,11 +288,11 @@ check_plugin_wagner_racksens2_temp = CheckPlugin(
 #   |                                                                      |
 #   '----------------------------------------------------------------------'
 
-def discover_wagner_racksens2_alarm(section):
+def discover_wagner_racksens2_alarm(section) -> DiscoveryResult:
     for alarm in section.get('alarms', {}).keys():
         yield Service(item=alarm)
 
-def check_wagner_racksens2_alarm(item, section):
+def check_wagner_racksens2_alarm(item, section) -> CheckResult:
     map_status = {
         0: State.OK,
         1: State.CRIT,
@@ -322,11 +321,11 @@ check_plugin_wagner_racksens2_alarm = CheckPlugin(
 #   |                                                                      |
 #   '----------------------------------------------------------------------'
 
-def discover_wagner_racksens2_airflow(section):
+def discover_wagner_racksens2_airflow(section) -> DiscoveryResult:
     if section['airflow'][0]:
         yield Service()
 
-def check_wagner_racksens2_airflow(section):
+def check_wagner_racksens2_airflow(section) -> CheckResult:
     airflow = section['airflow']
     if airflow[0]:
         yield Result(state=State.OK,
