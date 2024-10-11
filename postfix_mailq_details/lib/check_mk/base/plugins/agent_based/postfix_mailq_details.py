@@ -41,10 +41,15 @@ def parse_postfix_mailq_details(string_table):
     section = {}
     for line in string_table:
         item = _postfix_mailq_details_name(line)
+        mails = int(line[3])
+        try:
+            bytes = int(line[4])
+        except:
+            bytes = 0
         if line[1] == 'age':
-            data = (line[2], int(line[3]), int(line[4]))
+            data = (line[2], mails, bytes)
         if line[1] == 'total' and line[2] == 'all':
-            data = (line[5], int(line[3]), int(line[4]))
+            data = (line[5], mails, bytes)
         section[item] = data
     return section
 
