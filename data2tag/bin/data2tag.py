@@ -6,11 +6,11 @@
 # Robert Sander <r.sander@heinlein-support.de>
 #
 
-import argparse
+import argparse # type: ignore
 import checkmkapi
-import re
-import copy
-from pprint import pprint
+import re # type: ignore
+from ast import literal_eval # type: ignore
+from pprint import pprint # type: ignore
 
 parser = argparse.ArgumentParser()
 parser.add_argument('-s', '--url', help='URL to Check_MK site')
@@ -20,7 +20,7 @@ parser.add_argument('-c', '--config', required=True, help='Path to config file')
 parser.add_argument('-d', '--dump', action="store_true", help='Dump unique values from the view')
 args = parser.parse_args()
 
-conf = eval(open(args.config, 'r').read())
+conf = literal_eval(open(args.config, 'r').read())
 conf_tagmap = {}
 for attr, patterns in conf['tagmap'].items():
     conf_tagmap[attr] = {}

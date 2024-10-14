@@ -11,13 +11,12 @@
 """API-Wrapper for the CheckMK 2.0 REST API and the Multisite API (Views)"""
 
 import requests
-import warnings
+import warnings # type: ignore
 import os
 import json
 import time
-import sys
-import configparser
 import json
+from ast import literal_eval # type: ignore
 
 def _check_mk_url(url):
     """ adds trailing check_mk path component to URL """
@@ -81,8 +80,6 @@ class CMKRESTAPI():
         else:
             data = {}
         etag = resp.headers.get('ETag', '').strip('"')
-        # if resp.status_code >= 400:
-        #     sys.stderr.write("%r\n" % data)
         return data, etag, resp
 
     def _get_url(self, uri, etag=None, data={}):
@@ -1690,13 +1687,12 @@ class MultisiteAPI():
             if resp.status_code == 200:
                 if "MESSAGE: " in resp.text:
                     msg = resp.text[resp.text.find("\n")+1:]
-                    return eval(msg)
+                    return literal_eval(msg)
                 if resp.text.startswith('ERROR: '):
                     raise ValueError(resp.text[7:])
                 else:
-                    return eval(resp.text)
+                    return literal_eval(resp.text)
             else:
-                # sys.stderr.write("%s\n" % resp.text)
                 resp.raise_for_status()
 
     def view(self, view_name, **kwargs):
