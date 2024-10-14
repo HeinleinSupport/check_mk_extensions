@@ -501,7 +501,7 @@ class CMKRESTAPI():
 #   '----------------------------------------------------------------------'
 #.
 
-    def _wait_for_activation(uri):
+    def _wait_for_activation(self, uri):
         code = 302
         while code == 302:
             time.sleep(1)
@@ -1630,7 +1630,7 @@ class CMKRESTAPI():
             data["query"] = query
         if columns:
             data["columns"] = columns
-        if hsot_name:
+        if host_name:
             data["host_name"] = host_name
         return self._request(
             self._get_url,
