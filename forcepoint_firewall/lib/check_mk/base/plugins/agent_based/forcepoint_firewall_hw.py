@@ -21,6 +21,7 @@ from .agent_based_api.v1 import (
     get_value_store,
     register,
     render,
+    HostLabel,
     Result,
     Service,
     SNMPTree,
@@ -29,6 +30,7 @@ from .agent_based_api.v1 import (
 from .agent_based_api.v1.type_defs import (
     CheckResult,
     DiscoveryResult,
+    HostLabelGenerator,
 )
 from .utils.temperature import (
     TempParamDict,
@@ -37,15 +39,26 @@ from .utils.temperature import (
 from .utils.fan import check_fan
 from .utils.elphase import check_elphase
 
-from cmk.utils import debug
-from pprint import pprint
-
 _map_component_status = {
     -1: (State.UNKNOWN, "not present"),
      0: (State.OK, "ok"),
      1: (State.WARN, "warning"),
      2: (State.CRIT, "error"),
      3: (State.CRIT, "fatal error"),
+}
+
+_map_node_oper_status = {
+    0: (State.UNKNOWN, "unknown"),
+    1: (State.OK, "online"),
+    2: (State.WARN, "going online"),
+    3: (State.OK, "locked online"),
+    4: (State.WARN, "going locked online"),
+    5: (State.CRIT, "offline"),
+    6: (State.CRIT, "going offline"),
+    7: (State.CRIT, "locked offline"),
+    8: (State.CRIT, "going locked offline"),
+    9: (State.OK, "standby"),
+    10: (State.WARN, "going standby"),
 }
 
 def _check_component_status(device_status):
@@ -231,16 +244,12 @@ register.check_plugin(
 
 def parse_forcepoint_firewall_voltage(string_table):
     section = {}
-    if debug.enabled():
-        pprint(string_table)
     for line in string_table:
         status = _map_component_status.get(int(line[2]), (3, 'Unknown status: %s' % line[2]))
         section[line[0]] = {
             'voltage': float(line[1]) / 1000.0,
             'device_state': status,
         }
-    if debug.enabled():
-        pprint(section)
     return section
 
 register.snmp_section(
@@ -272,4 +281,72 @@ register.check_plugin(
     check_function=check_forcepoint_firewall_voltage,
     check_ruleset_name='el_inphase',
     check_default_parameters={},
+)
+
+
+#   .--Cluster Status------------------------------------------------------.
+#   |     ____ _           _              ____  _        _                 |
+#   |    / ___| |_   _ ___| |_ ___ _ __  / ___|| |_ __ _| |_ _   _ ___     |
+#   |   | |   | | | | / __| __/ _ \ '__| \___ \| __/ _` | __| | | / __|    |
+#   |   | |___| | |_| \__ \ ||  __/ |     ___) | || (_| | |_| |_| \__ \    |
+#   |    \____|_|\__,_|___/\__\___|_|    |____/ \__\__,_|\__|\__,_|___/    |
+#   |                                                                      |
+#   +----------------------------------------------------------------------+
+#   |                                                                      |
+#   '----------------------------------------------------------------------'
+#.
+
+def parse_forcepoint_firewall_cluster_status(string_table):
+    section = {}
+    if len(string_table) == 1 and len(string_table[0]) == 6:
+        line = string_table[0]
+        section = {
+            'Cluster ID': int(line[0]),
+            'Member ID': int(line[1]),
+            'Node Operational State': _map_node_oper_status.get(int(line[2]), (State.UNKNOWN, "Unknown state %s" % line[2])),
+            'Appliance Model': line[3],
+            'POS Code': line[4],
+            'Serial': line[5],
+        }
+    return section
+
+def host_label_forcepoint_firewall_cluster_status(section) -> HostLabelGenerator:
+    if section:
+        yield HostLabel('forcepoint/clusterid', str(section['Cluster ID']))
+        yield HostLabel('forcepoint/model', section['Appliance Model'])
+
+register.snmp_section(
+    name="forcepoint_firewall_cluster_status",
+    detect=contains(".1.3.6.1.2.1.1.2.0", ".1.3.6.1.4.1.47565.1.1"),
+    parse_function=parse_forcepoint_firewall_cluster_status,
+    host_label_function=host_label_forcepoint_firewall_cluster_status,
+    fetch=SNMPTree(
+        base=".1.3.6.1.4.1.47565.1.1.1.19",
+        oids=[
+            '1.0',  # nodeClusterId
+            '2.0',  # nodeMemberId
+            '3.0',  # nodeOperState
+            '9.0',  # nodeApplianceModel
+            '10.0', # nodePosCode
+            '13.0', # nodeHardwareSerialNumber
+        ]
+    ),
+)
+
+def discover_forcepoint_firewall_cluster_status(section) -> DiscoveryResult:
+    if section:
+        yield Service()
+    
+def check_forcepoint_firewall_cluster_status(section) -> CheckResult:
+    for key, value in section.items():
+        if isinstance(value, tuple):
+            yield Result(state=value[0], summary='%s: %s' % ( key, value[1]))
+        else:
+            yield Result(state=State.OK, summary='%s: %s' % ( key, value))
+    
+register.check_plugin(
+    name='forcepoint_firewall_cluster_status',
+    service_name="ForcePoint Cluster Status",
+    discovery_function=discover_forcepoint_firewall_cluster_status,
+    check_function=check_forcepoint_firewall_cluster_status,
 )
