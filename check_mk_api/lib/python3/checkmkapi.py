@@ -657,7 +657,7 @@ class CMKRESTAPI():
         if services:
             if not isinstance(services, list):
                 services = [ services ]
-            params['services'] = services
+            params['service_descriptions'] = services
 
         return self._request(
             self._post_url,
