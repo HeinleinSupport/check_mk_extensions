@@ -652,7 +652,7 @@ class CMKRESTAPI():
         """
         params={
             'delete_type': 'params',
-            'hostname':    hostname,
+            'host_name':    hostname,
         }
         if services:
             if not isinstance(services, list):
