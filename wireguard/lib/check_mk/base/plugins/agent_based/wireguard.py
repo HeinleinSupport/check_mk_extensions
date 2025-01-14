@@ -63,8 +63,7 @@ def discover_wireguard(section) -> DiscoveryResult:
     for interface, peers in section.items():
         yield Service(item='%s' % interface)
         for peer, data in peers.items():
-            yield Service(item='%s Peer %s' % (interface, peer),
-                          parameters={'allowed-ips': data['allowed-ips']})
+            yield Service(item='%s Peer %s' % (interface, peer))
 
 def check_wireguard(item,  params, section):
 
@@ -119,6 +118,8 @@ def check_wireguard(item,  params, section):
                 if data['latest-handshake'] > 0:
                     since = now - data['latest-handshake']
                     if since < timeout_warn or since < timeout_crit:
+                        activepeers += 1
+                    if timeout_warn < 0 and timeout_crit < 0:
                         activepeers += 1
             yield Result(state=State.OK,
                          summary="%d configured peer(s)" % numpeers)
