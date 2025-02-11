@@ -158,6 +158,7 @@ metric_info["commit_latency"] = {
 
 _ceph_df_translation = { "fs_used": { "scale": MB },
                          "fs_size": { "scale": MB },
+                         "fs_free": { "scale": MB },
                          "trend": {
                              "name": "fs_trend",
                              "scale": MB / 86400.0
