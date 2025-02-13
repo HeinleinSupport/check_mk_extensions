@@ -78,8 +78,6 @@ def get_rules(wato, ruleset, sync_tag):
             if i in sort_order:
                 rule_relation['after'] = sort_order[i]
                 break
-            # if (key+1) in sort_order:
-            #     rule_relation['before'] = sort_order[key+1]
         if rule_relation:
             rule_relations[rule_title] = rule_relation
     return rules, rule_relations
@@ -298,10 +296,7 @@ for site_id, site_data in sites.items():
                     'after_specific_rule',
                     neighbor_id=site_rules[relation['after']]['id'],
                 )
-            # if relation.get('before') != site_relation.get('before'):
-            #     if args.verbose:
-            #         print(f'moving rule {rule_title} before {relation["after"]} in {ruleset} on {site_id}')
-            #     site_data['wato'].move_rule(site_rules[rule_title]['id'], '*', 'before_specific_rule', site_rules[relation["before"]]['id'])
+                changes = True
 
         for site_rule_id in delete_rules:
             if args.verbose:
