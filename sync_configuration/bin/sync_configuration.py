@@ -302,6 +302,7 @@ for site_id, site_data in sites.items():
             if args.verbose:
                 print(f'removing rule {site_rule_id} in {ruleset} from {site_id}')
             site_data['wato'].delete_rule(site_rule_id)
+            changes = True
 
     if changes:
         if args.verbose:
