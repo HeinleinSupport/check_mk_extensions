@@ -17,6 +17,7 @@ import json
 import time  # type: ignore
 import json
 from ast import literal_eval # type: ignore
+from pprint import pprint # type: ignore
 
 def _check_mk_url(url):
     """ adds trailing check_mk path component to URL """
@@ -150,6 +151,7 @@ class CMKRESTAPI():
         data, etag, resp = method(uri, etag, data)
         if resp.status_code in ok_code:
             return data, etag
+        pprint(data)
         resp.raise_for_status()        
 
 #   .--Folder--------------------------------------------------------------.
@@ -1804,6 +1806,12 @@ class CMKRESTAPI():
             ok_code=204,
         )
 
+    def version(self):
+        return self._request(
+            self._get_url,
+            "version",
+        )
+
 #   .--Passwords-----------------------------------------------------------.
 #   |           ____                                     _                 |
 #   |          |  _ \ __ _ ___ _____      _____  _ __ __| |___             |
@@ -1817,13 +1825,13 @@ class CMKRESTAPI():
 #.
 
     def create_password(self,
-        ident, 
-        name,
+        name, 
+        title,
         password,
         comment="", documentation_url="", editable_by="admin", shared=[]):
         params = {
-            "ident": ident,
-            "title": name,
+            "ident": name,
+            "title": title,
             "password": password,
         }
         if comment:

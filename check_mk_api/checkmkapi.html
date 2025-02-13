@@ -187,7 +187,7 @@ Args:<br>
 Returns:<br>
 &nbsp;&nbsp;&nbsp;&nbsp;(rule,&nbsp;etag)</span></dd></dl>
 
-<dl><dt><a name="CMKRESTAPI-create_password"><strong>create_password</strong></a>(self, ident, name, password, comment='', documentation_url='', editable_by=['admin'], shared=[])</dt></dl>
+<dl><dt><a name="CMKRESTAPI-create_password"><strong>create_password</strong></a>(self, name, title, password, comment='', documentation_url='', editable_by='admin', shared=[])</dt></dl>
 
 <dl><dt><a name="CMKRESTAPI-create_rule"><strong>create_rule</strong></a>(self, ruleset_name, folder, value_raw, conditions={}, properties={})</dt><dd><span class="code">Creates&nbsp;a&nbsp;rule<br>
 &nbsp;<br>
@@ -694,6 +694,8 @@ Args:<br>
 &nbsp;<br>
 Returns:<br>
 &nbsp;&nbsp;&nbsp;&nbsp;(data,&nbsp;etag):&nbsp;usually&nbsp;empty</span></dd></dl>
+
+<dl><dt><a name="CMKRESTAPI-version"><strong>version</strong></a>(self)</dt></dl>
 
 <hr>
 Data descriptors defined here:<br>
