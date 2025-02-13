@@ -11,10 +11,10 @@
 """API-Wrapper for the CheckMK 2.0 REST API and the Multisite API (Views)"""
 
 import requests
-import warnings # type: ignore
+import warnings  # type: ignore
 import os
 import json
-import time # type: ignore
+import time  # type: ignore
 import json
 from ast import literal_eval # type: ignore
 
@@ -1054,6 +1054,23 @@ class CMKRESTAPI():
             "domain-types/ruleset/collections/all",
         )
 
+    def search_rulesets(self, fulltext=None, folder=None, deprecated=False, used=True, name=None):
+        params = {
+            'deprecated': deprecated,
+            'used': used,
+        }
+        if fulltext:
+            params['fulltext'] = fulltext
+        if folder:
+            params['folder'] = folder
+        if name:
+            params['name'] = name
+        return self._request(
+            self._get_url,
+            'domain-types/ruleset/collections/all',
+            data = params,
+        )
+
 #   .--Rule----------------------------------------------------------------.
 #   |                         ____        _                                |
 #   |                        |  _ \ _   _| | ___                           |
@@ -1119,7 +1136,33 @@ class CMKRESTAPI():
             self._delete_url,
             f"/objects/rule/{rule_id}",
         )
-        
+
+    def edit_rule(self, rule_id, etag, value_raw, conditions={}, properties={}):
+        return self._request(
+            self._put_url,
+            f'objects/rule/{rule_id}',
+            etag=etag,
+            data={
+                'properties': properties,
+                'value_raw': value_raw,
+                'conditions': conditions,
+            }
+        )
+    
+    def move_rule(self, rule_id, etag, position, folder=None, neighbor_id=None):
+        params = {
+            'position': position,
+        }
+        if position in ['top_of_folder', 'bottom_of_folder']:
+            params['folder'] = folder
+        if position in ['after_specific_rule', 'before_specific_rule']:
+            params['rule_id'] = neighbor_id
+        return self._request(
+            self._post_url,
+            f'objects/rule/{rule_id}/actions/move/invoke',
+            etag=etag,
+            data=params,
+        )
 
 #   .--Host Tag Groups-----------------------------------------------------.
 #   |                _   _           _     _____                           |
@@ -1674,6 +1717,178 @@ class CMKRESTAPI():
             data = data,
         )
         
+#   .--Site Management-----------------------------------------------------.
+#   |                           ____  _ _                                  |
+#   |                          / ___|(_) |_ ___                            |
+#   |                          \___ \| | __/ _ \                           |
+#   |                           ___) | | ||  __/                           |
+#   |                          |____/|_|\__\___|                           |
+#   |                                                                      |
+#   |    __  __                                                   _        |
+#   |   |  \/  | __ _ _ __   __ _  __ _  ___ _ __ ___   ___ _ __ | |_      |
+#   |   | |\/| |/ _` | '_ \ / _` |/ _` |/ _ \ '_ ` _ \ / _ \ '_ \| __|     |
+#   |   | |  | | (_| | | | | (_| | (_| |  __/ | | | | |  __/ | | | |_      |
+#   |   |_|  |_|\__,_|_| |_|\__,_|\__, |\___|_| |_| |_|\___|_| |_|\__|     |
+#   |                             |___/                                    |
+#   +----------------------------------------------------------------------+
+#   |                                                                      |
+#   '----------------------------------------------------------------------'
+#.
+
+    def delete_site_connection(self, site_id):
+        """Delete a site connection
+
+        Args:
+            site_id: The site ID
+
+        Returns:
+            Nothing
+        """
+        return self._request(
+            self._delete_url,
+            f'objects/site_connection/{site_id}/actions/delete/invoke',
+            ok_code=204,
+        )
+
+    def create_site_connection(self, site_config):
+        """Create a site connection
+
+        Args:
+            site_config: Dictionary with the site's configuration
+
+        Returns:
+            (site, etag)
+        """
+        return self._request(
+            self._post_url,
+            'domain-types/site_connection/collections/all',
+            data=site_config,
+        )
+
+    def get_all_site_connections(self):
+        """Returns all sites"""
+        return self._request(
+            self._get_url,
+            'domain-types/site_connection/collections/all',
+        )
+
+    def edit_site_connection(self, site_id, site_config):
+        return self._request(
+            self._put_url,
+            f'objects/site_connection/{site_id}',
+            data=site_config,
+        )
+
+    def get_site_connection(self, site_id):
+        return self._request(
+            self._get_url,
+            f'objects/site_connection/{site_id}',
+        )
+
+    def login_site(self, site_id, username, password):
+        params = {
+            'username': username,
+            'password': password,
+        }
+        return self._request(
+            self._post_url,
+            f'objects/site_connection/{site_id}/actions/login/invoke',
+            data=params,
+            ok_code=204,
+        )
+
+    def logout_site(self, site_id):
+        return self._request(
+            self._post_url,
+            f'objects/site_connection/{site_id}/actions/logout/invoke',
+            ok_code=204,
+        )
+
+#   .--Passwords-----------------------------------------------------------.
+#   |           ____                                     _                 |
+#   |          |  _ \ __ _ ___ _____      _____  _ __ __| |___             |
+#   |          | |_) / _` / __/ __\ \ /\ / / _ \| '__/ _` / __|            |
+#   |          |  __/ (_| \__ \__ \\ V  V / (_) | | | (_| \__ \            |
+#   |          |_|   \__,_|___/___/ \_/\_/ \___/|_|  \__,_|___/            |
+#   |                                                                      |
+#   +----------------------------------------------------------------------+
+#   |                                                                      |
+#   '----------------------------------------------------------------------'
+#.
+
+    def create_password(self,
+        ident, 
+        name,
+        password,
+        comment="", documentation_url="", editable_by=["admin"], shared=[]):
+        params = {
+            "ident": ident,
+            "title": name,
+            "password": password,
+        }
+        if comment:
+            params['comment'] = comment
+        if documentation_url:
+            params['documentation_url'] = documentation_url
+        if editable_by:
+            params['editable_by'] = editable_by
+        if shared:
+            params['shared'] = shared
+        return self._request(
+            self._post_url,
+            'domain-types/password/collections/all',
+            data=params,
+        )
+    
+    def get_all_passwords(self):
+        return self._request(
+            self._get_url,
+            'domain-types/password/collections/all',
+        )
+
+    def delete_password(self, name):
+        return self._request(
+            self._delete_url,
+            f'objects/password/{name}',
+            ok_code=204,
+        )
+
+    def get_password(self, name):
+        return self._request(
+            self._get_url,
+            f'objects/password/{name}',
+        )
+
+    def edit_password(self,
+        name,
+        etag,
+        title=None,
+        comment=None,
+        documentation_url=None,
+        password=None,
+        editable_by=None,
+        shared=None,
+        ):
+        params = {}
+        if title:
+            params['title'] = title
+        if comment:
+            params['comment'] = comment
+        if documentation_url:
+            params['documentation_url'] = documentation_url
+        if password:
+            params['password'] = password
+        if editable_by:
+            params['editable_by'] = editable_by
+        if shared:
+            params['shared'] = shared
+        if params:
+            return self._request(
+                self._put_url,
+                f'objects/password/{name}',
+                etag=etag,
+                data=params,
+            )
 
 #
 #   .--MULTISITE-----------------------------------------------------------.

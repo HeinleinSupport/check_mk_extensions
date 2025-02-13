@@ -187,6 +187,8 @@ Args:<br>
 Returns:<br>
 &nbsp;&nbsp;&nbsp;&nbsp;(rule,&nbsp;etag)</span></dd></dl>
 
+<dl><dt><a name="CMKRESTAPI-create_password"><strong>create_password</strong></a>(self, ident, name, password, comment='', documentation_url='', editable_by=['admin'], shared=[])</dt></dl>
+
 <dl><dt><a name="CMKRESTAPI-create_rule"><strong>create_rule</strong></a>(self, ruleset_name, folder, value_raw, conditions={}, properties={})</dt><dd><span class="code">Creates&nbsp;a&nbsp;rule<br>
 &nbsp;<br>
 Args:<br>
@@ -199,6 +201,14 @@ Args:<br>
 Returns:<br>
 &nbsp;&nbsp;&nbsp;&nbsp;rule<br>
 &nbsp;&nbsp;&nbsp;&nbsp;etag</span></dd></dl>
+
+<dl><dt><a name="CMKRESTAPI-create_site_connection"><strong>create_site_connection</strong></a>(self, site_config)</dt><dd><span class="code">Create&nbsp;a&nbsp;site&nbsp;connection<br>
+&nbsp;<br>
+Args:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;site_config:&nbsp;Dictionary&nbsp;with&nbsp;the&nbsp;site's&nbsp;configuration<br>
+&nbsp;<br>
+Returns:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;(site,&nbsp;etag)</span></dd></dl>
 
 <dl><dt><a name="CMKRESTAPI-create_timeperiod"><strong>create_timeperiod</strong></a>(self, name, alias, active_time_ranges, exceptions=[], exclude=[])</dt><dd><span class="code">Create&nbsp;a&nbsp;time&nbsp;period<br>
 &nbsp;<br>
@@ -277,10 +287,20 @@ Args:<br>
 Returns:<br>
 &nbsp;&nbsp;&nbsp;&nbsp;Nothing</span></dd></dl>
 
+<dl><dt><a name="CMKRESTAPI-delete_password"><strong>delete_password</strong></a>(self, name)</dt></dl>
+
 <dl><dt><a name="CMKRESTAPI-delete_rule"><strong>delete_rule</strong></a>(self, rule_id)</dt><dd><span class="code">Delete&nbsp;a&nbsp;rule<br>
 &nbsp;<br>
 Args:<br>
 &nbsp;&nbsp;&nbsp;&nbsp;rule_id:&nbsp;The&nbsp;ID&nbsp;of&nbsp;the&nbsp;rule.</span></dd></dl>
+
+<dl><dt><a name="CMKRESTAPI-delete_site_connection"><strong>delete_site_connection</strong></a>(self, site_id)</dt><dd><span class="code">Delete&nbsp;a&nbsp;site&nbsp;connection<br>
+&nbsp;<br>
+Args:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;site_id:&nbsp;The&nbsp;site&nbsp;ID<br>
+&nbsp;<br>
+Returns:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;Nothing</span></dd></dl>
 
 <dl><dt><a name="CMKRESTAPI-delete_timeperiod"><strong>delete_timeperiod</strong></a>(self, name, etag)</dt><dd><span class="code">Delete&nbsp;a&nbsp;time&nbsp;period<br>
 &nbsp;<br>
@@ -406,6 +426,12 @@ Returns:<br>
 &nbsp;&nbsp;&nbsp;&nbsp;notification&nbsp;rule<br>
 &nbsp;&nbsp;&nbsp;&nbsp;etag</span></dd></dl>
 
+<dl><dt><a name="CMKRESTAPI-edit_password"><strong>edit_password</strong></a>(self, name, etag, title=None, comment=None, documentation_url=None, password=None, editable_by=None, shared=None)</dt></dl>
+
+<dl><dt><a name="CMKRESTAPI-edit_rule"><strong>edit_rule</strong></a>(self, rule_id, etag, value_raw, conditions={}, properties={})</dt></dl>
+
+<dl><dt><a name="CMKRESTAPI-edit_site_connection"><strong>edit_site_connection</strong></a>(self, site_id, site_config)</dt></dl>
+
 <dl><dt><a name="CMKRESTAPI-edit_timeperiod"><strong>edit_timeperiod</strong></a>(self, name, etag, alias=None, active_time_ranges=[], exceptions=[], exclude=[])</dt><dd><span class="code">Update&nbsp;a&nbsp;time&nbsp;period<br>
 &nbsp;<br>
 Args:<br>
@@ -471,6 +497,10 @@ Args:<br>
 Returns:<br>
 &nbsp;&nbsp;&nbsp;&nbsp;list&nbsp;of&nbsp;notification&nbsp;rules<br>
 &nbsp;&nbsp;&nbsp;&nbsp;etag</span></dd></dl>
+
+<dl><dt><a name="CMKRESTAPI-get_all_passwords"><strong>get_all_passwords</strong></a>(self)</dt></dl>
+
+<dl><dt><a name="CMKRESTAPI-get_all_site_connections"><strong>get_all_site_connections</strong></a>(self)</dt><dd><span class="code">Returns&nbsp;all&nbsp;sites</span></dd></dl>
 
 <dl><dt><a name="CMKRESTAPI-get_aux_tag"><strong>get_aux_tag</strong></a>(self, name)</dt><dd><span class="code">Show&nbsp;an&nbsp;auxiliary&nbsp;tag<br>
 &nbsp;<br>
@@ -565,6 +595,8 @@ Returns:<br>
 &nbsp;&nbsp;&nbsp;&nbsp;notification&nbsp;rule<br>
 &nbsp;&nbsp;&nbsp;&nbsp;etag</span></dd></dl>
 
+<dl><dt><a name="CMKRESTAPI-get_password"><strong>get_password</strong></a>(self, name)</dt></dl>
+
 <dl><dt><a name="CMKRESTAPI-get_rules"><strong>get_rules</strong></a>(self, ruleset_name)</dt><dd><span class="code">Gets&nbsp;rules&nbsp;from&nbsp;ruleset&nbsp;by&nbsp;name<br>
 &nbsp;<br>
 Args:<br>
@@ -594,6 +626,8 @@ Args:<br>
 Returns:<br>
 &nbsp;&nbsp;&nbsp;&nbsp;(list&nbsp;of&nbsp;dicts&nbsp;in&nbsp;"value",&nbsp;etag)</span></dd></dl>
 
+<dl><dt><a name="CMKRESTAPI-get_site_connection"><strong>get_site_connection</strong></a>(self, site_id)</dt></dl>
+
 <dl><dt><a name="CMKRESTAPI-get_timeperiod"><strong>get_timeperiod</strong></a>(self, name)</dt><dd><span class="code">Show&nbsp;a&nbsp;time&nbsp;period<br>
 &nbsp;<br>
 Args:<br>
@@ -620,6 +654,10 @@ Args:<br>
 Returns:<br>
 &nbsp;&nbsp;&nbsp;&nbsp;(data,&nbsp;etag):&nbsp;user&nbsp;<a href="builtins.html#object">object</a>&nbsp;and&nbsp;eTag</span></dd></dl>
 
+<dl><dt><a name="CMKRESTAPI-login_site"><strong>login_site</strong></a>(self, site_id, username, password)</dt></dl>
+
+<dl><dt><a name="CMKRESTAPI-logout_site"><strong>logout_site</strong></a>(self, site_id)</dt></dl>
+
 <dl><dt><a name="CMKRESTAPI-move_folder"><strong>move_folder</strong></a>(self, folder, destination, etag='*')</dt><dd><span class="code">Moves&nbsp;a&nbsp;folder&nbsp;into&nbsp;a&nbsp;destination&nbsp;folder.<br>
 &nbsp;<br>
 Args:<br>
@@ -632,6 +670,8 @@ Returns:<br>
 &nbsp;&nbsp;&nbsp;&nbsp;data:&nbsp;folder's&nbsp;data<br>
 &nbsp;&nbsp;&nbsp;&nbsp;etag:&nbsp;current&nbsp;etag&nbsp;value</span></dd></dl>
 
+<dl><dt><a name="CMKRESTAPI-move_rule"><strong>move_rule</strong></a>(self, rule_id, etag, position, folder=None, neighbor_id=None)</dt></dl>
+
 <dl><dt><a name="CMKRESTAPI-revoke_downtime"><strong>revoke_downtime</strong></a>(self, hostname, services=None)</dt><dd><span class="code">Revokes&nbsp;scheduled&nbsp;downtime<br>
 &nbsp;<br>
 Args:<br>
@@ -640,6 +680,8 @@ Args:<br>
 &nbsp;<br>
 Returns:<br>
 &nbsp;&nbsp;&nbsp;&nbsp;(data,&nbsp;etag):&nbsp;usually&nbsp;empty</span></dd></dl>
+
+<dl><dt><a name="CMKRESTAPI-search_rulesets"><strong>search_rulesets</strong></a>(self, fulltext=None, folder=None, deprecated=False, used=True, name=None)</dt></dl>
 
 <dl><dt><a name="CMKRESTAPI-set_downtime"><strong>set_downtime</strong></a>(self, comment, start_time, end_time, hostname, services=None)</dt><dd><span class="code">Sets&nbsp;a&nbsp;scheduled&nbsp;downtime&nbsp;on&nbsp;a&nbsp;host&nbsp;or&nbsp;a&nbsp;service<br>
 &nbsp;<br>
