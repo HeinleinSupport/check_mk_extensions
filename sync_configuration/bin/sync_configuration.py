@@ -157,13 +157,13 @@ tag_groups = get_tag_groups(central_wato, args.sync)
 if args.debug:
     pprint(tag_groups)
 
-rulesets = get_rulesets(central_wato)
+central_rulesets = set(get_rulesets(central_wato))
 if args.debug:
-    pprint(rulesets)
+    pprint(central_rulesets)
 
 central_rules = {}
 central_relations = {}
-for ruleset in rulesets:
+for ruleset in central_rulesets:
     result1, result2 = get_rules(central_wato, ruleset, args.sync)
     if result1:
         central_rules[ruleset] = result1
@@ -238,11 +238,11 @@ for site_id, site_data in sites.items():
         site_data['wato'].delete_host_tag_group(site_tag_group)
         changes = True
 
-    rulesets = get_rulesets(site_data['wato'])
+    site_rulesets = set(get_rulesets(site_data['wato']))
     if args.debug:
-        pprint(rulesets)
+        pprint(site_rulesets)
 
-    for ruleset in rulesets:
+    for ruleset in central_rulesets.union(site_rulesets):
         site_rules, site_relations = get_rules(
             site_data['wato'],
             ruleset,
