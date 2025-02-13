@@ -1,0 +1,10 @@
+{'author': 'Robert Sander <r.sander@heinlein-support.de>',
+ 'description': 'Skript to create a remote site.',
+ 'download_url': 'https://github.com/HeinleinSupport/check_mk_extensions/',
+ 'files': {'bin': ['create_site.py']},
+ 'name': 'create_site',
+ 'title': 'Create Site',
+ 'version': '0.1.0',
+ 'version.min_required': '2.3.0b1',
+ 'version.packaged': 'cmk-mkp-tool 0.2.0',
+ 'version.usable_until': None}
