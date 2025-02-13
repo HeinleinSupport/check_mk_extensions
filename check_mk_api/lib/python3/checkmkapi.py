@@ -1820,7 +1820,7 @@ class CMKRESTAPI():
         ident, 
         name,
         password,
-        comment="", documentation_url="", editable_by=["admin"], shared=[]):
+        comment="", documentation_url="", editable_by="admin", shared=[]):
         params = {
             "ident": ident,
             "title": name,
