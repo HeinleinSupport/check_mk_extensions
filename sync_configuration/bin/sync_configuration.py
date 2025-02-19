@@ -7,6 +7,7 @@
 #
 
 import argparse # type: ignore
+import re # type: ignore
 from pprint import pprint # type: ignore
 
 import checkmkapi
@@ -52,7 +53,7 @@ def get_rulesets(wato):
     return rulesets
 
 
-def get_rules(wato, ruleset, sync_tag):
+def get_rules(wato, ruleset, sync_tag, central = True):
     rules = {}
     sort_order = {}
     if args.verbose:
@@ -61,25 +62,36 @@ def get_rules(wato, ruleset, sync_tag):
     for rule_data in result.get('value', []):
         ext = rule_data.get('extensions', {})
         folder = ext.get('folder')
-        if f'[{sync_tag}]' in rule_data['title'] and folder == '/':
-            if rule_data['title'] in rules:
+        if f'[{sync_tag}' in rule_data['title'] and folder == '/':
+            if central:
+                rule_ident = rule_data['id']
+            else:
+                match = regex_rule_title_id.match(rule_data['title'])
+                try:
+                    rule_ident = match.group(1)
+                except AttributeError:
+                    pprint(rule_data)
+                    raise
+            if rule_ident in rules:
                 raise RuntimeError(f'rule description {rule_data["title"]} already exists')
-            sort_order[int(ext['folder_index'])] = rule_data['title']
+            sort_order[int(ext['folder_index'])] = rule_ident
             del ext['folder_index']
+            del ext['properties']['description']
             rule_tmp = {
+                'title': rule_data['title'],
                 'ext': ext,
                 'id': rule_data['id'],
             }
-            rules[rule_data['title']] = rule_tmp
+            rules[rule_ident] = rule_tmp
     rule_relations = {}
-    for key, rule_title in sort_order.items():
+    for key, rule_ident in sort_order.items():
         rule_relation = {}
         for i in range(key-1, -1, -1):
             if i in sort_order:
                 rule_relation['after'] = sort_order[i]
                 break
         if rule_relation:
-            rule_relations[rule_title] = rule_relation
+            rule_relations[rule_ident] = rule_relation
     return rules, rule_relations
 
 
@@ -95,6 +107,9 @@ args = parser.parse_args()
 
 if args.debug:
     pprint(args)
+
+regex_rule_title_id = re.compile(f'.*\\[{args.sync}-([^]]+)\\].*')
+regex_rule_title = re.compile(f'(.*)\\[{args.sync}\\](.*)')
 
 sites = {}
 
@@ -246,58 +261,62 @@ for site_id, site_data in sites.items():
         site_rules, site_relations = get_rules(
             site_data['wato'],
             ruleset,
-            args.sync
+            args.sync,
+            central = False,
         )
         if args.debug:
             pprint(site_rules)
             pprint(site_relations)
         delete_rules = [x['id'] for x in site_rules.values()]
-        for rule_title, rule_data in central_rules.get(ruleset, {}).items():
-            if rule_title in site_rules:
-                if rule_data['ext'] != site_rules[rule_title]['ext']:
+        for rule_ident, rule_data in central_rules.get(ruleset, {}).items():
+            if rule_ident in site_rules:
+                if rule_data['ext'] != site_rules[rule_ident]['ext']:
                     if args.verbose:
-                        print(f'updating rule "{rule_title}" in {ruleset} on {site_id}')
+                        print(f'updating rule "{rule_data["title"]}" in {ruleset} on {site_id}')
                     if args.debug:
                         print('rule_data')
                         pprint(rule_data['ext'])
-                        pprint(site_rules[rule_title]['ext'])
+                        pprint(site_rules[rule_ident]['ext'])
                     site_data['wato'].edit_rule(
-                        site_rules[rule_title]['id'],
+                        site_rules[rule_ident]['id'],
                         '"*"',
                         rule_data['ext'].get('value_raw', ''),
                         rule_data['ext'].get('condtions', {}),
                         rule_data['ext'].get('properties', {}),
                     )
                     changes = True
-                delete_rules.remove(site_rules[rule_title]['id'])
+                delete_rules.remove(site_rules[rule_ident]['id'])
             else:
                 if args.verbose:
-                    print(f'adding rule "{rule_title}" in {ruleset} to {site_id}')
+                    print(f'adding rule "{rule_data["title"]}" in {ruleset} to {site_id}')
+                properties = rule_data['ext'].get('properties', {})
+                m = regex_rule_title.match(rule_data['title'])
+                properties['description'] = f'{m.group(1)}[{args.sync}-{rule_ident}]{m.group(2)}'
                 site_rule, etag = site_data['wato'].create_rule(
                     ruleset,
                     rule_data['ext'].get('folder', '/'),
                     rule_data['ext'].get('value_raw', ''),
                     rule_data['ext'].get('conditions', {}),
-                    rule_data['ext'].get('properties', {}),
+                    properties,
                 )
-                site_rules[rule_title] = {
+                site_rules[rule_ident] = {
+                    'title': site_rule['title'],
                     'ext': site_rule['extensions'],
                     'id': site_rule['id'],
                 }
                 changes = True
-        for rule_title, relation in central_relations.get(ruleset, {}).items():
-            site_relation = site_relations.get(rule_title, {})
+        for rule_ident, relation in central_relations.get(ruleset, {}).items():
+            site_relation = site_relations.get(rule_ident, {})
             if relation.get('after') != site_relation.get('after'):
                 if args.verbose:
-                    print(f'moving rule "{rule_title}" ({site_rules[rule_title]["id"]}) after "{relation["after"]}" ({site_rules[relation["after"]]["id"]}) in {ruleset} on {site_id}')
+                    print(f'moving rule "{central_rules[ruleset][rule_ident]["title"]}" ({site_rules[rule_ident]["id"]}) after "{central_rules[ruleset][relation["after"]]["title"]}" ({site_rules[relation["after"]]["id"]}) in {ruleset} on {site_id}')
                 site_data['wato'].move_rule(
-                    site_rules[rule_title]['id'],
+                    site_rules[rule_ident]['id'],
                     '"*"',
                     'after_specific_rule',
                     neighbor_id=site_rules[relation['after']]['id'],
                 )
                 changes = True
-
         for site_rule_id in delete_rules:
             if args.verbose:
                 print(f'removing rule {site_rule_id} in {ruleset} from {site_id}')
