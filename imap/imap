@@ -2,10 +2,11 @@
  'description': 'WATO plugin for check_imap\n',
  'download_url': 'https://github.com/HeinleinSupport/check_mk_extensions/tree/master/imap',
  'files': {'cmk_addons_plugins': ['imap/rulesets/imap.py',
-                                  'imap/server_side_calls/imap.py']},
+                                  'imap/server_side_calls/imap.py',
+                                  'imap/graphing/imap.py']},
  'name': 'imap',
  'title': 'check_imap Plugin',
- 'version': '4.0.3',
+ 'version': '4.0.4',
  'version.min_required': '2.3.0b1',
  'version.packaged': '2.3.0p13',
  'version.usable_until': None}
