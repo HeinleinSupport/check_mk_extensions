@@ -196,7 +196,7 @@ def _form_active_checks_imap() -> Dictionary:
                 required=True,
             ),
             "hostname": DictElement(
-                required=True,
+                required=False,
                 parameter_form=String(
                     title = Title("DNS Hostname or IP address"),
                     prefill = DefaultValue("$HOSTADDRESS$"),

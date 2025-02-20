@@ -31,6 +31,7 @@ from cmk.server_side_calls.v1 import (
     replace_macros,
 )
 
+
 class LevelsType(StrEnum):
     NO_LEVELS = "no_levels"
     FIXED = "fixed"
@@ -125,7 +126,10 @@ def generate_imap_commands(
     else:
         service_desc = "IMAP %s" % params["service_desc"]
     if "hostname" not in params or not params['hostname']:
-        params["hostname"] = "$HOSTADDRESS$"
+        if options.get('ip_version') == 'ipv6' and '$HOST_ADDRESS_6$' in macros:
+            params["hostname"] = "$HOST_ADDRESS_6$"
+        else:
+            params["hostname"] = "$HOSTADDRESS$"
     args = ['-H', replace_macros(params["hostname"], macros)]
     args.extend(list(convert_options(options)))
     yield ActiveCheckCommand(
