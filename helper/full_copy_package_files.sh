@@ -13,7 +13,7 @@ if ! mkp show "$package" > /dev/null; then
   exit 1
 fi
 
-mkp list "$package" | while read file; do
+mkp files "$package" | while read file; do
 
   lfile=${file#$OMD_ROOT}
   ldir=.$(dirname "$lfile")
@@ -21,3 +21,5 @@ mkp list "$package" | while read file; do
   cp -av "$file" "$ldir"
 
 done
+
+cp -av $OMD_ROOT/var/check_mk/packages/"$package" .
