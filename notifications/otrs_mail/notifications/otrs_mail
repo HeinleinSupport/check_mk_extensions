@@ -1,0 +1,87 @@
+#!/usr/bin/env python3
+# OTRS Notifitcation via Mail
+# Bulk: no
+
+from cmk.utils.mail import (
+    default_from_address,
+    MailString,
+    send_mail_sendmail,
+    set_mail_headers,
+)
+from cmk.notification_plugins import utils
+from email.mime.text import MIMEText # type: ignore
+from email.utils import formatdate # type: ignore
+
+def create_mailtext(context):
+    if context["WHAT"] == "HOST":
+        subject = "$NOTIFICATIONTYPE$ Host: $HOSTNAME$ is $HOSTSTATE$"
+        body = """***** $PARAMETER_1$ *****
+
+Type: $NOTIFICATIONTYPE$
+Host: $HOSTALIAS$
+State: $HOSTSTATE$
+
+Info: $HOSTOUTPUT$
+
+Date/Time: $LONGDATETIME$
+
+***** Internal Info *****
+
+Monitor: $OMD_SITE$ on $MONITORING_HOST$
+Hostname: $HOSTNAME$
+Address: $HOSTADDRESS$
+"""
+        if context.get('LONGHOSTOUTPUT'):
+            body += "\nAdditional Info: $LONGHOSTOUTPUT$"
+    else:
+        subject = "$NOTIFICATIONTYPE$ Service: $HOSTNAME$/$SERVICEDESC$ is $SERVICESTATE$"
+        body = """***** $PARAMETER_1$ *****
+
+Type: $NOTIFICATIONTYPE$
+Host: $HOSTALIAS$
+Service: $SERVICEDESC$
+State: $SERVICESTATE$
+
+Info: $SERVICEOUTPUT$
+
+Date/Time: $LONGDATETIME$
+
+***** Internal Info *****
+
+Monitor: $OMD_SITE$ on $MONITORING_HOST$
+Hostname: $HOSTNAME$
+Address: $HOSTADDRESS$
+"""
+        if context.get('LONGSERVICEOUTPUT'):
+            body += "\nAdditional Info: $LONGSERVICEOUTPUT$"
+    if context.get('NOTIFICATIONAUTHOR'):
+        body += "\nComment: $NOTIFICATIONAUTHOR$ - $NOTIFICATIONCOMMENT$\n"
+    return utils.substitute_context(subject, context), utils.substitute_context(body, context)
+
+def main():
+    context = utils.collect_context()
+    mailto = context['CONTACTEMAIL']
+    subject, content_txt = create_mailtext(context)
+    
+    # Create the mail and send it
+    from_address = context.get("PARAMETER_FROM", default_from_address())
+    reply_to = context.get("PARAMETER_REPLY_TO", "")
+    m = set_mail_headers(
+        MailString(mailto),
+        MailString(subject),
+        MailString(from_address),
+        MailString(reply_to),
+        MIMEText(content_txt, 'plain', _charset='utf-8'),
+    )
+    m['Date'] = formatdate(localtime=True)
+    res = send_mail_sendmail(
+        m,
+        mailto,
+        from_address,
+    )
+    
+
+if __name__ == "__main__":
+    main()
+
+# -*- encoding: utf-8; py-indent-offset: 4 -*-

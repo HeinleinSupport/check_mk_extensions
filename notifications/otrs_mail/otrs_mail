@@ -1,0 +1,10 @@
+{'author': 'Robert Sander <r.sander@heinlein-support.de>',
+ 'description': 'Notification Plugin to create ASCII mails for OTRS',
+ 'download_url': 'https://www.heinlein-support.de/',
+ 'files': {'notifications': ['otrs_mail']},
+ 'name': 'otrs_mail',
+ 'title': 'OTRS mail notification',
+ 'version': '1.0.0',
+ 'version.min_required': '2.0.0b1',
+ 'version.packaged': 'cmk-mkp-tool 0.2.0',
+ 'version.usable_until': None}
