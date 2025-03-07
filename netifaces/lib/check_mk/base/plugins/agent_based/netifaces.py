@@ -129,7 +129,7 @@ register.check_plugin(
     },
     check_function=check_netifaces_rbl,
     check_default_parameters={
-        'crit': [ "bl.spamcop.org", "zen.spamhaus.org", "ix.dnsbl.manitu.net" ]
+        'crit': [ "bl.spamcop.org", "zen.spamhaus.org" ]
     },
     check_ruleset_name="netifaces_rbl",
 )
