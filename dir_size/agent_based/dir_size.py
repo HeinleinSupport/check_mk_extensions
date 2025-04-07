@@ -38,35 +38,66 @@
 #17516   /tmp/
 #626088  /usr/local/
 
-from .agent_based_api.v1 import (
+# from cmk.base.plugins.agent_based.agent_based_api.v1 import (
+#     check_levels,
+#     register,
+#     render,
+#     Result,
+#     Metric,
+#     State,
+#     ServiceLabel,
+#     Service,
+# )
+
+from collections.abc import Mapping # type: ignore
+from typing import Any # type: ignore
+
+from cmk.agent_based.v2 import (
+    AgentSection,
     check_levels,
-    register,
+    CheckPlugin,
+    CheckResult,
+    DiscoveryResult,
+    InventoryPlugin,
+    InventoryResult,
+    Metric,
     render,
     Result,
-    Metric,
-    State,
-    ServiceLabel,
     Service,
+    State,
+    StringTable,
+    TableRow,
 )
 
-def parse_dir_size(string_table):
+from cmk.utils import debug
+from pprint import pprint # type: ignore
+
+Section = Mapping[str, Any]
+
+
+def parse_dir_size(string_table: StringTable) -> Section:
+    if debug.enabled():
+        pprint(string_table)
     section = {}
     for line in string_table:
         size = int(line[0])
         path = ' '.join(line[1:])
         section[path] = size * 1024
+    if debug.enabled():
+        pprint(section)
     return section
 
-register.agent_section(
+agent_section_packages = AgentSection(
     name="dir_size",
     parse_function=parse_dir_size,
 )
 
-def discover_dir_size(section):
+
+def discover_dir_size(section: Section) -> DiscoveryResult:
     for path in section:
         yield Service(item=path)
 
-def check_dir_size(item, params, section):
+def check_dir_size(item: str, params, section: Section) -> CheckResult:
     if item in section:
         factor = 1
         if 'unit' in params:
@@ -100,14 +131,11 @@ def check_dir_size(item, params, section):
             render_func=render.bytes,
         )
 
-register.check_plugin(
+check_plugin_dir_size = CheckPlugin(
     name="dir_size",
     service_name="Size of %s",
     sections=["dir_size"],
     discovery_function=discover_dir_size,
-    # discovery_default_parameters={},
-    # discovery_ruleset_name="",
-    # discovery_ruleset_type=register.RuleSetType.MERGED,
     check_function=check_dir_size,
     check_default_parameters={
         'unit': 'KB',
