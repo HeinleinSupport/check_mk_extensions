@@ -1,0 +1,12 @@
+{'author': 'Robert Sander <r.sander@heinlein-support.de>',
+ 'description': 'This package contains a check plugin which monitors several '
+                'services of the Panduit Smartzone G5 PDU.\n',
+ 'download_url': 'https://github.com/HeinleinSupport/check_mk_extensions',
+ 'files': {'cmk_addons_plugins': ['panduit_smartzone_g5/agent_based/panduit_smartzone_g5.py'],
+           'mibs': ['Panduit.MIB']},
+ 'name': 'panduit_smartzone_g5',
+ 'title': 'Panduit Smartzone G5 PDU',
+ 'version': '2.3.1',
+ 'version.min_required': '2.3.0b1',
+ 'version.packaged': '2.3.0p24',
+ 'version.usable_until': None}
