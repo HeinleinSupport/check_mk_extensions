@@ -27,7 +27,7 @@
 # - NOTIFY_PARAMETER_RESOLUTION or NOTIFY_CONTACT_JIRARESOLUTION
 # - NOTIFY_PARAMETER_USERNAME or NOTIFY_CONTACT_JIRAUSER as issue reporter
 # - NOTIFY_PARAMETER_ADD_CUSTOMFIELD or NOTIFY_CONTACT_JIRAADDCF as additional custom field name
-# - NOTIFY_PARAMETER_ADD_CUSTOMVALUE or NOTIFY_CONTACT_JIRAADDCFID as additional custom field value
+# - NOTIFY_PARAMETER_ADD_CUSTOMVALUE or NOTIFY_CONTACT_JIRAADDCFVAL as additional custom field value
 # - NOTIFY_PARAMETER_MONITORING
 
 from jira import JIRA
@@ -115,7 +115,7 @@ if "CONTACT_JIRAADDCF" in context:
 add_cfval = False
 if "PARAMETER_ADD_CUSTOMVALUE" in context:
     add_cfval = context["PARAMETER_ADD_CUSTOMVALUE"]
-if "CONTACT_JIRAADDCFID" in context:
+if "CONTACT_JIRAADDCFVAL" in context:
     add_cfval = context["CONTACT_JIRAADDCFVAL"]
 
 if 'project' not in newissue:
