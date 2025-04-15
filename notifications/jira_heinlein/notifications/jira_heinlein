@@ -84,7 +84,7 @@ if 'PARAMETER_PASSWORD' not in context:
 jira = JIRA(server=context['PARAMETER_URL'], basic_auth=(context['PARAMETER_USERNAME'], context['PARAMETER_PASSWORD']))
 
 if len(sys.argv) > 1 and sys.argv[1] == '-f':
-    pprint(jira.createmeta(projectIds=context['PARAMETER_PROJECT'], expand='projects.issuetypes.fields'))
+    pprint(jira.createmeta_issuetypes(projectIdOrKey=context['PARAMETER_PROJECT']))
     sys.exit()
 
 newissue = {
@@ -127,7 +127,7 @@ if 'issuetype' not in newissue:
     sys.exit(2)
 
 try:
-    metainfo = jira.createmeta(projectIds=newissue['project']['id'], issuetypeIds=newissue['issuetype']['id'], expand='projects.issuetypes.fields')
+    metainfo = jira.createmeta_fieldtypes(projectIdOrKey=newissue['project']['id'], issueTypeId=newissue['issuetype']['id'])
 except JIRAError as err:
     print('Unable to query meta info, JIRA response code %s, %s' % (err.status_code, err.text))
     sys.exit(2)

@@ -6,7 +6,7 @@
            'web': ['plugins/wato/jira_heinlein.py']},
  'name': 'jira_heinlein',
  'title': 'JIRA Notifications (Heinlein)',
- 'version': '0.4.0',
+ 'version': '0.5.0',
  'version.min_required': '2.0.0b1',
  'version.packaged': '2.3.0p29',
  'version.usable_until': None}
