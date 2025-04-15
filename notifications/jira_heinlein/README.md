@@ -69,6 +69,6 @@ Configure the base URL for the Monitoring Web-GUI here. Include the site name. T
 
 The name of an additonal custom field that should be used.
 
-## NOTIFY_PARAMETER_ADD_CUSTOMVALUE or NOTIFY_CONTACT_JIRAADDCFID
+## NOTIFY_PARAMETER_ADD_CUSTOMVALUE or NOTIFY_CONTACT_JIRAADDCFVAL
 
 The value for the additional custom field.
