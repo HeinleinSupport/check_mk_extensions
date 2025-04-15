@@ -1,6 +1,20 @@
-#!/usr/bin/env python
-# JIRA
+#!/usr/bin/env python3
+# JIRA (Heinlein)
 # -*- encoding: utf-8; py-indent-offset: 4 -*-
+
+# (c) 2018 Heinlein Support GmbH
+#          Robert Sander <r.sander@heinlein-support.de>
+
+# This is free software;  you can redistribute it and/or modify it
+# under the  terms of the  GNU General Public License  as published by
+# the Free Software Foundation in version 2. This file is  distributed
+# in the hope that it will be useful, but WITHOUT ANY WARRANTY;  with-
+# out even the implied warranty of  MERCHANTABILITY  or  FITNESS FOR A
+# PARTICULAR PURPOSE. See the  GNU General Public License for more de-
+# tails. You should have  received  a copy of the  GNU  General Public
+# License along with GNU Make; see the file  COPYING.  If  not,  write
+# to the Free Software Foundation, Inc., 51 Franklin St,  Fifth Floor,
+# Boston, MA 02110-1301 USA.
 
 # script gets all arguments via environment variables
 # the most important are:
@@ -12,17 +26,21 @@
 # - NOTIFY_PARAMETER_PRIORITY or NOTIFIY_CONTACT_JIRAPRIORITY or not set
 # - NOTIFY_PARAMETER_RESOLUTION or NOTIFY_CONTACT_JIRARESOLUTION
 # - NOTIFY_PARAMETER_USERNAME or NOTIFY_CONTACT_JIRAUSER as issue reporter
+# - NOTIFY_PARAMETER_ADD_CUSTOMFIELD or NOTIFY_CONTACT_JIRAADDCF as additional custom field name
+# - NOTIFY_PARAMETER_ADD_CUSTOMVALUE or NOTIFY_CONTACT_JIRAADDCFID as additional custom field value
 # - NOTIFY_PARAMETER_MONITORING
 
 from jira import JIRA
 from jira.exceptions import JIRAError
+from cmk.notification_plugins import utils
 import sys
 import os
-from pprint import pprint
+from pprint import pprint # type: ignore
 
-custom_fieldnames = { 'HOSTNAME': 'monitoring-host',
-                      'SERVICEDESC': 'monitoring-service'
-                    }
+custom_fieldnames = {
+    'HOSTNAME': 'monitoring-host',
+    'SERVICEDESC': 'monitoring-service'
+}
 custom_fields = {}
 
 def get_summary(context):
@@ -49,18 +67,18 @@ def get_description(context):
         else:
             return context['HOSTOUTPUT']
 
-context = dict([ (var[7:], value.decode("utf-8")) for (var, value) in os.environ.items() if var.startswith("NOTIFY_")])
+context = utils.collect_context()
 
 if 'PARAMETER_URL' not in context:
-    print "JIRA URL not set"
+    print("JIRA URL not set")
     sys.exit(2)
 
 if 'PARAMETER_USERNAME' not in context:
-    print "JIRA auth user not set"
+    print("JIRA auth user not set")
     sys.exit(2)
 
 if 'PARAMETER_PASSWORD' not in context:
-    print "JIRA password not set"
+    print("JIRA password not set")
     sys.exit(2)
 
 jira = JIRA(server=context['PARAMETER_URL'], basic_auth=(context['PARAMETER_USERNAME'], context['PARAMETER_PASSWORD']))
@@ -70,45 +88,54 @@ if len(sys.argv) > 1 and sys.argv[1] == '-f':
     sys.exit()
 
 newissue = {
-    u'labels': ['monitoring'],
-    u'summary': get_summary(context),
-    u'description': get_description(context),
+    'labels': ['monitoring'],
+    'summary': get_summary(context),
+    'description': get_description(context),
 }
 if 'PARAMETER_PROJECT' in context:
-    newissue[u'project'] = {u'id': context['PARAMETER_PROJECT']}
+    newissue['project'] = {'id': context['PARAMETER_PROJECT']}
 if 'CONTACT_JIRAPROJECT' in context:
-    newissue[u'project'] = {u'id': context['CONTACT_JIRAPROJECT']}
+    newissue['project'] = {'id': context['CONTACT_JIRAPROJECT']}
 if 'PARAMETER_ISSUETYPE' in context:
-    newissue[u'issuetype'] = {u'id': context['PARAMETER_ISSUETYPE']}
+    newissue['issuetype'] = {'id': context['PARAMETER_ISSUETYPE']}
 if 'CONTACT_JIRAISSUETYPE' in context:
-    newissue[u'issuetype'] = {u'id': context['CONTACT_JIRAISSUETYPE']}
+    newissue['issuetype'] = {'id': context['CONTACT_JIRAISSUETYPE']}
 if 'PARAMETER_PRIORITY' in context:
-    newissue[u'priority'] = {u'id': context['PARAMETER_PRIORITY']}
+    newissue['priority'] = {'id': context['PARAMETER_PRIORITY']}
 if 'CONTACT_JIRAPRIORITY' in context:
-    newissue[u'priority'] = {u'id': context['CONTACT_JIRAPRIORITY']}
+    newissue['priority'] = {'id': context['CONTACT_JIRAPRIORITY']}
 if 'PARAMETER_USERNAME' in context:
-    newissue[u'reporter'] = {u'name': context['PARAMETER_USERNAME']}
+    newissue['reporter'] = {'name': context['PARAMETER_USERNAME']}
 if 'CONTACT_JIRAUSER' in context:
-    newissue[u'reporter'] = {u'name': context['CONTACT_JIRAUSER']}
+    newissue['reporter'] = {'name': context['CONTACT_JIRAUSER']}
+if "PARAMETER_ADD_CUSTOMFIELD" in context:
+    custom_fieldnames["ADD_CUSTOM_FIELD"] = context["PARAMETER_ADD_CUSTOMFIELD"]
+if "CONTACT_JIRAADDCF" in context:
+    custom_fieldnames["ADD_CUSTOM_FIELD"] = context["CONTACT_JIRAADDCF"]
+add_cfval = False
+if "PARAMETER_ADD_CUSTOMVALUE" in context:
+    add_cfval = context["PARAMETER_ADD_CUSTOMVALUE"]
+if "CONTACT_JIRAADDCFID" in context:
+    add_cfval = context["CONTACT_JIRAADDCFVAL"]
 
 if 'project' not in newissue:
-    print "No JIRA project ID set, discarding notification"
+    print("No JIRA project ID set, discarding notification")
     sys.exit(0)
 
 if 'issuetype' not in newissue:
-    print "No JIRA issue type ID set"
+    print("No JIRA issue type ID set")
     sys.exit(2)
 
 try:
     metainfo = jira.createmeta(projectIds=newissue['project']['id'], issuetypeIds=newissue['issuetype']['id'], expand='projects.issuetypes.fields')
-except JIRAError, err:
-    print 'Unable to query meta info, JIRA response code %s, %s' % (err.status_code, err.text)
+except JIRAError as err:
+    print('Unable to query meta info, JIRA response code %s, %s' % (err.status_code, err.text))
     sys.exit(2)
 
 for project in metainfo.get('projects', []):
     for issuetype in project.get('issuetypes', []):
-        for fieldname, fieldinfo in issuetype.get('fields', {}).iteritems():
-            for key, name in custom_fieldnames.iteritems():
+        for fieldname, fieldinfo in issuetype.get('fields', {}).items():
+            for key, name in custom_fieldnames.items():
                 if name == fieldinfo['name']:
                     custom_fields[key] = fieldname
 if 'HOSTNAME' in custom_fields:
@@ -118,16 +145,18 @@ if 'SERVICEDESC' in custom_fields:
         newissue[custom_fields['SERVICEDESC']] = [context['SERVICEDESC'].replace(' ', '_')]
     else:
         newissue[custom_fields['SERVICEDESC']] = 'HOSTISSUE'
+if add_cfval and 'ADD_CUSTOM_FIELD' in custom_fields:
+    newissue[custom_fields['ADD_CUSTOM_FIELD']] = add_cfval
 
-# pprint(newissue)
+pprint(newissue)
 
 if context['NOTIFICATIONTYPE'] == 'PROBLEM':
     try:
         issue = jira.create_issue(fields=newissue)
-    except JIRAError, err:
-        print 'Unable to create issue, JIRA response code %s, %s' % (err.status_code, err.text)
+    except JIRAError as err:
+        print('Unable to create issue, JIRA response code %s, %s' % (err.status_code, err.text))
         sys.exit(2)
-    print 'Created %s' % issue.permalink()
+    print('Created %s' % issue.permalink())
     if 'PARAMETER_MONITORING' in context:
         if context['PARAMETER_MONITORING'].endswith('/'):
             # remove trailing slash
@@ -139,10 +168,10 @@ if context['NOTIFICATIONTYPE'] == 'PROBLEM':
         try:
             rl = jira.add_simple_link(issue, {'url': url,
                                               'title': 'Monitoring'})
-        except JIRAError, err:
-            print 'Unable to create link in issue, JIRA response code %s, %s' % (err.status_code, err.text)
+        except JIRAError as err:
+            print('Unable to create link in issue, JIRA response code %s, %s' % (err.status_code, err.text))
             sys.exit(0)
-        print 'Created JIRA simple link: %s' % rl
+        print('Created JIRA simple link: %s' % rl)
 elif context['NOTIFICATIONTYPE'] == 'RECOVERY' and 'HOSTNAME' in custom_fields and 'SERVICEDESC' in custom_fields:
     query = 'resolution is EMPTY AND project = "%s" AND issuetype = "%s" and labels = "%s"' % (
         newissue['project']['id'],
@@ -154,7 +183,7 @@ elif context['NOTIFICATIONTYPE'] == 'RECOVERY' and 'HOSTNAME' in custom_fields a
     query += ' and %s = "%s"' % (
         custom_fieldnames['SERVICEDESC'],
         ",".join(newissue[custom_fields['SERVICEDESC']]))
-    print "JIRA query: '%s'" % query
+    print("JIRA query: '%s'" % query)
 
     resolution = None
     if 'PARAMETER_RESOLUTION' in context:
@@ -163,19 +192,18 @@ elif context['NOTIFICATIONTYPE'] == 'RECOVERY' and 'HOSTNAME' in custom_fields a
         resolution = context['CONTACT_JIRARESOLUTION']
 
     if resolution == None:
-        print "No JIRA resolution ID set"
+        print("No JIRA resolution ID set")
         sys.exit(2)
 
     try:
         issues = jira.search_issues(query)
-    except JIRAError, err:
-        print 'Unable to search, JIRA response code %s, %s' % (issue.permalink(), err.status_code, err.text)
+    except JIRAError as err:
+        print('Unable to search, JIRA response code %s, %s' % (err.status_code, err.text))
         sys.exit(2)
 
     for issue in issues:
         try:
             jira.transition_issue(issue, resolution, comment=newissue['description'])
-            print 'Resolved %s' % issue.permalink()
-        except JIRAError, err:
-            print 'Unable to resolve %s, JIRA response code %s, %s' % (issue.permalink(), err.status_code, err.text)
-
+            print('Resolved %s' % issue.permalink())
+        except JIRAError as err:
+            print('Unable to resolve %s, JIRA response code %s, %s' % (issue.permalink(), err.status_code, err.text))

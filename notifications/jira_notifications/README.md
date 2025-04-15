@@ -15,7 +15,7 @@ The notification plugin needs the JIRA Python module. This module has to be inst
 
     pip install jira
 
-as the site user. This will install a number of Python modules.
+as the site user. This will install a number of Python modules. In recent Checkmk Enterprise editions this is already installed.
 
 # Documentation #
 
@@ -64,3 +64,11 @@ This is the optional username that is used as the reporter for the new issue. If
 ## NOTIFY_PARAMETER_MONITORING ##
 
 Configure the base URL for the Monitoring Web-GUI here. Include the site name. This is used to add a simple link in the newly created issue pointing back to the monitoring site. The URL specified here gets the content of `NOTIFY_HOSTURL` or `NOTIFY_SERVICEURL` appended.
+
+## NOTIFY_PARAMETER_ADD_CUSTOMFIELD or NOTIFY_CONTACT_JIRAADDCF
+
+The name of an additonal custom field that should be used.
+
+## NOTIFY_PARAMETER_ADD_CUSTOMVALUE or NOTIFY_CONTACT_JIRAADDCFID
+
+The value for the additional custom field.

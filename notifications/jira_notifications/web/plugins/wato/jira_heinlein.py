@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 # -*- encoding: utf-8; py-indent-offset: 4 -*-
 
 # (c) 2018 Heinlein Support GmbH
@@ -6,7 +6,7 @@
 
 # This is free software;  you can redistribute it and/or modify it
 # under the  terms of the  GNU General Public License  as published by
-# the Free Software Foundation in version 2.  check_mk is  distributed
+# the Free Software Foundation in version 2. This file is  distributed
 # in the hope that it will be useful, but WITHOUT ANY WARRANTY;  with-
 # out even the implied warranty of  MERCHANTABILITY  or  FITNESS FOR A
 # PARTICULAR PURPOSE. See the  GNU General Public License for more de-
@@ -15,8 +15,19 @@
 # to the Free Software Foundation, Inc., 51 Franklin St,  Fifth Floor,
 # Boston, MA 02110-1301 USA.
 
-register_notification_parameters("jira", Dictionary(
-    optional_keys = ['project', 'issuetype', 'priority', 'resolution'],
+from cmk.gui.valuespec import (
+    Dictionary,
+    HTTPUrl,
+    Integer,
+    Password,
+    TextAscii,
+    TextInput,
+)
+from cmk.gui.wato import register_notification_parameters
+from cmk.gui.i18n import _
+
+register_notification_parameters("jira_heinlein", Dictionary(
+    optional_keys = ['project', 'issuetype', 'priority', 'resolution', 'add_customfield', 'add_customvalue'],
     elements = [
         ("url", HTTPUrl(
             title = _("JIRA URL"),
@@ -49,6 +60,14 @@ register_notification_parameters("jira", Dictionary(
         ("resolution", Integer(
             title = _("Resultion Transistion ID"),
             help = _("The numerical JIRA resolution transition ID. If not set, it will be retrieved from a custom user attribute named <tt>jiraresolution</tt>."),
+        )),
+        ("add_customfield", TextInput(
+            title = _("Additional custom field name"),
+            help=_("The numerical ID of an additional Jira custom field that should be set in the issue. If not set, it can be retrieved from a custom user attribute named <tt>jiraaddcf</tt>."),
+        )),
+        ("add_customvalue", TextInput(
+            title=_("Additional custom field value"),
+            help=_("The value of the additional Jira custom field. If not set, it can be retrieved from a custom user attribute named <tt>jiraaddcfval</tt>."),
         )),
         ("monitoring", HTTPUrl(
             title = _("Monitoring URL"),
