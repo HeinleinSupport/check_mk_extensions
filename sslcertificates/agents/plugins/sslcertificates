@@ -23,7 +23,7 @@ if [ ! -x "$OPENSSL" ]; then
 fi
 
 CERT_DIRS="/etc/ssl/certs"
-
+CERT_SEPARATOR="-----BEGIN CERTIFICATE-----"
 CONFIG_FILE="$MK_CONFDIR/sslcertificates"
 
 if [ -r "$CONFIG_FILE" ]; then
@@ -32,28 +32,54 @@ if [ -r "$CONFIG_FILE" ]; then
 
 fi
 
+get_cert() {
+    local certfile="$1"
+    local -i index=$2
+    if [ $index -eq 0 ]; then
+        cat $certfile
+    else
+        cert_count=0
+        while read LINE; do
+            if [[ "${LINE:0:${#CERT_SEPARATOR}}" = "$CERT_SEPARATOR" ]]; then
+                cert_count=$((cert_count+1))
+            fi
+            if [ $((index+1)) -eq $cert_count ]; then
+                echo "$LINE"
+            fi
+        done < $certfile
+    fi
+}
+
 get_cert_info() {
     certfile="$1"
     single="$2"
     if [ -f "$certfile" -a -r "$certfile" -a \( ! -L "$certfile" -o "$single" \) ] && ! [[ $certfile =~ .*~$ ]] && ! [[ $certfile =~ .*_CA.crt$ ]] && ! [[ $certfile =~ .*/ca-certificates.crt$ ]]; then
-        inform='DER'
-        if grep -q -- '-----BEGIN CERTIFICATE-----' "$certfile"; then
-            inform='PEM'
+        inform='PEM'
+        cert_count=$(grep -c -- "$CERT_SEPARATOR" "$certfile")
+        if [ $cert_count -eq 0 ]; then
+            inform='DER'
+            cert_count=1
         fi
 
-        cert_subject=$($OPENSSL x509 -inform $inform -noout -subject -nameopt utf8 -in "$certfile" 2> /dev/null) || return
-        cert_subject=$(cut -d "=" -f 2- <<<"$cert_subject" | sed -e 's/"/\\"/g')
-        if ! grep -q '@snakeoil.dom' <<<"$cert_subject"; then
-            cert_startdate=$($OPENSSL x509 -inform $inform -noout -startdate -in "$certfile" | cut -d "=" -f 2 )
-            cert_startdate_epoch=$(date --date "$cert_startdate" '+%s')
-            cert_enddate=$($OPENSSL x509 -inform $inform -noout -enddate -in "$certfile" | cut -d "=" -f 2 )
-            cert_enddate_epoch=$(date --date "$cert_enddate" '+%s')
-            cert_algosign=$($OPENSSL x509 -inform $inform -noout -text -in "$certfile" | awk '/Signature Algorithm: / { print $3; exit;}' )
-            cert_issuer_hash=$($OPENSSL x509 -inform $inform -noout -issuer_hash -in "$certfile" )
-            cert_issuer=$($OPENSSL x509 -inform $inform -noout -issuer -in "$certfile" | sed -e 's/ = /=/g' -e 's/, /,/g' -e 's/issuer=//' -e 's/"//g')
+        for ((cert_index=0; cert_index<cert_count; cert_index++)); do
+            cert_subject=$($OPENSSL x509 -inform $inform -noout -subject -nameopt utf8 -in <(get_cert $certfile $cert_index) 2> /dev/null) || return
+            cert_subject=$(cut -d "=" -f 2- <<<"$cert_subject" | sed -e 's/"/\\"/g')
+            if ! grep -q '@snakeoil.dom' <<<"$cert_subject"; then
+                cert_startdate=$($OPENSSL x509 -inform $inform -noout -startdate -in <(get_cert $certfile $cert_index) | cut -d "=" -f 2 )
+                cert_startdate_epoch=$(date --date "$cert_startdate" '+%s')
+                cert_enddate=$($OPENSSL x509 -inform $inform -noout -enddate -in <(get_cert $certfile $cert_index) | cut -d "=" -f 2 )
+                cert_enddate_epoch=$(date --date "$cert_enddate" '+%s')
+                cert_algosign=$($OPENSSL x509 -inform $inform -noout -text -in <(get_cert $certfile $cert_index) | awk '/Signature Algorithm: / { print $3; exit;}' )
+                cert_issuer_hash=$($OPENSSL x509 -inform $inform -noout -issuer_hash -in <(get_cert $certfile $cert_index) )
+                cert_issuer=$($OPENSSL x509 -inform $inform -noout -issuer -in <(get_cert $certfile $cert_index) | sed -e 's/ = /=/g' -e 's/, /,/g' -e 's/issuer=//' -e 's/"//g')
+                cert_suffix=""
+                if [ $cert_index -gt 0 ]; then
+                    cert_suffix="#$cert_index"
+                fi
 
-            echo "{\"file\": \"$certfile\", \"starts\": $cert_startdate_epoch, \"expires\": $cert_enddate_epoch, \"algosign\": \"$cert_algosign\", \"issuer_hash\": \"$cert_issuer_hash\", \"issuer\": \"$cert_issuer\", \"subj\": \"$cert_subject\"}"
-        fi
+                echo "{\"file\": \"$certfile$cert_suffix\", \"starts\": $cert_startdate_epoch, \"expires\": $cert_enddate_epoch, \"algosign\": \"$cert_algosign\", \"issuer_hash\": \"$cert_issuer_hash\", \"issuer\": \"$cert_issuer\", \"subj\": \"$cert_subject\"}"
+            fi
+        done
     fi
 }
 
