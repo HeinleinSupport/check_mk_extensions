@@ -130,7 +130,7 @@ def check_apcaccess(item, params, section) -> CheckResult:
             else:
                 yield Result(state=State.CRIT,
                              summary='Status is ' + data.get('STATUS'))
-        if 'SELFTEST' in data and data['SELFTEST'] != 'NO':
+        if 'SELFTEST' in data and data['SELFTEST'] != 'OK':
             yield Result(state=State.WARN,
                          summary='Self-Test is ' + data['SELFTEST'])
 
