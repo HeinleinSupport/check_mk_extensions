@@ -18,6 +18,7 @@ import time  # type: ignore
 import json
 from ast import literal_eval # type: ignore
 from pprint import pprint # type: ignore
+from typing import Any, Dict, Tuple
 
 def _check_mk_url(url):
     """ adds trailing check_mk path component to URL """
@@ -560,6 +561,23 @@ class CMKRESTAPI():
         return self._request(
             self._post_url,
             "domain-types/agent/actions/bake/invoke",
+        )
+
+    def bake_sign_agents(self,key_id: int,passphrase: str) -> Tuple[Dict[str, Any], str]:
+        """Bakes and signs agent packages
+
+        Returns:
+            A tuple:
+            - dict with keys 'links', 'resultType', and 'result' (which itself is a nested dict)
+            - a string (job ID or transaction hash)
+        """
+        return self._request(
+            self._post_url,
+            "domain-types/agent/actions/bake_and_sign/invoke",
+            data={
+                "key_id": key_id,
+                "passphrase": passphrase,
+            }
         )
 
     def download_agent(self, hostname, ostype):
