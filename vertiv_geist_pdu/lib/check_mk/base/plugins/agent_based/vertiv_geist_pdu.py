@@ -153,6 +153,7 @@ register.snmp_section(
         ],
     detect=any_of(
         contains(".1.3.6.1.2.1.1.2.0", ".1.3.6.1.4.1.21239.42.1.53"),  # IMD3 unit
+        contains(".1.3.6.1.2.1.1.2.0", ".1.3.6.1.4.1.21239.42.1.55"),  # IMD5 unit
     ),
 )
 
