@@ -5,7 +5,7 @@
 import sys
 import re
 
-pattern = re.compile("\s+(.+)\s+\((\d+)\),?")
+pattern = re.compile(r'\s+(.+)\s*\((\d+)\),?')
 
 for line in sys.stdin.readlines():
     m = pattern.search(line)
