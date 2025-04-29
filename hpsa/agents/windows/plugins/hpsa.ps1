@@ -45,7 +45,8 @@
 
 Function Get-Storage-Executable-Path () {
     $programPaths = (
-    	'C:\Program Files\HP\HPSSACLI\bin\hpssacli.exe',
+        'C:\Program Files\Smart Storage Administrator\ssacli\bin\ssacli.exe',
+    	  'C:\Program Files\HP\HPSSACLI\bin\hpssacli.exe',
         'C:\Program Files\HP\HPACUCLI\Bin\hpacucli.exe',
         'C:\Program Files\Compaq\HPACUCLI\Bin\hpacucli.exe',
         'C:\Program Files (x86)\HP\HPACUCLI\Bin\hpacucli.exe',
