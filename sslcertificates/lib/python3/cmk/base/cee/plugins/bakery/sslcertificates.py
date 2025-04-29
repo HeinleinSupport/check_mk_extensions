@@ -15,18 +15,24 @@
 # to the Free Software Foundation, Inc., 51 Franklin St,  Fifth Floor,
 # Boston, MA 02110-1301 USA.
 
-from pathlib import Path
-from typing import Any, Dict
+from pathlib import Path # type: ignore
+from typing import Any, Dict # type: ignore
 
-from .bakery_api.v1 import FileGenerator, OS, Plugin, PluginConfig, register
+from cmk.base.plugins.bakery.bakery_api.v1 import (
+    FileGenerator,
+    OS,
+    Plugin,
+    PluginConfig,
+    register,
+)
 
 def get_sslcertificates_files(conf: Dict[str, Any]) -> FileGenerator:
     yield Plugin(base_os=OS.LINUX,
                  source=Path("sslcertificates"),
-                 interval=conf.get("interval"))
+                 interval=int(conf.get("interval", 0)))
     yield Plugin(base_os=OS.WINDOWS,
                  source=Path("sslcertificates.ps1"),
-                 interval=conf.get("interval"))
+                 interval=int(conf.get("interval", 0)))
     if 'directories' in conf:
         yield PluginConfig(base_os=OS.LINUX,
                            lines=['CERT_DIRS="%s"' % " ".join(conf['directories'])],

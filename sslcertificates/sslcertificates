@@ -1,0 +1,23 @@
+{'author': 'Robert Sander <r.sander@heinlein-support.de>',
+ 'description': 'Agent Plugin to check SSL certificates in specified '
+                'directories\n'
+                '\n'
+                'Now with support to check signature algorithm\n'
+                '\n'
+                'Windows Plugin added\n'
+                '\n'
+                'JSON data in agent data section\n'
+                '\n'
+                'Is now able to ignore certificates with a short lifetime\n',
+ 'download_url': 'https://github.com/HeinleinSupport/check_mk_extensions/tree/master/sslcertificates',
+ 'files': {'agents': ['plugins/sslcertificates',
+                      'windows/plugins/sslcertificates.ps1'],
+           'cmk_addons_plugins': ['sslcertificates/agent_based/sslcertificates.py',
+                                  'sslcertificates/rulesets/sslcertificates.py'],
+           'lib': ['python3/cmk/base/cee/plugins/bakery/sslcertificates.py']},
+ 'name': 'sslcertificates',
+ 'title': 'SSL-Certificates',
+ 'version': '9.0.1',
+ 'version.min_required': '2.3.0b1',
+ 'version.packaged': '2.3.0p29',
+ 'version.usable_until': None}

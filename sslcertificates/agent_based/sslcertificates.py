@@ -15,11 +15,29 @@
 # to the Free Software Foundation, Inc., 51 Franklin St,  Fifth Floor,
 # Boston, MA 02110-1301 USA.
 
-from .agent_based_api.v1 import register, render, Result, Metric, State, check_levels, ServiceLabel, Service
 import time
 import json
+from collections.abc import Mapping # type: ignore
+from typing import Any # type: ignore
 
-def parse_sslcertificates(string_table):
+from cmk.agent_based.v2 import (
+    AgentSection,
+    check_levels,
+    CheckPlugin,
+    CheckResult,
+    DiscoveryResult,
+    render,
+    Result,
+    RuleSetType,
+    Service,
+    ServiceLabel,
+    State,
+    StringTable,
+)
+
+SSLCertificatesSection = Mapping[str, Any]
+
+def parse_sslcertificates(string_table: StringTable) -> SSLCertificatesSection:
     section = {}
     for line in string_table:
         if line[0][0] == '{':
@@ -59,12 +77,13 @@ def parse_sslcertificates(string_table):
             section[name]['issuer_hash'] = issuer_hash
     return section
 
-register.agent_section(
+agent_section_sslcertificates = AgentSection(
     name="sslcertificates",
     parse_function=parse_sslcertificates,
 )
 
-def discover_sslcertificates(params, section):
+
+def discover_sslcertificates(params, section: SSLCertificatesSection) -> DiscoveryResult:
     for name, data in section.items():
         if 'min_lifetime' in params and 'starts' in data:
             if data['expires'] - data['starts'] < params['min_lifetime']:
@@ -80,11 +99,10 @@ def discover_sslcertificates(params, section):
             sl.append(ServiceLabel(u'sslcertificates/template', data['template']))
         yield Service(item=name, labels=sl)
 
-def check_sslcertificates(item, params, section):
-    warn, crit = params.get('age', (0, 0))
+def check_sslcertificates(item: str, params, section: SSLCertificatesSection) -> CheckResult:
     warnalgos = params.get('warnalgo', [])
     ignore = params.get('ignore', None)
-
+    
     if item in section:
         data = section[item]
         
@@ -103,20 +121,20 @@ def check_sslcertificates(item, params, section):
         else:
             infotext = "expires in %s on %s" % ( render.timespan(secondsremaining),
                                                  time.strftime("%c", time.gmtime(data['expires'])))
-        if ignore and -secondsremaining > ignore[0] * 86400:
-            yield Result(state=State.OK, summary=infotext + ', ignored because "%s"' % ignore[1])
+        if ignore and -secondsremaining > ignore["after"] * 86400.0:
+            yield Result(state=State.OK, summary=infotext + ', ignored because "%s"' % ignore["reason"])
             ignored = True
         else:
             if secondsremaining > 0:
                 yield from check_levels(secondsremaining,
-                    levels_lower=(warn * 86400, crit * 86400),
+                    levels_lower=params.get("age"),
                     metric_name='lifetime_remaining',
                     label='Lifetime Remaining',
                     render_func=render.timespan,
                     )
             else:
                 yield from check_levels(secondsremaining,
-                    levels_lower=(warn * 86400, crit * 86400),
+                    levels_lower=params.get("age"),
                     metric_name='lifetime_remaining',
                     label='Expired',
                     render_func=lambda x: "%s ago" % render.timespan(abs(x)),
@@ -124,22 +142,22 @@ def check_sslcertificates(item, params, section):
 
         if data.get('algosign'):
             infotext = "Signature Algorithm: %s" % data['algosign']
+            state = State.OK
             if not ignored and data['algosign'] in warnalgos:
-                yield Result(state=State.WARN, summary=infotext)
-            else:
-                yield Result(state=State.OK, summary=infotext)
+                state = State.WARN
+            yield Result(state=state, notice=infotext)
 
-register.check_plugin(
+check_plugin_sslcertificates = CheckPlugin(
     name="sslcertificates",
     service_name="SSL Certificate in %s",
     sections=["sslcertificates"],
     discovery_function=discover_sslcertificates,
     discovery_default_parameters={},
     discovery_ruleset_name="sslcertificates_inventory",
-    discovery_ruleset_type=register.RuleSetType.MERGED,
+    discovery_ruleset_type=RuleSetType.MERGED,
     check_function=check_sslcertificates,
     check_default_parameters={
-        'age': ( 90, 60 ),
+        'age': ("fixed", (90 * 86400.0, 60 * 86400.0)),
         'warnalgo': [ 'md5WithRSAEncryption', 'sha1WithRSAEncryption' ],
     },
     check_ruleset_name="sslcertificates",
