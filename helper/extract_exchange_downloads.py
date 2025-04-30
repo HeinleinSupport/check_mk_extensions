@@ -5,15 +5,22 @@
 # Robert Sander <r.sander@heinlein-support.de>
 #
 
-import sys
+import argparse
+import requests
 from bs4 import BeautifulSoup
 
 from pprint import pprint
 
-with open(sys.argv[1]) as htmlfile:
-    html_doc = htmlfile.read()
+parser = argparse.ArgumentParser()
+parser.add_argument('-e', '--url', default="https://exchange.checkmk.com/u/", help='URL to CheckMK Exchange')
+parser.add_argument('-u', '--username', required=True, help='name of the automation user')
+args = parser.parse_args()
 
-soup = BeautifulSoup(html_doc, 'html.parser')
+resp = requests.get(args.url + args.username)
+if resp.status_code != 200:
+    resp.raise_for_status()
+
+soup = BeautifulSoup(resp.text, 'html.parser')
 
 def get_tag_by_attr_value(tag, name, attr, value):
     return tag.name == name and tag.get(attr) == value
