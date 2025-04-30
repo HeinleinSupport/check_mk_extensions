@@ -155,7 +155,7 @@ def _valuespec_agent_config_sslcertificates():
                         field_size=80,
                         custom_validate=[
                             validators.MatchRegex(
-                                regex = "^/\S+$",
+                                regex = r"^/\S+$",
                                 error_msg = "Directory paths must begin with <tt>/</tt> and must not contain spaces.",
                             ),
                         ],
@@ -169,6 +169,6 @@ rule_spec_sslcertificates_bakery = AgentConfig(
     name="sslcertificates",
     title=Title("SSL Certificates"),
     help_text=Help("This will deploy the agent plugin <tt>sslcertificates</tt> for checking SSL certificate files. <b>Note:</b> If you want to configure several directories to look into for SSL certificate files, then simply create several rules."),
-    topic=Topic.GENERAL,
+    topic=Topic.APPLICATIONS,
     parameter_form=_valuespec_agent_config_sslcertificates,
 )
