@@ -6,7 +6,7 @@
 
 # This is free software;  you can redistribute it and/or modify it
 # under the  terms of the  GNU General Public License  as published by
-# the Free Software Foundation in version 2.  check_mk is  distributed
+# the Free Software Foundation in version 2. This file is  distributed
 # in the hope that it will be useful, but WITHOUT ANY WARRANTY;  with-
 # out even the implied warranty of  MERCHANTABILITY  or  FITNESS FOR A
 # PARTICULAR PURPOSE. See the  GNU General Public License for more de-
@@ -16,26 +16,32 @@
 # Boston, MA 02110-1301 USA.
 
 
-from .agent_based_api.v1.type_defs import (
-    CheckResult,
-    DiscoveryResult,
-    HostLabelGenerator,
+from cmk.plugins.lib import (
+    elphase,
+    temperature,
 )
 
-from .agent_based_api.v1 import (
+from collections.abc import Mapping # type: ignore
+from typing import Any # type: ignore
+
+from cmk.agent_based.v2 import (
+    AgentSection,
     check_levels,
-    register,
-    render,
+    CheckPlugin,
+    CheckResult,
+    DiscoveryResult,
     Metric,
+    render,
     Result,
-    State,
-    HostLabel,
+    RuleSetType,
     Service,
-    )
+    State,
+    StringTable,
+)
 
-from .utils import temperature
+Section = Mapping[str, Any]
 
-def parse_apcaccess(string_table):
+def parse_apcaccess(string_table: StringTable) -> Section:
     parsed = {}
     instance = False
     for line in string_table:
@@ -48,12 +54,12 @@ def parse_apcaccess(string_table):
             parsed[instance][key] = value
     return parsed
 
-register.agent_section(
+agent_section_apcaccess = AgentSection(
     name="apcaccess",
     parse_function=parse_apcaccess,
 )
 
-def discovery_apcaccess(params, section) -> DiscoveryResult:
+def discovery_apcaccess(params, section: Section) -> DiscoveryResult:
     for instance in section:
         if params.get('servicedesc') == 'upsname':
             yield Service(item=section[instance]['UPSNAME'], parameters={'upsname': instance})
@@ -62,7 +68,7 @@ def discovery_apcaccess(params, section) -> DiscoveryResult:
         else:
             yield Service(item=instance)
 
-def check_apcaccess(item, params, section) -> CheckResult:
+def check_apcaccess(item: str, params, section: Section) -> CheckResult:
     attrs = ['SERIALNO', 'FIRMWARE', 'UPSMODE']
     if 'upsname' in params:
         item = params['upsname']
@@ -134,20 +140,20 @@ def check_apcaccess(item, params, section) -> CheckResult:
             yield Result(state=State.WARN,
                          summary='Self-Test is ' + data['SELFTEST'])
 
-register.check_plugin(
+check_plugin_apcaccess = CheckPlugin(
     name="apcaccess",
     service_name="APC %s Status",
     sections=["apcaccess"],
     discovery_ruleset_name="apcaccess_inventory",
-    discovery_ruleset_type=register.RuleSetType.MERGED,
+    discovery_ruleset_type=RuleSetType.MERGED,
     discovery_default_parameters={'servicedesc': False},
     discovery_function=discovery_apcaccess,
     check_function=check_apcaccess,
     check_default_parameters={
-        # "voltage"         : (210, 190, 240, 260), # there are other voltages
-        "output_load"     : (80, 90),
-        "battery_capacity": (90, 80),
-        "timeleft"        : (10, 5),
+        # # "voltage"         : (210, 190, 240, 260), # there are other voltages
+        # "output_load"     : (80, 90),
+        # "battery_capacity": (90, 80),
+        # "timeleft"        : (10, 5),
     },
     check_ruleset_name="apcaccess",
 )
@@ -173,12 +179,12 @@ def check_apcaccess_temp(item, params, section):
                                                  params,
                                                  dev_unit=itemp[1].lower())
 
-register.check_plugin(
+check_plugin_apcaccess_temperature = CheckPlugin(
     name="apcaccess_temperature",
     service_name="APC %s Temperature",
     sections=["apcaccess"],
     discovery_ruleset_name="apcaccess_inventory",
-    discovery_ruleset_type=register.RuleSetType.MERGED,
+    discovery_ruleset_type=RuleSetType.MERGED,
     discovery_default_parameters={'servicedesc': False},
     discovery_function=discovery_apcaccess_temp,
     check_function=check_apcaccess_temp,
