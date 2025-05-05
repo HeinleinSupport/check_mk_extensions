@@ -194,7 +194,7 @@ def _valuespec_agent_config_apcaccess():
         migrate=_migrate_from_bool_to_dict,
     )
 
-rule_spec_sslcertificates_bakery = AgentConfig(
+rule_spec_apcaccess_bakery = AgentConfig(
     name="apcaccess",
     title=Title("APC UPS via apcaccess (Linux, Windows)"),
     help_text=Help("This will deploy the agent plugin <tt>apcaccess</tt> to check various APC UPS stats."),
