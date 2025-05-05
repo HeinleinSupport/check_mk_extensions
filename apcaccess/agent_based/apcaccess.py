@@ -39,10 +39,31 @@ from cmk.agent_based.v2 import (
     StringTable,
 )
 
+from cmk.plugins.lib.ups import (
+    Battery,
+    check_ups_capacity,
+)
+
+from cmk.utils import debug
+from pprint import pprint # type: ignore
+
 Section = Mapping[str, Any]
 
+def convert_value(time: str) -> int:
+    factor = {
+        "Minutes": 60.0,
+        "Hours": 3600.0,
+    }
+    if time:
+        value, unit = time.split(" ")
+        return round(float(value) * factor.get(unit, 1.0))
+    return None
+
 def parse_apcaccess(string_table: StringTable) -> Section:
+    if debug.enabled():
+        pprint(string_table)
     parsed = {}
+    
     instance = False
     for line in string_table:
         if line[0].startswith("[["):
@@ -52,6 +73,23 @@ def parse_apcaccess(string_table: StringTable) -> Section:
             key = line[0].strip()
             value = ":".join(line[1:]).strip()
             parsed[instance][key] = value
+    for instance, data in parsed.items():
+        tonbat = convert_value(data.get("TONBATT"))
+        data["Battery"] = Battery(
+            seconds_on_bat=tonbat,
+            seconds_left=convert_value(data.get("TIMELEFT")),
+            percent_charged=convert_value(data.get("BCHARGE")),
+            on_battery=(tonbat > 0),
+        )
+        elphase = {}
+        for key, metric in {"OUTPUTV": "voltage", "LOADPCT": "output_load"}.items():
+            value = data.get(key, "").split(" ")[0]
+            if value:
+                elphase[metric] = float(value)
+        if elphase:
+            data["elphase"] = elphase
+    if debug.enabled():
+        pprint(parsed)
     return parsed
 
 agent_section_apcaccess = AgentSection(
@@ -69,6 +107,9 @@ def discovery_apcaccess(params, section: Section) -> DiscoveryResult:
             yield Service(item=instance)
 
 def check_apcaccess(item: str, params, section: Section) -> CheckResult:
+    if debug.enabled():
+        print("params")
+        pprint(params)
     attrs = ['SERIALNO', 'FIRMWARE', 'UPSMODE']
     if 'upsname' in params:
         item = params['upsname']
@@ -89,45 +130,15 @@ def check_apcaccess(item: str, params, section: Section) -> CheckResult:
                              summary="%s: %s" % (attr, data[attr]))
         if not found:
             yield Result(state=State.UNKNOWN, summary='Unkown UPS / no data')
-        human_readable = {'voltage': lambda x: "%0.0fV" % x,
-                          'output_load': render.percent,
-                          'battery_capacity': render.percent,
-                          'timeleft': render.timespan }
-        metrics = { 'voltage': ('OUTPUTV', 'Output Voltage'),
-                    'output_load': ('LOADPCT', 'Output Load'),
-                    'battery_capacity': ('BCHARGE', 'Battery Capacity'),
-                    'timeleft': ('TIMELEFT', 'Time Left') }
-        factors = { 'timeleft': 60.0 }
-        for metric, (key, text) in metrics.items():
-            if key in data:
-                value = float(data.get(key).split(' ')[0]) * factors.get(metric, 1.0)
-                if metric in params:
-                    if len(params[metric]) == 2:
-                        warn, crit = map(lambda x: x * factors.get(metric, 1.0), params[metric])
-                        if warn < crit:
-                            yield from check_levels(value,
-                                                    levels_upper=(warn, crit),
-                                                    metric_name=metric,
-                                                    render_func=human_readable[metric],
-                                                    label=text)
-                        else:
-                            yield from check_levels(value,
-                                                    levels_lower=(warn, crit),
-                                                    metric_name=metric,
-                                                    render_func=human_readable[metric],
-                                                    label=text)
-                    elif len(params[metric]) == 4:
-                        low_warn, low_crit, warn, crit = map(lambda x: x * factors.get(metric, 1.0), params[metric])
-                        yield from check_levels(value,
-                                                levels_upper=(warn, crit),
-                                                levels_lower=(low_warn, low_crit),
-                                                metric_name=metric,
-                                                render_func=human_readable[metric],
-                                                label=text)
-                else:
-                    yield Result(state=State.OK,
-                                 summary="%s: %s" % (text, human_readable[metric](value)))
-                    yield Metric(metric, value)
+        params_capacity = {
+            "capacity": (0, 0),
+            "battime": (0, 0),
+        }
+        for key in params_capacity.keys():
+            if key in params:
+                if params[key][0] == "fixed_levels":
+                    params_capacity[key] = params[key]
+        yield from check_ups_capacity(params_capacity, data["Battery"], None, None)
         if data.get('STATUS') != 'ONLINE' and data.get('STATUS') != 'ONLINE SLAVE':
             if 'SELFTEST' in data:
                 if data['SELFTEST'] == 'NO':
@@ -150,12 +161,27 @@ check_plugin_apcaccess = CheckPlugin(
     discovery_function=discovery_apcaccess,
     check_function=check_apcaccess,
     check_default_parameters={
-        # # "voltage"         : (210, 190, 240, 260), # there are other voltages
-        # "output_load"     : (80, 90),
         # "battery_capacity": (90, 80),
         # "timeleft"        : (10, 5),
     },
     check_ruleset_name="apcaccess",
+)
+
+def check_apcaccess_elphase(item, params, section) -> CheckResult:
+    if item in section:
+        yield from elphase.check_elphase(item, params, {item: section[item]["elphase"]})
+
+check_plugin_apcaccess_elphase = CheckPlugin(
+    name="apcaccess_elphase",
+    service_name="APC %s Output",
+    sections=["apcaccess"],
+    discovery_ruleset_name="apcaccess_inventory",
+    discovery_ruleset_type=RuleSetType.MERGED,
+    discovery_default_parameters={'servicedesc': False},
+    discovery_function=discovery_apcaccess,
+    check_function=check_apcaccess_elphase,
+    check_default_parameters={},
+    check_ruleset_name="ups_outphase",
 )
 
 def discovery_apcaccess_temp(params, section):

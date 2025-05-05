@@ -58,63 +58,80 @@ from cmk.rulesets.v1.rule_specs import (
 )
 from pprint import pprint # type: ignore
 
-# def _parameter_valuespec_apcaccess():
-#     return Dictionary(
-#         title = _('UPS Status Values'),
-#         elements = [
-#             ( 'voltage',
-#             Tuple(
-#                 title = _('Output Voltage'),
-#                 elements = [
-#                     Integer(title = _("Warning below"), unit = u"V", default_value=210),
-#                     Integer(title = _("Critical below"), unit = u"V", default_value=190),
-#                     Integer(title = _("Warning at or above"), unit = u"V", default_value=240),
-#                     Integer(title = _("Critical at or above"), unit = u"V", default_value=260),
-#                 ],
-#             )),
-#             ( 'output_load',
-#             Tuple(
-#                 title = _('Output Load Percentage'),
-#                 elements = [
-#                     Integer(title = _("Warning at or above"), unit = u"%", default_value=80),
-#                     Integer(title = _("Critical at or above"), unit = u"%", default_value=90),
-#                 ],
-#             )),
-#             ( 'battery_capacity',
-#             Tuple(
-#                 title = _('Battery Loaded Capacity'),
-#                 elements = [
-#                     Integer(title = _("Warning below"), unit = u"%", default_value=90),
-#                     Integer(title = _("Critical below"), unit = u"%", default_value=80),
-#                 ],
-#             )),
-#             ( 'timeleft',
-#             Tuple(
-#                 title = _('Time Left'),
-#                 elements = [
-#                     Integer(title = _("Warning below"), unit = u"minutes", default_value=10),
-#                     Integer(title = _("Critical below"), unit = u"minutes", default_value=5),
-#                 ],
-#             )),
-#         ],
-#         ignored_keys = ["upsname", "model"],
-#     )
 
-# def _item_spec_apcaccess():
-#     return TextAscii(
-#         title = _("UPS instance"),
-#         allow_empty = False,
-#     )
+#   .--Parameter-----------------------------------------------------------.
+#   |          ____                                _                       |
+#   |         |  _ \ __ _ _ __ __ _ _ __ ___   ___| |_ ___ _ __            |
+#   |         | |_) / _` | '__/ _` | '_ ` _ \ / _ \ __/ _ \ '__|           |
+#   |         |  __/ (_| | | | (_| | | | | | |  __/ ||  __/ |              |
+#   |         |_|   \__,_|_|  \__,_|_| |_| |_|\___|\__\___|_|              |
+#   |                                                                      |
+#   +----------------------------------------------------------------------+
+#   |                                                                      |
+#   '----------------------------------------------------------------------'
+#.
 
-# rulespec_registry.register(
-#     CheckParameterRulespecWithItem(
-#         check_group_name="apcaccess",
-#         group=RulespecGroupCheckParametersEnvironment,
-#         item_spec=_item_spec_apcaccess,
-#         match_type="dict",
-#         parameter_valuespec=_parameter_valuespec_apcaccess,
-#         title=lambda: _("APC Power Supplies (directly connected)"),
-#     ))
+def _migrate_parameter(param):
+    print(f"Before (apcaccess): {param}")
+    if "battery_capacity" in param:
+        param["capacity"] = param["battery_capacity"]
+        del(param["battery_capacity"])
+    if "timeleft" in param:
+        param["battime"] = param["timeleft"]
+        del(param["timeleft"])
+    for key in ["output_load", "voltage"]:
+        if key in param:
+            del(param[key])
+    print(f"After (apcaccess): {param}")
+    return param
+
+def _parameter_valuespec_apcaccess():
+    return Dictionary(
+        migrate = _migrate_parameter,
+        title = Title("Levels for battery parameters"),
+        elements = {
+            'capacity': DictElement(
+                required=True,
+                parameter_form=SimpleLevels(
+                    title=Title("Battery capacity"),
+                    migrate=migrate_to_integer_simple_levels,
+                    level_direction=LevelDirection.LOWER,
+                    form_spec_template=Integer(unit_symbol="%"),
+                    prefill_fixed_levels=InputHint(value=(90, 80)),
+                )),
+            'battime': DictElement(
+                required=True,
+                parameter_form=SimpleLevels(
+                    title=Title("Time left on battery"),
+                    migrate=migrate_to_integer_simple_levels,
+                    level_direction=LevelDirection.LOWER,
+                    form_spec_template=Integer(unit_symbol="minutes"),
+                    prefill_fixed_levels=InputHint(value=(10, 5)),
+                )),
+        },
+        ignored_elements = ["upsname", "model"],
+    )
+
+rule_spec_exchange_package = CheckParameters(
+    name="apcaccess",
+    topic=Topic.ENVIRONMENTAL,
+    parameter_form=_parameter_valuespec_apcaccess,
+    title=Title("APC Power Supplies (directly connected)"),
+    condition=HostAndItemCondition(item_title=Title("UPS instance")),
+)
+
+
+#   .--Discovery-----------------------------------------------------------.
+#   |              ____  _                                                 |
+#   |             |  _ \(_)___  ___ _____   _____ _ __ _   _               |
+#   |             | | | | / __|/ __/ _ \ \ / / _ \ '__| | | |              |
+#   |             | |_| | \__ \ (_| (_) \ V /  __/ |  | |_| |              |
+#   |             |____/|_|___/\___\___/ \_/ \___|_|   \__, |              |
+#   |                                                  |___/               |
+#   +----------------------------------------------------------------------+
+#   |                                                                      |
+#   '----------------------------------------------------------------------'
+#.
 
 def _valuespec_apcaccess_inventory():
     return Dictionary(
@@ -141,13 +158,26 @@ rule_spec_apcaccess_inventory = DiscoveryParameters(
     parameter_form=_valuespec_apcaccess_inventory,
 )
 
+
+#   .--Bakery--------------------------------------------------------------.
+#   |                   ____        _                                      |
+#   |                  | __ )  __ _| | _____ _ __ _   _                    |
+#   |                  |  _ \ / _` | |/ / _ \ '__| | | |                   |
+#   |                  | |_) | (_| |   <  __/ |  | |_| |                   |
+#   |                  |____/ \__,_|_|\_\___|_|   \__, |                   |
+#   |                                             |___/                    |
+#   +----------------------------------------------------------------------+
+#   |                                                                      |
+#   '----------------------------------------------------------------------'
+#.
+
 def _migrate_from_bool_to_dict(param):
-    print(f"Before: {param}")
+    print(f"Before (bakery:apcaccess): {param}")
     if isinstance(param, bool):
         param = {"deploy": param}
     if not param:
         param = {"deploy": False}
-    print(f"After: {param}")
+    print(f"After (bakery:apcaccess): {param}")
     return param
 
 def _valuespec_agent_config_apcaccess():
