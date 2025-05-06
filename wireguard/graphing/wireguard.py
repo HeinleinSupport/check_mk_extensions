@@ -16,10 +16,20 @@
 # to the Free Software Foundation, Inc., 51 Franklin St,  Fifth Floor,
 # Boston, MA 02110-1301 USA.
 
+from cmk.graphing.v1 import Title
+from cmk.graphing.v1.metrics import (
+    Color,
+    DecimalNotation,
+    Metric,
+    StrictPrecision,
+    Unit,
+)
 
-metric_info["configured_vpn_tunnels"] = {
-    "title": _("Configured VPN Tunnels"),
-    "unit": "count",
-    "color": "23/a",
-}
+UNIT_COUNT=Unit(DecimalNotation(""), StrictPrecision(0))
 
+metric_configured_vpn_tunnels = Metric(
+    name="configured_vpn_tunnels",
+    title=Title("Configured VPN Tunnels"),
+    unit=UNIT_COUNT,
+    color=Color.CYAN,
+)
