@@ -14,14 +14,6 @@
 # to the Free Software Foundation, Inc., 51 Franklin St,  Fifth Floor,
 # Boston, MA 02110-1301 USA.
 
-from cmk.gui.plugins.wato import (
-    rulespec_registry,
-    CheckParameterRulespecWithItem,
-    HostRulespec,
-    RulespecGroupCheckParametersDiscovery,
-    RulespecGroupCheckParametersEnvironment,
-)
-
 from cmk.rulesets.v1 import (
     Help,
     Label,
@@ -29,25 +21,16 @@ from cmk.rulesets.v1 import (
 )
 from cmk.rulesets.v1.form_specs import (
     BooleanChoice,
-    CascadingSingleChoice,
-    CascadingSingleChoiceElement,
     DefaultValue,
     DictElement,
     Dictionary,
-    FixedValue,
     Integer,
     InputHint,
     LevelDirection,
-    List,
     migrate_to_integer_simple_levels,
-    migrate_to_lower_float_levels,
     SingleChoice,
     SingleChoiceElement,
     SimpleLevels,
-    String,
-    TimeMagnitude,
-    TimeSpan,
-    validators,
 )
 from cmk.rulesets.v1.rule_specs import (
     AgentConfig,
@@ -56,7 +39,6 @@ from cmk.rulesets.v1.rule_specs import (
     HostAndItemCondition,
     Topic,
 )
-from pprint import pprint # type: ignore
 
 
 #   .--Parameter-----------------------------------------------------------.
@@ -172,12 +154,10 @@ rule_spec_apcaccess_inventory = DiscoveryParameters(
 #.
 
 def _migrate_from_bool_to_dict(param):
-    print(f"Before (bakery:apcaccess): {param}")
     if isinstance(param, bool):
         param = {"deploy": param}
     if not param:
         param = {"deploy": False}
-    print(f"After (bakery:apcaccess): {param}")
     return param
 
 def _valuespec_agent_config_apcaccess():

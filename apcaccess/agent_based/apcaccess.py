@@ -26,12 +26,9 @@ from typing import Any # type: ignore
 
 from cmk.agent_based.v2 import (
     AgentSection,
-    check_levels,
     CheckPlugin,
     CheckResult,
     DiscoveryResult,
-    Metric,
-    render,
     Result,
     RuleSetType,
     Service,
@@ -43,9 +40,6 @@ from cmk.plugins.lib.ups import (
     Battery,
     check_ups_capacity,
 )
-
-from cmk.utils import debug
-from pprint import pprint # type: ignore
 
 Section = Mapping[str, Any]
 
@@ -60,8 +54,6 @@ def convert_value(time: str) -> int:
     return None
 
 def parse_apcaccess(string_table: StringTable) -> Section:
-    if debug.enabled():
-        pprint(string_table)
     parsed = {}
     
     instance = False
@@ -88,8 +80,6 @@ def parse_apcaccess(string_table: StringTable) -> Section:
                 elphase[metric] = float(value)
         if elphase:
             data["elphase"] = elphase
-    if debug.enabled():
-        pprint(parsed)
     return parsed
 
 agent_section_apcaccess = AgentSection(
@@ -107,9 +97,6 @@ def discovery_apcaccess(params, section: Section) -> DiscoveryResult:
             yield Service(item=instance)
 
 def check_apcaccess(item: str, params, section: Section) -> CheckResult:
-    if debug.enabled():
-        print("params")
-        pprint(params)
     attrs = ['SERIALNO', 'FIRMWARE', 'UPSMODE']
     if 'upsname' in params:
         item = params['upsname']
