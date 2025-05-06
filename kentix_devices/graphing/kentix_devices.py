@@ -15,10 +15,22 @@
 # to the Free Software Foundation, Inc., 51 Franklin St,  Fifth Floor,
 # Boston, MA 02110-1301 USA.
 
-from cmk.gui.views.perfometer.legacy_perfometers.utils import perfometer_linear
+from cmk.graphing.v1 import (
+    metrics,
+    perfometers,
+    Title,
+)
+UNIT_PERCENT = metrics.Unit(metrics.DecimalNotation("%"), metrics.StrictPrecision(2))
 
-def perfometer_motion(row, check_command, perf_data):
-    motion = float(perf_data[0][1])
-    return "%3.1f% %" % motion, perfometer_linear(motion, '#90D4A9')
+metric_motion = metrics.Metric(
+    name="motion",
+    title=Title("Motion"),
+    unit=UNIT_PERCENT,
+    color=metrics.Color.LIGHT_GREEN,
+)
 
-perfometers['check_mk-kentix_devices.motion'] = perfometer_motion
+perfometer_motion = perfometers.Perfometer(
+    name="motion",
+    focus_range=perfometers.FocusRange(perfometers.Closed(0), perfometers.Closed(100)),
+    segments=["motion"],
+)

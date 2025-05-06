@@ -1,0 +1,12 @@
+{'author': 'Robert Sander <r.sander@heinlein-support.de>',
+ 'description': 'SNMP check plugin for Kentix Sensor devices.\n',
+ 'download_url': 'https://github.com/HeinleinSupport/check_mk/tree/master/kentix_devices',
+ 'files': {'cmk_addons_plugins': ['kentix_devices/agent_based/kentix_devices.py',
+                                  'kentix_devices/graphing/kentix_devices.py'],
+           'mibs': ['KENTIXDEVICES']},
+ 'name': 'kentix_devices',
+ 'title': 'Kentix Devices',
+ 'version': '4.0.0',
+ 'version.min_required': '2.3.0b1',
+ 'version.packaged': '2.3.0p31',
+ 'version.usable_until': None}

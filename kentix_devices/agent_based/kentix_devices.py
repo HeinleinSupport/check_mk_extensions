@@ -15,61 +15,67 @@
 # to the Free Software Foundation, Inc., 51 Franklin St,  Fifth Floor,
 # Boston, MA 02110-1301 USA.
 
-from typing import NamedTuple
+from collections.abc import Mapping # type: ignore
+from typing import Any # type: ignore
 
-from .agent_based_api.v1 import (
+from cmk.agent_based.v2 import (
     any_of,
-    contains,
     check_levels,
-    register,
-    render,
+    CheckPlugin,
+    CheckResult,
+    contains,
+    DiscoveryResult,
     Metric,
-    OIDEnd,
+    render,
     Result,
     Service,
     ServiceLabel,
+    SNMPSection,
     SNMPTree,
     State,
+    StringTable,
 )
 
-from .agent_based_api.v1.type_defs import (
-    CheckResult,
-    DiscoveryResult,
-)
-
-from .utils.temperature import (
-    check_temperature,
-)
-
-from .utils.humidity import (
-    check_humidity,
+from cmk.plugins.lib import (
+    humidity,
+    temperature,
 )
 
 import time
 
+Section = Mapping[str, Any]
+
 def _get_dev_status_kentix_devices(alarm):
-    alarm_state_map = { "1": State.CRIT,
-                        "2": State.WARN,
+    alarm_state_map = {
+        "1": State.CRIT,
+        "2": State.WARN,
     }
     return alarm_state_map.get(alarm, State.OK)
 
-def parse_kentix_devices(string_table):
-    section = {'multiplier': list(map(float, string_table[0][0])),
-              'sensors': {},
-              'zones': {} }
-    meta = { 3: 'temp',
-             4: 'humidity',
-             5: 'dewpoint',
-             6: 'co',
-             7: 'motion',
-             8: 'vibration',
-             # 9: 'latency'
-           }
-    armed = { '0': False,
-              '1': True,
-            }
+def parse_kentix_devices(string_table: StringTable) -> Section:
+    section = {
+        'multiplier': list(map(float, string_table[0][0])),
+        'sensors': {},
+        'zones': {},
+    }
+    meta = {
+        3: 'temp',
+        4: 'humidity',
+        5: 'dewpoint',
+        6: 'co',
+        7: 'motion',
+        8: 'vibration',
+        # 9: 'latency'
+    }
+    armed = {
+        '0': False,
+        '1': True,
+    }
     for line in string_table[1]:
-        section['zones'][line[0]] = {'name': line[1], 'armed': armed.get(line[2], False)}
+        section['zones'][line[0]] = {
+            'name': line[1],
+            'armed': armed.get(line[2], False),
+        }
     for line in string_table[2]:
         sid = line[0]
         sensor = { 'info': line }
@@ -82,7 +88,7 @@ def parse_kentix_devices(string_table):
         section['sensors']["%s %s" % (line[1], sid)] = sensor
     return section
 
-register.snmp_section(
+snmp_section_kentix_devices = SNMPSection(
     name="kentix_devices",
     parse_function=parse_kentix_devices,
     fetch=[
@@ -183,7 +189,7 @@ register.snmp_section(
     ),
 )
 
-def discover_kentix_devices(section, params, sfunc) -> DiscoveryResult:
+def discover_kentix_devices(section: Section, params, sfunc) -> DiscoveryResult:
     for sensoritem, sensordata in section['sensors'].items():
         if sfunc in sensordata:
             sl = []
@@ -206,24 +212,25 @@ def discover_kentix_devices(section, params, sfunc) -> DiscoveryResult:
 #   |                            main check                                |
 #   '----------------------------------------------------------------------'
 
-def check_kentix_devices_temperature(item, params, section):
+def check_kentix_devices_temperature(item: str, params, section: Section) -> CheckResult:
     if item in section['sensors']:
         sensordata = section['sensors'][item]
         tempMin = float(sensordata['temp'][2])
         tempMax = float(sensordata['temp'][3])
         dev_status = _get_dev_status_kentix_devices(sensordata['temp'][4])
-        yield from check_temperature(float(sensordata['temp'][1]) / section['multiplier'][0],
-                                     params,
-                                     dev_levels=(tempMax, tempMax),
-                                     dev_levels_lower=(tempMin, tempMin),
-                                     dev_status=dev_status,
+        yield from temperature.check_temperature(
+            float(sensordata['temp'][1]) / section['multiplier'][0],
+            params,
+            dev_levels=(tempMax, tempMax),
+            dev_levels_lower=(tempMin, tempMin),
+            dev_status=dev_status,
         )
         zone = ""
         if sensordata['zone'] in section['zones']:
             yield Result(state=State.OK,
                          summary="Zone: %s" % section['zones'][sensordata['zone']]['name'])
 
-register.check_plugin(
+check_plugin_kentix_devices = CheckPlugin(
     name="kentix_devices",
     sections=['kentix_devices'],
     service_name="Temperature %s",
@@ -234,7 +241,7 @@ register.check_plugin(
     )),
     check_function=check_kentix_devices_temperature,
     check_ruleset_name='temperature',
-    check_default_parameters={}, #  "levels": (40, 50) },
+    check_default_parameters={},
 )
 
 #.
@@ -248,7 +255,7 @@ register.check_plugin(
 #   +----------------------------------------------------------------------+
 
 
-def check_kentix_devices_humidity(item, params, section):
+def check_kentix_devices_humidity(item: str, params, section: Section) -> CheckResult:
     if item in section['sensors']:
         sensordata = section['sensors'][item]
         dev_status = _get_dev_status_kentix_devices(sensordata['humidity'][3])
@@ -256,7 +263,7 @@ def check_kentix_devices_humidity(item, params, section):
                      notice="Device Status: %s" % sensordata['humidity'][3])
         if not params:
             params = { 'levels': ( float(sensordata['humidity'][2]), 101 ) }
-        yield from check_humidity(
+        yield from humidity.check_humidity(
             float(sensordata['humidity'][1]) / section['multiplier'][1],
             params
         )
@@ -265,7 +272,7 @@ def check_kentix_devices_humidity(item, params, section):
             yield Result(state=State.OK,
                          summary="Zone: %s" % section['zones'][sensordata['zone']]['name'])
 
-register.check_plugin(
+check_plugin_kentix_devices_humidity = CheckPlugin(
     name="kentix_devices_humidity",
     sections=['kentix_devices'],
     service_name="Humidity %s",
@@ -291,7 +298,7 @@ register.check_plugin(
 #   '----------------------------------------------------------------------'
 #.
 
-def check_kentix_devices_dewpoint(item, params, section):
+def check_kentix_devices_dewpoint(item: str, params, section: Section) -> CheckResult:
     if item in section['sensors']:
         sensordata = section['sensors'][item]
         dewValue = float(sensordata['dewpoint'][1]) / section['multiplier'][2]
@@ -299,22 +306,24 @@ def check_kentix_devices_dewpoint(item, params, section):
         dev_status = _get_dev_status_kentix_devices(sensordata['dewpoint'][3])
         if 'temp' in sensordata:
             tempValue = float(sensordata['temp'][1]) / section['multiplier'][0]
-            yield from check_temperature(dewValue,
-                                         params,
-                                         dev_levels=(tempValue - dewMax, tempValue - dewMax),
-                                         dev_status=dev_status,
+            yield from temperature.check_temperature(
+                dewValue,
+                params,
+                dev_levels=(tempValue - dewMax, tempValue - dewMax),
+                dev_status=dev_status,
             )
         else:
-            yield from check_temperature(dewValue,
-                                         params,
-                                         dev_status=dev_status,
+            yield from temperature.check_temperature(
+                dewValue,
+                params,
+                dev_status=dev_status,
             )
         zone = ""
         if sensordata['zone'] in section['zones']:
             yield Result(state=State.OK,
                          summary="Zone: %s" % section['zones'][sensordata['zone']]['name'])
 
-register.check_plugin(
+check_plugin_kentix_devices_dewpoint = CheckPlugin(
     name="kentix_devices_dewpoint",
     sections=['kentix_devices'],
     service_name="Dewpoint %s",
@@ -347,7 +356,7 @@ register.check_plugin(
 #   '----------------------------------------------------------------------'
 
 
-def check_kentix_devices_co(item, section):
+def check_kentix_devices_co(item: str, section: Section) -> CheckResult:
     if item in section['sensors']:
         sensordata = section['sensors'][item]
         coValue = int(sensordata['co'][1])
@@ -363,7 +372,7 @@ def check_kentix_devices_co(item, section):
             yield Result(state=State.OK,
                          summary="Zone: %s" % section['zones'][sensordata['zone']]['name'])
 
-register.check_plugin(
+check_plugin_kentix_devices_co = CheckPlugin(
     name="kentix_devices_co",
     sections=['kentix_devices'],
     service_name="CO %s",
@@ -388,7 +397,7 @@ register.check_plugin(
 #   '----------------------------------------------------------------------'
 
 
-def check_kentix_devices_motion(item, params, section):
+def check_kentix_devices_motion(item: str, params, section: Section) -> CheckResult:
     def test_in_period(hour, minute, periods):
         time_mins = hour * 60 + minute
         for per in periods:
@@ -428,7 +437,7 @@ def check_kentix_devices_motion(item, params, section):
                          summary="No motion%s detected" %zone)
         yield Metric('motion', motionValue, levels=(motionMax, None), boundaries=(0, 100))
 
-register.check_plugin(
+check_plugin_kentix_devices_motion = CheckPlugin(
     name="kentix_devices_motion",
     sections=['kentix_devices'],
     service_name="Motion %s",
@@ -455,7 +464,7 @@ register.check_plugin(
 #   '----------------------------------------------------------------------'
 
 
-def check_kentix_devices_vibration(item, section):
+def check_kentix_devices_vibration(item: str, section: Section) -> CheckResult:
     if item in section['sensors']:
         sensordata = section['sensors'][item]
         vibrationValue = int(sensordata['vibration'][1])
@@ -471,7 +480,7 @@ def check_kentix_devices_vibration(item, section):
                      summary="%d%s" % (vibrationValue, zone))
         yield Metric('vibration', vibrationValue, levels=(None, vibrationMax))
 
-register.check_plugin(
+check_plugin_kentix_devices_vibration = CheckPlugin(
     name="kentix_devices_vibration",
     sections=['kentix_devices'],
     service_name="Vibration %s",
@@ -495,7 +504,7 @@ register.check_plugin(
 #   |                                                                      |
 #   '----------------------------------------------------------------------'
 
-def discover_kentix_devices_zone(section):
+def discover_kentix_devices_zone(section: Section) -> DiscoveryResult:
     for zoneid, zoneinfo in section['zones'].items():
         sl = [ ServiceLabel('kentix/zoneid', zoneid) ]
         yield Service(item=zoneid + " " + zoneinfo['name'],
@@ -503,7 +512,7 @@ def discover_kentix_devices_zone(section):
                       labels=sl
         )
 
-def check_kentix_devices_zone(item, params, section):
+def check_kentix_devices_zone(item:str, params, section: Section) -> CheckResult:
     zoneid = item.split()[0]
     if zoneid in section['zones']:
         zoneinfo = section['zones'][zoneid]
@@ -515,7 +524,7 @@ def check_kentix_devices_zone(item, params, section):
         yield Result(state=state,
                      summary=text)
 
-register.check_plugin(
+check_plugin_kentix_devices_zone = CheckPlugin(
     name="kentix_devices_zone",
     sections=['kentix_devices'],
     service_name="Zone %s",
@@ -541,14 +550,14 @@ def battery_supported(devicetype):
     battery_devicetypes = [28, 26]
     return devicetype in battery_devicetypes
 
-def discover_kentix_devices_battery(section):
+def discover_kentix_devices_battery(section: Section) -> DiscoveryResult:
     for sensoritem, sensordata in section['sensors'].items():
         if battery_supported(int(sensordata['type'])):
             yield Service(
                 item=sensoritem
             )
 
-def check_kentix_devices_battery(item, section):
+def check_kentix_devices_battery(item: str, section: Section) -> CheckResult:
     if item in section['sensors']:
         sensordata = section['sensors'][item]
         batterystatus = int(sensordata['info'][8])
@@ -559,7 +568,7 @@ def check_kentix_devices_battery(item, section):
             state = State.CRIT
         yield Result(state=state, summary=summary)
 
-register.check_plugin(
+check_plugin_kentix_devices_battery = CheckPlugin(
     name="kentix_devices_battery",
     sections=['kentix_devices'],
     service_name="Battery %s",
@@ -581,7 +590,7 @@ register.check_plugin(
 
 _MAX_INPUT_SENSORS = 16
 
-def parse_kentix_devices_inputs(string_table):
+def parse_kentix_devices_inputs(string_table: StringTable) -> Section:
     section = {}
     for inputline in range(_MAX_INPUT_SENSORS):
         if string_table[inputline]:
@@ -590,7 +599,7 @@ def parse_kentix_devices_inputs(string_table):
             section[inputline + 1] = None
     return section
 
-register.snmp_section(
+snmp_section_kentix_devices_inputs = SNMPSection(
     name="kentix_devices_inputs",
     parse_function=parse_kentix_devices_inputs,
     fetch=[
@@ -611,19 +620,19 @@ register.snmp_section(
     ),
 )
 
-def discover_kentix_devices_inputs(section):
+def discover_kentix_devices_inputs(section: Section) -> DiscoveryResult:
     for inputline in section:
         if section[inputline]:
             yield Service(item="%d" % inputline)
 
-def check_kentix_devices_inputs(item, section):
+def check_kentix_devices_inputs(item: str, section: Section) -> CheckResult:
     item = int(item)
     if section.get(item):
         for data in section[item]:
             yield Result(state=_get_dev_status_kentix_devices(data[2]),
                          summary="%s in Zone %s" % (data[0], data[1]))
 
-register.check_plugin(
+check_plugin_kentix_devices_inputs = CheckPlugin(
     name="kentix_devices_inputs",
     sections=['kentix_devices_inputs'],
     service_name="Input %s",
