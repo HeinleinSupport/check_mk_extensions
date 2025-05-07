@@ -38,13 +38,36 @@ def get_dir_size_files(conf: Dict[str, Any]) -> FileGenerator:
     if "deploy" not in conf:
         conf["deploy"] = True
     if conf.get("deploy"):
-        yield Plugin(base_os=OS.LINUX,
-                    source=Path("dir_size"),
-                    interval=int(conf.get("interval", 0)))
-        yield PluginConfig(base_os=OS.LINUX,
-                        lines=conf.get("directories"),
-                        target=Path("dir_size.cfg"),
-                        include_header=True)
+        interval=int(conf.get("interval", 0))
+        timeout = 0
+        asynchr = False
+        if interval > 0:
+            asynchr = True
+            timeout = int(interval * 0.9)
+        yield Plugin(
+            base_os=OS.LINUX,
+            source=Path("dir_size"),
+            interval=interval,
+        )
+        yield Plugin(
+            base_os=OS.WINDOWS,
+            source=Path("dir_size.py"),
+            interval=interval,
+            asynchronous=asynchr,
+            timeout=timeout,
+        )
+        yield PluginConfig(
+            base_os=OS.LINUX,
+            lines=conf.get("directories"),
+            target=Path("dir_size.cfg"),
+            include_header=True,
+        )
+        yield PluginConfig(
+            base_os=OS.WINDOWS,
+            lines=conf.get("directories"),
+            target=Path("dir_size.cfg"),
+            include_header=False,
+        )
 
 register.bakery_plugin(
     name="dir_size",

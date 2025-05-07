@@ -81,8 +81,8 @@ def _valuespec_agent_config_dir_size():
                         field_size=80,
                         custom_validate=[
                             validators.MatchRegex(
-                                regex = r"^/\S+$",
-                                error_msg = "Directory paths must begin with <tt>/</tt> and must not contain spaces.",
+                                regex = r"^[A-Z]:(\\[^\\]+)+\\?$|^/?([^/]+/)+$",
+                                error_msg = "Must be a Linux path beginning with <tt>/</tt> or a Windows path beginning with a drive letter.",
                             ),
                         ],
                     )
@@ -101,7 +101,7 @@ def _valuespec_agent_config_dir_size():
 
 rule_spec_dir_size_bakery = AgentConfig(
     name="dir_size",
-    title=Title("Directory Size (Linux)"),
+    title=Title("Directory Size (Linux, Windows)"),
     help_text=Help("This will deploy the agent plugin <tt>dir_size</tt> for checking directory sizes."),
     topic=Topic.APPLICATIONS,
     parameter_form=_valuespec_agent_config_dir_size,
