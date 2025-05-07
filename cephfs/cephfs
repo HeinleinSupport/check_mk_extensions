@@ -1,0 +1,13 @@
+{'author': 'Robert Sander <r.sander@heinlein-support.de>',
+ 'description': 'Adds Filesystem monitoring for kernel mounted CephFS '
+                'shares.\n',
+ 'download_url': 'https://github.com/HeinleinSupport/check_mk_extensions',
+ 'files': {'agents': ['plugins/cephfs'],
+           'cmk_addons_plugins': ['cephfs/rulesets/cephfs.py'],
+           'lib': ['python3/cmk/base/cee/plugins/bakery/cephfs.py']},
+ 'name': 'cephfs',
+ 'title': 'CephFS mounts',
+ 'version': '0.1.0',
+ 'version.min_required': '2.3.0b1',
+ 'version.packaged': '2.3.0p31',
+ 'version.usable_until': None}
