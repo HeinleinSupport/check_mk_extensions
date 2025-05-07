@@ -17,12 +17,14 @@
 # to the Free Software Foundation, Inc., 51 Franklin St,  Fifth Floor,
 # Boston, MA 02110-1301 USA.
 
-from cmk.gui.i18n import _
-from cmk.gui.plugins.metrics import check_metrics
+from cmk.graphing.v1 import Title
+from cmk.graphing.v1.metrics import Metric, Unit, IECNotation, StrictPrecision, Color
 
-metric_info['dir_size'] = {
-    'title': _('Directory Size'),
-    'unit': 'bytes',
-    'color': '#777777',
-}
+UNIT_BYTES = Unit(IECNotation("B"), StrictPrecision(2))
 
+metric_dir_size = Metric(
+    name="dir_size",
+    title=Title("Directory Size"),
+    color=Color.GRAY,
+    unit=UNIT_BYTES,
+)

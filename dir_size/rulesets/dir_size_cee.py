@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 # -*- encoding: utf-8; py-indent-offset: 4 -*-
 
 #
@@ -17,66 +17,92 @@
 # to the Free Software Foundation, Inc., 51 Franklin St,  Fifth Floor,
 # Boston, MA 02110-1301 USA.
 
-try:
-    from cmk.gui.i18n import _
-    from cmk.gui.plugins.wato import (
-        HostRulespec,
-        rulespec_registry,
-    )
-    from cmk.gui.cee.plugins.wato.agent_bakery.rulespecs.utils import RulespecGroupMonitoringAgentsAgentPlugins
-    from cmk.gui.valuespec import (
-        Age,
-        Alternative,
-        Dictionary,
-        FixedValue,
-        ListOfStrings,
-        TextAscii,
-    )
+from cmk.rulesets.v1 import (
+    Help,
+    Label,
+    Title,
+)
+from cmk.rulesets.v1.form_specs import (
+    BooleanChoice,
+    DefaultValue,
+    DictElement,
+    Dictionary,
+    List,
+    String,
+    TimeMagnitude,
+    TimeSpan,
+    validators,
+)
+from cmk.rulesets.v1.rule_specs import (
+    AgentConfig,
+    Topic,
+)
 
-    def _valuespec_agent_config_dir_size():
-        return Alternative(
-            title = _("Directory Size"),
-            help = _("This will deploy the agent plugin <tt>dir_size</tt> "
-                     "for checking directory sizes. <b>Note:</b> If you want "
-                     "to configure several directories to look into"
-                     ", then simply create several rules. In this ruleset "
-                     "<b>all</b> matching rules "
-                     "are being executed, not only the first one. "),
-            style = "dropdown",
-            elements = [
-                Dictionary(
-                    title = _("Deploy the directory size plugin"),
-                    elements = [
-                       ( "directories",
-                         ListOfStrings(
-                            title = _("Directories to compute size for"),
-                            valuespec = TextAscii(
-                                size = 80,
-                                regex = "^/[^\t]+/$",
-                                regex_error = _("Directory paths must begin and end with <tt>/</tt> and must not contain tabs."),
-                           ),
-                           allow_empty = False,
+#   .--Bakery--------------------------------------------------------------.
+#   |                   ____        _                                      |
+#   |                  | __ )  __ _| | _____ _ __ _   _                    |
+#   |                  |  _ \ / _` | |/ / _ \ '__| | | |                   |
+#   |                  | |_) | (_| |   <  __/ |  | |_| |                   |
+#   |                  |____/ \__,_|_|\_\___|_|   \__, |                   |
+#   |                                             |___/                    |
+#   +----------------------------------------------------------------------+
+#   |                                                                      |
+#   '----------------------------------------------------------------------'
+#.
 
-                         )),
-                        ("interval", Age(
-                            title = _("Run asynchronously"),
-                            label = _("Interval for collecting data"),
-                            default_value = 300
-                        )),
-                    ],
-                    optional_keys = ['interval'],
+def _migrate_from_alternative_to_dict(param):
+    if isinstance(param, dict) and param == {}:
+        param = {"deploy": True}
+    if isinstance(param, bool):
+        param = {"deploy": param}
+    if not param:
+        param = {"deploy": False}
+    if "deploy" not in param:
+        param["deploy"] = True
+    return param
+
+def _valuespec_agent_config_dir_size():
+    return Dictionary(
+        migrate=_migrate_from_alternative_to_dict,
+        elements = {
+            "deploy": DictElement(
+                required=True,
+                parameter_form=BooleanChoice(
+                    label=Label("Deploy plugin for dir_size"),
+                    prefill=DefaultValue(True),
                 ),
-                FixedValue(None, title = _("Do not deploy the directory size plugin"), totext = _("(disabled)") ),
-            ]
-        )
+            ),
+            "directories": DictElement(
+                required=True,
+                parameter_form=List(
+                    title=Title("Directories to compute size for"),
+                    editable_order=False,
+                    element_template=String(
+                        field_size=80,
+                        custom_validate=[
+                            validators.MatchRegex(
+                                regex = r"^/\S+$",
+                                error_msg = "Directory paths must begin with <tt>/</tt> and must not contain spaces.",
+                            ),
+                        ],
+                    )
+                )
+            ),
+            "interval": DictElement(
+                parameter_form = TimeSpan(
+                    title = Title("Run asynchronously"),
+                    label = Label("Interval for collecting data"),
+                    migrate = float,
+                    prefill = DefaultValue(300.0),
+                    displayed_magnitudes = [TimeMagnitude.HOUR, TimeMagnitude.MINUTE],
+            )),
+        },
+    )
 
-    rulespec_registry.register(
-         HostRulespec(
-             group=RulespecGroupMonitoringAgentsAgentPlugins,
-             name="agent_config:dir_size",
-             valuespec=_valuespec_agent_config_dir_size,
-         ))
-
-except ModuleNotFoundError:
-    # RAW edition
-    pass
+rule_spec_dir_size_bakery = AgentConfig(
+    name="dir_size",
+    title=Title("Directory Size (Linux)"),
+    help_text=Help("This will deploy the agent plugin <tt>dir_size</tt> for checking directory sizes."),
+    topic=Topic.APPLICATIONS,
+    parameter_form=_valuespec_agent_config_dir_size,
+)

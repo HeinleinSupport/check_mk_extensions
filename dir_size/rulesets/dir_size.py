@@ -1,73 +1,79 @@
 #!/usr/bin/env python3
 # -*- encoding: utf-8; py-indent-offset: 4 -*-
 
-from cmk.gui.i18n import _
-from cmk.gui.valuespec import (
+#
+# (c) 2016 Heinlein Support GmbH
+#          Robert Sander <r.sander@heinlein-support.de>
+#
+
+# This is free software;  you can redistribute it and/or modify it
+# under the  terms of the  GNU General Public License  as published by
+# the Free Software Foundation in version 2.  This file is distributed
+# in the hope that it will be useful, but WITHOUT ANY WARRANTY;  with-
+# out even the implied warranty of  MERCHANTABILITY  or  FITNESS FOR A
+# PARTICULAR PURPOSE. See the  GNU General Public License for more de-
+# ails.  You should have  received  a copy of the  GNU  General Public
+# License along with GNU Make; see the file  COPYING.  If  not,  write
+# to the Free Software Foundation, Inc., 51 Franklin St,  Fifth Floor,
+# Boston, MA 02110-1301 USA.
+
+from cmk.rulesets.v1 import (
+    Help,
+    Title,
+)
+from cmk.rulesets.v1.form_specs import (
+    DataSize,
+    DictElement,
     Dictionary,
-    Filesize,
-    TextAscii,
-    Transform,
-    Tuple,
+    IECMagnitude,
+    InputHint,
+    LevelDirection,
+    migrate_to_upper_integer_levels,
+    SimpleLevels,
+    String,
 )
-
-from cmk.gui.plugins.wato import (
-    rulespec_registry,
-    CheckParameterRulespecWithItem,
-    RulespecGroupCheckParametersStorage,
+from cmk.rulesets.v1.rule_specs import (
+    CheckParameters,
+    HostAndItemCondition,
+    Topic,
 )
-
-def transform_dir_size_rules(p):
-    if 'unit' in p:
-        dir_size_factor = {
-            'B': 1,
-            'KB': 1024,
-            'MB': 1048576,
-            'GB': 1073741824,
-            'TB': 1099511627776,
-        }
-        warn = p.get('warn')
-        crit = p.get('crit')
-
-        factor = p.get(p['unit'])
-        if warn and factor:
-            warn *= factor
-        if crit and factor:
-            crit *= factor
-        return { 'levels_upper': (warn, crit) }
-    return p
 
 def _parameter_valuespec_dir_size():
-    return Transform(
-        Dictionary(
-            title = _("Limits"),
-            help = _("Size of all files and subdirectories"),
-            elements = [
-                ( 'levels_upper',
-                  Tuple(
-                      title = _('Upper levels for the total size'),
-                      elements = [
-                          Filesize(title = _("Warning at")),
-                          Filesize(title = _("Critical at")),
-                      ],
-                  )),
-            ],
-            required_keys = [ "levels_upper" ],
-        ),
-        forth = transform_dir_size_rules,
+    return Dictionary(
+        title = Title("Limits"),
+        help_text = Help("Size of all files and subdirectories"),
+        elements = {
+            "levels_upper": DictElement(
+                required=True,
+                parameter_form=SimpleLevels(
+                    title=Title("Upper levels for the total size"),
+                    migrate=migrate_to_upper_integer_levels,
+                    level_direction=LevelDirection.UPPER,
+                    prefill_fixed_levels=InputHint((10, 20)),
+                    form_spec_template=DataSize(
+                        displayed_magnitudes=[
+                            IECMagnitude.BYTE,
+                            IECMagnitude.KIBI,
+                            IECMagnitude.MEBI,
+                            IECMagnitude.GIBI,
+                            IECMagnitude.TEBI,
+                            IECMagnitude.PEBI,
+                        ]
+                    ),
+                ),
+            ),
+        },
     )
 
-def _item_spec_dir_size():
-    return TextAscii(
-        title = _("Directory"),
-        allow_empty = False,
-    )
-
-rulespec_registry.register(
-    CheckParameterRulespecWithItem(
-        check_group_name="dir_size",
-        group=RulespecGroupCheckParametersStorage,
-        item_spec=_item_spec_dir_size,
-        match_type="dict",
-        parameter_valuespec=_parameter_valuespec_dir_size,
-        title=lambda: _("Directory Size Limits"),
-    ))
+rule_spec_dir_size = CheckParameters(
+    name="dir_size",
+    topic=Topic.STORAGE,
+    parameter_form=_parameter_valuespec_dir_size,
+    title=Title("Directory Size Limits"),
+    condition=HostAndItemCondition(
+        item_title=Title("Directory"),
+        item_form=String(
+            help_text=Help("The path of the directory"),
+        )
+    ),
+)

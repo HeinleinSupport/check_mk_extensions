@@ -17,19 +17,34 @@
 # to the Free Software Foundation, Inc., 51 Franklin St,  Fifth Floor,
 # Boston, MA 02110-1301 USA.
 
-from pathlib import Path
-from typing import Any, Dict
+from pathlib import Path # type: ignore
+from typing import Any, Dict # type: ignore
 
-from .bakery_api.v1 import FileGenerator, OS, Plugin, PluginConfig, register
+from cmk.base.plugins.bakery.bakery_api.v1 import (
+    FileGenerator,
+    OS,
+    Plugin,
+    PluginConfig,
+    register,
+)
+
+from cmk.utils import debug
+from pprint import pprint # type: ignore
 
 def get_dir_size_files(conf: Dict[str, Any]) -> FileGenerator:
-    yield Plugin(base_os=OS.LINUX,
-                 source=Path("dir_size"),
-                 interval=conf.get("interval"))
-    yield PluginConfig(base_os=OS.LINUX,
-                       lines=conf.get("directories"),
-                       target=Path("dir_size.cfg"),
-                       include_header=True)
+    if debug.enabled():
+        print("agent config")
+        pprint(conf)
+    if "deploy" not in conf:
+        conf["deploy"] = True
+    if conf.get("deploy"):
+        yield Plugin(base_os=OS.LINUX,
+                    source=Path("dir_size"),
+                    interval=int(conf.get("interval", 0)))
+        yield PluginConfig(base_os=OS.LINUX,
+                        lines=conf.get("directories"),
+                        target=Path("dir_size.cfg"),
+                        include_header=True)
 
 register.bakery_plugin(
     name="dir_size",

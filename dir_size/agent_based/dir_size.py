@@ -38,17 +38,6 @@
 #17516   /tmp/
 #626088  /usr/local/
 
-# from cmk.base.plugins.agent_based.agent_based_api.v1 import (
-#     check_levels,
-#     register,
-#     render,
-#     Result,
-#     Metric,
-#     State,
-#     ServiceLabel,
-#     Service,
-# )
-
 from collections.abc import Mapping # type: ignore
 from typing import Any # type: ignore
 
@@ -58,15 +47,9 @@ from cmk.agent_based.v2 import (
     CheckPlugin,
     CheckResult,
     DiscoveryResult,
-    InventoryPlugin,
-    InventoryResult,
-    Metric,
     render,
-    Result,
     Service,
-    State,
     StringTable,
-    TableRow,
 )
 
 from cmk.utils import debug
@@ -99,30 +82,6 @@ def discover_dir_size(section: Section) -> DiscoveryResult:
 
 def check_dir_size(item: str, params, section: Section) -> CheckResult:
     if item in section:
-        factor = 1
-        if 'unit' in params:
-            unit = params['unit']
-
-            dir_size_factor = {
-                'B': 1,
-                'KB': 1024,
-                'MB': 1048576,
-                'GB': 1073741824,
-                'TB': 1099511627776,
-            }
-
-            factor = dir_size_factor.get(unit)
-            
-        warn = params.get('warn')
-        crit = params.get('crit')
-
-        if warn and factor:
-            warn *= factor
-        if crit and factor:
-            crit *= factor
-        if warn or crit:
-            params._data['levels_upper'] = (warn, crit)
-
         yield from check_levels(
             section[item],
             levels_upper=params.get('levels_upper'),
@@ -137,8 +96,6 @@ check_plugin_dir_size = CheckPlugin(
     sections=["dir_size"],
     discovery_function=discover_dir_size,
     check_function=check_dir_size,
-    check_default_parameters={
-        'unit': 'KB',
-    },
+    check_default_parameters={},
     check_ruleset_name="dir_size",
 )

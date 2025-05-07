@@ -4,7 +4,7 @@
                 'based on dir_size by Bastian Kuhn\n'
                 '\n'
                 'with interval and spaces in directory names\n',
- 'download_url': 'https://github.com/HeinleinSupport/check_mk_extensions/tree/master/dir_size',
+ 'download_url': 'https://github.com/HeinleinSupport/check_mk_extensions/',
  'files': {'agents': ['plugins/dir_size'],
            'cmk_addons_plugins': ['dir_size/agent_based/dir_size.py',
                                   'dir_size/checkman/dir_size',
@@ -16,5 +16,5 @@
  'title': 'Directory size Monitor',
  'version': '6.0.0',
  'version.min_required': '2.3.0b1',
- 'version.packaged': '2.3.0p29',
+ 'version.packaged': '2.3.0p31',
  'version.usable_until': None}
