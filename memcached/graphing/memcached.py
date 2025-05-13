@@ -8,7 +8,7 @@
 
 # This is free software;  you can redistribute it and/or modify it
 # under the  terms of the  GNU General Public License  as published by
-# the Free Software Foundation in version 2.  This file is distributed
+# the Free Software Foundation in version 2. This file is  distributed
 # in the hope that it will be useful, but WITHOUT ANY WARRANTY;  with-
 # out even the implied warranty of  MERCHANTABILITY  or  FITNESS FOR A
 # PARTICULAR PURPOSE. See the  GNU General Public License for more de-
@@ -17,288 +17,229 @@
 # to the Free Software Foundation, Inc., 51 Franklin St,  Fifth Floor,
 # Boston, MA 02110-1301 USA.
 
-from cmk.gui.i18n import _
+from cmk.graphing.v1 import Title, graphs, metrics
 
-from cmk.gui.plugins.metrics import (
-    check_metrics,
-    metric_info,
-    graph_info,
-)
+UNIT_BYTES_PER_SECOND = metrics.Unit(metrics.IECNotation('B/s'))
+UNIT_NUMBER = metrics.Unit(metrics.DecimalNotation(''))
+UNIT_PERCENTAGE = metrics.Unit(metrics.DecimalNotation('%'))
+UNIT_PER_SECOND = metrics.Unit(metrics.DecimalNotation('/s'))
 
-metric_info["rusage_user"] = {
-    "title" : _("User CPU time used"),
-    "unit"  : "",
-    "color" : "31/a",
-}
+metric_auth_cmds = metrics.Metric(
+    name='auth_cmds',
+    title=Title("Authorizations"),
+    unit=UNIT_PER_SECOND,
+    color=metrics.Color.CYAN,)
+metric_auth_errors = metrics.Metric(
+    name='auth_errors',
+    title=Title("Authorization Errors"),
+    unit=UNIT_PER_SECOND,
+    color=metrics.Color.DARK_PINK,)
+metric_bytes_percent = metrics.Metric(
+    name='bytes_percent',
+    title=Title("Cache Usage"),
+    unit=UNIT_PERCENTAGE,
+    color=metrics.Color.CYAN,)
+metric_bytes_read = metrics.Metric(
+    name='bytes_read',
+    title=Title("Read"),
+    unit=UNIT_BYTES_PER_SECOND,
+    color=metrics.Color.CYAN,)
+metric_bytes_written = metrics.Metric(
+    name='bytes_written',
+    title=Title("Written"),
+    unit=UNIT_BYTES_PER_SECOND,
+    color=metrics.Color.BLUE,)
+metric_cache_hit_rate = metrics.Metric(
+    name='cache_hit_rate',
+    title=Title("Rate of cache hits"),
+    unit=UNIT_PERCENTAGE,
+    color=metrics.Color.DARK_PURPLE,)
+metric_cas_badval = metrics.Metric(
+    name='cas_badval',
+    title=Title("CAS bad identifier"),
+    unit=UNIT_PER_SECOND,
+    color=metrics.Color.DARK_PINK,)
+metric_cas_hits = metrics.Metric(
+    name='cas_hits',
+    title=Title("CAS hits"),
+    unit=UNIT_PER_SECOND,
+    color=metrics.Color.CYAN,)
+metric_cas_misses = metrics.Metric(
+    name='cas_misses',
+    title=Title("CAS misses"),
+    unit=UNIT_PER_SECOND,
+    color=metrics.Color.YELLOW,)
+metric_cmd_flush = metrics.Metric(
+    name='cmd_flush',
+    title=Title("Flush Commands"),
+    unit=UNIT_PER_SECOND,
+    color=metrics.Color.DARK_BLUE,)
+metric_cmd_get = metrics.Metric(
+    name='cmd_get',
+    title=Title("GET Commands"),
+    unit=UNIT_PER_SECOND,
+    color=metrics.Color.YELLOW,)
+metric_cmd_set = metrics.Metric(
+    name='cmd_set',
+    title=Title("SET Commands"),
+    unit=UNIT_PER_SECOND,
+    color=metrics.Color.CYAN,)
+metric_conn_yields = metrics.Metric(
+    name='conn_yields',
+    title=Title("Forced connection yields"),
+    unit=UNIT_PER_SECOND,
+    color=metrics.Color.ORANGE,)
+metric_connection_structures = metrics.Metric(
+    name='connection_structures',
+    title=Title("Connection Structures"),
+    unit=UNIT_NUMBER,
+    color=metrics.Color.DARK_PURPLE,)
+metric_curr_connections = metrics.Metric(
+    name='curr_connections',
+    title=Title("Current Connections"),
+    unit=UNIT_NUMBER,
+    color=metrics.Color.YELLOW,)
+metric_curr_items = metrics.Metric(
+    name='curr_items',
+    title=Title("Items in cache"),
+    unit=UNIT_NUMBER,
+    color=metrics.Color.BLUE,)
+metric_decr_hits = metrics.Metric(
+    name='decr_hits',
+    title=Title("Decrease Hits"),
+    unit=UNIT_PER_SECOND,
+    color=metrics.Color.DARK_PURPLE,)
+metric_decr_misses = metrics.Metric(
+    name='decr_misses',
+    title=Title("Decrease misses"),
+    unit=UNIT_PER_SECOND,
+    color=metrics.Color.ORANGE,)
+metric_delete_hits = metrics.Metric(
+    name='delete_hits',
+    title=Title("Delete Hits"),
+    unit=UNIT_PER_SECOND,
+    color=metrics.Color.DARK_BLUE,)
+metric_delete_misses = metrics.Metric(
+    name='delete_misses',
+    title=Title("Delete misses"),
+    unit=UNIT_PER_SECOND,
+    color=metrics.Color.DARK_PINK,)
+metric_evictions = metrics.Metric(
+    name='evictions',
+    title=Title("Evictions"),
+    unit=UNIT_PER_SECOND,
+    color=metrics.Color.YELLOW,)
+metric_get_hits = metrics.Metric(
+    name='get_hits',
+    title=Title("GET Hits"),
+    unit=UNIT_PER_SECOND,
+    color=metrics.Color.CYAN,)
+metric_get_misses = metrics.Metric(
+    name='get_misses',
+    title=Title("GET Misses"),
+    unit=UNIT_PER_SECOND,
+    color=metrics.Color.DARK_PINK,)
+metric_incr_hits = metrics.Metric(
+    name='incr_hits',
+    title=Title("Increase Hits"),
+    unit=UNIT_PER_SECOND,
+    color=metrics.Color.DARK_BLUE,)
+metric_incr_misses = metrics.Metric(
+    name='incr_misses',
+    title=Title("Increase misses"),
+    unit=UNIT_PER_SECOND,
+    color=metrics.Color.DARK_PINK,)
+metric_listen_disabled_num = metrics.Metric(
+    name='listen_disabled_num',
+    title=Title("Listen disabled"),
+    unit=UNIT_PER_SECOND,
+    color=metrics.Color.ORANGE,)
+metric_reclaimed = metrics.Metric(
+    name='reclaimed',
+    title=Title("Items reclaimed"),
+    unit=UNIT_PER_SECOND,
+    color=metrics.Color.YELLOW,)
+metric_rusage_system = metrics.Metric(
+    name='rusage_system',
+    title=Title("System CPU time used"),
+    unit=UNIT_NUMBER,
+    color=metrics.Color.BLUE,)
+metric_rusage_user = metrics.Metric(
+    name='rusage_user',
+    title=Title("User CPU time used"),
+    unit=UNIT_NUMBER,
+    color=metrics.Color.CYAN,)
+# metric_threads = metrics.Metric(
+#     name='threads',
+#     title=Title("Threads"),
+#     unit=UNIT_NUMBER,
+#     color=metrics.Color.CYAN,)
+metric_total_connections = metrics.Metric(
+    name='total_connections',
+    title=Title("Connections"),
+    unit=UNIT_PER_SECOND,
+    color=metrics.Color.CYAN,)
+metric_total_items = metrics.Metric(
+    name='total_items',
+    title=Title("Items stored"),
+    unit=UNIT_PER_SECOND,
+    color=metrics.Color.CYAN,)
 
-metric_info["rusage_system"] = {
-    "title" : _("System CPU time used"),
-    "unit"  : "",
-    "color" : "41/a",
-}
-
-graph_info['memcached_cpu_usage'] ={
-    "title"   : _("CPU usage"),
-    "metrics" : [
-        ( "rusage_user", "area" ),
-        ( "rusage_system", "stack" ),
-    ],
-}
-
-
-metric_info["auth_cmds"] = {
-    "title" : _("Authorizations"),
-    "unit"  : "1/s",
-    "color" : "31/a",
-}
-
-metric_info["auth_errors"] = {
-    "title" : _("Authorization Errors"),
-    "unit"  : "1/s",
-    "color" : "13/a",
-}
-
-graph_info['memcached_authorizations'] = {
-    "title"   : _("Authorizations"),
-    "metrics" : [
-        ( "auth_cmds", "area" ),
-        ( "auth_errors", "line" ),
-    ],
-}
-
-
-metric_info["bytes_read"] = {
-    "title" : _("Read"),
-    "unit"  : "bytes/s",
-    "color" : "31/a"
-}
-
-metric_info["bytes_written"] = {
-    "title" : _("Written"),
-    "unit"  : "bytes/s",
-    "color" : "41/a"
-}
-
-graph_info['memcached_rw'] = {
-    "title"   : _("Read and written"),
-    "metrics" : [
-        ( "bytes_read", "area" ),
-        ( "bytes_written", "-area" ),
-    ],
-}
-
-
-metric_info["get_hits"] = {
-    "title" : _("GET Hits"),
-    "unit"  : "1/s",
-    "color" : "31/a"
-}
-
-metric_info["get_misses"] = {
-    "title" : _("GET Misses"),
-    "unit"  : "1/s",
-    "color" : "13/a"
-}
-
-metric_info["cmd_get"] = {
-    "title" : _("GET Commands"),
-    "unit"  : "1/s",
-    "color" : "23/a"
-}
-
-graph_info['memcached_get'] = {
-    "title"   : _("GET"),
-    "metrics" : [
-        ( "get_hits", "area" ),
-        ( "get_misses", "stack" ),
-        ( "cmd_get", "line" ),
-    ],
-}
-
-metric_info["cmd_set"] = {
-    "title" : _("SET Commands"),
-    "unit"  : "1/s",
-    "color" : "33/a"
-}
-
-metric_info["cmd_flush"] = {
-    "title" : _("Flush Commands"),
-    "unit"  : "1/s",
-    "color" : "43/a"
-}
-
-
-graph_info['memcached_commands'] = {
-    "title"   : _("Commands"),
-    "metrics" : [
-        ( "cmd_get", "area" ),
-        ( "cmd_set", "stack" ),
-        ( "cmd_flush", "stack" ),
-    ],
-}
-
-
-metric_info["cas_hits"] = {
-    "title" : _("CAS hits"),
-    "unit"  : "1/s",
-    "color" : "32/a"
-}
-
-metric_info["cas_misses"] = {
-    "title" : _("CAS misses"),
-    "unit"  : "1/s",
-    "color" : "22/a"
-}
-
-metric_info["cas_badval"] = {
-    "title" : _("CAS bad identifier"),
-    "unit"  : "1/s",
-    "color" : "12/a"
-}
-
-graph_info['memcached_cas'] = {
-    "title"   : _("CAS"),
-    "metrics" : [
-        ( "cas_hits", "area" ),
-        ( "cas_misses", "stack" ),
-        ( "cas_badval", "line" ),
-    ],
-}
-
-
-metric_info["incr_hits"] = {
-    "title" : _("Increase Hits"),
-    "unit"  : "1/s",
-    "color" : "42/a"
-}
-
-metric_info["incr_misses"] = {
-    "title" : _("Increase misses"),
-    "unit"  : "1/s",
-    "color" : "12/a"
-}
-
-metric_info["decr_hits"] = {
-    "title" : _("Decrease Hits"),
-    "unit"  : "1/s",
-    "color" : "45/a"
-}
-
-metric_info["decr_misses"] = {
-    "title" : _("Decrease misses"),
-    "unit"  : "1/s",
-    "color" : "15/a"
-}
-
-graph_info['memcached_incdec'] = {
-    "title"   : _("Increase/Decrease"),
-    "metrics" : [
-        ( "incr_hits", "area" ),
-        ( "incr_misses", "stack" ),
-        ( "decr_hits", "-area" ),
-        ( "decr_misses", "-stack" ),
-    ],
-}
-
-metric_info["delete_hits"] = {
-    "title" : _("Delete Hits"),
-    "unit"  : "1/s",
-    "color" : "43/a"
-}
-
-metric_info["delete_misses"] = {
-    "title" : _("Delete misses"),
-    "unit"  : "1/s",
-    "color" : "13/a"
-}
-
-graph_info['memcached_deletions'] = {
-    "title"   : _("Deletions"),
-    "metrics" : [
-        ( "delete_hits", "area" ),
-        ( "delete_misses", "stack" ),
-    ],
-}
-
-
-metric_info["total_connections"] = {
-    "title" : _("Connections"),
-    "unit"  : "1/s",
-    "color" : "33/a",
-}
-
-metric_info["conn_yields"] = {
-    "title" : _("Forced connection yields"),
-    "unit"  : "1/s",
-    "color" : "14/a",
-}
-
-metric_info["curr_connections"] = {
-    "title" : _("Current Connections"),
-    "unit"  : "",
-    "color" : "24/a",
-}
-
-metric_info["connection_structures"] = {
-    "title" : _("Connection Structures"),
-    "unit"  : "",
-    "color" : "44/a",
-}
-
-metric_info["listen_disabled_num"] = {
-    "title" : _("Listen disabled"),
-    "unit"  : "1/s",
-    "color" : "15/a",
-}
-
-metric_info["total_items"] = {
-    "title" : _("Items stored"),
-    "unit"  : "1/s",
-    "color" : "33/a",
-}
-
-metric_info["curr_items"] = {
-    "title" : _("Items in cache"),
-    "unit"  : "",
-    "color" : "41/a"
-}
-
-metric_info["reclaimed"] = {
-    "title" : _("Items reclaimed"),
-    "unit"  : "1/s",
-    "color" : "22/a",
-}
-
-metric_info["cache_hit_rate"] = {
-    "title" : _("Rate of cache hits"),
-    "unit"  : "%",
-    "color" : "46/a",
-}
-
-metric_info["threads"] = {
-    "title" : _("Threads"),
-    "unit"  : "",
-    "color" : "31/a",
-}
-
-metric_info["bytes_percent"] = {
-    "title" : _("Cache Usage"),
-    "unit"  : "%",
-    "color" : "31/a"
-}
-
-metric_info["evictions"] = {
-    "title" : _("Evictions"),
-    "unit"  : "1/s",
-    "color" : "21/a"
-}
-
-#graph_info.append({
-#    "title"   : _("Items"),
-#    "metrics" : [
-#        ( "total_items", "area" ),
-#        ( "curr_items", "line" ),
-#    ],
-#})
-
+graph_memcached_authorizations = graphs.Graph(
+    name='memcached_authorizations',
+    title=Title("Authorizations"),
+    compound_lines=['auth_cmds'],
+    simple_lines=['auth_errors'],)
+graph_memcached_cas = graphs.Graph(
+    name='memcached_cas',
+    title=Title("CAS"),
+    compound_lines=['cas_hits',
+    'cas_misses',],
+    simple_lines=['cas_badval'],)
+graph_memcached_commands = graphs.Graph(
+    name='memcached_commands',
+    title=Title("Commands"),
+    compound_lines=['cmd_get',
+    'cmd_set',
+    'cmd_flush',],)
+graph_memcached_cpu_usage = graphs.Graph(
+    name='memcached_cpu_usage',
+    title=Title("CPU usage"),
+    compound_lines=['rusage_user',
+    'rusage_system',],)
+graph_memcached_deletions = graphs.Graph(
+    name='memcached_deletions',
+    title=Title("Deletions"),
+    compound_lines=['delete_hits',
+    'delete_misses',],)
+graph_memcached_get = graphs.Graph(
+    name='memcached_get',
+    title=Title("GET"),
+    compound_lines=['get_hits',
+    'get_misses',],
+    simple_lines=['cmd_get'],)
+graph_memcached_incdec = graphs.Bidirectional(
+    name='memcached_incdec',
+    title=Title("Increase/Decrease"),
+    lower=graphs.Graph(
+        name='memcached_incdec_lower',
+        title=Title("Increase/Decrease"),
+        compound_lines=['decr_hits',
+        'decr_misses',],),
+    upper=graphs.Graph(
+        name='memcached_incdec_upper',
+        title=Title("Increase/Decrease"),
+        compound_lines=['incr_hits',
+        'incr_misses',],),)
+graph_memcached_rw = graphs.Bidirectional(
+    name='memcached_rw',
+    title=Title("Read and written"),
+    lower=graphs.Graph(
+        name='memcached_rw_lower',
+        title=Title("Read and written"),
+        compound_lines=['bytes_written'],),
+    upper=graphs.Graph(
+        name='memcached_rw_upper',
+        title=Title("Read and written"),
+        compound_lines=['bytes_read'],),)
 

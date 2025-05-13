@@ -140,7 +140,7 @@ def try_detect_servers():
             server_address, server_port = parse_address_and_port(parts[3])
 
             results.append((server_address, server_port))
-            
+
     return results
 
 def netcat(address, port, command):

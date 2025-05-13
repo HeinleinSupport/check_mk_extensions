@@ -15,20 +15,26 @@
 # to the Free Software Foundation, Inc., 51 Franklin St,  Fifth Floor,
 # Boston, MA 02110-1301 USA.
 
-from pathlib import Path
-from typing import Any, Dict
+from pathlib import Path # type: ignore
+from typing import Any, Dict # type: ignore
 
-from .bakery_api.v1 import FileGenerator, OS, Plugin, PluginConfig, register
+from cmk.base.plugins.bakery.bakery_api.v1 import (
+    FileGenerator,
+    OS,
+    Plugin,
+    PluginConfig,
+    register,
+)
 
 def get_memcached_files(conf: Dict[str, Any]) -> FileGenerator:
-    if isinstance(conf, str) and conf == '_no_deploy':
-        pass
-    else:
+    if conf.get("deploy"):
         yield Plugin(base_os=OS.LINUX,
                      source=Path("memcached.py"))
-        if isinstance(conf, tuple):
+        mode, config = conf["instances"]
+        if mode == "manual":
+            instances = [(instance["ip"], instance.get("port")) for instance in config]
             yield PluginConfig(base_os=OS.LINUX,
-                               lines=['instances = %r' % conf[1]],
+                               lines=['instances = %r' % instances],
                                target=Path("memcached.cfg"),
                                include_header=True)
 

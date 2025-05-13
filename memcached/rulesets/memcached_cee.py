@@ -1,70 +1,126 @@
 #!/usr/bin/env python3
 # -*- encoding: utf-8; py-indent-offset: 4 -*-
 
-try:
-    from cmk.gui.i18n import _
-    from cmk.gui.plugins.wato import (
-        HostRulespec,
-        rulespec_registry,
-    )
-    from cmk.gui.cee.plugins.wato.agent_bakery.rulespecs.utils import RulespecGroupMonitoringAgentsAgentPlugins
-    from cmk.gui.valuespec import (
-        Alternative,
-        CascadingDropdown,
-        FixedValue,
-        Integer,
-        IPv4Address,
-        ListOf,
-        Tuple,
-    )
+from cmk.rulesets.v1 import (
+    Help,
+    Label,
+    Title,
+)
+from cmk.rulesets.v1.form_specs import (
+    BooleanChoice,
+    CascadingSingleChoice,
+    CascadingSingleChoiceElement,
+    DefaultValue,
+    DictElement,
+    Dictionary,
+    FixedValue,
+    Integer,
+    List,
+    String,
+    validators,
+)
+from cmk.rulesets.v1.rule_specs import (
+    AgentConfig,
+    Topic,
+)
 
+#   .--Bakery--------------------------------------------------------------.
+#   |                   ____        _                                      |
+#   |                  | __ )  __ _| | _____ _ __ _   _                    |
+#   |                  |  _ \ / _` | |/ / _ \ '__| | | |                   |
+#   |                  | |_) | (_| |   <  __/ |  | |_| |                   |
+#   |                  |____/ \__,_|_|\_\___|_|   \__, |                   |
+#   |                                             |___/                    |
+#   +----------------------------------------------------------------------+
+#   |                                                                      |
+#   '----------------------------------------------------------------------'
+#.
 
-    def _valuespec_agent_config_memcached():
-        return CascadingDropdown(
-            title = _("Memcached instances (Linux)"),
-            help = _("If you activate this option, then the agent plugin <tt>memcached</tt> will be deployed. "
-                     "For each configured or detected memcached instance there will be one new service with detailed "
-                     "statistics of the current number of clients and processes and their various states."),
-            choices = [
-                ( "autodetect", _("Autodetect instances")
-                 ),
-                ( "static", _("Specific list of instances"),
-                    ListOf(
-                        Tuple(
-                            elements = [
-                                IPv4Address(
-                                    title = _("IPv4 Address"),
-                                    default_value = "127.0.0.1",
-                                ),
-                                Alternative(
-                                    elements = [
-                                        FixedValue(None,
-                                            title = _("Don't use custom port"),
-                                            totext = _("Use default port"),
-                                        ),
-                                        Integer(
-                                            title = _("TCP Port Number"),
-                                            minvalue = 1,
-                                            maxvalue = 65535,
-                                            default_value = 11211,
-                                        ),
-                                    ]
-                                ),
-                            ]
-                        ),
-                    ),
+def _migrate_to_dict(param):
+    print(f"Before: {param}")
+    if isinstance(param, str):
+        param = {
+            "deploy": (param == "autodetect"),
+            "instances": ('autodetect', True),
+        }
+    if isinstance(param, tuple):
+        instances = []
+        for ip, port in param[1]:
+            instance = {
+                "ip": ip,
+            }
+            if port:
+                instance["port"] = port
+            instances.append(instance)
+        param = {
+            "deploy": True,
+            "instances": (
+                "manual",
+                instances,
+            )
+        }
+    if isinstance(param, dict) and param == {}:
+        param = {"deploy": True}
+    print(f"After: {param}")
+    return param
+
+def _valuespec_agent_config_memcached():
+    return Dictionary(
+        migrate=_migrate_to_dict,
+        elements = {
+            "deploy": DictElement(
+                required=True,
+                parameter_form=BooleanChoice(
+                    label=Label("Deploy plugin for memcached VPNs"),
+                    prefill=DefaultValue(True),
                 ),
-                ( '_no_deploy', _("Do not deploy the memcached plugin") ),
-            ]
-        )
+            ),
+            "instances": DictElement(
+                required=True,
+                parameter_form=CascadingSingleChoice(
+                    title=Title("Instances"),
+                    elements=[
+                        CascadingSingleChoiceElement(
+                            name="autodetect",
+                            title=Title("Autodetect Instances"),
+                            parameter_form=FixedValue(
+                                value=True,
+                            ),
+                        ),
+                        CascadingSingleChoiceElement(
+                            name="manual",
+                            title=Title("Manually configure instances"),
+                            parameter_form=List(
+                                element_template=Dictionary(
+                                    elements={
+                                        "ip": DictElement(
+                                            required=True,
+                                            parameter_form=String(
+                                                title=Title("IP address"),
+                                            ),
+                                        ),
+                                        "port": DictElement(
+                                            parameter_form=Integer(
+                                                title=Title("TCP Port"),
+                                                custom_validate=[validators.NumberInRange(min_value=1, max_value=65535)],
+                                            ),
+                                        ),
+                                    }
+                                ),
+                                add_element_label=Label("Add new instance"),
+                                remove_element_label=Label("Remove this instance"),
+                            )
+                        ),
+                    ]
+                )
+            ),
+        },
+    )
 
-    rulespec_registry.register(
-         HostRulespec(
-             group=RulespecGroupMonitoringAgentsAgentPlugins,
-             name="agent_config:memcached",
-             valuespec=_valuespec_agent_config_memcached,
-         ))
-
-except ModuleNotFoundError:
-    # RAW edition
-    pass
+rule_spec_memcached_bakery = AgentConfig(
+    name="memcached",
+    title=Title("Memcached instances (Linux)"),
+    help_text=Help("If you activate this option, then the agent plugin <tt>memcached</tt> will be deployed. For each configured or detected memcached instance there will be one new service with detailed statistics of the current number of clients and processes and their various states."),
+    topic=Topic.APPLICATIONS,
+    parameter_form=_valuespec_agent_config_memcached,
+)

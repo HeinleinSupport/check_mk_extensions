@@ -51,7 +51,7 @@ socket.setdefaulttimeout(5.0)
 instances = None
 
 if os.path.exists(config_file):
-    execfile(config_file)
+    exec(open(config_file).read())
 
 def parse_address_and_port(address_and_port):
     """
@@ -140,7 +140,7 @@ def try_detect_servers():
             server_address, server_port = parse_address_and_port(parts[3])
 
             results.append((server_address, server_port))
-    
+
     return results
 
 def netcat(address, port, command):
