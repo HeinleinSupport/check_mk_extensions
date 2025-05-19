@@ -15,29 +15,32 @@
 # to the Free Software Foundation, Inc., 51 Franklin St,  Fifth Floor,
 # Boston, MA 02110-1301 USA.
 
-from .agent_based_api.v1.type_defs import (
+from collections.abc import Mapping # type: ignore
+from typing import Any # type: ignore
+
+from cmk.agent_based.v2 import (
+    AgentSection,
+    check_levels,
+    CheckPlugin,
     CheckResult,
     DiscoveryResult,
-)
-
-from .agent_based_api.v1 import (
-    register,
     render,
     Result,
-    Metric,
-    State,
-    check_levels,
-    ServiceLabel,
     Service,
+    State,
+    StringTable,
 )
 
-def _hpsa_make_key(controller, key, line):
+
+Section = Mapping[str, Any]
+
+def _hpsa_make_key(controller: str, key: str, line: list[str]) -> str:
     description = {'array': 'Array',
                    'logicaldrive': 'Logical Drive',
                    'physicaldrive': 'Physical Drive'}
     return "%s %s %s" % (controller, description[key], line[1])
 
-def parse_hpsa(string_table):
+def parse_hpsa(string_table: StringTable) -> Section:
     section = {'array': {}, 'logicaldrive': {}, 'physicaldrive': {}}
     currentarray = None
     controller = None
@@ -55,20 +58,20 @@ def parse_hpsa(string_table):
             section['not_installed'] = True
     return section
 
-register.agent_section(
+agent_section_hpsa = AgentSection(
     name="hpsa",
     parse_function=parse_hpsa,
 )
 
-def discover_hpsa(section):
+def discover_hpsa(section: Section) -> DiscoveryResult:
     if 'not_installed' in section:
         yield Service()
 
-def check_hpsa(section):
+def check_hpsa(section: Section) -> CheckResult:
     yield Result(state=State.WARN,
                  summary='HP RAID Tool not installed. Please install ssacli, hpssacli or hpacucli.')
 
-register.check_plugin(
+check_plugin_hpsa = CheckPlugin(
     name="hpsa",
     service_name="HP Raid Tool",
     sections=["hpsa"],
@@ -76,17 +79,17 @@ register.check_plugin(
     check_function=check_hpsa,
 )
 
-def discover_hpsa_array(section):
+def discover_hpsa_array(section: Section) -> DiscoveryResult:
     for array, data in section['array'].items():
         yield Service(item=array)
 
-def check_hpsa_array(item, section):
+def check_hpsa_array(item: str, section: Section) -> CheckResult:
     if item in section['array']:
         data = section['array'][item]
         yield Result(state=State.OK,
                      summary=", ".join(data['info']))
 
-register.check_plugin(
+check_plugin_hpsa_array = CheckPlugin(
     name="hpsa_array",
     service_name="HP RAID %s",
     sections=["hpsa"],
@@ -94,11 +97,11 @@ register.check_plugin(
     check_function=check_hpsa_array,
 )
 
-def discover_hpsa_logicaldrive(section):
+def discover_hpsa_logicaldrive(section: Section) -> DiscoveryResult:
     for ld, data in section['logicaldrive'].items():
         yield Service(item=ld)
 
-def check_hpsa_logicaldrive(item, section):
+def check_hpsa_logicaldrive(item: str, section: Section) -> CheckResult:
     if item in section['logicaldrive']:
         data = section['logicaldrive'][item]
         state = State.OK
@@ -107,7 +110,7 @@ def check_hpsa_logicaldrive(item, section):
         yield Result(state=state,
                      summary=(' '.join(data['info'])) + ", Array " + data['array'])
 
-register.check_plugin(
+check_plugin_hpsa_logicaldrive = CheckPlugin(
     name="hpsa_logicaldrive",
     service_name="HP RAID %s",
     sections=["hpsa"],
@@ -115,11 +118,11 @@ register.check_plugin(
     check_function=check_hpsa_logicaldrive,
 )
 
-def discover_hpsa_physicaldrive(section):
+def discover_hpsa_physicaldrive(section: Section) -> DiscoveryResult:
     for pd, data in section['physicaldrive'].items():
         yield Service(item=pd)
 
-def check_hpsa_physicaldrive(item, section):
+def check_hpsa_physicaldrive(item: str, section: Section) -> CheckResult:
     if item in section['physicaldrive']:
         data = section['physicaldrive'][item]
         state = State.OK
@@ -128,7 +131,7 @@ def check_hpsa_physicaldrive(item, section):
         yield Result(state=state,
                      summary=(' '.join(data['info'])) + ", Array " + data['array'])
 
-register.check_plugin(
+check_plugin_hpsa_physicaldrive = CheckPlugin(
     name="hpsa_physicaldrive",
     service_name="HP RAID %s",
     sections=["hpsa"],

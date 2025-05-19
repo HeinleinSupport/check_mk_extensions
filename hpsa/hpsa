@@ -13,5 +13,5 @@
  'title': 'HP SmartArray Checks',
  'version': '9.0.0',
  'version.min_required': '2.3.0b1',
- 'version.packaged': '2.3.0p29',
+ 'version.packaged': '2.3.0p32',
  'version.usable_until': None}
