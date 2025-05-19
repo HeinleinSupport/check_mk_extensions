@@ -28,13 +28,7 @@ from cmk.base.plugins.bakery.bakery_api.v1 import (
     register,
 )
 
-from cmk.utils import debug
-from pprint import pprint # type: ignore
-
 def get_dir_size_files(conf: Dict[str, Any]) -> FileGenerator:
-    if debug.enabled():
-        print("agent config")
-        pprint(conf)
     if "deploy" not in conf:
         conf["deploy"] = True
     if conf.get("deploy"):

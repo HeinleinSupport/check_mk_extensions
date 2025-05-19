@@ -52,25 +52,18 @@ from cmk.agent_based.v2 import (
     StringTable,
 )
 
-from cmk.utils import debug
-from pprint import pprint # type: ignore
 
 Section = Mapping[str, Any]
 
-
 def parse_dir_size(string_table: StringTable) -> Section:
-    if debug.enabled():
-        pprint(string_table)
     section = {}
     for line in string_table:
         size = int(line[0])
         path = ' '.join(line[1:])
         section[path] = size * 1024
-    if debug.enabled():
-        pprint(section)
     return section
 
-agent_section_packages = AgentSection(
+agent_section_dir_size = AgentSection(
     name="dir_size",
     parse_function=parse_dir_size,
 )
