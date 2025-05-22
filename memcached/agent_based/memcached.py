@@ -168,6 +168,7 @@ def discover_memcached(section: Section) -> DiscoveryResult:
 
 def check_version(value: str, params: None | Mapping[str, str]) -> CheckResult:
     version = Version(value)
+    params = params or {}
     warn = Version(params.get("warn", "0"))
     crit = Version(params.get("crit", "0"))
     state = State.OK
