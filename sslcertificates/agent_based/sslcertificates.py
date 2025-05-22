@@ -15,8 +15,8 @@
 # to the Free Software Foundation, Inc., 51 Franklin St,  Fifth Floor,
 # Boston, MA 02110-1301 USA.
 
-import time
-import json
+from time import time, strftime, gmtime
+from json import loads
 from collections.abc import Mapping # type: ignore
 from typing import Any # type: ignore
 
@@ -39,43 +39,55 @@ SSLCertificatesSection = Mapping[str, Any]
 
 def parse_sslcertificates(string_table: StringTable) -> SSLCertificatesSection:
     section = {}
+
     for line in string_table:
         if line[0][0] == '{':
             # new json format for section
             name = False
-            data = json.loads(line[0])
+            data = loads(line[0])
             
             if 'file' in data:
                 name = data['file']
+
             if 'thumb' in data:
                 name = data['thumb']
+
             if name and 'subj' in data and 'expires' in data:
                 section[name] = data
+
         else:
             name = line[0]
             section[name] = {
                 'expires': int(line[1])
             }
+
             algosign = '/'
             if len(line) > 2:
                 algosign = line[2]
+
             if algosign[0] == '/':
                 # old agent plugin
                 algosign = ''
                 subjparts = line[2:]
+
             else:
                 subjparts = line[3:]
+
             if subjparts[0].startswith('issuer_hash='):
                 issuer_hash = subjparts[0][12:]
                 subjparts = subjparts[1:]
+
             else:
                 issuer_hash = None
+
             subject = " ".join(subjparts)
 
             section[name]['algosign'] = algosign
             section[name]['subj'] = subject
             section[name]['issuer_hash'] = issuer_hash
+
     return section
+
 
 agent_section_sslcertificates = AgentSection(
     name="sslcertificates",
@@ -88,42 +100,54 @@ def discover_sslcertificates(params, section: SSLCertificatesSection) -> Discove
         if 'min_lifetime' in params and 'starts' in data:
             if data['expires'] - data['starts'] < params['min_lifetime']:
                 continue
+
         sl = []
+
         if data.get('issuer_hash'):
             sl.append(ServiceLabel(u'sslcertificates/issuer_hash', data['issuer_hash']))
+
         if data.get('issuer'):
             sl.append(ServiceLabel(u'sslcertificates/issuer', data['issuer']))
+
         if data.get('algosign'):
             sl.append(ServiceLabel(u'sslcertificates/algorithm', data['algosign']))
+
         if data.get('template'):
             sl.append(ServiceLabel(u'sslcertificates/template', data['template']))
+
         yield Service(item=name, labels=sl)
+
 
 def check_sslcertificates(item: str, params, section: SSLCertificatesSection) -> CheckResult:
     warnalgos = params.get('warnalgo', [])
     ignore = params.get('ignore', None)
-    
-    if item in section:
+
+    if item not in section.keys():
+        yield Result(state=State.UNKNOWN, summary="Item not found")
+
+    else:
         data = section[item]
         
-        now = int(time.time())
+        now = int(time())
         secondsremaining = data['expires'] - now
         ignored = False
 
-        yield Result(state=State.OK, summary="Subject: %s" % data['subj'])
+        yield Result(state=State.OK, summary=f"Subject: {data['subj']}")
 
         if data.get('template'):
-            yield Result(state=State.OK, summary="Template: %s" % data['template'])
+            yield Result(state=State.OK, summary=f"Template: {data['template']}")
 
         if secondsremaining < 0:
             infotext = "expired %s ago on %s" % ( render.timespan(abs(secondsremaining)),
-                                                  time.strftime("%c", time.gmtime(data['expires'])))
+                                                  strftime("%c", gmtime(data['expires'])))
         else:
             infotext = "expires in %s on %s" % ( render.timespan(secondsremaining),
-                                                 time.strftime("%c", time.gmtime(data['expires'])))
+                                                 strftime("%c", gmtime(data['expires'])))
+
         if ignore and -secondsremaining > ignore["after"] * 86400.0:
-            yield Result(state=State.OK, summary=infotext + ', ignored because "%s"' % ignore["reason"])
+            yield Result(state=State.OK, summary=f"{infotext}, ignored because \"{ignore["reason"]}\"")
             ignored = True
+
         else:
             if secondsremaining > 0:
                 yield from check_levels(secondsremaining,
@@ -143,9 +167,12 @@ def check_sslcertificates(item: str, params, section: SSLCertificatesSection) ->
         if data.get('algosign'):
             infotext = "Signature Algorithm: %s" % data['algosign']
             state = State.OK
+
             if not ignored and data['algosign'] in warnalgos:
                 state = State.WARN
+
             yield Result(state=state, notice=infotext)
+
 
 check_plugin_sslcertificates = CheckPlugin(
     name="sslcertificates",
