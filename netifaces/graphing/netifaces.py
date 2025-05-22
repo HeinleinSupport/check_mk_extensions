@@ -17,14 +17,20 @@
 # to the Free Software Foundation, Inc., 51 Franklin St,  Fifth Floor,
 # Boston, MA 02110-1301 USA.
 
-from cmk.gui.i18n import _
 
-from cmk.gui.plugins.metrics import (
-    metric_info,
+from cmk.graphing.v1 import Title
+from cmk.graphing.v1.metrics import (
+    Color,
+    DecimalNotation,
+    Metric,
+    Unit,
 )
 
-metric_info["sender_score"] = {
-    "title": _("Sender Score"),
-    "unit": "%",
-    "color": "11/a",
-}
+UNIT_PERCENTAGE=Unit(DecimalNotation('%'))
+
+metric_sender_score = Metric(
+    name="sender_score",
+    title=Title("Sender Score"),
+    unit=UNIT_PERCENTAGE,
+    color=Color.GREEN,
+)
