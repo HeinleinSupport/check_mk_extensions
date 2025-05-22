@@ -71,7 +71,7 @@ def _valuespec_agent_config_memcached():
             "deploy": DictElement(
                 required=True,
                 parameter_form=BooleanChoice(
-                    label=Label("Deploy plugin for memcached VPNs"),
+                    label=Label("Deploy plugin for memcached"),
                     prefill=DefaultValue(True),
                 ),
             ),
