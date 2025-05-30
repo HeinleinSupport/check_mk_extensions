@@ -52,8 +52,14 @@ def _migrate_from_tuple(value):
         }
     return value
 
+def _default_values(param):
+    if "warnalgo" not in param:
+        param["warnalgo"] = ['md5WithRSAEncryption', 'sha1WithRSAEncryption']
+    return param
+
 def _parameter_valuespec_sslcertificates() -> Dictionary:
     return Dictionary(
+        migrate = _default_values,
         elements = {
             'age': DictElement(
                 parameter_form=SimpleLevels(
@@ -71,9 +77,9 @@ def _parameter_valuespec_sslcertificates() -> Dictionary:
             'warnalgo': DictElement(
                 parameter_form=List(
                     title = Title('Signature Algorithms that generate WARNs'),
+                    help_text = Help('The default value is <tt>md5WithRSAEncryption</tt> and <tt>sha1WithRSAEncryption</tt>.'),
                     element_template=String(),
                     editable_order=False,
-                    # default_value = ['md5WithRSAEncryption', 'sha1WithRSAEncryption']
                 )),
             'ignore': DictElement(
                 parameter_form=Dictionary(
