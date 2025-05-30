@@ -15,21 +15,30 @@
 # to the Free Software Foundation, Inc., 51 Franklin St,  Fifth Floor,
 # Boston, MA 02110-1301 USA.
 
-from .agent_based_api.v1.type_defs import (
+from collections.abc import Mapping # type: ignore
+from typing import Any # type: ignore
+
+from cmk.agent_based.v2 import (
+    AgentSection,
+    check_levels,
+    CheckPlugin,
     CheckResult,
     DiscoveryResult,
+    HostLabel,
     HostLabelGenerator,
+    Metric,
+    Result,
+    Service,
+    State,
+    StringTable,
 )
 
-from .agent_based_api.v1 import (
-    register,
-    Result,
-    State,
-    HostLabel,
-    Service,
-    )
+from cmk.utils import debug
+from pprint import pprint # type: ignore
 
-def parse_lsbrelease(string_table):
+Section = Mapping[str, Any]
+
+def parse_lsbrelease(string_table: StringTable) -> Section:
     lsbinfo = {}
     for line in string_table:
         try:
@@ -39,25 +48,25 @@ def parse_lsbrelease(string_table):
             pass
     return lsbinfo
 
-def parse_lnx_distro(info):
-    parsed = {}
-    filename = None
-    for line in info:
-        if line[0].startswith("[[[") and line[0].endswith("]]]"):
-            filename = line[0][3:-3]
-            parsed[filename] = {}
-        elif filename is not None:
-            for entry in line:
-                if entry.count('=') == 0:
-                    continue
-                k, v = [x.replace('"', '') for x in entry.split("=", 1)]
-                parsed[filename][k] = v
-    return parsed
+# def parse_lnx_distro(info: StringTable) -> Section:
+#     parsed = {}
+#     filename = None
+#     for line in info:
+#         if line[0].startswith("[[[") and line[0].endswith("]]]"):
+#             filename = line[0][3:-3]
+#             parsed[filename] = {}
+#         elif filename is not None:
+#             for entry in line:
+#                 if entry.count('=') == 0:
+#                     continue
+#                 k, v = [x.replace('"', '') for x in entry.split("=", 1)]
+#                 parsed[filename][k] = v
+#     return parsed
 
 def versiontuple(v):
     return tuple(map(int, [item for sublist in map(lambda x: x.split('-'), v.split('.')) for item in sublist]))
 
-def host_label_lsbrelease(section) -> HostLabelGenerator:
+def host_label_lsbrelease(section: Section) -> HostLabelGenerator:
     if section:
         infomap = {
             'Codename': 'lsbrelease/codename',
@@ -68,21 +77,26 @@ def host_label_lsbrelease(section) -> HostLabelGenerator:
             if k in section:
                 yield HostLabel(v, section[k].lower())
 
-register.agent_section(
+agent_section_lsbrelease = AgentSection(
     name="lsbrelease",
     parse_function=parse_lsbrelease,
     host_label_function=host_label_lsbrelease,
 )
 
-def discovery_lsbrelease(section) -> DiscoveryResult:
+def discovery_lsbrelease(section: Section) -> DiscoveryResult:
     if section:
         yield Service()
 
-def check_lsbrelease(params, section) -> CheckResult:
+def check_lsbrelease(params, section: Section) -> CheckResult:
+    if debug.enabled():
+        print(f"params: {params}")
+        print(f"section: {section}")
     desc = section.get('Description')
     found = False
     if desc:
-        for distribution, version in params.get('distributions', []):
+        for distinfo in params.get('distributions', []):
+            distribution = distinfo["name"]
+            version = distinfo["version"]
             if desc.lower().startswith(distribution.lower()):
                 yield Result(state=State.OK, summary=desc)
                 current_version=(0, 0)
@@ -104,19 +118,21 @@ def check_lsbrelease(params, section) -> CheckResult:
         yield Result(state=State.UNKNOWN,
                      summary="Unknown Distribution: %s" % desc)
 
-register.check_plugin(
+check_plugin_lsbrelease = CheckPlugin(
     name="lsbrelease",
     service_name="Distribution Release",
     sections=["lsbrelease"],
     discovery_function=discovery_lsbrelease,
     check_function=check_lsbrelease,
-    check_default_parameters={'distributions': [
-        ( 'CentOS', '7' ),
-        ( 'Debian', '9.9' ),
-        ( 'openSUSE', '15.1'),
-        ( 'SUSE EOL', '99' ),
-        ( 'SUSE Linux Enterprise Server', '12.5' ),
-        ( 'Ubuntu', '16.04.7'),
-    ]},
+    check_default_parameters={
+        'distributions': [
+            {'name': 'CentOS Stream', 'version': '9'},
+            {'name': 'Debian', 'version': '11'},
+            {'name': 'openSUSE', 'version': '15.6'},
+            {'name': 'SUSE EOL', 'version': '99'},
+            {'name': 'SUSE Linux Enterprise Server', 'version': '15.6'},
+            {'name': 'Ubuntu', 'version': '24.04'},
+        ],
+    },
     check_ruleset_name="lsbrelease",
 )
