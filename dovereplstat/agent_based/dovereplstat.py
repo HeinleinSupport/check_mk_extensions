@@ -26,22 +26,25 @@
 # Total number of known users   38993
 # Current users 3177
 
-from .agent_based_api.v1.type_defs import (
+from collections.abc import Mapping # type: ignore
+from typing import Any # type: ignore
+
+from cmk.agent_based.v2 import (
+    AgentSection,
+    check_levels,
+    CheckPlugin,
     CheckResult,
     DiscoveryResult,
-)
-
-from .agent_based_api.v1 import (
-    check_levels,
-    register,
-    render,
     Metric,
     Result,
-    State,
     Service,
-    )
+    State,
+    StringTable,
+)
 
-def parse_dovereplstat(string_table):
+Section = Mapping[str, Any]
+
+def parse_dovereplstat(string_table: StringTable) -> Section:
     section={}
     for line in string_table:
         key = None
@@ -65,16 +68,16 @@ def parse_dovereplstat(string_table):
                 pass
     return section        
 
-register.agent_section(
+agent_section_dovereplastat = AgentSection(
     name="dovereplstat",
     parse_function=parse_dovereplstat,
 )
 
-def discovery_dovereplstat(section) -> DiscoveryResult:
+def discovery_dovereplstat(section: Section) -> DiscoveryResult:
     if 'total_users' in section:
         yield Service()
 
-def check_dovereplstat(params, section) -> CheckResult:
+def check_dovereplstat(params, section: Section) -> CheckResult:
     perfdata = []
     msg = []
     rc = 0
@@ -82,11 +85,13 @@ def check_dovereplstat(params, section) -> CheckResult:
     current_users = 0
     for key, data in section.items():
         if params and key in params:
-            yield from check_levels(data['value'],
-                                    levels_upper=params[key],
-                                    metric_name=key,
-                                    label=data['label'],
-                                    notice_only=True)
+            yield from check_levels(
+                data['value'],
+                levels_upper=params[key],
+                metric_name=key,
+                label=data['label'],
+                notice_only=True
+            )
         else:
             yield Result(state=State.OK,
                          notice="%s: %d" % (data['label'], data['value']))
@@ -97,7 +102,7 @@ def check_dovereplstat(params, section) -> CheckResult:
                      summary='%0.2f%% user usage' % perc_users)
         yield Metric('perc_users', perc_users)
 
-register.check_plugin(
+check_plugin_dovereplstat = CheckPlugin(
     name="dovereplstat",
     service_name="Dovecot Replicator Status",
     sections=["dovereplstat"],
@@ -106,4 +111,3 @@ register.check_plugin(
     check_ruleset_name="dovereplstat",
     check_default_parameters={},
 )
-

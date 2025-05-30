@@ -15,9 +15,28 @@
 # to the Free Software Foundation, Inc., 51 Franklin St,  Fifth Floor,
 # Boston, MA 02110-1301 USA.
 
-metric_info['perc_users'] = {
-    'title': _('Usage Users'),
-    'unit': '%',
-    "color" : "#00e060",
-}
+# from cmk.gui.i18n import _
 
+# from cmk.gui.graphing._utils import (
+#     check_metrics,
+#     metric_info,
+#     graph_info,
+# )
+
+
+# metric_info['perc_users'] = {
+#     'title': _('Usage Users'),
+#     'unit': '%',
+#     "color" : "#00e060",
+# }
+
+from cmk.graphing.v1 import Title, metrics
+
+UNIT_PERCENTAGE = metrics.Unit(metrics.DecimalNotation('%'))
+
+metric_perc_users = metrics.Metric(
+    name='perc_users',
+    title=Title("Usage Users"),
+    unit=UNIT_PERCENTAGE,
+    color=metrics.Color.GREEN,
+)
