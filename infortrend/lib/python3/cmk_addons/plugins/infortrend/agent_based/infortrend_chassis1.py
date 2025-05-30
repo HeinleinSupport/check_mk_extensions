@@ -7,9 +7,19 @@
 # (c) 2024 Jens Maus <mail@jens-maus.de>
 #
 
-from cmk.base.check_api import LegacyCheckDefinition
-from cmk.base.config import check_info
-from cmk.agent_based.v2 import all_of, contains, startswith, SNMPTree, StringTable
+from cmk.agent_based.v2 import (
+    all_of,
+    contains,
+    startswith,
+    CheckPlugin,
+    Metric,
+    Result,
+    Service,
+    SimpleSNMPSection,
+    SNMPTree,
+    State,
+    StringTable,
+)
 
 # This is free software;  you can redistribute it and/or modify it
 # under the  terms of the  GNU General Public License  as published by
@@ -22,15 +32,15 @@ from cmk.agent_based.v2 import all_of, contains, startswith, SNMPTree, StringTab
 # to the Free Software Foundation, Inc., 51 Franklin St,  Fifth Floor,
 # Boston, MA 02110-1301 USA.
 
-def inventory_infortrend_chassis1(info):
-    for name, status, devtype, value, unit in info:
+def inventory_infortrend_chassis1(section):
+    for name, status, devtype, value, unit in section:
         if not name:
             continue
         if devtype == '14' and status == '128':
             continue
-        yield name, {}
+        yield Service(item=name)
 
-def check_infortrend_chassis1(item, params, info):
+def check_infortrend_chassis1(item, params, section):
     status_info = {
         # Power supply
         "1": { 'bits': { 0: ( "Power supply functioning normally", "Power supply malfunctioning (!!)" ),
@@ -163,14 +173,15 @@ def check_infortrend_chassis1(item, params, info):
                 },
         }
     
-    for name, status, devtype, value, unit in info:
+    for name, status, devtype, value, unit in section:
         status = int(status)
         if name == item:
             if status == 255:
-                return (3, "Status unknown")
+                yield Result(state=State.UNKNOWN, summary="Status unknown")
+                return
 
             output = []
-            perfdata = []
+            perfdata = ()
             text = None
             warn = None
             crit = None
@@ -179,7 +190,7 @@ def check_infortrend_chassis1(item, params, info):
                 unit_symbol = " °C"
                 val = (float(value) * float(unit) / 1000.0) - 273.0
                 warn, crit = params.get('temp')
-                perfdata = [(name.replace(' ', '-'), val, warn, crit)]
+                perfdata = (name.replace(' ', '-'), val, (warn, crit))
                 text = "%.1f%s (warn/crit at %.1f%s/%.1f%s)" % (
                     val,
                     unit_symbol,
@@ -195,7 +206,7 @@ def check_infortrend_chassis1(item, params, info):
                     warn, crit = params.get('voltage12')
                 else:
                     warn, crit = params.get('voltage5')
-                perfdata = [(name.replace(' ', '-'), val, warn, crit)]
+                perfdata = (name.replace(' ', '-'), val, (warn, crit))
                 text = "%.1f%s (warn/crit at %.1f%s/%.1f%s)" % (
                     val,
                     unit_symbol,
@@ -225,7 +236,7 @@ def check_infortrend_chassis1(item, params, info):
                     elif val == 7:
                         speed = 'Highest speed'
 
-                    perfdata = [(name.replace(' ', '-'), val)]
+                    perfdata = (name.replace(' ', '-'), val, None)
                     text = "Level %d (%s)" % (
                         val,
                         speed,
@@ -235,7 +246,7 @@ def check_infortrend_chassis1(item, params, info):
                     unit_symbol = " rpm"
                     val = int(value)
                     warn, crit = params.get('fan')
-                    perfdata = [(name.replace(' ', '-'), val, warn, crit)]
+                    perfdata = (name.replace(' ', '-'), val, (warn, crit))
                     text = "%d%s (warn/crit at %d%s/%d%s)" % (
                         val,
                         unit_symbol,
@@ -265,22 +276,34 @@ def check_infortrend_chassis1(item, params, info):
                     output.append(status_info[devtype]['adtl_info'][adtl_status])
 
             outstr = ", ".join(output)
-            state = 0
+            state = State.OK
             if "(!)" in outstr:
-                state = 1 # warn
+                state = State.WARN # warn
             elif "(!!)" in outstr:
-                state = 2 # crit
+                state = State.CRIT # crit
 
             if status == 64:
                 if devtype == '12':
-                    return (state, outstr, perfdata)
+                    yield Result(state=state, summary=outstr)
+                    if perfdata:
+                        yield Metric(name=perfdata[0], value=perfdata[1], levels=perfdata[2])
+                    return
                 else:
-                    return (state, "%d %s" % ( status, outstr), perfdata)
+                    yield Result(state=state, summary="%d %s" % (status, outstr))
+                    if perfdata:
+                        yield Metric(name=perfdata[0], value=perfdata[1], levels=perfdata[2])
+                    return
             elif status == 0:
-                return (state, outstr, perfdata)
+                yield Result(state=state, summary=outstr)
+                if perfdata:
+                    yield Metric(name=perfdata[0], value=perfdata[1], levels=perfdata[2])
+                return
             else:
-                return (state, "%d %s" % ( status, outstr), perfdata)
-    return (3, "not yet implemented")
+                yield Result(state=state, summary="%d %s" % (status, outstr))
+                if perfdata:
+                    yield Metric(name=perfdata[0], value=perfdata[1], levels=perfdata[2])
+                return
+    yield Result(state=State.UNKNOWN, summary="not yet implemented")
 
 def rename_dups(l):
     d = {}
@@ -302,16 +325,22 @@ def rename_dups(l):
 def parse_infortrend_chassis1(string_table: StringTable) -> StringTable | None:
     return rename_dups(string_table) or None
 
-check_info["infortrend_chassis1"] = LegacyCheckDefinition(
-    detect=all_of(
-        contains(".1.3.6.1.2.1.1.1.0", "Infortrend"),
-        startswith(".1.3.6.1.2.1.1.2.0", ".1.3.6.1.4.1.1714.1.1"),
-    ),
+snmp_section_infortrend_chassis1 = SimpleSNMPSection(
+    name="infortrend_chassis1",
     parse_function=parse_infortrend_chassis1,
     fetch=SNMPTree(
         base=".1.3.6.1.4.1.1714.1.1.9.1",
         oids=["8", "13", "6", "9", "10"],
     ),
+    detect=all_of(
+        contains(".1.3.6.1.2.1.1.1.0", "Infortrend"),
+        startswith(".1.3.6.1.2.1.1.2.0", ".1.3.6.1.4.1.1714.1.1"),
+    ),
+)
+
+check_plugin_infortrend_chassis1 = CheckPlugin(
+    name="infortrend_chassis1",
+    sections=["infortrend_chassis1"],
     service_name="IFT %s",
     discovery_function=inventory_infortrend_chassis1,
     check_function=check_infortrend_chassis1,

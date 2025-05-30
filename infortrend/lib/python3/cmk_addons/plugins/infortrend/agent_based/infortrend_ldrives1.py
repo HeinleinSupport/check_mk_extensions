@@ -7,9 +7,18 @@
 # (c) 2024 Jens Maus <mail@jens-maus.de>
 #
 
-from cmk.base.check_api import LegacyCheckDefinition
-from cmk.base.config import check_info
-from cmk.agent_based.v2 import all_of, contains, startswith, SNMPTree, StringTable
+from cmk.agent_based.v2 import (
+    all_of,
+    contains,
+    startswith,
+    CheckPlugin,
+    Result,
+    Service,
+    SimpleSNMPSection,
+    SNMPTree,
+    State,
+    StringTable,
+)
 
 # This is free software;  you can redistribute it and/or modify it
 # under the  terms of the  GNU General Public License  as published by
@@ -22,12 +31,12 @@ from cmk.agent_based.v2 import all_of, contains, startswith, SNMPTree, StringTab
 # to the Free Software Foundation, Inc., 51 Franklin St,  Fifth Floor,
 # Boston, MA 02110-1301 USA.
 
-def inventory_infortrend_ldrives1(info):
-    for id, status in info:
-        yield id, {}
+def inventory_infortrend_ldrives1(section):
+    for id, status in section:
+        yield Service(item=id)
 
-def check_infortrend_ldrives1(item, params, info):
-    status_info = { 
+def check_infortrend_ldrives1(item, section):
+    status_info = {
         0   : "Good",
         1   : "Rebuilding (!)",
         2   : "Initializing (!)",
@@ -38,25 +47,27 @@ def check_infortrend_ldrives1(item, params, info):
         7   : "Drive Missing (!!)",
         64  : "Good"
         }
-    for slot, status in info:
+    for slot, status in section:
         status = int(status)
         if slot == item:
             output = []
             if status & 128 == 128:
                 output.append("Logical Drive Off-line (RW)")
                 status = status & 127
-                rc = 3
+                rc = State.UNKNOWN
             if status not in status_info.keys():
-                return (3, "Status is %d" % status)
+                yield Result(state=State.UNKNOWN, summary="Status is %d" % status)
+                return
             output.append(status_info[status])
             if status == 0 or status == 64:
-                rc = 0
+                rc = State.OK
             if status == 1 or status == 2:
-                rc = 1
+                rc = State.WARN
             if status == 2 or status == 3 or status == 4 or status == 5 or status == 6 or status == 7:
-                rc = 2
-            return (rc, ", ".join(output))
-    return (3, "not yet implemented")
+                rc = State.CRIT
+            yield Result(state=rc, summary=", ".join(output))
+            return
+    yield Result(state=State.UNKNOWN, summary="not yet implemented")
 
 def rename_dups(l):
     d = {}
@@ -74,18 +85,21 @@ def rename_dups(l):
 def parse_infortrend_ldrives1(string_table: StringTable) -> StringTable | None:
     return rename_dups(string_table) or None
 
-check_info["infortrend_ldrives1"] = LegacyCheckDefinition(
+snmp_section_infortrend_ldrives1 = SimpleSNMPSection(
+    name="infortrend_ldrives1",
+    parse_function=parse_infortrend_ldrives1,
+    fetch=SNMPTree(base=".1.3.6.1.4.1.1714.1.1.2.1", oids=["2", "6"]),
     detect=all_of(
         contains(".1.3.6.1.2.1.1.1.0", "Infortrend"),
         startswith(".1.3.6.1.2.1.1.2.0", ".1.3.6.1.4.1.1714.1.1"),
     ),
-    parse_function=parse_infortrend_ldrives1,
-    fetch=SNMPTree(
-        base=".1.3.6.1.4.1.1714.1.1.2.1",
-        oids=["2", "6"],
-    ),
+)
+
+check_plugin_infortrend_ldrives1 = CheckPlugin(
+    name="infortrend_ldrives1",
+    sections=["infortrend_ldrives1"],
     service_name="IFT %s",
     discovery_function=inventory_infortrend_ldrives1,
     check_function=check_infortrend_ldrives1,
-    check_ruleset_name="infortend_ldrives1",
+#    check_ruleset_name="infortend_ldrives1",
 )
