@@ -1,0 +1,15 @@
+{'author': 'Robert Sander <r.sander@heinlein-support.de>',
+ 'description': 'Check & agent plugin to monitor Distribution Release '
+                'versions\n',
+ 'download_url': 'https://github.com/HeinleinSupport/check_mk_extensions/',
+ 'files': {'agents': ['plugins/lsbrelease'],
+           'cmk_addons_plugins': ['lsbrelease/agent_based/lsbrelease.py',
+                                  'lsbrelease/rulesets/lsbrelease.py',
+                                  'lsbrelease/rulesets/lsbrelease_cee.py'],
+           'lib': ['python3/cmk/base/cee/plugins/bakery/lsbrelease.py']},
+ 'name': 'lsbrelease',
+ 'title': 'Distribution Version Check',
+ 'version': '6.0.0',
+ 'version.min_required': '2.3.0b1',
+ 'version.packaged': '2.3.0p31',
+ 'version.usable_until': None}
