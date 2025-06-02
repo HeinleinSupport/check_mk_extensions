@@ -4,8 +4,9 @@
                 '\n'
                 '- netifaces_rbl checks IP addresses against a configurable '
                 'set of RBLs.\n'
-                '\n',
- 'download_url': 'https://github.com/HeinleinSupport/check_mk_extensions/tree/master/netifaces',
+                '- netifaces_senderscore checks IP addresses against '
+                'score.senderscore.com\n',
+ 'download_url': 'https://github.com/HeinleinSupport/check_mk_extensions/',
  'files': {'cmk_addons_plugins': ['netifaces/agent_based/netifaces.py',
                                   'netifaces/graphing/netifaces.py',
                                   'netifaces/rulesets/netifaces.py']},

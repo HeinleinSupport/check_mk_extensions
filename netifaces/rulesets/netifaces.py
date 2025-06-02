@@ -69,8 +69,22 @@ rule_spec_netifaces_rbl = CheckParameters(
     condition=_netifaces_condition,
 )
 
+def _default_values(p):
+    if isinstance(p, dict) and "exclude" not in p:
+        p["exclude"] = [
+            '10.0.0.0/8',
+            '127.0.0.0/8',
+            '172.16.0.0/12',
+            '192.168.0.0/16',
+            '::1/128',
+            'fe80::/10',
+            'fc00::/7',
+        ]
+    return p
+
 def _valuespec_discovery_rbl_rules():
     return Dictionary(
+        migrate=_default_values,
         elements={
             'active': DictElement(
                 required=True,
@@ -91,15 +105,6 @@ def _valuespec_discovery_rbl_rules():
                     title=Title("Exclude List"),
                     add_element_label=Label("Add IP network or address"),
                     element_template=String(),
-        #          default_value=[
-        #              '10.0.0.0/8',
-        #              '127.0.0.0/8',
-        #              '172.16.0.0/12',
-        #              '192.168.0.0/16',
-        #              '::1/128',
-        #              'fe80::/10',
-        #              'fc00::/7',
-        #          ]
                 ),
             ),
         },
@@ -112,17 +117,9 @@ rule_spec_discovery_rbl_rules = DiscoveryParameters(
     title=Title("IP addresses and networks for RBL checks"),
     help_text=Help("Configure the discovery of RBL checks."),
 )
-# rulespec_registry.register(
-#     HostRulespec(
-#         group=RulespecGroupCheckParametersDiscovery,
-#         match_type="first",
-#         name="discovery_rbl_rules",
-#         valuespec=_valuespec_discovery_rbl_rules,
-#     ))
 
 def _parameter_valuespec_netifaces_senderscore():
     return Dictionary(
-        help_text = Help('The check <tt>netifaces_senderscore</tt> monitors IP addresses of the host against the score from senderscore.org.'),
         elements = {
             'score_levels': DictElement(
                 required=True,
@@ -144,47 +141,42 @@ rule_spec_netifaces_senderscore = CheckParameters(
     topic=Topic.APPLICATIONS,
     parameter_form=_parameter_valuespec_netifaces_senderscore,
     title=Title("Sender Score"),
+    help_text = Help('The check <tt>netifaces_senderscore</tt> monitors IP addresses of the host against the score from senderscore.org.'),
     condition=_netifaces_condition,
 )
 
-# def _valuespec_discovery_senderscore_rules():
-#     return Dictionary(
-#         title=_('IP addresses and networks for SenderScore checks'),
-#         help=_('Configure the discovery of SenderScore checks.'),
-#         elements=[
-#             ('active',
-#              FixedValue(
-#                  True,
-#                  title=_('Discover IPs for SenderScore checks'),
-#                  totext=_('active'))),
-#             ('include',
-#              ListOf(
-#                  title=_("Include List"),
-#                  add_label=_("Add IP network or address"),
-#                  valuespec=IPNetwork(),
-#                  )),
-#             ('exclude',
-#              ListOf(
-#                  title=_("Exclude List"),
-#                  add_label=_("Add IP network or address"),
-#                  valuespec=IPNetwork(),
-#                  default_value=[
-#                      '10.0.0.0/8',
-#                      '127.0.0.0/8',
-#                      '172.16.0.0/12',
-#                      '192.168.0.0/16',
-#                      '::1/128',
-#                      'fe80::/10',
-#                      'fc00::/7',
-#                  ],)),
-#         ],
-#         optional_keys = ['include', 'exclude'],
-#     )
+def _valuespec_discovery_senderscore_rules():
+    return Dictionary(
+        migrate=_default_values,
+        elements={
+            'active': DictElement(
+                required=True,
+                parameter_form=BooleanChoice(
+                    title=Title("Discover IPs for SenderScore checks"),
+                    label=Label("enable"),
+                ),
+            ),
+            'include': DictElement(
+                parameter_form=List(
+                    title=Title("Include List"),
+                    add_element_label=Label("Add IP network or address"),
+                    element_template=String(),
+                ),
+            ),
+            'exclude': DictElement(
+                parameter_form=List(
+                    title=Title("Exclude List"),
+                    add_element_label=Label("Add IP network or address"),
+                    element_template=String(),
+                ),
+            ),
+        },
+    )
 
-# rulespec_registry.register(
-#     HostRulespec(
-#         group=RulespecGroupCheckParametersDiscovery,
-#         match_type="first",
-#         name="discovery_senderscore_rules",
-#         valuespec=_valuespec_discovery_senderscore_rules,
-#     ))
+rule_spec_discovery_senderscore_rules = DiscoveryParameters(
+    name="discovery_senderscore_rules",
+    parameter_form=_valuespec_discovery_senderscore_rules,
+    topic=Topic.GENERAL,
+    title=Title("IP addresses and networks for SenderScore checks"),
+    help_text=Help("Configure the discovery of SenderScore checks."),
+)

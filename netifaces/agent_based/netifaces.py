@@ -15,29 +15,24 @@
 # to the Free Software Foundation, Inc., 51 Franklin St,  Fifth Floor,
 # Boston, MA 02110-1301 USA.
 
-from .agent_based_api.v1.type_defs import (
+from cmk.agent_based.v2 import (
+    check_levels,
+    CheckPlugin,
     CheckResult,
     DiscoveryResult,
-    HostLabelGenerator,
-)
-
-from .agent_based_api.v1 import (
-    check_levels,
     get_value_store,
-    register,
     render,
     Result,
     State,
-    HostLabel,
     Service,
     )
 
-from typing import Any, MutableMapping
+from typing import Any, MutableMapping # type: ignore
 
-from functools import reduce
-import socket
+from functools import reduce # type: ignore
+import socket # type: ignore
 import dns.reversename
-import ipaddress
+import ipaddress # type: ignore
 import time
 
 _reverse_domain = {
@@ -108,7 +103,7 @@ def check_netifaces_rbl(item, params, section) -> CheckResult:
                         yield Result(state=State.CRIT,
                                      summary='found in more than 1 RBL')
 
-register.check_plugin(
+check_plugin_netifaces_rbl = CheckPlugin(
     name="netifaces_rbl",
     service_name="RBL %s",
     sections=["lnx_if"],
@@ -172,7 +167,7 @@ def check_netifaces_senderscore(item, params, section) -> CheckResult:
                                 render_func=render.percent,
                             )
 
-register.check_plugin(
+check_plugin_netifaces_senderscore = CheckPlugin(
     name="netifaces_senderscore",
     service_name="SenderScore %s",
     sections=["lnx_if"],
