@@ -22,6 +22,7 @@ from cmk.rulesets.v1 import (
     Title,
 )
 from cmk.rulesets.v1.form_specs import (
+    BooleanChoice,
     DefaultValue,
     DictElement,
     Dictionary,
@@ -142,9 +143,28 @@ rule_spec_sslcertificates_inventory = DiscoveryParameters(
     parameter_form=_valuespec_sslcertificates_inventory,
 )
 
+def _migrate_from_alternative_to_dict(param):
+    if isinstance(param, dict) and param == {}:
+        param = {"deploy": True}
+    if isinstance(param, bool):
+        param = {"deploy": param}
+    if not param:
+        param = {"deploy": False}
+    if "deploy" not in param:
+        param["deploy"] = True
+    return param
+
 def _valuespec_agent_config_sslcertificates():
     return Dictionary(
+        migrate=_migrate_from_alternative_to_dict,
         elements = {
+            "deploy": DictElement(
+                required=True,
+                parameter_form=BooleanChoice(
+                    label=Label("Deploy the SSL certificates plugin"),
+                    prefill=DefaultValue(True),
+                ),
+            ),
             "interval": DictElement(
                 parameter_form = TimeSpan(
                     title = Title("Run asynchronously"),
