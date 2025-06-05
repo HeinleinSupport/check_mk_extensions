@@ -138,8 +138,6 @@ def _valuespec_active_checks_snmp_metric():
 
 
 rule_spec_check_snmp_metric = ActiveCheck(
-    title=Title("Check SNMP OID"),
-    help_text=Help("Checks SNMP OIDs with the Nagios plugin <tt>check_snmp</tt>."),
     title = Title("Check SNMP Metric"),
     help_text = Help("Checks SNMP Metrics with the Nagios plugin <tt>check_snmp_metric</tt>."),
     topic=Topic.GENERAL,
