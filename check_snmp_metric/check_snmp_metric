@@ -6,7 +6,7 @@
            'lib': ['nagios/plugins/check_snmp_metric']},
  'name': 'check_snmp_metric',
  'title': 'Check SNMP Metric',
- 'version': '1.0.1',
+ 'version': '1.0.2',
  'version.min_required': '2.3.0b1',
  'version.packaged': '2.3.0p31',
  'version.usable_until': None}

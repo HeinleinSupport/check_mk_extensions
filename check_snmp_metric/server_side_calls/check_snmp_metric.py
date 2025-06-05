@@ -34,26 +34,25 @@ from cmk.server_side_calls.v1 import (
 def _creds_to_args(creds):
     args = []
     if isinstance(creds, str):
-        args += ['-P', '2c']
-        args += ['-C', creds]
+        args += ['-v', '2c']
+        args += ['-c', creds]
     elif isinstance(creds, tuple):
-        args += ['-P', '3', '-L',  creds[0]]
+        args += ['-v', '3', '-l',  creds[0]]
         if creds[0] == 'noAuthNoPriv':
-            args += ['-U', creds[1]]
+            args += ['-u', creds[1]]
         if creds[0] == 'authNoPriv':
             args += ['-a', creds[1]]
-            args += ['-U', creds[2]]
+            args += ['-u', creds[2]]
             args += ['-A', creds[3]]
         if creds[0] == 'authPriv':
             args += ['-a', creds[1]]
-            args += ['-U', creds[2]]
+            args += ['-u', creds[2]]
             args += ['-A', creds[3]]
             args += ['-x', creds[4]]
             args += ['-X', creds[5]]
     return args
 
 def check_snmp_metric_arguments(params, host_config: HostConfig) -> Iterator[ActiveCheckCommand]:
-
     if 'creds' in params:
         args = _creds_to_args(params['creds'])
     else:
@@ -63,13 +62,13 @@ def check_snmp_metric_arguments(params, host_config: HostConfig) -> Iterator[Act
         args = _creds_to_args(snmp_config.credentials)
 
     if "timeout" in params:
-        args += ['-t', params["timeout"]]
+        args += ['-t', "%d" % params["timeout"]]
 
     if "factor" in params:
-        args += ['--factor', params["factor"]]
+        args += ['--factor', "%f" % params["factor"]]
 
     if "offset" in params:
-        args += ['--offset', params["offset"]]
+        args += ['--offset', "%f" % params["offset"]]
 
     if "unit" in params:
         args += ['--unit', params["unit"]]
@@ -77,13 +76,13 @@ def check_snmp_metric_arguments(params, host_config: HostConfig) -> Iterator[Act
     if "metric" in params:
         args += ['--metric', params["metric"]]
 
-    if "levels_upper" in params:
-        args += ['--warn', params["levels_upper"][0]]
-        args += ['--crit', params["levels_upper"][1]]
+    if params.get("levels_upper", ("no_levels", None))[0] == "fixed":
+        args += ['--warn', "%d" % params["levels_upper"][1][0]]
+        args += ['--crit', "%d" % params["levels_upper"][1][1]]
 
-    if "levels_lower" in params:
-        args += ['--lwarn', params["levels_lower"][0]]
-        args += ['--lcrit', params["levels_lower"][1]]
+    if params.get("levels_lower", ("no_levels", None))[0] == "fixed":
+        args += ['--lwarn', "%d" % params["levels_lower"][1][0]]
+        args += ['--lcrit', "%d" % params["levels_lower"][1][1]]
 
     if 'hostname' in params:
         hostname = params['hostname']
