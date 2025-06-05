@@ -17,89 +17,98 @@
 # to the Free Software Foundation, Inc., 51 Franklin St,  Fifth Floor,
 # Boston, MA 02110-1301 USA.
 
-import shlex
-quote_shell_string = shlex.quote
 from cmk.base.check_api import host_name
 import cmk.base.config as config
 from cmk.checkengine.fetcher import SourceType
-from functools import reduce
+from functools import reduce # type: ignore
+
+from collections.abc import Iterator # type: ignore
+from cmk.server_side_calls.v1 import (
+    ActiveCheckCommand,
+    ActiveCheckConfig,
+    HostConfig,
+    noop_parser,
+    replace_macros,
+)
 
 def _creds_to_args(creds):
-    args = ''
+    args = []
     if isinstance(creds, str):
-        args += ' -v 2c'
-        args += ' -c %s' % quote_shell_string(creds)
+        args += ['-P', '2c']
+        args += ['-C', creds]
     elif isinstance(creds, tuple):
-        args += ' -v 3 -l %s' % creds[0]
+        args += ['-P', '3', '-L',  creds[0]]
         if creds[0] == 'noAuthNoPriv':
-            args += ' -u %s' % quote_shell_string(creds[1])
+            args += ['-U', creds[1]]
         if creds[0] == 'authNoPriv':
-            args += ' -a "%s"' % creds[1]
-            args += ' -u %s' % quote_shell_string(creds[2])
-            args += ' -A %s' % quote_shell_string(creds[3])
+            args += ['-a', creds[1]]
+            args += ['-U', creds[2]]
+            args += ['-A', creds[3]]
         if creds[0] == 'authPriv':
-            args += ' -a "%s"' % creds[1]
-            args += ' -u %s' % quote_shell_string(creds[2])
-            args += ' -A %s' % quote_shell_string(creds[3])
-            args += ' -x "%s"' % creds[4]
-            args += ' -X %s' % quote_shell_string(creds[5])
+            args += ['-a', creds[1]]
+            args += ['-U', creds[2]]
+            args += ['-A', creds[3]]
+            args += ['-x', creds[4]]
+            args += ['-X', creds[5]]
     return args
 
-def check_snmp_metric_arguments(params):
+def check_snmp_metric_arguments(params, host_config: HostConfig) -> Iterator[ActiveCheckCommand]:
 
-    args = ''
-        
     if 'creds' in params:
-        args += _creds_to_args(params['creds'])
+        args = _creds_to_args(params['creds'])
     else:
         config_cache = config.get_config_cache()
         ipaddress = config.lookup_ip_address(config_cache, host_name())
         snmp_config = config_cache.make_snmp_config(host_name(), ipaddress, SourceType.HOST)
-        args += _creds_to_args(snmp_config.credentials)
+        args = _creds_to_args(snmp_config.credentials)
 
     if "timeout" in params:
-        args += ' -t %d' % params["timeout"]
+        args += ['-t', params["timeout"]]
 
     if "factor" in params:
-        args += ' --factor %f' % params["factor"]
+        args += ['--factor', params["factor"]]
 
     if "offset" in params:
-        args += ' --offset %f' % params["offset"]
+        args += ['--offset', params["offset"]]
 
     if "unit" in params:
-        args += ' --unit %s' % quote_shell_string(params["unit"])
+        args += ['--unit', params["unit"]]
 
     if "metric" in params:
-        args += ' --metric %s' % quote_shell_string(params["metric"])
+        args += ['--metric', params["metric"]]
 
     if "levels_upper" in params:
-        args += ' --warn %f' % params["levels_upper"][0]
-        args += ' --crit %f' % params["levels_upper"][1]
+        args += ['--warn', params["levels_upper"][0]]
+        args += ['--crit', params["levels_upper"][1]]
 
     if "levels_lower" in params:
-        args += ' --lwarn %f' % params["levels_lower"][0]
-        args += ' --lcrit %f' % params["levels_lower"][1]
+        args += ['--lwarn', params["levels_lower"][0]]
+        args += ['--lcrit', params["levels_lower"][1]]
 
     if 'hostname' in params:
-        args += " %s" % quote_shell_string(params['hostname'])
+        hostname = params['hostname']
     else:
-        args += " $HOSTADDRESS$"
+        hostname = "$HOSTADDRESS$"
+    hostname = replace_macros(hostname, host_config.macros)
 
     if "port" in params:
-        args += ":%d" % params["port"]
+        hostname += ":%d" % params["port"]
+    
+    args.append(hostname)
 
-    args += " %s" % quote_shell_string(params['oid'])
+    args.append(params['oid'])
         
-    return args
+    yield ActiveCheckCommand(
+        service_description=check_snmp_metric_description(params),
+        command_arguments=args,
+    )
 
 def check_snmp_metric_description(params):
     return params['description']
 
-active_check_info['snmp_metric'] = {
-    "command_line"        : "check_snmp_metric $ARG1$",
-    "argument_function"   : check_snmp_metric_arguments,
-    "service_description" : check_snmp_metric_description,
-    "has_perfdata"        : True,
-}
 
-
+active_check_snmp_metric = ActiveCheckConfig(
+    name="snmp_metric",
+    parameter_parser=noop_parser,
+    commands_function=check_snmp_metric_arguments,
+)

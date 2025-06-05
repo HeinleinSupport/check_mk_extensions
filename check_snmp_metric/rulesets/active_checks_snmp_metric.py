@@ -17,117 +17,132 @@
 # to the Free Software Foundation, Inc., 51 Franklin St,  Fifth Floor,
 # Boston, MA 02110-1301 USA.
 
-from cmk.gui.i18n import _
-from cmk.gui.valuespec import (
-    CascadingDropdown,
+from cmk.rulesets.v1 import Help, Label, Title
+from cmk.rulesets.v1.form_specs import (
+    CascadingSingleChoice,
+    CascadingSingleChoiceElement,
+    DefaultValue,
+    DictElement,
     Dictionary,
+    FixedValue,
     Float,
+    InputHint,
     Integer,
-    ListOf,
-    ListOfStrings,
-    RegExp,
-    TextAscii,
-    Tuple,
+    LevelDirection,
+    LevelsType,
+    List,
+    MatchingScope,
+    migrate_to_integer_simple_levels,
+    Password,
+    RegularExpression,
+    SimpleLevels,
+    String,
 )
-
-from cmk.gui.plugins.wato import (
-    rulespec_registry,
-    HostRulespec,
-    SNMPCredentials,
+from cmk.rulesets.v1.form_specs.validators import (
+    LengthInRange,
+    Message,
+    MatchRegex,
+    NumberInRange,
 )
-
-from cmk.gui.plugins.wato.active_checks.common import (
-    RulespecGroupIntegrateOtherServices,
-)
+from cmk.rulesets.v1.rule_specs import ActiveCheck, Topic
 
 def _valuespec_active_checks_snmp_metric():
     return Dictionary(
-        title = _("Check SNMP Metric"),
-        help = _("Checks SNMP Metrics with the Nagios plugin <tt>check_snmp_metric</tt>."),
-        elements = [
-            ( "description",
-              TextAscii(
-                  title = _("Service Description"),
-                  help = _("Must be unique for every host. Defaults to command that is executed."),
-                  size = 30,
-              )),
-            ( "hostname",
-              TextAscii(
-                  title = _("DNS Hostname or IP address"),
-                  default_value = "$HOSTADDRESS$",
-                  allow_empty = False,
-                  help = _("You can specify a hostname or IP address different from IP address "
-                           "of the host as configured in your host properties."),
-              )),
-            ( 'port',
-              Integer(
-                  title = _("SNMP Port"),
-                  help = _("Default is 161."),
-                  minvalue = 1,
-                  maxvalue = 65535,
-                  default_value = 161,
-              )),
-            ( "timeout",
-              Integer(
-                  title = _("Seconds before connection times out"),
-                  unit = _("sec"),
-                  default_value = 10,
-              )),
-            ( "creds",
-              SNMPCredentials(
-                  help = _("If not set, the SNMP credentials of the host will be used"),
-              )),
-            ( "oid",
-              TextAscii(
-                  title = _("OID to query"),
-              )),
-            ( "levels_upper",
-              Tuple(
-                  title = _("Upper levels"),
-                  elements = [
-                      Integer(title=_("Warning above")),
-                      Integer(title=_("Critical above")),
-                  ],
-              )),
-            ( "levels_lower",
-              Tuple(
-                  title = _("Lower levels"),
-                  elements = [
-                      Integer(title=_("Warning below")),
-                      Integer(title=_("Critical below")),
-                  ],
-              )),
-            ( "factor",
-              Float(
-                  title = _("Value factor"),
-                  help = _("A Factor of 10 means that the value reported is ten times the real value, e.g. the OID contains 245, but the real temperature is 24,5°C"),
-                  default_value = 1.0,
-              )),
-            ( "offset",
-              Float(
-                  title = _("Value offset"),
-                  help = _("An offset that gets added (with a positive value) to the value or subtracted (with a negative value) from the value after applying the value factor."),
-                  default_value = 0.0,
-              )),
-            ( "metric",
-              TextAscii(
-                  title = _("Metric name"),
-                  help = _("Name of the metric for performance data. If obmitted, no performance data will be generated."),
-              )),
-            ( "unit",
-              TextAscii(
-                  title = _("Unit"),
-                  help = _("Unit of the value. Used for display."),
-              )),
-        ],
-        optional_keys = [ 'hostname', 'port', 'timeout', 'creds', 'levels_upper', 'levels_lower', 'factor', 'offset', 'metric', 'unit', ],
+        ignored_elements = ["creds"],
+        elements = {
+            "description": DictElement(
+                required=True,
+                parameter_form = String(
+                    title = Title("Service Description"),
+                    help_text = Help("Must be unique for every host."),
+                    field_size = 30,
+                    custom_validate = [LengthInRange(min_value=1)],
+                )),
+            "hostname": DictElement(
+                parameter_form = String(
+                    title = Title("DNS Hostname or IP address"),
+                    help_text = Help("You can specify a hostname or IP address different from IP address of the host as configured in your host properties."),
+                    prefill = DefaultValue("$HOSTADDRESS$"),
+                    custom_validate = [LengthInRange(min_value=1)],
+                )),
+            "port": DictElement(
+                parameter_form = Integer(
+                    title = Title("SNMP Port"),
+                    help_text = Help("Default is 161."),
+                    custom_validate=[NumberInRange(min_value=1, max_value=65535)],
+                    prefill=DefaultValue(161),
+                )),
+            "timeout": DictElement(
+                parameter_form = Integer(
+                    title = Title("Seconds before connection times out"),
+                    unit_symbol = "s",
+                    prefill = DefaultValue(10),
+                )),
+            # ( "creds",
+            #   SNMPCredentials(
+            #       help = _("If not set, the SNMP credentials of the host will be used"),
+            #   )),
+            "oid": DictElement(
+                required = True,
+                parameter_form = String(
+                    title = Title("OID to query"),
+                    custom_validate = [
+                        MatchRegex(
+                            regex = r"^(\.\d+)+$",
+                            error_msg = Message("Value entered is not an OID."),
+                        ),
+                    ],
+                )),
+            "levels_upper": DictElement(
+                parameter_form = SimpleLevels(
+                    title = Title("Upper levels"),
+                    migrate = migrate_to_integer_simple_levels,
+                    level_direction = LevelDirection.UPPER,
+                    form_spec_template = Integer(),
+                    prefill_levels_type = DefaultValue(LevelsType.NONE),
+                    prefill_fixed_levels = InputHint((0, 0)),
+                )),
+            "levels_lower": DictElement(
+                parameter_form = SimpleLevels(
+                    title = Title("Lower levels"),
+                    migrate = migrate_to_integer_simple_levels,
+                    level_direction = LevelDirection.LOWER,
+                    form_spec_template = Integer(),
+                    prefill_levels_type = DefaultValue(LevelsType.NONE),
+                    prefill_fixed_levels = InputHint((0, 0)),
+                )),
+            "factor": DictElement(
+                parameter_form = Float(
+                    title = Title("Value factor"),
+                    help_text = Help("A Factor of 10 means that the value reported is ten times the real value, e.g. the OID contains 245, but the real temperature is 24.5°C"),
+                    prefill = DefaultValue(1.0),
+                )),
+            "offset": DictElement(
+                parameter_form = Float(
+                    title = Title("Value offset"),
+                    help_text = Help("An offset that gets added (with a positive value) to the value or subtracted (with a negative value) from the value after applying the value factor."),
+                    prefill = DefaultValue(0.0),
+                )),
+            "metric": DictElement(
+                parameter_form = String(
+                    title = Title("Metric name"),
+                    help_text = Help("Name of the metric for performance data. If obmitted, no performance data will be generated."),
+                )),
+            "unit": DictElement(
+                parameter_form = String(
+                    title = Title("Unit"),
+                    help_text = Help("Unit of the value. Used for display."),
+                )),
+        },
     )
 
-rulespec_registry.register(
-    HostRulespec(
-        group=RulespecGroupIntegrateOtherServices,
-        match_type="all",
-        name="active_checks:snmp_metric",
-        valuespec=_valuespec_active_checks_snmp_metric,
-    ))
 
+rule_spec_check_snmp_metric = ActiveCheck(
+    title=Title("Check SNMP OID"),
+    help_text=Help("Checks SNMP OIDs with the Nagios plugin <tt>check_snmp</tt>."),
+    title = Title("Check SNMP Metric"),
+    help_text = Help("Checks SNMP Metrics with the Nagios plugin <tt>check_snmp_metric</tt>."),
+    topic=Topic.GENERAL,
+    name="snmp_metric",
+    parameter_form=_valuespec_active_checks_snmp_metric,
+)
