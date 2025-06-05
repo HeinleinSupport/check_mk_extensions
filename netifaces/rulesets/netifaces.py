@@ -12,19 +12,14 @@ from cmk.rulesets.v1.form_specs import (
     DictElement,
     Dictionary,
     Integer,
-    InputHint,
     LevelDirection,
     LevelsType,
     List,
-    migrate_to_lower_float_levels,
+    migrate_to_lower_integer_levels,
     SimpleLevels,
     String,
-    TimeMagnitude,
-    TimeSpan,
-    validators,
 )
 from cmk.rulesets.v1.rule_specs import (
-    AgentConfig,
     CheckParameters,
     DiscoveryParameters,
     HostAndItemCondition,
@@ -124,6 +119,7 @@ def _parameter_valuespec_netifaces_senderscore():
             'score_levels': DictElement(
                 required=True,
                 parameter_form=SimpleLevels(
+                    migrate=migrate_to_lower_integer_levels,
                     form_spec_template=Integer(
                         unit_symbol="%",
                     ),
