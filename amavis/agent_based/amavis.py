@@ -15,34 +15,40 @@
 # to the Free Software Foundation, Inc., 51 Franklin St,  Fifth Floor,
 # Boston, MA 02110-1301 USA.
 
-from .agent_based_api.v1.type_defs import (
+from collections.abc import Mapping # type: ignore
+from typing import Any # type: ignore
+
+from cmk.agent_based.v2 import (
+    AgentSection,
+    check_levels,
+    CheckPlugin,
     CheckResult,
     DiscoveryResult,
-)
-
-from .agent_based_api.v1 import (
-    register,
-    Result,
-    Metric,
-    State,
-    Service,
     get_rate,
     get_value_store,
-    )
+    Metric,
+    render,
+    Result,
+    Service,
+    State,
+    StringTable,
+)
 
 import time
 
-def parse_amavis(string_table):
+Section = Mapping[str, Any]
+
+def parse_amavis(string_table: StringTable) -> Section:
     parsed = {'ps': [], 'agent': {}}
     in_ps = False
     in_agent = False
     for line in string_table:
         if len(line) == 1:
-            if line[0] == u'[ps]':
+            if line[0] == '[ps]':
                 in_ps = True
                 in_agent = False
                 continue
-            if line[0] == u'[agent]':
+            if line[0] == '[agent]':
                 in_ps = False
                 in_agent = True
                 continue
@@ -52,11 +58,16 @@ def parse_amavis(string_table):
             parsed['agent'][line[0]] = line[1:]
     return parsed
 
-def discovery_amavis(section) -> DiscoveryResult:
+agent_section_amavis = AgentSection(
+    name="amavis",
+    parse_function=parse_amavis,
+)
+
+def discovery_amavis(section: Section) -> DiscoveryResult:
     if section and section['ps']:
         yield Service()
 
-def check_amavis(params, section) -> CheckResult:
+def check_amavis(params, section: Section) -> CheckResult:
     if section['ps']:
         perfdata = []
         this_time = int(time.time())
@@ -86,39 +97,28 @@ def check_amavis(params, section) -> CheckResult:
                          summary='Amavis master process running')
         yield Result(state=State.OK,
                      summary='%d child processes running' % child_procs)
-
-        state = State.OK
-        if 'busy_childs' in params:
-            warn = child_procs * (100.0 - params['busy_childs'][0]) / 100.0
-            crit = child_procs * (100.0 - params['busy_childs'][1]) / 100.0
-            yield Metric('amavis_child_avail',
-                         child_avail,
-                         levels=(warn, crit),
-                         boundaries=(0, child_procs))
-            if child_procs == 0:
-                yield Metric('amavis_child_busy',
-                             0,
-                             levels=params['busy_childs'],
-                             boundaries=(0, 100))
-            else:
-                yield Metric('amavis_child_busy',
-                             ( child_procs - child_avail ) * 100.0 / child_procs,
-                             levels=params['busy_childs'],
-                             boundaries=(0, 100))
-            if child_avail < crit:
-                state=State.CRIT
-            elif child_avail < warn:
-                state=State.WARN
-        else:
-            perfdata.append(('amavis_child_avail', child_avail, None, None, 0, child_procs ))
-            if child_procs == 0:
-                yield Metric('amavis_child_busy', 0, boundaries=(0, 100))
-            else:
-                yield Metric('amavis_child_busy',
-                             ( child_procs - child_avail ) * 100.0 / child_procs,
-                             boundaries=(0, 100))
-        yield Result(state=state,
+        yield Result(state=State.OK,
                      summary='%d child processes available' % child_avail)
+
+        yield Metric(
+            'amavis_child_avail',
+            child_avail,
+            boundaries=(0, child_procs)
+        )
+        
+        busy_childs_percentage = 0
+        if child_procs > 0:
+            busy_childs_percentage = ( child_procs - child_avail ) * 100.0 / child_procs
+            
+        yield from check_levels(
+            value = busy_childs_percentage,
+            levels_upper = params.get("busy_childs"),
+            metric_name = "amavis_child_busy",
+            label = "Busy Childs",
+            render_func = render.percent,
+            boundaries = (0.0, 100.0),
+            notice_only = True,
+        )
 
         metrics = [ 'ContentCleanMsgs',
                     'ContentSpamMsgs',
@@ -147,20 +147,14 @@ def check_amavis(params, section) -> CheckResult:
             else:
                 yield Metric('amavis_%s_percentage' % part, 0.0)
 
-register.agent_section(
-    name="amavis",
-    parse_function=parse_amavis,
-)
-
-register.check_plugin(
+check_plugin_amavis = CheckPlugin(
     name="amavis",
     service_name="Amavis",
     sections=["amavis"],
     discovery_function=discovery_amavis,
     check_function=check_amavis,
     check_default_parameters={
-        'busy_childs': (75, 95),
+        'busy_childs': ("fixed", (75, 95)),
     },
     check_ruleset_name="amavis",
 )
-
