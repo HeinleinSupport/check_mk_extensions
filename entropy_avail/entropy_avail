@@ -11,5 +11,5 @@
  'title': 'Available Entropy Check',
  'version': '6.0.0',
  'version.min_required': '2.3.0b1',
- 'version.packaged': '2.3.0p31',
+ 'version.packaged': '2.3.0p33',
  'version.usable_until': None}
