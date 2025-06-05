@@ -18,8 +18,7 @@
 # Boston, MA 02110-1301 USA.
 
 import sys
-import subprocess
-from pprint import pprint
+import subprocess # type: ignore
 
 snmpgetcmd=['snmpget', '-O', 'nq']
 factor=1.0
@@ -78,18 +77,18 @@ if res.returncode == 0:
     val = (float(v) / factor) + offset
     state = 0
     info = '%s is %0.2f %s' % (oid, val, unit)
+    if warnset and val > warn:
+        state = 1
+        info += ' (warn level is %0.2f %s)(!!)' % (warn, unit)
     if critset and val > crit:
         state = 2
         info += ' (crit level is %0.2f %s)(!!)' % (crit, unit)
-    elif warnset and val > warn:
-        state = 1
-        info += ' (warn level is %0.2f %s)(!!)' % (warn, unit)
-    if lcritset and val < lcrit:
-        state = 2
-        info += ' (lower crit level is %0.2f %s)(!!)' % (lcrit, unit)
     if lwarnset and val < lwarn:
         state = 1
         info += ' (lower warn level is %0.2f %s)(!)' % (lwarn, unit)
+    if lcritset and val < lcrit:
+        state = 2
+        info += ' (lower crit level is %0.2f %s)(!!)' % (lcrit, unit)
     if metric:
         perfdata = "|%s=%f;" % (metric, val)
         if lwarnset:
