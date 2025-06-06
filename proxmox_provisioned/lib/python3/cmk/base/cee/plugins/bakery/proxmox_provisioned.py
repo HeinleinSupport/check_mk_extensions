@@ -15,15 +15,23 @@
 # to the Free Software Foundation, Inc., 51 Franklin St,  Fifth Floor,
 # Boston, MA 02110-1301 USA.
 
-from pathlib import Path
-from typing import Any, Dict
+from pathlib import Path # type: ignore
+from typing import Any, Dict # type: ignore
 
-from .bakery_api.v1 import FileGenerator, OS, Plugin, PluginConfig, register
+from cmk.base.plugins.bakery.bakery_api.v1 import (
+    FileGenerator,
+    OS,
+    Plugin,
+    register,
+)
 
 def get_proxmox_provisioned_files(conf: Dict[str, Any]) -> FileGenerator:
-    yield Plugin(base_os=OS.LINUX,
-                 source=Path("proxmox_provisioned"),
-                 interval=conf.get("interval"))
+    if conf.get("deploy"):
+        yield Plugin(
+            base_os=OS.LINUX,
+            source=Path("proxmox_provisioned"),
+            interval=int(conf.get("interval", 0)),
+        )
 
 register.bakery_plugin(
     name="proxmox_provisioned",
