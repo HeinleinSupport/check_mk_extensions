@@ -61,8 +61,20 @@ register_notification_parameters("jira_heinlein", Dictionary(
             title = _("Resultion Transistion ID"),
             help = _("The numerical JIRA resolution transition ID. If not set, it will be retrieved from a custom user attribute named <tt>jiraresolution</tt>."),
         )),
+        ("host_customid", Integer(
+            title = _("Hostproblem-ID custom field ID"),
+            help = _("The numerical custom field ID for the ID number of the host problem."),
+        )),
+        ("service_customid", Integer(
+            title = _("Serviceproblem-ID custom field ID"),
+            help = _("The numerical custom field ID for the ID number of the service problem."),
+        )),
+        ("site_customid", Integer(
+            title = _("Site custom field ID"),
+            help = _("The numerical custom field ID for the site name."),
+        )),
         ("add_customfield", TextInput(
-            title = _("Additional custom field name"),
+            title = _("Additional custom field ID"),
             help=_("The numerical ID of an additional Jira custom field that should be set in the issue. If not set, it can be retrieved from a custom user attribute named <tt>jiraaddcf</tt>."),
         )),
         ("add_customvalue", TextInput(
