@@ -97,6 +97,8 @@ def discover_sslcertificates(params, section: SSLCertificatesSection) -> Discove
             sl.append(ServiceLabel(u'sslcertificates/algorithm', data['algosign']))
         if data.get('template'):
             sl.append(ServiceLabel(u'sslcertificates/template', data['template']))
+        if data.get('subj'):
+            sl.append(ServiceLabel(u'sslcertificates/subject', str(data['subj'])))
         yield Service(item=name, labels=sl)
 
 def check_sslcertificates(item: str, params, section: SSLCertificatesSection) -> CheckResult:
