@@ -20,21 +20,16 @@ from typing import Any # type: ignore
 
 from cmk.agent_based.v2 import (
     AgentSection,
-    check_levels,
     CheckPlugin,
     CheckResult,
     DiscoveryResult,
     HostLabel,
     HostLabelGenerator,
-    Metric,
     Result,
     Service,
     State,
     StringTable,
 )
-
-from cmk.utils import debug
-from pprint import pprint # type: ignore
 
 Section = Mapping[str, Any]
 
@@ -47,21 +42,6 @@ def parse_lsbrelease(string_table: StringTable) -> Section:
         except ValueError:
             pass
     return lsbinfo
-
-# def parse_lnx_distro(info: StringTable) -> Section:
-#     parsed = {}
-#     filename = None
-#     for line in info:
-#         if line[0].startswith("[[[") and line[0].endswith("]]]"):
-#             filename = line[0][3:-3]
-#             parsed[filename] = {}
-#         elif filename is not None:
-#             for entry in line:
-#                 if entry.count('=') == 0:
-#                     continue
-#                 k, v = [x.replace('"', '') for x in entry.split("=", 1)]
-#                 parsed[filename][k] = v
-#     return parsed
 
 def versiontuple(v):
     return tuple(map(int, [item for sublist in map(lambda x: x.split('-'), v.split('.')) for item in sublist]))
@@ -88,9 +68,6 @@ def discovery_lsbrelease(section: Section) -> DiscoveryResult:
         yield Service()
 
 def check_lsbrelease(params, section: Section) -> CheckResult:
-    if debug.enabled():
-        print(f"params: {params}")
-        print(f"section: {section}")
     desc = section.get('Description')
     found = False
     if desc:
