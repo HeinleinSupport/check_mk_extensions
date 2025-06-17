@@ -17,11 +17,15 @@
 # to the Free Software Foundation, Inc., 51 Franklin St,  Fifth Floor,
 # Boston, MA 02110-1301 USA.
 
-check_metrics["check_mk-mailman_queues"] = {
-    "size": {
-        "name": "size_on_disk"
-    },
-    "length": {
-        "name": "mail_queue_active_length"
-    },
-}
+from cmk.graphing.v1 import translations
+
+translation_mailman_queues = translations.Translation(
+    name="mailman_queues",
+    check_commands=[
+        translations.PassiveCheck("mailman_queues"),
+    ],
+    translations={
+        "size": translations.RenameTo("size_on_disk"),
+        "length": translations.RenameTo("mail_queue_active_length"),
+    }
+)

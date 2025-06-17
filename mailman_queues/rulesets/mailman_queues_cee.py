@@ -15,58 +15,69 @@
 # to the Free Software Foundation, Inc., 51 Franklin St,  Fifth Floor,
 # Boston, MA 02110-1301 USA.
 
-try:
-    from cmk.gui.i18n import _
-    from cmk.gui.plugins.wato import (
-        HostRulespec,
-        rulespec_registry,
-    )
-    from cmk.gui.cee.plugins.wato.agent_bakery.rulespecs.utils import RulespecGroupMonitoringAgentsAgentPlugins
-    from cmk.gui.valuespec import (
-        Alternative,
-        Dictionary,
-        FixedValue,
-        ListOfStrings,
-        TextAscii,
-    )
+from cmk.rulesets.v1 import (
+    Help,
+    Label,
+    Title,
+)
+from cmk.rulesets.v1.form_specs import (
+    BooleanChoice,
+    DefaultValue,
+    DictElement,
+    Dictionary,
+    List,
+    String,
+    validators,
+)
+from cmk.rulesets.v1.rule_specs import (
+    AgentConfig,
+    Topic,
+)
 
-    def _valuespec_agent_config_mailman_queues():
-        return Alternative(
-            title = _("Mailman queues (Linux)"),
-            help = _("This will deploy the agent plugin <tt>mailman_queues</tt> "
-                     "for checking Mailman queues.<br />The default "
-                     "queues are <tt>bounces</tt>, <tt>in</tt>, <tt>out</tt> and <tt>shunt</tt>."),
-            style = "dropdown",
-            elements = [
-                Dictionary(
-                    title = _("Deploy the Mailman queues plugin"),
-                    elements = [
-                       ( "queues",
-                         ListOfStrings(
-                           title = _("Queues to look into for mail files"),
-                           help = _("One queue name per line.<br />The default queues are <tt>bounces</tt>, <tt>in</tt>, <tt>out</tt> and <tt>shunt</tt>."),
-                           valuespec = TextAscii(
-                                size = 80,
-                                regex = "^[^ \t*/]+$",
-                                regex_error = _("Queues must not contain spaces, / and *."),
-                           ),
-                           allow_empty = False,
-                         )
-                       ),
-                    ],
-                    optional_keys = ["queues"],
+def _migrate_from_alternative_to_dict(param):
+    if isinstance(param, dict) and param == {}:
+        param = {"deploy": True}
+    if isinstance(param, bool):
+        param = {"deploy": param}
+    if not param:
+        param = {"deploy": False}
+    if "deploy" not in param:
+        param["deploy"] = True
+    return param
+
+def _valuespec_agent_config_mailman_queues():
+    return Dictionary(
+        migrate=_migrate_from_alternative_to_dict,
+        elements = {
+            "deploy": DictElement(
+                required=True,
+                parameter_form=BooleanChoice(
+                    label=Label("Deploy the SSL certificates plugin"),
+                    prefill=DefaultValue(True),
                 ),
-                FixedValue(None, title = _("Do not deploy the Mailman queues plugin"), totext = _("(disabled)") ),
-            ]
-        )
+            ),
+            "queues": DictElement(
+                parameter_form = List(
+                    title = Title("Queues to look into for mail files"),
+                    help_text = Help("One queue name per line.<br />The default queues are <tt>bounces</tt>, <tt>in</tt>, <tt>out</tt> and <tt>shunt</tt>."),
+                    element_template = String(
+                        field_size=80,
+                        custom_validate=[
+                            validators.MatchRegex(
+                                regex = r"^[^ \t*/]+$",
+                                error_msg = "Queues must not contain spaces, / and *.",
+                            ),
+                        ],
+                    ),
+                    editable_order=False,
+            )),
+        },
+    )
 
-    rulespec_registry.register(
-         HostRulespec(
-             group=RulespecGroupMonitoringAgentsAgentPlugins,
-             name="agent_config:mailman_queues",
-             valuespec=_valuespec_agent_config_mailman_queues,
-         ))
-
-except ModuleNotFoundError:
-    # RAW edition
-    pass
+rule_spec_mailman_queues_bakery = AgentConfig(
+    name="mailman_queues",
+    title=Title("Mailman queues (Linux)"),
+    help_text=Help("This will deploy the agent plugin <tt>mailman_queues</tt> for checking Mailman queues.<br />The default queues are <tt>bounces</tt>, <tt>in</tt>, <tt>out</tt> and <tt>shunt</tt>."),
+    topic=Topic.APPLICATIONS,
+    parameter_form=_valuespec_agent_config_mailman_queues,
+)

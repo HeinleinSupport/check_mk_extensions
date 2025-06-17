@@ -24,16 +24,18 @@ from cmk.agent_based.v2 import (
     Metric,
     State,
     Service,
+    StringTable,
 )
 
 def mailman_queues_name(line):
     return line[0]
 
-def parse_mailman_queues(string_table):
+def parse_mailman_queues(string_table: StringTable):
     section = {}
     for line in string_table:
-        section[mailman_queues_name(line)] = { 'mails': int(line[3]),
-                                               'bytes': int(line[4]),
+        section[mailman_queues_name(line)] = {
+            'mails': int(line[3]),
+            'bytes': int(line[4]),
         }
     return section
 
