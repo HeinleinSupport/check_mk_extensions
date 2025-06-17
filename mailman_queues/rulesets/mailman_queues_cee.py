@@ -52,7 +52,7 @@ def _valuespec_agent_config_mailman_queues():
             "deploy": DictElement(
                 required=True,
                 parameter_form=BooleanChoice(
-                    label=Label("Deploy the SSL certificates plugin"),
+                    label=Label("Deploy the MailMan queues plugin"),
                     prefill=DefaultValue(True),
                 ),
             ),
