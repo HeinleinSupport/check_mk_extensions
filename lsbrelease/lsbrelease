@@ -9,7 +9,7 @@
            'lib': ['python3/cmk/base/cee/plugins/bakery/lsbrelease.py']},
  'name': 'lsbrelease',
  'title': 'Distribution Version Check',
- 'version': '6.0.1',
+ 'version': '6.0.2',
  'version.min_required': '2.3.0b1',
  'version.packaged': '2.3.0p33',
  'version.usable_until': None}

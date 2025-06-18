@@ -39,9 +39,6 @@ from cmk.plugins.lib import temperature
 
 import time
 
-from cmk.utils import debug
-from pprint import pprint # type: ignore
-
 
 #   .--State---------------------------------------------------------------.
 #   |                       ____  _        _                               |
@@ -305,9 +302,6 @@ check_plugin_omnipcx_ipdomain = CheckPlugin(
 #.
 
 def parse_omnipcx_trunk(string_table: StringTable):
-    if debug.enabled():
-        pprint(string_table)
-
     map_type = {
         "0": "BCA",
         "1": "T2",
@@ -348,8 +342,6 @@ def parse_omnipcx_trunk(string_table: StringTable):
             "cumul_overrun": int(line[11]),
         }
 
-    if debug.enabled():
-        pprint(section)
     return section
 
 snmp_section_omnipcx_trunk = SimpleSNMPSection(

@@ -37,7 +37,6 @@ from cmk.rulesets.v1.rule_specs import (
 #.
 
 def _migrate_to_dict(param):
-    print(f"Before: {param}")
     if isinstance(param, str):
         param = {
             "deploy": (param == "autodetect"),
@@ -61,7 +60,6 @@ def _migrate_to_dict(param):
         }
     if isinstance(param, dict) and param == {}:
         param = {"deploy": True}
-    print(f"After: {param}")
     return param
 
 def _valuespec_agent_config_memcached():
