@@ -23,12 +23,7 @@ from cmk.rulesets.v1 import (
 from cmk.rulesets.v1.form_specs import (
     DictElement,
     Dictionary,
-    Integer,
-    InputHint,
-    LevelDirection,
     List,
-    migrate_to_integer_simple_levels,
-    SimpleLevels,
     String,
 )
 from cmk.rulesets.v1.rule_specs import (
@@ -38,7 +33,6 @@ from cmk.rulesets.v1.rule_specs import (
 )
 
 def _migrate_tuple_list(p):
-    print(f"vorher: {p}")
     r = []
     for i in p:
         if isinstance(i, tuple):
@@ -47,7 +41,6 @@ def _migrate_tuple_list(p):
                 "version": i[1],
             }
         r.append(i)
-    print(f"nachher: {r}")
     return r
 
 def _parameter_valuespec_lsbrelease():

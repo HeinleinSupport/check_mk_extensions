@@ -1,0 +1,12 @@
+{'author': 'Robert Sander <r.sander@heinlein-support.de>',
+ 'description': 'This extension adds a bakery plugin and WATO ruleset to '
+                'deploy the agent plugin mk_filehandler.\n',
+ 'download_url': 'https://github.com/HeinleinSupport/check_mk_extensions/tree/master/mk_filehandler_bakery',
+ 'files': {'lib': ['python3/cmk/base/cee/plugins/bakery/mk_filehandler.py'],
+           'web': ['plugins/wato/mk_filehandler_cee.py']},
+ 'name': 'mk_filehandler_bakery',
+ 'title': 'mk_filehandler Bakery Plugin',
+ 'version': '0.3.2',
+ 'version.min_required': '2.0.0b1',
+ 'version.packaged': '2.3.0p33',
+ 'version.usable_until': '2.4.0b1'}

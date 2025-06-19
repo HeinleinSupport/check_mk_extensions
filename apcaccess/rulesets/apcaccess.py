@@ -54,7 +54,6 @@ from cmk.rulesets.v1.rule_specs import (
 #.
 
 def _migrate_parameter(param):
-    print(f"Before (apcaccess): {param}")
     if "battery_capacity" in param:
         param["capacity"] = param["battery_capacity"]
         del(param["battery_capacity"])
@@ -64,7 +63,6 @@ def _migrate_parameter(param):
     for key in ["output_load", "voltage"]:
         if key in param:
             del(param[key])
-    print(f"After (apcaccess): {param}")
     return param
 
 def _parameter_valuespec_apcaccess():
@@ -94,7 +92,7 @@ def _parameter_valuespec_apcaccess():
         ignored_elements = ["upsname", "model"],
     )
 
-rule_spec_exchange_package = CheckParameters(
+rule_spec_apcaccess = CheckParameters(
     name="apcaccess",
     topic=Topic.ENVIRONMENTAL,
     parameter_form=_parameter_valuespec_apcaccess,

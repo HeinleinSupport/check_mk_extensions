@@ -15,19 +15,30 @@
 # to the Free Software Foundation, Inc., 51 Franklin St,  Fifth Floor,
 # Boston, MA 02110-1301 USA.
 
-from pathlib import Path
-from typing import Any, Dict
+from pathlib import Path # type: ignore
+from typing import Any, Dict # type: ignore
 
-from .bakery_api.v1 import FileGenerator, OS, Plugin, PluginConfig, register
+from cmk.base.plugins.bakery.bakery_api.v1 import (
+    FileGenerator,
+    OS,
+    Plugin,
+    PluginConfig,
+    register,
+)
 
 def get_mailman_queues_files(conf: Dict[str, Any]) -> FileGenerator:
-    yield Plugin(base_os=OS.LINUX,
-                 source=Path("mailman_queues"))
+    if conf.get("deploy"):
+        yield Plugin(
+            base_os=OS.LINUX,
+            source=Path("mailman_queues")
+        )
     if "queues" in conf:
-        yield PluginConf(base_os=OS.LINUX,
-                         lines=['QUEUES="%s"' % ' '.join(conf["queues"])],
-                         target=Path("mailman_queues"),
-                         include_header=True)
+        yield PluginConfig(
+            base_os=OS.LINUX,
+            lines=['QUEUES="%s"' % ' '.join(conf["queues"])],
+            target=Path("mailman_queues"),
+            include_header=True,
+        )
 
 register.bakery_plugin(
     name="mailman_queues",

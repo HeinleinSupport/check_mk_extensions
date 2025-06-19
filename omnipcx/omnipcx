@@ -6,7 +6,7 @@
            'mibs': ['A4400-CPU-MIB', 'A4400-RTM-MIB']},
  'name': 'omnipcx',
  'title': 'Alcatel-Lucent OmniPCX Enterprise',
- 'version': '0.1.0',
+ 'version': '0.1.1',
  'version.min_required': '2.3.0b1',
- 'version.packaged': '2.3.0p13',
+ 'version.packaged': '2.3.0p33',
  'version.usable_until': None}
