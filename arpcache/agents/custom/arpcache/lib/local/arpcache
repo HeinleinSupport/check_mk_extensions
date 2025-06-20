@@ -1,21 +1,49 @@
 #!/bin/bash
 
+#
+# (c) 2023 Heinlein Support GmbH
+#          Robert Sander <r.sander@heinlein-support.de>
+#
+
+# This is free software;  you can redistribute it and/or modify it
+# under the  terms of the  GNU General Public License  as published by
+# the Free Software Foundation in version 2.  This file is distributed
+# in the hope that it will be useful, but WITHOUT ANY WARRANTY;  with-
+# out even the implied warranty of  MERCHANTABILITY  or  FITNESS FOR A
+# PARTICULAR PURPOSE. See the  GNU General Public License for more de-
+# ails.  You should have  received  a copy of the  GNU  General Public
+# License along with GNU Make; see the file  COPYING.  If  not,  write
+# to the Free Software Foundation, Inc., 51 Franklin St,  Fifth Floor,
+# Boston, MA 02110-1301 USA.
+
 function count_neigh() {
   WARN=$( cat /proc/sys/net/ipv${family}/neigh/default/gc_thresh2 )
   CRIT=$( cat /proc/sys/net/ipv${family}/neigh/default/gc_thresh3 )
 
   echo -n "ipneigh_total=${COUNT};${WARN};${CRIT}"
 
-  awk '{print $(NF);}' <<<${IPNEIGH} | sort | uniq -c | tr '[:upper:]' '[:lower:]' | while read count nud; do
-    echo -n "|ipneigh_${nud}=${count}"
-  done
+  if [ -n "$IPNEIGH" ]; then
+
+    awk '{print $(NF);}' <<<${IPNEIGH} | sort | uniq -c | tr '[:upper:]' '[:lower:]' | while read count nud; do
+      echo -n "|ipneigh_${nud}=${count}"
+    done
+
+  fi
 }
 
 for family in 4 6; do
 
   IPNEIGH=$( ip -${family} neigh sh )
 
-  COUNT=$( wc -l <<<${IPNEIGH} )
+  if [ -n "$IPNEIGH" ]; then
+
+    COUNT=$( wc -l <<<${IPNEIGH} )
+
+  else
+
+    COUNT=0
+
+  fi
   
   echo "P \"Neighbors IPv${family}\" $(count_neigh) ${COUNT} Entries in ARP cache"
 

@@ -7,7 +7,7 @@
            'cmk_addons_plugins': ['arpcache/graphing/arpcache.py']},
  'name': 'arpcache',
  'title': 'ARP Cache Entries',
- 'version': '0.2.0',
+ 'version': '0.3.0',
  'version.min_required': '2.3.0b1',
  'version.packaged': '2.3.0p34',
  'version.usable_until': None}
