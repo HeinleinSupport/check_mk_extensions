@@ -92,21 +92,21 @@ newissue = {
     'description': get_description(context),
 }
 if 'PARAMETER_PROJECT' in context:
-    newissue['project'] = {'id': int(context['PARAMETER_PROJECT'])}
+    newissue['project'] = {'id': context['PARAMETER_PROJECT']}
 if 'CONTACT_JIRAPROJECT' in context:
-    newissue['project'] = {'id': int(context['CONTACT_JIRAPROJECT'])}
+    newissue['project'] = {'id': context['CONTACT_JIRAPROJECT']}
 if 'PARAMETER_ISSUETYPE' in context:
-    newissue['issuetype'] = {'id': int(context['PARAMETER_ISSUETYPE'])}
+    newissue['issuetype'] = {'id': context['PARAMETER_ISSUETYPE']}
 if 'CONTACT_JIRAISSUETYPE' in context:
-    newissue['issuetype'] = {'id': int(context['CONTACT_JIRAISSUETYPE'])}
+    newissue['issuetype'] = {'id': context['CONTACT_JIRAISSUETYPE']}
 if 'PARAMETER_PRIORITY' in context:
-    newissue['priority'] = {'id': int(context['PARAMETER_PRIORITY'])}
+    newissue['priority'] = {'id': context['PARAMETER_PRIORITY']}
 if 'CONTACT_JIRAPRIORITY' in context:
-    newissue['priority'] = {'id': int(context['CONTACT_JIRAPRIORITY'])}
-if 'PARAMETER_USERNAME' in context:
-    newissue['reporter'] = {'name': context['PARAMETER_USERNAME']}
-if 'CONTACT_JIRAUSER' in context:
-    newissue['reporter'] = {'name': context['CONTACT_JIRAUSER']}
+    newissue['priority'] = {'id': context['CONTACT_JIRAPRIORITY']}
+# if 'PARAMETER_USERNAME' in context:
+#     newissue['reporter'] = {'value': context['PARAMETER_USERNAME']}
+# if 'CONTACT_JIRAUSER' in context:
+#     newissue['reporter'] = {'value': context['CONTACT_JIRAUSER']}
 
 if context["WHAT"] == "HOST":
     custom_field = int(context["PARAMETER_HOST_CUSTOMID"])
@@ -118,7 +118,7 @@ newissue[f"customfield_{custom_field}"] = custom_field_value
 
 site_field = int(context["PARAMETER_SITE_CUSTOMID"])
 site_name = os.getenv("OMD_SITE")
-newissue[f"customfield_{site_field}"] = {"value": site_name}
+newissue[f"customfield_{site_field}"] = site_name
 
 # Additional custom field
 add_cfid = False
@@ -142,9 +142,8 @@ if 'issuetype' not in newissue:
     print("No JIRA issue type ID set")
     sys.exit(2)
 
-pprint(newissue)
-
-# sys.exit(0)
+# pprint(jira.priorities())
+# pprint(newissue)
 
 if context['NOTIFICATIONTYPE'] == 'PROBLEM':
     try:
@@ -169,7 +168,7 @@ if context['NOTIFICATIONTYPE'] == 'PROBLEM':
             sys.exit(0)
         print('Created JIRA simple link: %s' % rl)
 elif context['NOTIFICATIONTYPE'] == 'RECOVERY':
-    query = 'resolution is EMPTY AND project = "%s" AND issuetype = "%s" AND labels = "%s" AND cf[%d] = %d AND cf[%d] = "%s"' % (
+    query = 'resolution is EMPTY AND project = "%s" AND issuetype = "%s" AND labels = "%s" AND cf[%d] = %d AND cf[%d] ~ "%s"' % (
         newissue['project']['id'],
         newissue['issuetype']['id'],
         ",".join(newissue['labels']),
@@ -178,7 +177,7 @@ elif context['NOTIFICATIONTYPE'] == 'RECOVERY':
         site_field,
         site_name,
         )
-    print("JIRA query: '%s'" % query)
+    # print("JIRA query: '%s'" % query)
 
     resolution = None
     if 'PARAMETER_RESOLUTION' in context:
@@ -198,7 +197,7 @@ elif context['NOTIFICATIONTYPE'] == 'RECOVERY':
 
     for issue in issues:
         try:
-            jira.transition_issue(issue, resolution, comment=newissue['description'])
+            jira.transition_issue(issue=issue, transition=resolution, comment=newissue['description'])
             print('Resolved %s' % issue.permalink())
         except JIRAError as err:
             print('Unable to resolve %s, JIRA response code %s, %s' % (issue.permalink(), err.status_code, err.text))

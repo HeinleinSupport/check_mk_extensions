@@ -2,11 +2,11 @@
  'description': 'Create a JIRA ticket upon PROBLEM notification\n'
                 'Close the JIRA ticket upon RECOVERY notification\n',
  'download_url': 'https://github.com/HeinleinSupport/check_mk_extensions/',
- 'files': {'notifications': ['jira_heinlein'],
-           'web': ['plugins/wato/jira_heinlein.py']},
+ 'files': {'cmk_addons_plugins': ['jira_heinlein/rulesets/jira_heinlein.py'],
+           'notifications': ['jira_heinlein']},
  'name': 'jira_heinlein',
  'title': 'JIRA Notifications (Heinlein)',
- 'version': '0.7.0',
- 'version.min_required': '2.0.0b1',
+ 'version': '0.9.0',
+ 'version.min_required': '2.3.0b1',
  'version.packaged': '2.3.0p33',
  'version.usable_until': None}
