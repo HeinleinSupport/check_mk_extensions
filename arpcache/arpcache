@@ -1,0 +1,13 @@
+{'author': 'Robert Sander <r.sander@heinlein-support.de>',
+ 'description': 'This Local Check counts the number of ARP entries in the '
+                'neighbor cache and compres it with gc_thresh2 and gc_thresh3. '
+                'Too many entries can reduce network performance.\n',
+ 'download_url': 'https://github.com/HeinleinSupport/check_mk_extensions',
+ 'files': {'agents': ['custom/arpcache/lib/local/arpcache'],
+           'cmk_addons_plugins': ['arpcache/graphing/arpcache.py']},
+ 'name': 'arpcache',
+ 'title': 'ARP Cache Entries',
+ 'version': '0.2.0',
+ 'version.min_required': '2.3.0b1',
+ 'version.packaged': '2.3.0p34',
+ 'version.usable_until': None}
