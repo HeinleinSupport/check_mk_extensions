@@ -34,31 +34,26 @@
 
 # Common Name,Real Address,Bytes Received,Bytes Sent,Connected Since
 
-from .agent_based_api.v1.type_defs import (
+
+from cmk.agent_based.v2 import (
+    AgentSection,
+    CheckPlugin,
     CheckResult,
     DiscoveryResult,
-)
-
-from .agent_based_api.v1 import (
     get_rate,
     get_value_store,
-    register,
-    render,
     Metric,
+    render,
     Result,
-    State,
     Service,
-    )
+    State,
+    StringTable,
+)
 
 import time
 
-from cmk.utils import debug
-from pprint import pprint
-
-def parse_openvpn_clients(string_table):
+def parse_openvpn_clients(string_table: StringTable):
     section = {}
-    if debug.enabled():
-        pprint(string_table)
 
     insta = 'default'
     for line in string_table:
@@ -74,18 +69,14 @@ def parse_openvpn_clients(string_table):
                 'tx': int(line[3]),
                 'since': line[4],
             }
-
-    if debug.enabled():
-        pprint(section)
-
     return section
 
-def discovery_openvpn_clients(section):
+def discovery_openvpn_clients(section) -> DiscoveryResult:
     for insta in section:
         for cn in section[insta]:
             yield Service(item="%s %s" % (insta, cn))
 
-def check_openvpn_clients(item, section):
+def check_openvpn_clients(item: str, section) -> CheckResult:
     insta, cn = item.split(' ')
     if insta in section:
         if cn in section[insta]:
@@ -106,7 +97,7 @@ def check_openvpn_clients(item, section):
         yield Result(state=State.UNKNOWN,
                      summary="Instance not found")
 
-def cluster_openvpn_clients(item, section):
+def cluster_openvpn_clients(item, section) -> CheckResult:
     insta, cn = item.split(' ')
     any_running = any(insta in node_section and cn in node_section[insta] for node_section in section.values())
     for node, node_section in section.items():
@@ -117,28 +108,28 @@ def cluster_openvpn_clients(item, section):
         yield Result(state=State.OK,
                      summary="Channel is down")
 
-def discovery_openvpn_instance(section):
+def discovery_openvpn_instance(section) -> DiscoveryResult:
     for insta in section:
         yield Service(item=insta)
 
-def check_openvpn_instance(item, section):
+def check_openvpn_instance(item, section) -> CheckResult:
     if item in section:
         count = len(section[item].keys())
         yield Result(state=State.OK,
                      summary="%d active users" % count)
         yield Metric("active_vpn_users", count)
 
-def cluster_openvpn_instance(item, section):
+def cluster_openvpn_instance(item, section) -> CheckResult:
     for node_section in section.values():
         if item in node_section:
             yield from check_openvpn_instance(item, node_section)
 
-register.agent_section(
+agent_section_openvpn_clients = AgentSection(
     name="openvpn_clients",
     parse_function=parse_openvpn_clients,
 )
 
-register.check_plugin(
+check_plugin_openvpn_clients = CheckPlugin(
     name="openvpn_clients",
     service_name="OpenVPN Client %s",
     sections=["openvpn_clients"],
@@ -147,7 +138,7 @@ register.check_plugin(
     cluster_check_function=cluster_openvpn_clients,
 )
 
-register.check_plugin(
+check_plugin_openvpn_instance = CheckPlugin(
     name="openvpn_instance",
     service_name="OpenVPN Instance %s",
     sections=["openvpn_clients"],
