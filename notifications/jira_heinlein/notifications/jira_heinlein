@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 # JIRA (Heinlein)
-# -*- encoding: utf-8; py-indent-offset: 4 -*-
+# Bulk: no
 
 # (c) 2018 Heinlein Support GmbH
 #          Robert Sander <r.sander@heinlein-support.de>
@@ -80,10 +80,15 @@ if notfound:
     sys.stderr.write("%s not set" % ",".join(notfound))
     sys.exit(2)
 
-jira = JIRA(server=context['PARAMETER_URL'], basic_auth=(context['PARAMETER_USERNAME'], context['PARAMETER_PASSWORD']))
+password = utils.retrieve_from_passwordstore(context['PARAMETER_PASSWORD'])
 
-if len(sys.argv) > 1 and sys.argv[1] == '-f':
-    pprint(jira.createmeta_issuetypes(projectIdOrKey=context['PARAMETER_PROJECT']))
+jira = JIRA(server=context['PARAMETER_URL'], basic_auth=(context['PARAMETER_USERNAME'], password))
+
+if len(sys.argv) > 1:
+    if sys.argv[1] == '-f':
+        pprint(jira.createmeta_issuetypes(projectIdOrKey=context['PARAMETER_PROJECT']))
+    if sys.argv[1] == '-p':
+        pprint(jira.priorities())
     sys.exit()
 
 newissue = {
@@ -116,9 +121,10 @@ else:
     custom_field_value = int(context["SERVICEPROBLEMID"])
 newissue[f"customfield_{custom_field}"] = custom_field_value
 
-site_field = int(context["PARAMETER_SITE_CUSTOMID"])
-site_name = os.getenv("OMD_SITE")
-newissue[f"customfield_{site_field}"] = site_name
+if "PARAMETER_SITE_CUSTOMID" in context:
+    site_field = int(context["PARAMETER_SITE_CUSTOMID"])
+    site_name = os.getenv("OMD_SITE")
+    newissue[f"customfield_{site_field}"] = site_name
 
 # Additional custom field
 add_cfid = False
@@ -142,7 +148,6 @@ if 'issuetype' not in newissue:
     print("No JIRA issue type ID set")
     sys.exit(2)
 
-# pprint(jira.priorities())
 # pprint(newissue)
 
 if context['NOTIFICATIONTYPE'] == 'PROBLEM':
@@ -153,16 +158,19 @@ if context['NOTIFICATIONTYPE'] == 'PROBLEM':
         sys.exit(2)
     print('Created %s' % issue.permalink())
     if 'PARAMETER_MONITORING' in context:
-        if context['PARAMETER_MONITORING'].endswith('/'):
+        url = context['PARAMETER_MONITORING']
+        if url.endswith('/'):
             # remove trailing slash
-            context['PARAMETER_MONITORING'] = context['PARAMETER_MONITORING'][:-1]
+            url = url[:-1]
         if context['WHAT'] == 'SERVICE':
-            url = context['PARAMETER_MONITORING'] + context['SERVICEURL']
+            url += context['SERVICEURL']
         else:
-            url = context['PARAMETER_MONITORING'] + context['HOSTURL']
+            url += context['HOSTURL']
         try:
-            rl = jira.add_simple_link(issue, {'url': url,
-                                              'title': 'Monitoring'})
+            rl = jira.add_simple_link(issue, {
+                'url': url,
+                'title': 'Monitoring'}
+                )
         except JIRAError as err:
             print('Unable to create link in issue, JIRA response code %s, %s' % (err.status_code, err.text))
             sys.exit(0)
@@ -176,7 +184,7 @@ elif context['NOTIFICATIONTYPE'] == 'RECOVERY':
         custom_field_value,
         site_field,
         site_name,
-        )
+    )
     # print("JIRA query: '%s'" % query)
 
     resolution = None
@@ -201,3 +209,5 @@ elif context['NOTIFICATIONTYPE'] == 'RECOVERY':
             print('Resolved %s' % issue.permalink())
         except JIRAError as err:
             print('Unable to resolve %s, JIRA response code %s, %s' % (issue.permalink(), err.status_code, err.text))
+
+# -*- encoding: utf-8; py-indent-offset: 4 -*-
