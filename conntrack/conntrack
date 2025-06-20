@@ -1,0 +1,10 @@
+{'author': 'Robert Sander <r.sander@heinlein-support.de>',
+ 'description': 'Local Check to check the connection tracking usage on Linux\n',
+ 'download_url': 'https://github.com/HeinleinSupport/check_mk_extensions/tree/master/conntrack',
+ 'files': {'agents': ['custom/conntrack/lib/local/conntrack']},
+ 'name': 'conntrack',
+ 'title': 'Connection Tracking Statistics',
+ 'version': '1.0.0',
+ 'version.min_required': '1.4.0',
+ 'version.packaged': '2.3.0p34',
+ 'version.usable_until': None}
