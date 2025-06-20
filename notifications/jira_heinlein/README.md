@@ -2,13 +2,6 @@
 
 The JIRA notification plugin talks to a JIRA instance via its API to create issues when notifications are created. It closes the issue as soon as the monitered state is OK again.
 
-To do this it needs two custom fields in the issue type that gets used:
-
-* `monitoring-host` for the hostname
-* `monitoring-service` for the service description
-
-If both custom fields do not exist, the automatic issue resolution will not work.
-
 # Prerequisites #
 
 The notification plugin needs the JIRA Python module. This module has to be installed by running
