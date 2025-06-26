@@ -6,16 +6,55 @@
 #
 
 import sys
-import argparse
+import argparse # type: ignore
 import checkmkapi
-import csv
-from pprint import pprint
+import csv # type: ignore
+from pprint import pprint # type: ignore
 
 parser = argparse.ArgumentParser()
 parser.add_argument('-s', '--url', help='URL to Check_MK site')
 parser.add_argument('-u', '--username', help='name of the automation user')
 parser.add_argument('-p', '--password', help='secret of the automation user')
 parser.add_argument('-D', '--debug', action='store_true', required=False)
+
+def render_label_groups(label_groups) -> str:
+    overall_string = ""
+
+    is_first_group: bool = True
+    for lg in label_groups:
+        group_op = lg["operator"]
+        label_group = lg["label_group"]
+        group_string = ""
+
+        # Render group operator
+        if not is_first_group:
+            group_op_str = "and not" if group_op == "not" else group_op  # prepend "not" with "and "
+            overall_string += " " + group_op_str + " "
+
+        group_string += "["  # open group
+
+        is_first_label: bool = True
+        for l in label_group:
+            label_op = l["operator"]
+            label = l["label"]
+            if not label:
+                continue
+
+            # Render label operator
+            if not is_first_label or label_op == "not":
+                # Prepend "not" with "and " if the current is not the first label
+                label_op_str = "and not" if (not is_first_label and label_op == "not") else label_op
+                group_string += " " + label_op_str + " "
+
+            # Render single label
+            group_string += label
+            is_first_label = False
+
+        group_string += "]"  # close group
+        overall_string += group_string
+        is_first_group = False
+
+    return overall_string
 
 args = parser.parse_args()
 
@@ -60,7 +99,6 @@ for ruleset in rulesets.get('value', []):
 
         conditions = ruleinfo.get('conditions', {})
 
-        hostlabels = conditions.get('host_labels', [])
         hosttags = []
         for hosttag in conditions.get('host_tags', []):
             match hosttag['operator']:
@@ -72,7 +110,18 @@ for ruleset in rulesets.get('value', []):
                     hosttags.append("%s is one of %s" % (hosttag['key'], " or ".join(hosttag['value'])))
                 case 'none_of':
                     hosttags.append("%s is none of %s" % (hosttag['key'], " or ".join(hosttag['value'])))
+        hostlabels = conditions.get('host_labels', [])
+        if hostlabels:
+            hostlabelstring = " and ".join(map(lambda x: "%s%s:%s" % (("not " if x['operator'] == 'is_not' else ""), x['key'], x['value']), hostlabels))
+        else:
+            hostlabelstring = render_label_groups(conditions.get("host_label_groups", []))
+
         servicelabels = conditions.get('service_labels', [])
+        if servicelabels:
+            servicelabelstring = " and ".join(map(lambda x: "%s%s:%s" % (("not " if x['operator'] == 'is_not' else ""), x['key'], x['value']), servicelabels))
+        else:
+            servicelabelstring = render_label_groups(conditions.get("service_label_groups", []))
+
         hostname = conditions.get('host_name', {})
         servicedesc = conditions.get('service_description', {})
         
@@ -85,8 +134,8 @@ for ruleset in rulesets.get('value', []):
             ruleproperties.get('documentation_url'),
             ruleinfo.get('folder'),
             " and ".join(hosttags),
-            " and ".join(map(lambda x: "%s%s:%s" % (("not " if x['operator'] == 'is_not' else ""), x['key'], x['value']), hostlabels)),
-            " and ".join(map(lambda x: "%s%s:%s" % (("not " if x['operator'] == 'is_not' else ""), x['key'], x['value']), servicelabels)),
+            hostlabelstring,
+            servicelabelstring,
             "%s%s" % ("not " if hostname.get('operator') == 'none_of' else '', " or ".join(hostname.get('match_on', []))),
             "%s%s" % ("not " if servicedesc.get('operator') == 'none_of' else '', " or ".join(servicedesc.get('match_on', []))),
             ruleinfo.get('value_raw'),
