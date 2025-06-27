@@ -90,6 +90,7 @@ def discover_sslcertificates(params, section: SSLCertificatesSection) -> Discove
         return value
 
     label_map = {
+        'subj': 'sslcertificates/subject',
         'issuer_hash': 'sslcertificates/issuer_hash',
         'issuer': 'sslcertificates/issuer',
         'algosign': 'sslcertificates/algorithm',
