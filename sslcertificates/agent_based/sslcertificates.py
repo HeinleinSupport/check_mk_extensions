@@ -84,19 +84,28 @@ agent_section_sslcertificates = AgentSection(
 
 
 def discover_sslcertificates(params, section: SSLCertificatesSection) -> DiscoveryResult:
+    def cleanup_label(value):
+        if isinstance(value, str):
+            return value.replace(":", "")
+        return value
+
+    label_map = {
+        'issuer_hash': 'sslcertificates/issuer_hash',
+        'issuer': 'sslcertificates/issuer',
+        'algosign': 'sslcertificates/algorithm',
+        'template': 'sslcertificates/template',
+    }
+
     for name, data in section.items():
         if 'min_lifetime' in params and 'starts' in data:
             if data['expires'] - data['starts'] < params['min_lifetime']:
                 continue
+
         sl = []
-        if data.get('issuer_hash'):
-            sl.append(ServiceLabel(u'sslcertificates/issuer_hash', data['issuer_hash']))
-        if data.get('issuer'):
-            sl.append(ServiceLabel(u'sslcertificates/issuer', data['issuer']))
-        if data.get('algosign'):
-            sl.append(ServiceLabel(u'sslcertificates/algorithm', data['algosign']))
-        if data.get('template'):
-            sl.append(ServiceLabel(u'sslcertificates/template', data['template']))
+        for key, label in label_map.items():
+            val = data.get(key)
+            if val:
+                sl.append(ServiceLabel(label, cleanup_label(val)))
         yield Service(item=name, labels=sl)
 
 def check_sslcertificates(item: str, params, section: SSLCertificatesSection) -> CheckResult:
