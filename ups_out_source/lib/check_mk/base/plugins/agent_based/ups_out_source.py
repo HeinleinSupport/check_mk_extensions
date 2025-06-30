@@ -12,26 +12,22 @@
 # to the Free Software Foundation, Inc., 51 Franklin St,  Fifth Floor,
 # Boston, MA 02110-1301 USA.
 
-from .agent_based_api.v1 import (
-    register,
+from cmk.agent_based.v2 import (
+    CheckPlugin,
     Result,
     Service,
+    SimpleSNMPSection,
     SNMPTree,
     State,
 )
-from .agent_based_api.v1.type_defs import (
-    CheckResult,
-    DiscoveryResult,
-    StringTable,
-)
-from .utils.ups import DETECT_UPS_GENERIC
+from cmk.plugins.lib.ups import DETECT_UPS_GENERIC
 
-def parse_ups_out_source(string_table: StringTable) -> StringTable:
+def parse_ups_out_source(string_table):
     if string_table:
         return { 'info': string_table[0][0] }
     return None
 
-register.snmp_section(
+snmp_section_ups_out_source = SimpleSNMPSection(
     name="ups_out_source",
     detect=DETECT_UPS_GENERIC,
     parse_function=parse_ups_out_source,
@@ -41,10 +37,10 @@ register.snmp_section(
     ),
 )
 
-def discover_ups_out_source(section: StringTable) -> DiscoveryResult:
+def discover_ups_out_source(section):
     yield Service()
 
-def check_ups_out_source(section: StringTable) -> CheckResult:
+def check_ups_out_source(section):
     map_source = {
         "1": (State.WARN, "Other"),
         "2": (State.CRIT, "None"),
@@ -60,8 +56,9 @@ def check_ups_out_source(section: StringTable) -> CheckResult:
     yield Result(state=state,
                  summary="Output source is %s" % text)
 
-register.check_plugin(
+check_plugin_ups_out_source = CheckPlugin(
     name='ups_out_source',
+    sections=['ups_out_source'],
     service_name="OUT source",
     discovery_function=discover_ups_out_source,
     check_function=check_ups_out_source,
