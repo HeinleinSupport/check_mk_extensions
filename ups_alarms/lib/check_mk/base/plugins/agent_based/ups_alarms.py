@@ -49,17 +49,18 @@
 #               reflected by the value of upsAlarmsPresent."
 #       ::= { upsAlarm 2 }
 
-from .agent_based_api.v1 import (
+from cmk.agent_based.v2 import (
+    CheckPlugin,
     any_of,
     contains,
-    register,
     render,
     Result,
     Service,
     SNMPTree,
+    SNMPSection,
     State,
 )
-from .utils.ups import DETECT_UPS_GENERIC
+from cmk.plugins.lib.ups import DETECT_UPS_GENERIC
 
 def parse_snmp_uptime(ticks):
     if len(ticks) < 3:
@@ -117,7 +118,7 @@ def parse_ups_alarms(string_table):
 
     return section
 
-register.snmp_section(
+snmp_section_ups_alarms = SNMPSection(
     name="ups_alarms",
     detect=any_of(
         DETECT_UPS_GENERIC,
@@ -153,7 +154,7 @@ def check_ups_alarms(section_ups_alarms, section_uptime):
         yield Result(state=State.OK,
                      summary="No Alarms present")
 
-register.check_plugin(
+check_plugin_ups_alarms = CheckPlugin(
     name='ups_alarms',
     sections=['ups_alarms', 'uptime'],
     service_name="UPS Alarms",
