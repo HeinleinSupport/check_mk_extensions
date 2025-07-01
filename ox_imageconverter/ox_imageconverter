@@ -1,0 +1,16 @@
+{'author': 'Robert Sander <r.sander@heinlein-support.de>',
+ 'description': 'Uses '
+                '/opt/open-xchange/imageconverter/sbin/imageconverter-admin to '
+                'fetch image converter cache related metrics.\n',
+ 'download_url': 'https://github.com/HeinleinSupport/check_mk_extensions',
+ 'files': {'agents': ['plugins/ox_imageconverter'],
+           'cmk_addons_plugins': ['ox_imageconverter/agent_based/ox_imageconverter.py',
+                                  'ox_imageconverter/graphing/ox_imageconverter.py',
+                                  'ox_imageconverter/rulesets/ox_imageconverter.py'],
+           'lib': ['python3/cmk/base/cee/plugins/bakery/ox_imageconverter.py']},
+ 'name': 'ox_imageconverter',
+ 'title': 'Open-Xchange ImageConverter',
+ 'version': '1.0.0',
+ 'version.min_required': '2.3.0b1',
+ 'version.packaged': '2.3.0p34',
+ 'version.usable_until': None}
