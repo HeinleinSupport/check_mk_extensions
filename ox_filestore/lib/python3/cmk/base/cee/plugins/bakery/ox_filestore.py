@@ -15,21 +15,45 @@
 # to the Free Software Foundation, Inc., 51 Franklin St,  Fifth Floor,
 # Boston, MA 02110-1301 USA.
 
-from pathlib import Path
-from typing import Any, Dict
+from pathlib import Path # type: ignore
+from typing import Any, Dict # type: ignore
 
-from .bakery_api.v1 import FileGenerator, OS, Plugin, PluginConfig, register
+from cmk.base.plugins.bakery.bakery_api.v1 import (
+    FileGenerator,
+    OS,
+    password_store,
+    Plugin,
+    PluginConfig,
+    register,
+)
+
+def _lookup_for_bakery(pw_id: str) -> str:
+    return password_store.lookup(password_store.password_store_path(), pw_id)
+
+def _get_password(v):
+    if isinstance(v, tuple):
+        if v[0] == "cmk_postprocessed":
+            if v[1] == "explicit_password":
+                return v[2][1]
+            if v[1] == "stored_password":
+                return _lookup_for_bakery(v[2][0])
+    return None
 
 def get_ox_filestore_files(conf: Dict[str, Any]) -> FileGenerator:
-    yield Plugin(base_os=OS.LINUX,
-                 source=Path("ox_filestore"))
-    yield PluginConfig(base_os=OS.LINUX,
-                       lines=[
-                           'OX_ADMIN_MASTER="%s"' % conf.get('username'),
-                           'OX_ADMIN_MASTER_PASSWORD="%s"' % conf.get('password'),
-                       ],
-                       target=Path("ox_filestore"),
-                       include_header=True)
+    if conf.get("deploy"):
+        yield Plugin(
+            base_os=OS.LINUX,
+            source=Path("ox_filestore")
+        )
+        yield PluginConfig(
+            base_os=OS.LINUX,
+            lines=[
+                'OX_ADMIN_MASTER="%s"' % conf.get('username'),
+                'OX_ADMIN_MASTER_PASSWORD="%s"' % _get_password(conf.get('password')),
+            ],
+            target=Path("ox_filestore"),
+            include_header=True
+        )
 
 register.bakery_plugin(
     name="ox_filestore",
