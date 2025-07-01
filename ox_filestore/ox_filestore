@@ -1,0 +1,15 @@
+{'author': 'Robert Sander <r.sander@heinlein-support.de>',
+ 'description': 'The agent + check plugin ox_filestore checks for reserved and '
+                'used space in OpenXchange file stores.\n',
+ 'download_url': 'https://github.com/HeinleinSupport/check_mk_extensions/tree/master/ox_filestore',
+ 'files': {'agents': ['plugins/ox_filestore'],
+           'cmk_addons_plugins': ['ox_filestore/agent_based/ox_filestore.py',
+                                  'ox_filestore/rulesets/ox_filestore.py',
+                                  'ox_filestore/rulesets/ox_filestore_cee.py'],
+           'lib': ['python3/cmk/base/cee/plugins/bakery/ox_filestore.py']},
+ 'name': 'ox_filestore',
+ 'title': 'Open-Xchange Filestores',
+ 'version': '5.0.0',
+ 'version.min_required': '2.3.0b1',
+ 'version.packaged': '2.3.0p34',
+ 'version.usable_until': None}
