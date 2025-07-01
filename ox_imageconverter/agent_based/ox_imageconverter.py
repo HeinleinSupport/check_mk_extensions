@@ -15,32 +15,23 @@
 # to the Free Software Foundation, Inc., 51 Franklin St,  Fifth Floor,
 # Boston, MA 02110-1301 USA.
 
-from .agent_based_api.v1.type_defs import (
+from cmk.agent_based.v2 import (
+    AgentSection,
+    check_levels,
+    CheckPlugin,
     CheckResult,
     DiscoveryResult,
-)
-
-from .agent_based_api.v1 import (
-    check_levels,
-    check_levels_predictive,
     get_rate,
     get_value_store,
-    register,
     render,
     Metric,
     Result,
     State,
     Service,
-    )
-
-from .utils import memory
+)
 
 import json
 import time
-import hashlib
-
-from cmk.utils import debug
-from pprint import pprint
 
 def _render_requests(v):
     return "%0.3f requests/s" % v
@@ -67,11 +58,9 @@ def parse_ox_imageconverter(string_table):
         section = data.get('metrics', {})
         section['status'] = data.get('status')
 
-    if debug.enabled():
-        pprint(section)
     return section
 
-register.agent_section(
+agent_section_ox_imageconverter = AgentSection(
     name="ox_imageconverter",
     parse_function=parse_ox_imageconverter,
 )
@@ -81,9 +70,6 @@ def discover_ox_imageconverter_cache(section) -> DiscoveryResult:
         yield Service()
 
 def check_ox_imageconverter_cache(params, section) -> CheckResult:
-    if debug.enabled():
-        pprint(params)
-    
     vs = get_value_store()
     now = time.time()
     for key in _cache_attrs.keys():
@@ -111,7 +97,7 @@ def check_ox_imageconverter_cache(params, section) -> CheckResult:
                 yield Result(state=State.OK,
                              notice='%s: %s' % (attrs['desc'], attrs.get('render', lambda x: str(x))(value)))
 
-register.check_plugin(
+check_plugin_ox_imageconverter_cache = CheckPlugin(
     name="ox_imageconverter_cache",
     service_name="OX ImageConverter Cache",
     sections=["ox_imageconverter"],
@@ -119,10 +105,9 @@ register.check_plugin(
     check_function=check_ox_imageconverter_cache,
     check_ruleset_name="ox_imageconverter_cache",
     check_default_parameters={
-        'CacheHitRatio': { 'lower': (60, 40) },
-        'CacheKeyCount': { 'upper': (90000, 100000) },
-        'CacheSize': { 'lower': (10737418240, 0), 'upper': (32212254720, 42949672960) },
-        'MedianKeyProcessTimeMillis': { 'upper': (10, None) },
+        'CacheHitRatio': { 'lower': ("fixed", (60, 40)) },
+        'CacheKeyCount': { 'upper': ("fixed", (90000, 100000)) },
+        'CacheSize': { 'lower': ("fixed", (10737418240, 0)), 'upper': ("fixed", (32212254720, 42949672960)) },
+        'MedianKeyProcessTimeMillis': { 'upper': ("fixed", (10, 1000000)) },
     },
 )
-

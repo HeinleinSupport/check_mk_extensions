@@ -15,60 +15,83 @@
 # to the Free Software Foundation, Inc., 51 Franklin St,  Fifth Floor,
 # Boston, MA 02110-1301 USA.
 
-from cmk.gui.i18n import _
+from cmk.graphing.v1 import Title, graphs, metrics
 
-from cmk.gui.plugins.metrics import (
-    metric_info,
-    graph_info,
+UNIT_BYTES = metrics.Unit(metrics.IECNotation('B'))
+UNIT_NUMBER = metrics.Unit(metrics.DecimalNotation(''))
+UNIT_PER_SECOND = metrics.Unit(metrics.DecimalNotation('/s'))
+
+metric_cache_key_count = metrics.Metric(
+    name='cache_key_count',
+    title=Title("Cache Key Count"),
+    unit=UNIT_NUMBER,
+    color=metrics.Color.PURPLE,
+)
+metric_cache_size = metrics.Metric(
+    name='cache_size',
+    title=Title("Cache Size"),
+    unit=UNIT_BYTES,
+    color=metrics.Color.DARK_PURPLE,
+)
+metric_peak_key_count_background = metrics.Metric(
+    name='peak_key_count_background',
+    title=Title("Peak Key Count Background"),
+    unit=UNIT_NUMBER,
+    color=metrics.Color.DARK_PINK,
+)
+metric_peak_key_count_instant = metrics.Metric(
+    name='peak_key_count_instant',
+    title=Title("Peak Key Count Instant"),
+    unit=UNIT_NUMBER,
+    color=metrics.Color.ORANGE,
+)
+metric_peak_key_count_medium = metrics.Metric(
+    name='peak_key_count_medium',
+    title=Title("Peak Key Count Medium"),
+    unit=UNIT_NUMBER,
+    color=metrics.Color.ORANGE,
+)
+metric_requests_cached_images = metrics.Metric(
+    name='requests_cached_images',
+    title=Title("Requests for cached Images"),
+    unit=UNIT_PER_SECOND,
+    color=metrics.Color.DARK_PINK,
+)
+metric_requests_noncached_images = metrics.Metric(
+    name='requests_noncached_images',
+    title=Title("Requests for non-cached Images"),
+    unit=UNIT_PER_SECOND,
+    color=metrics.Color.PINK,
+)
+# metric_requests_noncached_images = metrics.Metric(
+#     name='requests_per_second',
+#     title=Title("Requests per second"),
+#     unit=UNIT_PER_SECOND,
+#     color=metrics.Color.GRAY,
+# )
+
+graph_ox_imageconverter_cache_requests = graphs.Graph(
+    name='ox_imageconverter_cache_requests',
+    title=Title("Cache Requests"),
+    simple_lines=[
+        'requests_per_sec',
+        'requests_noncached_images',
+        'requests_cached_images',
+    ],
 )
 
-metric_info["cache_size"] = {
-    "title" : _("Cache Size"),
-    "unit"  : "bytes",
-    "color" : "11/a",
-}
 
-metric_info["cache_key_count"] = {
-    "title" : _("Cache Key Count"),
-    "unit"  : "",
-    "color" : "11/b",
-}
 
-metric_info["requests_cached_images"] = {
-    "title" : _("Requests for cached Images"),
-    "unit"  : "1/s",
-    "color" : "12/a",
-}
 
-metric_info["requests_noncached_images"] = {
-    "title" : _("Requests for non-cached Images"),
-    "unit"  : "1/s",
-    "color" : "12/b",
-}
 
-metric_info["peak_key_count_background"] = {
-    "title" : _("Peak Key Count Background"),
-    "unit"  : "",
-    "color" : "13/a",
-}
 
-metric_info["peak_key_count_instant"] = {
-    "title" : _("Peak Key Count Instant"),
-    "unit"  : "",
-    "color" : "14/a",
-}
 
-metric_info["peak_key_count_medium"] = {
-    "title" : _("Peak Key Count Medium"),
-    "unit"  : "",
-    "color" : "15/a",
-}
 
-graph_info["ox_imageconverter_cache_requests"] = {
-    "title"  : _("Cache Requests"),
-    "metrics": [
-        ("requests_per_sec", "line"),
-        ("requests_noncached_images", "line"),
-        ("requests_cached_images", "line"),
-    ],
-}
+# graph_info["ox_imageconverter_cache_requests"] = {
+#     "title"  : _("Cache Requests"),
+#     "metrics": [
+#         ("requests_per_sec", "line"),
+#         ("requests_noncached_images", "line"),
+#         ("requests_cached_images", "line"),
+#     ],
+# }
