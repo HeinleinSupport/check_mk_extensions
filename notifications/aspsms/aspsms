@@ -1,0 +1,15 @@
+{'author': 'Robert Sander <r.sander@heinlein-support.de>',
+ 'description': 'This is a notification plugin to send pager messages (SMS) '
+                'via ASPSMS.com.\n'
+                '\n'
+                'You need a paid account at their service and the userkey and '
+                'api password for the configuration of this notification '
+                'method.\n',
+ 'download_url': 'https://github.com/HeinleinSupport/check_mk_extensions/',
+ 'files': {'notifications': ['aspsms'], 'web': ['plugins/wato/aspsms.py']},
+ 'name': 'aspsms',
+ 'title': 'SMS Notification Plugin for ASPSMS.com',
+ 'version': '1.2.1',
+ 'version.min_required': '1.2.8',
+ 'version.packaged': '2.3.0p34',
+ 'version.usable_until': None}

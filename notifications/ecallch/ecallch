@@ -1,0 +1,14 @@
+{'author': 'Robert Sander <r.sander@heinlein-support.de>',
+ 'description': 'Notification plugin to send text messages via ecall.ch\n'
+                '\n'
+                'You need an account with username and password and need to '
+                'have the HTTP API unlocked by the service.\n'
+                'Uses the new Web-API since August 1st, 2020.\n',
+ 'download_url': 'https://github.com/HeinleinSupport/check_mk_extensions/',
+ 'files': {'notifications': ['ecallch'], 'web': ['plugins/wato/ecallch.py']},
+ 'name': 'ecallch',
+ 'title': 'SMS Notification Plugin for ecall.ch',
+ 'version': '2.1.1',
+ 'version.min_required': '1.2.8',
+ 'version.packaged': '2.3.0p34',
+ 'version.usable_until': None}

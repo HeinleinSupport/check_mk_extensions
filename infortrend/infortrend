@@ -1,0 +1,24 @@
+{'author': 'Robert Sander <r.sander@heinlein-support.de>',
+ 'description': 'plugin for Infortrend EonStor and IFT\n'
+                '\n'
+                '- fixed wrong scan function oid of checks chassis and '
+                'ldrives\n'
+                '- ldrives: added logical drive status 64\n'
+                '- disks: changed disk status 63 from rc 2 to 0\n'
+                '- added IFT MIB 1.4 checks\n'
+                '- reworked plugin interface to be compatible with checkmk '
+                '2.3.x\n',
+ 'download_url': 'https://github.com/HeinleinSupport/check_mk_extensions/',
+ 'files': {'checks': ['infortrend_chassis',
+                      'infortrend_disks',
+                      'infortrend_ldrives',
+                      'infortrend_chassis1',
+                      'infortrend_disks1',
+                      'infortrend_ldrives1'],
+           'mibs': ['IFT-SNMP-MIB.mib']},
+ 'name': 'infortrend',
+ 'title': 'Infortrend storage array plugin',
+ 'version': '5.0.2',
+ 'version.min_required': '2.3.0b1',
+ 'version.packaged': '2.3.0p34',
+ 'version.usable_until': None}
