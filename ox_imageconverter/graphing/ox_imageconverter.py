@@ -19,7 +19,7 @@ from cmk.graphing.v1 import Title, graphs, metrics
 
 UNIT_BYTES = metrics.Unit(metrics.IECNotation('B'))
 UNIT_NUMBER = metrics.Unit(metrics.DecimalNotation(''))
-UNIT_PER_SECOND = metrics.Unit(metrics.DecimalNotation('/s'))
+REQUESTS_PER_SECOND = metrics.Unit(metrics.DecimalNotation('1/s'))
 
 metric_cache_key_count = metrics.Metric(
     name='cache_key_count',
@@ -54,44 +54,22 @@ metric_peak_key_count_medium = metrics.Metric(
 metric_requests_cached_images = metrics.Metric(
     name='requests_cached_images',
     title=Title("Requests for cached Images"),
-    unit=UNIT_PER_SECOND,
+    unit=REQUESTS_PER_SECOND,
     color=metrics.Color.DARK_PINK,
 )
 metric_requests_noncached_images = metrics.Metric(
     name='requests_noncached_images',
     title=Title("Requests for non-cached Images"),
-    unit=UNIT_PER_SECOND,
+    unit=REQUESTS_PER_SECOND,
     color=metrics.Color.PINK,
 )
-# metric_requests_noncached_images = metrics.Metric(
-#     name='requests_per_second',
-#     title=Title("Requests per second"),
-#     unit=UNIT_PER_SECOND,
-#     color=metrics.Color.GRAY,
-# )
 
-graph_ox_imageconverter_cache_requests = graphs.Graph(
-    name='ox_imageconverter_cache_requests',
-    title=Title("Cache Requests"),
-    simple_lines=[
-        'requests_per_sec',
-        'requests_noncached_images',
-        'requests_cached_images',
-    ],
-)
-
-
-
-
-
-
-
-
-# graph_info["ox_imageconverter_cache_requests"] = {
-#     "title"  : _("Cache Requests"),
-#     "metrics": [
-#         ("requests_per_sec", "line"),
-#         ("requests_noncached_images", "line"),
-#         ("requests_cached_images", "line"),
+# graph_ox_imageconverter_cache_requests = graphs.Graph(
+#     name='ox_imageconverter_cache_requests',
+#     title=Title("Cache Requests"),
+#     simple_lines=[
+#         'requests_per_sec',
+#         'requests_noncached_images',
+#         'requests_cached_images',
 #     ],
-# }
+# )
