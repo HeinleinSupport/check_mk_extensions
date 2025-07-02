@@ -1,7 +1,6 @@
 #!/usr/bin/env python3
 # -*- encoding: utf-8; py-indent-offset: 4 -*-
 
-
 # (c) 2020 Heinlein Support GmbH
 #          Robert Sander <r.sander@heinlein-support.de>
 
@@ -16,14 +15,22 @@
 # to the Free Software Foundation, Inc., 51 Franklin St,  Fifth Floor,
 # Boston, MA 02110-1301 USA.
 
-from pathlib import Path
-from typing import Any, Dict
+from pathlib import Path # type: ignore
+from typing import Any, Dict # type: ignore
 
-from .bakery_api.v1 import FileGenerator, OS, Plugin, PluginConfig, register
+from cmk.base.plugins.bakery.bakery_api.v1 import (
+    FileGenerator,
+    OS,
+    Plugin,
+    register,
+)
 
 def get_ox_runtimestats_files(conf: Dict[str, Any]) -> FileGenerator:
-    yield Plugin(base_os=OS.LINUX,
-                 source=Path("ox_runtimestats"))
+    if conf.get("deploy"):
+        yield Plugin(
+            base_os=OS.LINUX,
+            source=Path("ox_runtimestats")
+        )
 
 register.bakery_plugin(
     name="ox_runtimestats",

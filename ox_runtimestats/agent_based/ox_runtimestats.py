@@ -127,14 +127,9 @@ def _ox_label(item, value):
 def _check_value(item, value, levels, render_f):
     yield from check_levels(
         value,
-        levels=levels,
+        levels_upper=levels,
         metric_name=item.replace(' ', '_'),
-        render_func=render_f) if isinstance(levels, dict) else check_levels(
-            value,
-            levels_upper=levels,
-            metric_name=item.replace(' ', '_'),
-            render_func=render_f)
-
+        render_func=render_f)
     # if not levels:
     #     yield Result(state=State.OK,
     #                  summary=render_f(value))
