@@ -1,34 +1,73 @@
 #!/usr/bin/env python3
 # -*- encoding: utf-8; py-indent-offset: 4 -*-
 
-try:
-    from cmk.gui.i18n import _
-    from cmk.gui.plugins.wato import (
-        HostRulespec,
-        rulespec_registry,
-    )
-    from cmk.gui.cee.plugins.wato.agent_bakery.rulespecs.utils import RulespecGroupMonitoringAgentsAgentPlugins
-    from cmk.gui.valuespec import (
-        DropdownChoice,
-    )
-    
-    def _valuespec_agent_config_postconf():
-        return DropdownChoice(
-            title = _("Postfix Configuration (Linux)"),
-            help = _("This will deploy the agent plugin <tt>postconf</tt> for checking the Postfix configuration."),
-            choices = [
-                ( True, _("Deploy plugin for Postfix config") ),
-                ( None, _("Do not deploy plugin for Postfix config") ),
-            ]
-        )
-    
-    rulespec_registry.register(
-        HostRulespec(
-            group=RulespecGroupMonitoringAgentsAgentPlugins,
-            name="agent_config:postconf",
-            valuespec=_valuespec_agent_config_postconf,
-        ))
+# (c) 2013 Heinlein Support GmbH
+#          Robert Sander <r.sander@heinlein-support.de>
 
-except ModuleNotFoundError:
-    # RAW edition
-    pass
+# This is free software;  you can redistribute it and/or modify it
+# under the  terms of the  GNU General Public License  as published by
+# the Free Software Foundation in version 2.  This file is distributed
+# in the hope that it will be useful, but WITHOUT ANY WARRANTY;  with-
+# out even the implied warranty of  MERCHANTABILITY  or  FITNESS FOR A
+# PARTICULAR PURPOSE. See the  GNU General Public License for more de-
+# ails.  You should have  received  a copy of the  GNU  General Public
+# License along with GNU Make; see the file  COPYING.  If  not,  write
+# to the Free Software Foundation, Inc., 51 Franklin St,  Fifth Floor,
+# Boston, MA 02110-1301 USA.
+
+from cmk.rulesets.v1 import (
+    Help,
+    Label,
+    Title,
+)
+from cmk.rulesets.v1.form_specs import (
+    BooleanChoice,
+    DefaultValue,
+    DictElement,
+    Dictionary,
+)
+from cmk.rulesets.v1.rule_specs import (
+    AgentConfig,
+    Topic,
+)
+
+#   .--Bakery--------------------------------------------------------------.
+#   |                   ____        _                                      |
+#   |                  | __ )  __ _| | _____ _ __ _   _                    |
+#   |                  |  _ \ / _` | |/ / _ \ '__| | | |                   |
+#   |                  | |_) | (_| |   <  __/ |  | |_| |                   |
+#   |                  |____/ \__,_|_|\_\___|_|   \__, |                   |
+#   |                                             |___/                    |
+#   +----------------------------------------------------------------------+
+#   |                                                                      |
+#   '----------------------------------------------------------------------'
+#.
+
+def _migrate_from_bool_to_dict(param):
+    if isinstance(param, bool):
+        param = {"deploy": param}
+    if not param:
+        param = {"deploy": False}
+    return param
+
+def _valuespec_agent_config_postconf():
+    return Dictionary(
+        elements={
+            "deploy": DictElement(
+                required=True,
+                parameter_form=BooleanChoice(
+                    label=Label("Deploy plugin for Postfix config"),
+                    prefill=DefaultValue(True),
+                ),
+            )
+        },
+        migrate=_migrate_from_bool_to_dict,
+    )
+
+rule_spec_postconf_bakery = AgentConfig(
+    name="postconf",
+    title=Title("Postfix Configuration (Linux)"),
+    help_text=Help("This will deploy the agent plugin <tt>postconf</tt> for checking the Postfix configuration."),
+    topic=Topic.APPLICATIONS,
+    parameter_form=_valuespec_agent_config_postconf,
+)

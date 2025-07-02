@@ -15,26 +15,31 @@
 # to the Free Software Foundation, Inc., 51 Franklin St,  Fifth Floor,
 # Boston, MA 02110-1301 USA.
 
-from .agent_based_api.v1.type_defs import (
+from collections.abc import Mapping # type: ignore
+from typing import Any # type: ignore
+
+from cmk.agent_based.v2 import (
+    AgentSection,
+    CheckPlugin,
     CheckResult,
     DiscoveryResult,
+    Result,
+    RuleSetType,
+    Service,
+    State,
+    StringTable,
 )
 
-from .agent_based_api.v1 import (
-    register,
-    Result,
-    State,
-    Service,
-    )
+Section = Mapping[str, str]
 
-def parse_postconf(string_table):
+def parse_postconf(string_table: StringTable) -> Section:
     section = {}
     for line in string_table:
         if line[1] == '=':
             section[line[0]] = " ".join(line[2:])
     return section
 
-register.agent_section(
+agent_section_postconf = AgentSection(
     name="postconf",
     parse_function=parse_postconf,
 )
@@ -47,13 +52,10 @@ def check_postconf(params, section) -> CheckResult:
     if 'config' not in params:
         yield Result (state=State.OK,
                       summary="No Postfix configuration parameters to check.")
-    elif not isinstance(params['config'], list):
-        yield Result(state=State.UNKNOWN,
-                     summary="Parameters not in list form")
     else:
         postconf = {}
         for param in params['config']:
-            postconf[param[0]] = param[1]
+            postconf[param["name"]] = param["value"]
 
         for key, value in section.items():
             if key in postconf:
@@ -68,14 +70,14 @@ def check_postconf(params, section) -> CheckResult:
             yield Result(state=State.UNKNOWN,
                          summary="%s not found" % key)
 
-register.check_plugin(
+check_plugin_postconf = CheckPlugin(
     name="postconf",
     service_name="Postfix Config",
     sections=["postconf"],
     discovery_function=discover_postconf,
     check_function=check_postconf,
     check_default_parameters={
-        'config': [ ( 'soft_bounce', 'no' ) ],
+        'config': [{'name': 'soft_bounce', 'value': 'no'}],
     },
     check_ruleset_name="postconf",
 )
