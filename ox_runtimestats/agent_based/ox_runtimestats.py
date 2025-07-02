@@ -15,29 +15,26 @@
 # to the Free Software Foundation, Inc., 51 Franklin St,  Fifth Floor,
 # Boston, MA 02110-1301 USA.
 
-from .agent_based_api.v1.type_defs import (
+
+from cmk.agent_based.v2 import (
+    AgentSection,
+    check_levels,
+    CheckPlugin,
     CheckResult,
     DiscoveryResult,
-)
-
-from .agent_based_api.v1 import (
-    check_levels,
-    check_levels_predictive,
     get_rate,
     get_value_store,
-    register,
-    render,
     Metric,
     Result,
     State,
     Service,
-    )
+    StringTable,
+)
 
-from .utils import memory
+from cmk.plugins.lib import memory
 
 import json
 import time
-import hashlib
 
 ox_attributes = {
     'com.openexchange.pooling:name=Overview,NumConnections': 'DB Connections',
@@ -82,7 +79,7 @@ ox_sessions = {
     'com.openexchange.sessiond:name=SessionD Toolkit,NumberOfShortTermSessions': 'Short Term Sessions',
 }
 
-def parse_ox_runtimestats(string_table):
+def parse_ox_runtimestats(string_table: StringTable):
     section = {'attr': {}, 'sessions': {}, 'memorypools': {}}
 
     ox_attr_keys = ox_attributes.keys()
@@ -112,7 +109,7 @@ def parse_ox_runtimestats(string_table):
                         section['memorypools'][poolname] = pool
     return section
 
-register.agent_section(
+agent_section_ox_runtimestats = AgentSection(
     name="ox_runtimestats",
     parse_function=parse_ox_runtimestats,
 )
@@ -128,7 +125,7 @@ def _ox_label(item, value):
     return "%d %s" % (value, item)
 
 def _check_value(item, value, levels, render_f):
-    yield from check_levels_predictive(
+    yield from check_levels(
         value,
         levels=levels,
         metric_name=item.replace(' ', '_'),
@@ -155,7 +152,7 @@ def check_ox_attributes(item, params, section) -> CheckResult:
         else:
             yield from _check_value(item, section['attr'][item], levels, lambda x: _ox_label(item, x))
 
-register.check_plugin(
+check_plugin_ox_runtimestats_attributes = CheckPlugin(
     name="ox_runtimestats_attributes",
     service_name="OX %s",
     sections=["ox_runtimestats"],
@@ -176,7 +173,7 @@ def check_ox_sessions(item, params, section) -> CheckResult:
                      summary="%d %s" % (number, item))
         yield Metric(item.replace(' ', '_'), number)
 
-register.check_plugin(
+check_plugin_ox_runtimestats_sessions = CheckPlugin(
     name="ox_runtimestats_sessions",
     service_name="OX %s",
     sections=["ox_runtimestats"],
@@ -202,7 +199,7 @@ def check_ox_memorypool(item, params, section) -> CheckResult:
                                         create_percent_metric=True,
                                         levels=(mode, (warn, crit)))
 
-register.check_plugin(
+check_plugin_ox_runtimestats_memorypool = CheckPlugin(
     name="ox_runtimestats_memorypool",
     service_name="OX MemoryPool %s",
     sections=["ox_runtimestats"],
