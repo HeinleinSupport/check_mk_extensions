@@ -4,7 +4,6 @@
  'download_url': 'https://github.com/HeinleinSupport/check_mk_extensions/tree/master/ox',
  'files': {'agents': ['plugins/ox_runtimestats'],
            'cmk_addons_plugins': ['ox_runtimestats/agent_based/ox_runtimestats.py',
-                                  'ox_runtimestats/graphing/ox_runtimestats.py',
                                   'ox_runtimestats/rulesets/ox_runtimestats.py',
                                   'ox_runtimestats/rulesets/ox_runtimestats_cee.py'],
            'lib': ['python3/cmk/base/cee/plugins/bakery/ox_runtimestats.py']},
