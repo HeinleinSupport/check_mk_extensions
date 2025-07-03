@@ -50,6 +50,8 @@ def parse_sslcertificates(string_table: StringTable) -> SSLCertificatesSection:
             if 'thumb' in data:
                 name = data['thumb']
             if name and 'subj' in data and 'expires' in data:
+                if isinstance(data["subj"], list):
+                    data["subj"] = data["subj"][0]
                 section[name] = data
         else:
             name = line[0]

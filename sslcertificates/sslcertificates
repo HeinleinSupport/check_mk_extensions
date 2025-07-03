@@ -17,7 +17,7 @@
            'lib': ['python3/cmk/base/cee/plugins/bakery/sslcertificates.py']},
  'name': 'sslcertificates',
  'title': 'SSL-Certificates',
- 'version': '9.1.0',
+ 'version': '9.2.0',
  'version.min_required': '2.3.0b1',
  'version.packaged': '2.3.0p34',
  'version.usable_until': None}

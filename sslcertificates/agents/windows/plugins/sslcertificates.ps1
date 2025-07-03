@@ -19,14 +19,14 @@ function Get-CertificateTemplateName($certificate)
 {
   # The template name is stored in the Extension data.
   # If available, the best is the extension named "Certificate Template Name", since it contains the exact name.
-  $templateExt = $certificate.Extensions | Where-Object{ ( $_.Oid.Value -eq '1.3.6.1.4.1.311.20.2' ) } | Select-Object -First 1
+  $templateExt = $certificate.Extensions | Where-Object{ ( $cert.Oid.Value -eq '1.3.6.1.4.1.311.20.2' ) } | Select-Object -First 1
   if ($templateExt) {
     return [string]::join("", $templateExt.Format(1).Split("`r`n"))
   }
 
   # Our fallback option is the "Certificate Template Information" extension, it contains the name as part of a string like:
   # "Template=Web Server v2(1.3.6.1.4.1.311.21.8.2499889.12054413.13650051.8431889.13164297.111.14326010.6783216)"
-  $templateExt = $certificate.Extensions | Where-Object{ ( $_.Oid.Value -eq '1.3.6.1.4.1.311.21.7' ) } | Select-Object -First 1
+  $templateExt = $certificate.Extensions | Where-Object{ ( $cert.Oid.Value -eq '1.3.6.1.4.1.311.21.7' ) } | Select-Object -First 1
   if ($templateExt) {
     $information = $templateExt.Format(1)
 
@@ -50,24 +50,24 @@ $UnixEpoch = (Get-Date -Date "01/01/1970") ;
 $CertLocations = "Cert:\LocalMachine\My", "Cert:\CurrentUser\My"
 
 foreach ($CertLocation in $CertLocations) {
-  foreach ($_ in Get-ChildItem -Recurse $CertLocation) {
-    If ($_.DnsNameList) {$subject = $_.DnsNameList}
-    ElseIf ($_.Subject) {$subject = $_.Subject}
-    Else {$subject = $_.Thumbprint}
+  foreach ($cert in Get-ChildItem -Recurse $CertLocation) {
+    If ($cert.DnsNameList) {$subject = $cert.DnsNameList}
+    ElseIf ($cert.Subject) {$subject = $cert.Subject}
+    Else {$subject = $cert.Thumbprint}
 
     # Reverse issuer, so it starts with e.g. C=US to match the output of the Linux agent.
-    $issuer = $_.Issuer -split ',' | ForEach-Object { $_.Trim() }
+    $issuer = $cert.Issuer -split ',' | ForEach-Object { $cert.Trim() }
     [array]::Reverse($issuer)
     $issuer = $issuer -join ','
 
     $data = [ordered]@{
-      starts = (New-TimeSpan -Start $UnixEpoch -End $_.NotBefore).TotalSeconds ;
-      expires = (New-TimeSpan -Start $UnixEpoch -End $_.NotAfter).TotalSeconds ;
+      starts = (New-TimeSpan -Start $UnixEpoch -End $cert.NotBefore).TotalSeconds ;
+      expires = (New-TimeSpan -Start $UnixEpoch -End $cert.NotAfter).TotalSeconds ;
       subj = $subject.Unicode ;
-      thumb = $_.Thumbprint ;
+      thumb = $cert.Thumbprint ;
       issuer = $issuer ;
-      algosign = $_.SignatureAlgorithm.FriendlyName ;
-      template = Get-CertificateTemplateName($_) ;
+      algosign = $cert.SignatureAlgorithm.FriendlyName ;
+      template = Get-CertificateTemplateName($cert) ;
     }
 
     $data | ConvertTo-Json -Compress
