@@ -23,16 +23,18 @@
 # incoming age +5 0 0
 # deferred age -60 0 0
 
-from .agent_based_api.v1 import (
+from cmk.agent_based.v2 import (
     register,
     render,
     Result,
     Metric,
     State,
-    check_levels,
+    check_levels_fixed as check_levels,
     ServiceLabel,
     Service,
 )
+
+from cmk.agent_based.v2 import AgentSection, SNMPSection, SimpleSNMPSection, CheckPlugin, InventoryPlugin
 
 def _postfix_mailq_details_name(line):
     return line[0] + "_" + line[1]
@@ -53,7 +55,7 @@ def parse_postfix_mailq_details(string_table):
         section[item] = data
     return section
 
-register.agent_section(
+agent_section_postfix_mailq_details = AgentSection(
     name="postfix_mailq_details",
     parse_function=parse_postfix_mailq_details,
 )
@@ -82,7 +84,7 @@ def check_postfix_mailq_details(item, params, section):
             render_func=lambda x: str(int(x)),
         )
 
-register.check_plugin(
+check_plugin_postfix_mailq_details = CheckPlugin(
     name="postfix_mailq_details",
     service_name="Postfix Queue %s",
     sections=["postfix_mailq_details"],
