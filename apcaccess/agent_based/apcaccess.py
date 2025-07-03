@@ -154,8 +154,18 @@ check_plugin_apcaccess = CheckPlugin(
     check_ruleset_name="apcaccess",
 )
 
+def discovery_apcaccess_elphase(params, section: Section) -> DiscoveryResult:
+    for instance in section:
+        if "elphase" in section[instance]:
+            if params.get('servicedesc') == 'upsname':
+                yield Service(item=section[instance]['UPSNAME'], parameters={'upsname': instance})
+            elif params.get('servicedesc') == 'model' and 'MODEL' in section[instance]:
+                yield Service(item=section[instance]['MODEL'], parameters={'model': instance})
+            else:
+                yield Service(item=instance)
+
 def check_apcaccess_elphase(item, params, section) -> CheckResult:
-    if item in section:
+    if item in section and "elphase" in section[item]:
         yield from elphase.check_elphase(item, params, {item: section[item]["elphase"]})
 
 check_plugin_apcaccess_elphase = CheckPlugin(
@@ -165,7 +175,7 @@ check_plugin_apcaccess_elphase = CheckPlugin(
     discovery_ruleset_name="apcaccess_inventory",
     discovery_ruleset_type=RuleSetType.MERGED,
     discovery_default_parameters={'servicedesc': False},
-    discovery_function=discovery_apcaccess,
+    discovery_function=discovery_apcaccess_elphase,
     check_function=check_apcaccess_elphase,
     check_default_parameters={},
     check_ruleset_name="ups_outphase",

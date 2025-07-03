@@ -71,7 +71,6 @@ def _parameter_valuespec_apcaccess():
         title = Title("Levels for battery parameters"),
         elements = {
             'capacity': DictElement(
-                required=True,
                 parameter_form=SimpleLevels(
                     title=Title("Battery capacity"),
                     migrate=migrate_to_integer_simple_levels,
@@ -80,7 +79,6 @@ def _parameter_valuespec_apcaccess():
                     prefill_fixed_levels=InputHint(value=(90, 80)),
                 )),
             'battime': DictElement(
-                required=True,
                 parameter_form=SimpleLevels(
                     title=Title("Time left on battery"),
                     migrate=migrate_to_integer_simple_levels,
