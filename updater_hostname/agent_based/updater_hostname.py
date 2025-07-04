@@ -15,12 +15,12 @@
 # to the Free Software Foundation, Inc., 51 Franklin St,  Fifth Floor,
 # Boston, MA 02110-1301 USA.
 
-from .agent_based_api.v1.type_defs import (
+from cmk.agent_based.v2 import (
     CheckResult,
     DiscoveryResult,
 )
 
-from .agent_based_api.v1 import (
+from cmk.agent_based.v2 import (
     register,
     Result,
     State,
@@ -28,6 +28,8 @@ from .agent_based_api.v1 import (
     )
 
 from cmk.base.check_api import host_name
+
+from cmk.agent_based.v2 import AgentSection, SNMPSection, SimpleSNMPSection, CheckPlugin, InventoryPlugin
 
 def parse_updater_hostname(string_table):
     section = {}
@@ -37,7 +39,7 @@ def parse_updater_hostname(string_table):
 
     return section
 
-register.agent_section(
+agent_section_updater_hostname = AgentSection(
     name="updater_hostname",
     parse_function=parse_updater_hostname,
 )
@@ -57,7 +59,7 @@ def check_updater_hostname(section) -> CheckResult:
         yield Result(state=state,
                      summary="%s: %s" % ( map[key], value ))
 
-register.check_plugin(
+check_plugin_updater_hostname = CheckPlugin(
     name="updater_hostname",
     service_name="Check_MK Updater Hostname",
     sections=["updater_hostname"],
