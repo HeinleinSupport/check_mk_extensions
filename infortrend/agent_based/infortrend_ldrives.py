@@ -31,7 +31,7 @@ from cmk.agent_based.v2 import (
 
 def inventory_infortrend_ldrives(section):
     for id, status in section:
-        yield Service(item=id, params={"status": status})
+        yield Service(item=id, parameters={"status": status})
 
 def check_infortrend_ldrives(item, section):
     status_info = { 
