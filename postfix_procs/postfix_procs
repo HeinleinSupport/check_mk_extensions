@@ -1,0 +1,13 @@
+{'author': 'Robert Sander <r.sander@heinlein-support.de>',
+ 'description': 'Local check to count Postfix smtpd, smtp and lmtp processes '
+                'and compare them with the limit from master.cf\n'
+                '\n'
+                'Deploy with custom files in Agent Bakery.\n',
+ 'download_url': 'https://github.com/HeinleinSupport/check_mk_extensions/',
+ 'files': {'agents': ['custom/postfix_procs/lib/local/postfix_procs']},
+ 'name': 'postfix_procs',
+ 'title': 'Postfix Processes',
+ 'version': '4.0.1',
+ 'version.min_required': '1.4.0',
+ 'version.packaged': '2.3.0p34',
+ 'version.usable_until': None}

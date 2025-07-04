@@ -16,11 +16,11 @@
 
 if [ -x /usr/sbin/postconf ]; then
 
-  defaultlimit=$(/usr/sbin/postconf -h default_process_limit)
+  defaultlimit=$(/usr/sbin/postconf -h default_process_limit 2> /dev/null)
 
   processes=$(ps -ef)
 
-  /usr/sbin/postconf -M | awk '{ print $1 " " $2 " " $7 " " $8 ; }' | while read service type maxproc cmd; do
+  /usr/sbin/postconf -M 2> /dev/null | awk '{ print $1 " " $2 " " $7 " " $8 ; }' | while read service type maxproc cmd; do
 
     if [ "$maxproc" = "-" ]; then
       maxproc=$defaultlimit
@@ -32,14 +32,14 @@ if [ -x /usr/sbin/postconf ]; then
 
     if [ "$cmd" = "smtpd" ]; then
       if [ "$service" = "smtpd" ]; then
-        count=$(echo "$processes" | grep "$cmd -t $type" | wc -l)
+        count=$(echo "$processes" | grep -F "$cmd -t $type" | wc -l)
       else
-        count=$(echo "$processes" | grep "$cmd -n $service -t $type" | wc -l)
+        count=$(echo "$processes" | grep -F "$cmd -n $service -t $type" | wc -l)
       fi
     fi
     if [ "$cmd" = "smtp" -o "$cmd" = "lmtp" ]; then
       if [ "$service" = "smtp" -o "$service" = "lmtp" ]; then
-        count=$(echo "$processes" | grep "$cmd -t $type" | wc -l)
+        count=$(echo "$processes" | grep -F "$cmd -t $type" | wc -l)
       fi
     fi
 
