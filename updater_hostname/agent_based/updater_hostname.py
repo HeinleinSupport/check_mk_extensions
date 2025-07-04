@@ -16,22 +16,19 @@
 # Boston, MA 02110-1301 USA.
 
 from cmk.agent_based.v2 import (
+    AgentSection,
+    CheckPlugin,
     CheckResult,
     DiscoveryResult,
-)
-
-from cmk.agent_based.v2 import (
-    register,
     Result,
     State,
     Service,
-    )
+    StringTable,
+)
 
 from cmk.base.check_api import host_name
 
-from cmk.agent_based.v2 import AgentSection, SNMPSection, SimpleSNMPSection, CheckPlugin, InventoryPlugin
-
-def parse_updater_hostname(string_table):
+def parse_updater_hostname(string_table: StringTable):
     section = {}
 
     for line in string_table:
