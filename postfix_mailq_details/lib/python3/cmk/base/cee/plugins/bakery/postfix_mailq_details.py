@@ -15,22 +15,32 @@
 # to the Free Software Foundation, Inc., 51 Franklin St,  Fifth Floor,
 # Boston, MA 02110-1301 USA.
 
-from pathlib import Path
-from typing import Any, Dict
+from pathlib import Path # type: ignore
+from typing import Any, Dict # type: ignore
 
-from .bakery_api.v1 import FileGenerator, OS, Plugin, PluginConfig, register
+from cmk.base.plugins.bakery.bakery_api.v1 import (
+    FileGenerator,
+    OS,
+    Plugin,
+    PluginConfig,
+    register,
+)
 
 def get_postfix_mailq_details_files(conf: Dict[str, Any]) -> FileGenerator:
-    yield Plugin(base_os=OS.LINUX,
-                 source=Path("postfix_mailq_details"))
+    if conf.get("deploy"):
+        yield Plugin(
+            base_os=OS.LINUX,
+            source=Path("postfix_mailq_details")
+        )
 
+    groupmap = { "one": "1", "two": "2" }
     prefixes = { '1': '+', '2': '-' }
     lines = []
 
-    for group, prefix in prefixes.items():
+    for group, number in groupmap.items():
         if group in conf:
-            lines.append('QUEUES%s=\"%s\"' % (group, conf[group]['QUEUES'] ))
-            lines.append('AGE%s=%s%d' % (group, prefix, conf[group]['AGE'] / 60 ))
+            lines.append('QUEUES%s=\"%s\"' % (number, conf[group]['QUEUES'] ))
+            lines.append('AGE%s=%s%d' % (number, prefixes[number], conf[group]['AGE'] / 60 ))
     
     if lines:
         yield PluginConfig(base_os=OS.LINUX,

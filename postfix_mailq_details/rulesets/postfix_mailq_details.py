@@ -15,54 +15,59 @@
 # to the Free Software Foundation, Inc., 51 Franklin St,  Fifth Floor,
 # Boston, MA 02110-1301 USA.
 
-from cmk.gui.i18n import _
-from cmk.gui.valuespec import (
+from cmk.rulesets.v1 import (
+    Help,
+    Title,
+)
+from cmk.rulesets.v1.form_specs import (
+    DictElement,
     Dictionary,
-    Tuple,
     Integer,
-    TextAscii,
-    Transform,
+    InputHint,
+    LevelDirection,
+    migrate_to_integer_simple_levels,
+    SimpleLevels,
+)
+from cmk.rulesets.v1.rule_specs import (
+    CheckParameters,
+    HostAndItemCondition,
+    Topic,
 )
 
-from cmk.gui.plugins.wato import (
-    rulespec_registry,
-    CheckParameterRulespecWithItem,
-    RulespecGroupCheckParametersApplications,
-)
 
-def _item_spec_postfix_mailq_details():
-    return     TextAscii(
-        title = _("Name of service"),
-        allow_empty = False,
-    )
+#   .--Parameter-----------------------------------------------------------.
+#   |          ____                                _                       |
+#   |         |  _ \ __ _ _ __ __ _ _ __ ___   ___| |_ ___ _ __            |
+#   |         | |_) / _` | '__/ _` | '_ ` _ \ / _ \ __/ _ \ '__|           |
+#   |         |  __/ (_| | | | (_| | | | | | |  __/ ||  __/ |              |
+#   |         |_|   \__,_|_|  \__,_|_| |_| |_|\___|\__\___|_|              |
+#   |                                                                      |
+#   +----------------------------------------------------------------------+
+#   |                                                                      |
+#   '----------------------------------------------------------------------'
+#.
 
 def _parameter_valuespec_postfix_mailq_details():
-    return Transform(
-        Dictionary(
-            elements = [
-                ('level',
-                 Tuple(
-                     help = _("These levels are applied to the number of Email that are "
-                              "currently in the specified mail queue."),
-                     elements = [
-                         Integer(title = _("Warning at"), unit = _("mails"), default_value = 1000),
-                         Integer(title = _("Critical at"), unit = _("mails"), default_value = 1500),
-                     ]
+    return Dictionary(
+        elements = {
+            'level': DictElement(
+                required=True,
+                parameter_form=SimpleLevels(
+                    help_text=Help("These levels are applied to the number of Email that are currently in the specified mail queue."),
+                    migrate=migrate_to_integer_simple_levels,
+                    level_direction=LevelDirection.UPPER,
+                    form_spec_template=Integer(
+                        unit_symbol="mails",
+                    ),
+                    prefill_fixed_levels=InputHint((1000, 1500)),
                 )),
-            ],
-            optional_keys = [],
-        ),
-        forth = lambda v: isinstance(v, tuple) and {
-            'level': v
-        } or v,
+        },
     )
 
-rulespec_registry.register(
-    CheckParameterRulespecWithItem(
-        check_group_name="postfix_mailq_details",
-        group=RulespecGroupCheckParametersApplications,
-        item_spec=_item_spec_postfix_mailq_details,
-        match_type="dict",
-        parameter_valuespec=_parameter_valuespec_postfix_mailq_details,
-        title=lambda: _("Number of mails in specific mail queues"),
-    ))
+rule_spec_postfix_mailq_details = CheckParameters(
+    name="postfix_mailq_details",
+    topic=Topic.APPLICATIONS,
+    parameter_form=_parameter_valuespec_postfix_mailq_details,
+    title=Title("Number of mails in specific mail queues"),
+    condition=HostAndItemCondition(item_title=Title("Name of service")),
+)

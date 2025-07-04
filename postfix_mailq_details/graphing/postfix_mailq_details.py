@@ -17,8 +17,12 @@
 # to the Free Software Foundation, Inc., 51 Franklin St,  Fifth Floor,
 # Boston, MA 02110-1301 USA.
 
-check_metrics["check_mk-postfix_mailq_details"] = {
-    "size": {
-        "name": "total_file_size"
+from cmk.graphing.v1 import translations
+
+translation_postfix_mailq_details = translations.Translation(
+    name="postfix_mailq_details",
+    check_commands=[ translations.PassiveCheck("postfix_mailq_details") ],
+    translations={
+        "size": translations.RenameTo("total_file_size"),
     },
-}
+)

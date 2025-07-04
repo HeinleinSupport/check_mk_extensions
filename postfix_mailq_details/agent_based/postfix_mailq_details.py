@@ -24,22 +24,20 @@
 # deferred age -60 0 0
 
 from cmk.agent_based.v2 import (
-    register,
-    render,
-    Result,
+    AgentSection,
+    CheckPlugin,
+    CheckResult,
+    DiscoveryResult,
     Metric,
-    State,
-    check_levels_fixed as check_levels,
-    ServiceLabel,
+    check_levels,
     Service,
+    StringTable,
 )
-
-from cmk.agent_based.v2 import AgentSection, SNMPSection, SimpleSNMPSection, CheckPlugin, InventoryPlugin
 
 def _postfix_mailq_details_name(line):
     return line[0] + "_" + line[1]
 
-def parse_postfix_mailq_details(string_table):
+def parse_postfix_mailq_details(string_table: StringTable):
     section = {}
     for line in string_table:
         item = _postfix_mailq_details_name(line)
@@ -60,11 +58,11 @@ agent_section_postfix_mailq_details = AgentSection(
     parse_function=parse_postfix_mailq_details,
 )
 
-def discover_postfix_mailq_details(section):
+def discover_postfix_mailq_details(section) -> DiscoveryResult:
     for queue in section:
         yield Service(item=queue)
 
-def check_postfix_mailq_details(item, params, section):
+def check_postfix_mailq_details(item: str, params, section) -> CheckResult:
     if item in section:
         mails = section[item][1]
         bytes = section[item][2]
@@ -91,7 +89,7 @@ check_plugin_postfix_mailq_details = CheckPlugin(
     discovery_function=discover_postfix_mailq_details,
     check_function=check_postfix_mailq_details,
     check_default_parameters={
-        'level': ( 1000, 1500 ),
+        'level': ("fixed", ( 1000, 1500 )),
     },
     check_ruleset_name="postfix_mailq_details",
 )
