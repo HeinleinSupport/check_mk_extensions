@@ -1,0 +1,11 @@
+{'author': 'Robert Sander <r.sander@heinlein-support.de>',
+ 'description': 'This SNMP check monitors the output source.\n',
+ 'download_url': 'https://github.com/HeinleinSupport/check_mk_extensions/',
+ 'files': {'cmk_addons_plugins': ['ups_out_source/agent_based/ups_out_source.py',
+                                  'ups_out_source/checkman/ups_out_source']},
+ 'name': 'ups_out_source',
+ 'title': 'UPS Output Source',
+ 'version': '2.0.0',
+ 'version.min_required': '2.3.0b1',
+ 'version.packaged': '2.3.0p34',
+ 'version.usable_until': None}
