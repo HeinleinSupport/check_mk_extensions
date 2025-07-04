@@ -7,9 +7,17 @@
 # (c) 2024 Jens Maus <mail@jens-maus.de>
 #
 
-from cmk.base.check_api import LegacyCheckDefinition, saveint
-from cmk.base.config import check_info
-from cmk.agent_based.v2 import startswith, SNMPTree, StringTable
+from cmk.agent_based.v2 import (
+    startswith,
+    CheckPlugin,
+    Metric,
+    Result,
+    Service,
+    SimpleSNMPSection,
+    SNMPTree,
+    State,
+    StringTable,
+)
 
 # This is free software;  you can redistribute it and/or modify it
 # under the  terms of the  GNU General Public License  as published by
@@ -23,16 +31,17 @@ from cmk.agent_based.v2 import startswith, SNMPTree, StringTable
 # Boston, MA 02110-1301 USA.
 
 def _infortrend_chassis_name(name, id):
-    if saveint(id) > 0:
+    id = int(id) if id else 0
+    if id > 0:
         return "ID %s %s" % (id, name)
     return name
 
-def inventory_infortrend_chassis(info):
-    for name, status, type, value, unit, id in info:
+def inventory_infortrend_chassis(section):
+    for name, status, type, value, unit, id in section:
         if status != '255':
-            yield _infortrend_chassis_name(name, id), {}
+            yield Service(item=_infortrend_chassis_name(name, id))
 
-def check_infortrend_chassis(item, params, info):
+def check_infortrend_chassis(item, section):
     status_info = {
         "1": { 'bits': { 0: ( "Power supply functioning normally", "Power supply malfunctioning" ),
                          6: ( "Power supply is ON", "Power supply is OFF" ),
@@ -122,38 +131,45 @@ def check_infortrend_chassis(item, params, info):
                 },
         }
     
-    for name, status, type, value, unit, id in info:
+    for name, status, type, value, unit, id in section:
         if _infortrend_chassis_name(name, id) == item:
-            status = saveint(status)
+            status = int(status) if status else 0
             if status == 0:
-                yield 0, status_info[type]['bits'][0][0]
+                yield Result(state=State.OK, summary=status_info[type]['bits'][0][0])
                 break
             if status == 255:
-                yield 3, "Status unknown"
+                yield Result(state=State.UNKNOWN, summary="Status unknown")
                 break
-            yield 0, "%d" % status
+            yield Result(state=State.OK, summary="%d" % status)
             for bit in status_info[type]['bits'].keys():
                 bit_set = ( status & 1 << bit ) >> bit
                 if bit_set and bit < 6:
-                    yield 2, status_info[type]['bits'][bit][bit_set]
+                    yield Result(state=State.CRIT, summary=status_info[type]['bits'][bit][bit_set])
                 else:
-                    yield 0, status_info[type]['bits'][bit][bit_set]
+                    yield Result(state=State.OK, summary=status_info[type]['bits'][bit][bit_set])
             if 'adtl_info' in status_info[type]:
                 adtl_status = status_info[type]['adtl_func'](status)
-                yield status_info[type]['adtl_info'][adtl_status][0], status_info[type]['adtl_info'][adtl_status][1]
+                yield Result(state=status_info[type]['adtl_info'][adtl_status][0], summary=status_info[type]['adtl_info'][adtl_status][1])
 
 def parse_infortrend_chassis(string_table: StringTable) -> StringTable | None:
     return string_table or None
 
-check_info["infortrend_chassis"] = LegacyCheckDefinition(
-    detect=startswith(".1.3.6.1.2.1.1.2.0", ".1.3.6.1.4.1.1714.1.2"),
+
+snmp_section_infortrend_chassis = SimpleSNMPSection(
+    name="infortrend_chassis",
     parse_function=parse_infortrend_chassis,
     fetch=SNMPTree(
         base=".1.3.6.1.4.1.1714.1.1.9.1",
         oids=["8", "13", "6", "9", "10", "12"],
     ),
+    detect=startswith(".1.3.6.1.2.1.1.2.0", ".1.3.6.1.4.1.1714.1.2"),
+)
+
+check_plugin_infortrend_chassis = CheckPlugin(
+    name="infortrend_chassis",
+    sections=["infortrend_chassis"],
     service_name="IFT %s",
     discovery_function=inventory_infortrend_chassis,
     check_function=check_infortrend_chassis,
-    check_ruleset_name="infortend_chassis",
+#    check_ruleset_name="infortend_chassis",
 )

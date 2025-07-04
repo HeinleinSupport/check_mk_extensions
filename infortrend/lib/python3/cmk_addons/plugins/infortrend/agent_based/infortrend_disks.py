@@ -7,9 +7,17 @@
 # (c) 2024 Jens Maus <mail@jens-maus.de>
 #
 
-from cmk.base.check_api import LegacyCheckDefinition, saveint
-from cmk.base.config import check_info
-from cmk.agent_based.v2 import all_of, contains, startswith, SNMPTree, StringTable
+from cmk.agent_based.v2 import (
+    exists,
+    render,
+    CheckPlugin,
+    Result,
+    Service,
+    SimpleSNMPSection,
+    SNMPTree,
+    State,
+    StringTable,
+)
 
 # This is free software;  you can redistribute it and/or modify it
 # under the  terms of the  GNU General Public License  as published by
@@ -22,24 +30,24 @@ from cmk.agent_based.v2 import all_of, contains, startswith, SNMPTree, StringTab
 # to the Free Software Foundation, Inc., 51 Franklin St,  Fifth Floor,
 # Boston, MA 02110-1301 USA.
 
-def inventory_infortrend_disks1(info):
-    for slot, status in info:
-        yield slot, {}
+def inventory_infortrend_disks(section):
+    for line in section:
+        yield Service(item=line[0])
 
-def check_infortrend_disks1(item, params, info):
+def check_infortrend_disks(item, section):
     status_info = { 
         0   : "New Drive",
         1   : "On-Line Drive",
         2   : "Used Drive",
         3   : "Spare Drive",
         4   : "Drive Initialization in Progress",
-        5   : "Drive Rebuild in Progress (!)",
+        5   : "Drive Rebuild in Progress",
         6   : "Add Drive to Logical Drive in Progress",
         9   : "Global Spare Drive",
         17  : "Drive is in process of Cloning another Drive",
         18  : "Drive is a valid Clone of another Drive",
         19  : "Drive is in process of Copying from another Drive (for Copy/Replace LD Expansion function)",
-        63  : "Drive Absent (!)",
+        63  : "Drive Absent",
         128 : "SCSI Device (Type 0)",
         129 : "SCSI Device (Type 1)",
         130 : "SCSI Device (Type 2)",
@@ -56,51 +64,46 @@ def check_infortrend_disks1(item, params, info):
         141 : "SCSI Device (Type 13)",
         142 : "SCSI Device (Type 14)",
         143 : "SCSI Device (Type 15)",
-        252 : "Missing Global Spare Drive (!)",
-        253 : "Missing Spare Drive (!)",
-        254 : "Missing Drive (!)",
-        255 : "Failed Drive (!!)"
+        252 : "Missing Global Spare Drive",
+        253 : "Missing Spare Drive",
+        254 : "Missing Drive",
+        255 : "Failed Drive"
         }
-    for slot, status in info:
-        status = int(status)
+    for slot, status, model, version, serial, size, blocksize in section:
         if slot == item:
+            status = int(status) if status else 0
+            disksize = int(size) * 2 ** int(blocksize)
+            info = "%s %s %s, %s, " % (model, version, serial, render.iobandwidth(disksize))
             if status not in status_info.keys():
-                return (3, "Status is %d" % status)
-            if status == 1 or status == 3 or status == 9 or status == 63 or status == 141:
-                return (0, status_info[status])
+                yield Result(state=State.UNKNOWN, summary="%sStatus is %d" % (info, status))
+                return
+
+            rc = State.WARN
+            if status == 1 or status == 3 or status == 9:
+                rc = State.OK
             if status > 63:
-                return (2, status_info[status])
-            return (1, status_info[status])
-    return (3, "not yet implemented")
+                rc = State.CRIT
+            yield Result(state=rc, summary=info + status_info[status])
+            return
 
-def rename_dups(l):
-    d = {}
-    for i in range(len(l)):
-        lowl = l[i][0].lower()
-        if lowl in d:
-            d[lowl] += 1
-        else:
-            d[lowl] = 1
+def parse_infortrend_disks(string_table: StringTable) -> StringTable | None:
+    return string_table or None
 
-        if l[i][0]:
-            l[i][0] = '[{}] Disk Slot {:02d}'.format(str(d[lowl]), int(l[i][0]))
-    return l
-
-def parse_infortrend_disks1(string_table: StringTable) -> StringTable | None:
-    return rename_dups(string_table) or None
-
-check_info["infortrend_disks1"] = LegacyCheckDefinition(
-    detect=all_of(
-        contains(".1.3.6.1.2.1.1.1.0", "Infortrend"),
-        startswith(".1.3.6.1.2.1.1.2.0", ".1.3.6.1.4.1.1714.1.1"),
-    ),
-    parse_function=parse_infortrend_disks1,
+snmp_section_infortrend_disks = SimpleSNMPSection(
+    name="infortrend_disks",
+    parse_function=parse_infortrend_disks,
     fetch=SNMPTree(
-        base=".1.3.6.1.4.1.1714.1.1.6.1",
-        oids=["13", "11"],
+        base=".1.3.6.1.4.1.1714.1.6.1",
+        oids=["13", "11", "15", "16", "17", "7", "8"],
     ),
-    service_name="IFT %s",
-    discovery_function=inventory_infortrend_disks1,
-    check_function=check_infortrend_disks1,
-    check_ruleset_name="infortend_disks1",
+    detect=exists(".1.3.6.1.4.1.1714.1.1.1.1.0"),
+)
+
+check_plugin_infortrend_disks = CheckPlugin(
+    name="infortrend_disks",
+    sections=["infortrend_disks"],
+    service_name="IFT Disk Slot %s",
+    discovery_function=inventory_infortrend_disks,
+    check_function=check_infortrend_disks,
+#    check_ruleset_name="infortend_disks",
 )
