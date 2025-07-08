@@ -56,7 +56,7 @@ foreach ($CertLocation in $CertLocations) {
     Else {$subject = $cert.Thumbprint}
 
     # Reverse issuer, so it starts with e.g. C=US to match the output of the Linux agent.
-    $issuer = $cert.Issuer -split ',' | ForEach-Object { $cert.Trim() }
+    $issuer = $cert.Issuer -split ',' | ForEach-Object { $_.Trim() }
     [array]::Reverse($issuer)
     $issuer = $issuer -join ','
 
