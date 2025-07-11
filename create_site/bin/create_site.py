@@ -45,11 +45,15 @@ parser.add_argument("MONSERVER")
 parser.add_argument("MONIP")
 parser.add_argument("SITENAME")
 parser.add_argument("SITEALIAS")
+parser.add_argument("CMKPASSWD")
+parser.add_argument("FOLDER")     # "/monitoring_server"
 
 args = parser.parse_args()
 
 if args.debug:
     pprint(args)
+
+monshort = args.MONSERVER.split(".")[0]
 
 # Create SSH connection
 try:
@@ -59,11 +63,11 @@ except paramiko.ssh_exception.SSHException:
 
 sshclient = paramiko.SSHClient()
 sshclient.set_missing_host_key_policy(paramiko.AutoAddPolicy())
-sshclient.connect(hostname=args.MONSERVER, username="root", pkey=sshkey)
+sshclient.connect(hostname=args.MONIP, username="root", pkey=sshkey)
     
 if args.verbose:
     print(f"Creating {args.SITENAME} on {args.MONSERVER}")
-print("".join(execute_ssh_command(sshclient, f"omd create {args.SITENAME}")))
+print("".join(execute_ssh_command(sshclient, f"omd create --admin-password {args.CMKPASSWD} {args.SITENAME}")))
     
 if args.verbose:
     print(f"Enabling Livestatus via TCP on {args.SITENAME}")
@@ -95,7 +99,7 @@ this_site = version_info["site"]
 
 if args.verbose:
     print(f"Creating host {args.MONSERVER} on {this_site}")
-wato.add_host(args.MONSERVER, "/", {"ipaddress": str(monip)})
+wato.add_host(monshort, args.FOLDER, {"ipaddress": str(monip)})
 wato.activate()
 
 if args.verbose:
@@ -123,7 +127,7 @@ site_config = {
             "status_host": {
                 "status_host_set": "enabled",
                 "site": this_site,
-                "host": args.MONSERVER,
+                "host": monshort,
             },
             "disable_in_status_gui": False,
         },
