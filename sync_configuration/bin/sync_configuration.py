@@ -6,6 +6,9 @@
 # Robert Sander <r.sander@heinlein-support.de>
 #
 
+from collections.abc import Mapping # type: ignore
+from typing import Any # type: ignore
+
 import argparse # type: ignore
 import re # type: ignore
 from pprint import pprint # type: ignore
@@ -19,7 +22,7 @@ def url_to_site(url):
     return url.split('/')[3]
 
 
-def get_aux_tags(wato, sync_tag):
+def get_aux_tags(wato: checkmkapi.CMKRESTAPI, sync_tag: str) -> Mapping[str, Any]:
     aux_tags = {}
     if args.verbose:
         print(f'getting aux tags from {url_to_site(wato._api_url)}')
@@ -186,7 +189,7 @@ def sync_rules(site_id, site_data, changes):
     site_rulesets = get_rulesets(site_data['wato'])
     
     if args.debug:
-        print(f"central_rulesets = {central_rulesets.union(site_rulesets)}")
+        print(f"merged_rulesets = {central_rulesets.union(site_rulesets)}")
 
     for ruleset in central_rulesets.union(site_rulesets):
         site_rules, site_relations = get_rules(
@@ -196,24 +199,33 @@ def sync_rules(site_id, site_data, changes):
             central = False,
         )
         delete_rules = [x['id'] for x in site_rules.values()]
+        if args.debug:
+            print(f"site_rules: {site_rules}")
+            print(f"site_relations: {site_relations}")
+            print(f"delete_rules: {delete_rules}")
         for rule_ident, rule_data in central_rules.get(ruleset, {}).items():
             if rule_ident in site_rules:
+                delete_rules.remove(site_rules[rule_ident]['id'])
                 if rule_data['ext'] != site_rules[rule_ident]['ext']:
                     if args.verbose:
                         print(f'updating rule "{rule_data["title"]}" in {ruleset} on {site_id}')
+                    properties = rule_data['ext'].get('properties', {})
+                    m = regex_rule_title.match(rule_data['title'])
+                    properties['description'] = f'{m.group(1)}[{args.sync}-{rule_ident}]{m.group(2)}'
                     if args.debug:
                         print('rule_data')
                         pprint(rule_data['ext'])
                         pprint(site_rules[rule_ident]['ext'])
+                        pprint(properties)
+                        pprint(rule_data['ext'].get('conditions', {}))
                     site_data['wato'].edit_rule(
                         site_rules[rule_ident]['id'],
                         '"*"',
                         rule_data['ext'].get('value_raw', ''),
-                        rule_data['ext'].get('condtions', {}),
-                        rule_data['ext'].get('properties', {}),
+                        rule_data['ext'].get('conditions', {}),
+                        properties,
                     )
                     changes = True
-                delete_rules.remove(site_rules[rule_ident]['id'])
             else:
                 if args.verbose:
                     print(f'adding rule "{rule_data["title"]}" in {ruleset} to {site_id}')
@@ -325,6 +337,8 @@ if args.debug:
 central_aux_tags = get_aux_tags(central_wato, args.sync)
 
 central_tag_groups = get_tag_groups(central_wato, args.sync)
+
+# central_passwords = get_passwords(central_wato, args.sync)
 
 central_rulesets = get_rulesets(central_wato)
 
