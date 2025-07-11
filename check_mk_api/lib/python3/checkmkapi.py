@@ -18,7 +18,7 @@ import time  # type: ignore
 import json
 from ast import literal_eval # type: ignore
 from pprint import pprint # type: ignore
-from typing import Any, Dict, Tuple
+from typing import Any, Dict, Tuple # type: ignore
 
 def _check_mk_url(url):
     """ adds trailing check_mk path component to URL """
@@ -839,6 +839,67 @@ class CMKRESTAPI():
             self._delete_url,
             f"objects/user_config/{username}",
             ok_code=204,
+        )
+
+#   .--Role----------------------------------------------------------------.
+#   |                          ____       _                                |
+#   |                         |  _ \ ___ | | ___                           |
+#   |                         | |_) / _ \| |/ _ \                          |
+#   |                         |  _ < (_) | |  __/                          |
+#   |                         |_| \_\___/|_|\___|                          |
+#   |                                                                      |
+#   +----------------------------------------------------------------------+
+#   |                                                                      |
+#   '----------------------------------------------------------------------'
+#.
+
+    def create_role(self, role_id, new_role_id, new_alias):
+        params = {
+            "role_id": role_id,
+            "new_role_id": new_role_id,
+            "new_alias": new_alias,
+        }
+        return self._request(
+            self._post_url,
+            "domain-types/user_role/collections/all",
+            data=params,
+        )
+        
+    def get_all_roles(self):
+        return self._request(
+            self._get_url,
+            "domain-types/user_role/collections/all",
+        )
+    
+    def delete_role(self, role_id):
+        return self._request(
+            self._delete_url,
+            f"objects/user_role/{role_id}",
+            ok_code=204,
+        )
+    
+    def edit_role(self, role_id, new_role_id=None, new_alias=None, new_basedon=None, new_permissions={}):
+        params={}
+        if new_role_id:
+            params["new_role_id"] = new_role_id
+        if new_alias:
+            params["new_alias"] = new_alias
+        if new_basedon:
+            params["new_basedon"] = new_basedon
+        if new_permissions:
+            params["new_permissions"] = new_permissions
+        if params:
+            return self._request(
+                self._put_url,
+                f"objects/user_role/{role_id}",
+                etag=None,
+                data=params,
+            )
+            
+    def get_role(self, role_id):
+        return self._request(
+            self._get_url,
+            f"objects/user_role/{role_id}",
         )
 
 #   .--Contact Group-------------------------------------------------------.
@@ -1846,7 +1907,7 @@ class CMKRESTAPI():
         name, 
         title,
         password,
-        comment="", documentation_url="", editable_by="admin", shared=[]):
+        comment="", documentation_url="", editable_by=None, shared=[]):
         params = {
             "ident": name,
             "title": title,
