@@ -116,6 +116,48 @@ def get_notification_rules(wato, sync_tag, central = True):
         pprint(result)
 
 
+def get_passwords(wato, sync_tag):
+    passwords = {}
+    if args.verbose:
+        print(f'getting passwords from {url_to_site(wato._api_url)}')
+    result, etag = wato.get_all_passwords()
+    for password_data in result.get("value", []):
+        if password_data["id"].startswith(sync_tag + "_"):
+            pw = password_store.lookup(
+                pw_id=password_data["id"],
+                pw_file=password_store.password_store_path()
+            )
+            password_data["extensions"]["password"] = pw
+            password_data["extensions"]["title"] = password_data["title"]
+            passwords[password_data["id"]] = password_data["extensions"]
+    return passwords
+
+
+def get_roles(wato, sync_tag):
+    roles = {}
+    builtin_roles = {}
+    if args.verbose:
+        print(f'getting roles from {url_to_site(wato._api_url)}')
+    result, etag = wato.get_all_roles()
+    for role_data in result.get("value", []):
+        if role_data["id"].startswith(sync_tag + "_"):
+            roles[role_data["id"]] = role_data
+        if role_data["extensions"].get("builtin"):
+            builtin_roles[role_data["id"]] = role_data
+    for role_id, role_data in roles.items():
+        based_on = role_data["extensions"].get("basedon")
+        if based_on and based_on in builtin_roles:
+            perms = {}
+            for perm in role_data["extensions"].get("permissions", []):
+                if perm not in builtin_roles[based_on]["extensions"].get("permissions", []):
+                    perms[perm] = "yes"
+            for perm in builtin_roles[based_on]["extensions"].get("permissions", []):
+                if perm not in role_data["extensions"].get("permissions", []):
+                    perms[perm] = "no"
+            role_data["extensions"]["perms"] = perms
+    return roles
+
+
 def sync_aux_tags(site_id, site_data, changes):
     site_aux_tags = get_aux_tags(site_data['wato'], args.sync)
     for aux_tag, aux_tag_data in central_aux_tags.items():
@@ -265,6 +307,92 @@ def sync_rules(site_id, site_data, changes):
         
     return changes
 
+
+def sync_passwords(site_id, site_data, changes):
+    site_passwords = get_passwords(site_data['wato'], args.sync)
+    for pw_id, pw_ext in central_passwords.items():
+        if pw_id in site_passwords:
+            if args.verbose:
+                print(f'Updating password {pw_id} on {site_id}')
+            site_data["wato"].edit_password(
+                pw_id,
+                '"*"',
+                title=pw_ext["title"],
+                comment=pw_ext["comment"],
+                documentation_url=pw_ext["documentation_url"],
+                password=pw_ext["password"],
+                editable_by=pw_ext["editable_by"],
+                shared=pw_ext["shared"],
+            )
+            del site_passwords[pw_id]
+            changes=True
+        else:
+            if args.verbose:
+                print(f'Creating password {pw_id} on {site_id}')
+            site_data["wato"].create_password(
+                pw_id,
+                pw_ext["title"],
+                pw_ext["password"],
+                comment=pw_ext["comment"],
+                documentation_url=pw_ext["documentation_url"],
+                editable_by=pw_ext["editable_by"],
+                shared=pw_ext["shared"],
+            )
+            changes=True
+    for pw_id in site_passwords:
+        if args.verbose:
+            print(f"removing password {pw_id} from {site_id}")
+        site_data["wato"].delete_password(pw_id)
+        changes = True
+    return changes
+
+
+def sync_roles(site_id, site_data, changes):
+    site_roles = get_roles(site_data["wato"], args.sync)
+    for role_id, role_data in central_roles.items():
+        if role_id in site_roles:
+            central_role_ext = role_data["extensions"]
+            site_role_ext = site_roles[role_id]["extensions"]
+            alias = None
+            if role_data["title"] != site_roles[role_id]["title"]:
+                alias = role_data["title"]
+            based_on = None
+            if central_role_ext["basedon"] != site_role_ext["basedon"]:
+                based_on = central_role_ext["basedon"]
+            perms = {}
+            if central_role_ext["perms"] != site_role_ext["perms"]:
+                perms = central_role_ext["perms"]
+            if alias or based_on or perms:
+                if args.verbose:
+                    print(f"Updating role {role_id} on {site_id}")
+                site_data["wato"].edit_role(
+                    role_id,
+                    new_alias=alias,
+                    new_basedon=based_on,
+                    new_permissions=perms,
+                )
+                changes = True
+            del site_roles[role_id]
+        else:
+            if args.verbose:
+                print(f"Creating role {role_id} on {site_id}")
+            site_data["wato"].create_role(
+                role_data["extensions"]["basedon"],
+                role_data["id"],
+                role_data["title"],
+            )
+            site_data["wato"].edit_role(
+                role_data["id"],
+                new_permissions=role_data["extensions"]["perms"],
+            )
+            changes = True
+    for role_id in site_roles:
+        if args.verbose:
+            print(f"Removing role {role_id} from {site_id}")
+        site_data["wato"].delete_role(role_id)
+        changes = True
+    return changes
+
 parser = argparse.ArgumentParser()
 parser.add_argument('-s', '--url', help='URL to central Check_MK site')
 parser.add_argument('-u', '--username', help='name of the automation user')
@@ -338,7 +466,12 @@ central_aux_tags = get_aux_tags(central_wato, args.sync)
 
 central_tag_groups = get_tag_groups(central_wato, args.sync)
 
-# central_passwords = get_passwords(central_wato, args.sync)
+central_passwords = get_passwords(central_wato, args.sync)
+
+central_roles = get_roles(central_wato, args.sync)
+
+if args.debug:
+     pprint(central_roles)
 
 central_rulesets = get_rulesets(central_wato)
 
@@ -360,6 +493,10 @@ for site_id, site_data in sites.items():
     changes = sync_tag_groups(site_id, site_data, changes)
 
     changes = sync_rules(site_id, site_data, changes)
+
+    changes = sync_passwords(site_id, site_data, changes)
+
+    changes = sync_roles(site_id, site_data, changes)
 
     if changes:
         if args.verbose:
