@@ -1997,10 +1997,9 @@ class MultisiteAPI():
         if not api_secret:
             api_user, api_secret = _site_creds(api_user)
         self._site_url = _check_mk_url(site_url)
+        self._auth = requests.auth.HTTPBasicAuth(api_user, api_secret)
 
         self._api_creds = {
-            '_username': api_user,
-            '_secret': api_secret,
             'request_format': 'python',
             'output_format': 'python',
             '_transid': '-1',
@@ -2013,6 +2012,7 @@ class MultisiteAPI():
             if data:
                 resp = requests.post(
                     self._site_url + api_url,
+                    auth=self._auth,
                     verify=False,
                     params=params,
                     data='request=%s' % repr(data),
@@ -2021,6 +2021,7 @@ class MultisiteAPI():
             else:
                 resp = requests.get(
                     self._site_url + api_url,
+                    auth=self._auth,
                     verify=False,
                     params=params,
                     allow_redirects=False,
