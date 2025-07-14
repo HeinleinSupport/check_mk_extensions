@@ -55,6 +55,12 @@ if args.debug:
 
 monshort = args.MONSERVER.split(".")[0]
 
+# Connection to local API
+wato = checkmkapi.CMKRESTAPI(args.url, args.username, args.password)
+
+version_info, etag = wato.version()
+this_site = version_info["site"]
+
 # Create SSH connection
 try:
     sshkey = paramiko.RSAKey.from_private_key_file(args.key)
@@ -84,6 +90,27 @@ if args.verbose:
 automation_secret = "".join(execute_ssh_command(sshclient, f"cat /omd/sites/{args.SITENAME}/var/check_mk/web/automation/automation.secret"))
 if args.debug:
     pprint(automation_secret)
+
+config_files = {
+    "LDAP connections": "etc/check_mk/multisite.d/wato/user_connections.mk",
+    "Global multisite settings": "etc/check_mk/multisite.d/wato/global.mk",
+}
+for desc, filename in config_files.items():
+    if args.verbose:
+        print(f"Copying {desc} to {args.SITENAME}")
+    sftp = sshclient.open_sftp()
+    res = sftp.put(
+        f"/omd/sites/{this_site}/{filename}",
+        f"/omd/sites/{args.SITENAME}/{filename}",
+    )
+    if args.debug:
+        pprint(res)
+    res = execute_ssh_command(sshclient, f"chown {args.SITENAME}:{args.SITENAME} /omd/sites/{args.SITENAME}/{filename}")
+    if args.debug:
+        pprint(res)
+    res = execute_ssh_command(sshclient, f"chmod 0660 /omd/sites/{args.SITENAME}/{filename}")
+    if args.debug:
+        pprint(res)
     
 if args.verbose:
     print(f"Starting site {args.SITENAME} on {args.MONSERVER}")
@@ -92,10 +119,8 @@ print("".join(execute_ssh_command(sshclient, f"omd start {args.SITENAME}")))
 monip = ipaddress.ip_address(args.MONIP)
 socket_type = {4: "tcp", 6: "tcp6"}[monip.version]
 
-wato = checkmkapi.CMKRESTAPI(args.url, args.username, args.password)
-
-version_info, etag = wato.version()
-this_site = version_info["site"]
+if args.FOLDER[0] not in ["/", "~"]:
+    args.FOLDER = "/" + args.FOLDER
 
 if args.verbose:
     print(f"Creating host {args.MONSERVER} on {this_site}")
