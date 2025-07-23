@@ -166,15 +166,6 @@ site_config = {
         },
         "configuration_connection": {
             "enable_replication": False,
-            "url_of_remote_site": f"https://{args.MONSERVER}/{args.SITENAME}/check_mk/",
-            "disable_remote_configuration": True,
-            "ignore_tls_errors": False,
-            "direct_login_to_web_gui_allowed": True,
-            "user_sync": {
-                "sync_with_ldap_connections": "disabled",
-            },
-            "replicate_event_console": True,
-            "replicate_extensions": True,
         },
     }
 }
