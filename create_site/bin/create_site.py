@@ -11,6 +11,8 @@ from pprint import pprint # type: ignore
 
 import checkmkapi
 
+import requests
+
 import paramiko
 import ipaddress # type: ignore
 import json
@@ -122,10 +124,16 @@ socket_type = {4: "tcp", 6: "tcp6"}[monip.version]
 if args.FOLDER[0] not in ["/", "~"]:
     args.FOLDER = "/" + args.FOLDER
 
-if args.verbose:
-    print(f"Creating host {args.MONSERVER} on {this_site}")
-wato.add_host(monshort, args.FOLDER, {"ipaddress": str(monip)})
-wato.activate()
+try:
+    wato.get_host(monshort)
+    if args.debug:
+        print(f"Host {monshort} already exists")
+except requests.exceptions.HTTPError as er:
+    if er.response.status_code == 404:
+        if args.verbose:
+            print(f"Creating host {args.MONSERVER} on {this_site}")
+        wato.add_host(monshort, args.FOLDER, {"ipaddress": str(monip)})
+        wato.activate()
 
 if args.verbose:
     print(f"Creating config for distributed monitoring")
@@ -158,15 +166,6 @@ site_config = {
         },
         "configuration_connection": {
             "enable_replication": False,
-            "url_of_remote_site": f"https://{args.MONSERVER}/{args.SITENAME}/check_mk/",
-            "disable_remote_configuration": True,
-            "ignore_tls_errors": False,
-            "direct_login_to_web_gui_allowed": True,
-            "user_sync": {
-                "sync_with_ldap_connections": "disabled",
-            },
-            "replicate_event_console": True,
-            "replicate_extensions": True,
         },
     }
 }
