@@ -8,7 +8,7 @@
            'lib': ['python3/cmk/base/cee/plugins/bakery/apcaccess.py']},
  'name': 'apcaccess',
  'title': 'APC Status via apcaccess',
- 'version': '6.1.0',
+ 'version': '6.1.1',
  'version.min_required': '2.3.0b1',
  'version.packaged': '2.3.0p34',
  'version.usable_until': None}

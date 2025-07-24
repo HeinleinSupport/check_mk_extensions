@@ -25,12 +25,7 @@ from cmk.base.plugins.bakery.bakery_api.v1 import (
     register,
 )
 
-from cmk.utils import debug
-from pprint import pprint # type: ignore
-
 def get_apcaccess_files(conf: Dict[str, Any]) -> FileGenerator:
-    if debug.enabled():
-        pprint(conf)
     if isinstance(conf, bool) and conf:
         conf = {"deploy": True}
     if conf.get("deploy"):
