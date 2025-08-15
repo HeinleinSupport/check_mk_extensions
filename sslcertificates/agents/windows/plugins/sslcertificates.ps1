@@ -19,14 +19,14 @@ function Get-CertificateTemplateName($certificate)
 {
   # The template name is stored in the Extension data.
   # If available, the best is the extension named "Certificate Template Name", since it contains the exact name.
-  $templateExt = $certificate.Extensions | Where-Object{ ( $cert.Oid.Value -eq '1.3.6.1.4.1.311.20.2' ) } | Select-Object -First 1
+  $templateExt = $certificate.Extensions | Where-Object{ ( $_.Oid.Value -eq '1.3.6.1.4.1.311.20.2' ) } | Select-Object -First 1
   if ($templateExt) {
     return [string]::join("", $templateExt.Format(1).Split("`r`n"))
   }
 
   # Our fallback option is the "Certificate Template Information" extension, it contains the name as part of a string like:
   # "Template=Web Server v2(1.3.6.1.4.1.311.21.8.2499889.12054413.13650051.8431889.13164297.111.14326010.6783216)"
-  $templateExt = $certificate.Extensions | Where-Object{ ( $cert.Oid.Value -eq '1.3.6.1.4.1.311.21.7' ) } | Select-Object -First 1
+  $templateExt = $certificate.Extensions | Where-Object{ ( $_.Oid.Value -eq '1.3.6.1.4.1.311.21.7' ) } | Select-Object -First 1
   if ($templateExt) {
     $information = $templateExt.Format(1)
 
