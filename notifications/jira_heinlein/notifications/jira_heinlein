@@ -97,7 +97,8 @@ newissue = {
     'description': get_description(context),
 }
 if context['WHAT'] == 'SERVICE':
-    newissue['labels'].append('monitoring/servicedesc:' + context['SERVICEDESC'])
+    newissue['labels'].append('monitoring/servicedesc:' + context['SERVICEDESC'].replace(" ", "_"))
+
 if 'PARAMETER_PROJECT' in context:
     newissue['project'] = {'id': context['PARAMETER_PROJECT']}
 if 'CONTACT_JIRAPROJECT' in context:
