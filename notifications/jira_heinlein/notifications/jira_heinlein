@@ -92,10 +92,12 @@ if len(sys.argv) > 1:
     sys.exit()
 
 newissue = {
-    'labels': ['monitoring'],
+    'labels': ['monitoring', 'monitoring/hostname:' + context['HOSTNAME'] ],
     'summary': get_summary(context),
     'description': get_description(context),
 }
+if context['WHAT'] == 'SERVICE':
+    newissue['labels'].append('monitoring/servicedesc:' + context['SERVICEDESC'])
 if 'PARAMETER_PROJECT' in context:
     newissue['project'] = {'id': context['PARAMETER_PROJECT']}
 if 'CONTACT_JIRAPROJECT' in context:
@@ -138,7 +140,7 @@ if "PARAMETER_ADD_CUSTOMVALUE" in context:
 if "CONTACT_JIRAADDCFVAL" in context:
     add_cfval = context["CONTACT_JIRAADDCFVAL"]
 if add_cfval and add_cfid:
-    newissue[f"customfield_{add_cfid}"] = {"value": add_cfval}
+    newissue[f"customfield_{add_cfid}"] = {"id": add_cfval}
 
 if 'project' not in newissue:
     print("No JIRA project ID set, discarding notification")
