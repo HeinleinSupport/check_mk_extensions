@@ -48,7 +48,7 @@ def _valuespec_jira_heinlein() -> Dictionary:
         title=Title("Configure the JIRA connection"),
         elements = {
             "url": DictElement(
-                required=True,
+                # required=True,
                 parameter_form=String(
                     title=Title("JIRA URL"),
                     help_text=Help("Configure the JIRA URL here."),
@@ -65,14 +65,14 @@ def _valuespec_jira_heinlein() -> Dictionary:
                     ),
             )),
             "username": DictElement(
-                required=True,
+                # required=True,
                 parameter_form=String(
                     title = Title("User Name"),
                     help_text = Help("Configure the user name here."),
                     field_size = 40,
             )),
             "password": DictElement(
-                required=True,
+                # required=True,
                 parameter_form=Password(
                     title = Title("Password"),
                     help_text = Help("You need to provide a valid passowrd to be able to send notifications."),
@@ -115,13 +115,13 @@ def _valuespec_jira_heinlein() -> Dictionary:
                     help_text = Help("The numerical JIRA resolution transition ID. If not set, it will be retrieved from a custom user attribute named <tt>jiraresolution</tt>."),
             )),
             "host_customid": DictElement(
-                required=True,
+                # required=True,
                 parameter_form=Integer(
                     title = Title("Hostproblem-ID custom field ID"),
                     help_text = Help("The numerical custom field ID for the ID number of the host problem."),
             )),
             "service_customid": DictElement(
-                required=True,
+                # required=True,
                 parameter_form=Integer(
                     title = Title("Serviceproblem-ID custom field ID"),
                     help_text = Help("The numerical custom field ID for the ID number of the service problem."),

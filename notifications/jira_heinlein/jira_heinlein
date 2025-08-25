@@ -6,7 +6,7 @@
            'notifications': ['jira_heinlein']},
  'name': 'jira_heinlein',
  'title': 'JIRA Notifications (Heinlein)',
- 'version': '0.10.2',
+ 'version': '0.10.3',
  'version.min_required': '2.3.0p34',
  'version.packaged': '2.3.0p34',
  'version.usable_until': None}

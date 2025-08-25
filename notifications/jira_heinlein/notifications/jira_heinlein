@@ -160,13 +160,12 @@ if 'issuetype' not in newissue:
     print("No JIRA issue type ID set")
     sys.exit(2)
 
-# pprint(newissue)
-
 if context['NOTIFICATIONTYPE'] == 'PROBLEM':
     try:
         issue = jira.create_issue(fields=newissue)
     except JIRAError as err:
         print('Unable to create issue, JIRA response code %s, %s' % (err.status_code, err.text))
+        print(newissue)
         sys.exit(2)
     print('Created %s' % issue.permalink())
     if 'PARAMETER_MONITORING' in context:
@@ -197,7 +196,6 @@ elif context['NOTIFICATIONTYPE'] == 'RECOVERY':
         site_field,
         site_name,
     )
-    # print("JIRA query: '%s'" % query)
 
     resolution = None
     if 'PARAMETER_RESOLUTION' in context:
@@ -213,6 +211,7 @@ elif context['NOTIFICATIONTYPE'] == 'RECOVERY':
         issues = jira.search_issues(query)
     except JIRAError as err:
         print('Unable to search, JIRA response code %s, %s' % (err.status_code, err.text))
+        print("JIRA query: '%s'" % query)
         sys.exit(2)
 
     for issue in issues:
