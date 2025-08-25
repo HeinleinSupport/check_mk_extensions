@@ -70,7 +70,6 @@ notfound = []
 for necessary in [
     "PARAMETER_URL",
     "PARAMETER_USERNAME",
-    "PARAMETER_PASSWORD",
     "PARAMETER_HOST_CUSTOMID",
     "PARAMETER_SERVICE_CUSTOMID",
 ]:
@@ -80,7 +79,17 @@ if notfound:
     sys.stderr.write("%s not set" % ",".join(notfound))
     sys.exit(2)
 
-password = utils.retrieve_from_passwordstore(context['PARAMETER_PASSWORD'])
+password = None
+
+if context["PARAMETER_PASSWORD_1"] == "cmk_postprocessed":
+    if context["PARAMETER_PASSWORD_2"] == "stored_password":
+        password = utils.retrieve_from_passwordstore("store " + context["PARAMETER_PASSWORD_3_1"])
+    if context["PARAMETER_PASSWORD_2"] == "explicit_password":
+        password = context["PARAMETER_PASSWORD_3_2"]
+        
+if not password:
+    print("No Password configured.")
+    sys.exit(2)
 
 jira = JIRA(server=context['PARAMETER_URL'], basic_auth=(context['PARAMETER_USERNAME'], password))
 
