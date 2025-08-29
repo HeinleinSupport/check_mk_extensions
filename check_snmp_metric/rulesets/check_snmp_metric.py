@@ -17,24 +17,17 @@
 # to the Free Software Foundation, Inc., 51 Franklin St,  Fifth Floor,
 # Boston, MA 02110-1301 USA.
 
-from cmk.rulesets.v1 import Help, Label, Title
+from cmk.rulesets.v1 import Help, Title
 from cmk.rulesets.v1.form_specs import (
-    CascadingSingleChoice,
-    CascadingSingleChoiceElement,
     DefaultValue,
     DictElement,
     Dictionary,
-    FixedValue,
     Float,
     InputHint,
     Integer,
     LevelDirection,
     LevelsType,
-    List,
-    MatchingScope,
     migrate_to_integer_simple_levels,
-    Password,
-    RegularExpression,
     SimpleLevels,
     String,
 )

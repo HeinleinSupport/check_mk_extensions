@@ -17,7 +17,6 @@
 # to the Free Software Foundation, Inc., 51 Franklin St,  Fifth Floor,
 # Boston, MA 02110-1301 USA.
 
-from cmk.base.check_api import host_name
 import cmk.base.config as config
 from cmk.checkengine.fetcher import SourceType
 from functools import reduce # type: ignore
@@ -57,8 +56,8 @@ def check_snmp_metric_arguments(params, host_config: HostConfig) -> Iterator[Act
         args = _creds_to_args(params['creds'])
     else:
         config_cache = config.get_config_cache()
-        ipaddress = config.lookup_ip_address(config_cache, host_name())
-        snmp_config = config_cache.make_snmp_config(host_name(), ipaddress, SourceType.HOST)
+        ipconfig = host_config.primary_ip_config()
+        snmp_config = config_cache.make_snmp_config(host_config.name, ipconfig.address(), SourceType.HOST)
         args = _creds_to_args(snmp_config.credentials)
 
     if "timeout" in params:
