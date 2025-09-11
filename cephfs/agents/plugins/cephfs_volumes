@@ -1,13 +1,26 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 
+# (c) 2025 Heinlein Support GmbH
+#          Robert Sander <r.sander@heinlein-support.de>
+
+# This is free software;  you can redistribute it and/or modify it
+# under the  terms of the  GNU General Public License  as published by
+# the Free Software Foundation in version 2.  This file is distributed
+# in the hope that it will be useful, but WITHOUT ANY WARRANTY;  with-
+# out even the implied warranty of  MERCHANTABILITY  or  FITNESS FOR A
+# PARTICULAR PURPOSE. See the  GNU General Public License for more de-
+# ails.  You should have  received  a copy of the  GNU  General Public
+# License along with GNU Make; see the file  COPYING.  If  not,  write
+# to the Free Software Foundation, Inc., 51 Franklin St,  Fifth Floor,
+# Boston, MA 02110-1301 USA.
+
+
 import json
 import os
 import os.path
-import socket
 import sys
 import rados
-from pprint import pprint
 
 class RadosCMD(rados.Rados):  # type: ignore[misc]
     def command_mon(self, cmd, params=None):
@@ -49,6 +62,26 @@ def _load_plugin_config(mk_confdir: str) -> tuple[str, str]:
 
     return ceph_config, ceph_client
 
+def list_subvolumes(cluster, volume_pools, params):
+    svs_res = cluster.command_mon("fs subvolume ls", params)
+    if svs_res[0] == 0:
+        svs = json.loads(svs_res[1])
+        for subvolume in svs:
+            svi_res = cluster.command_mon("fs subvolume info", dict(params, **{"sub_name": subvolume["name"]}))
+            if svi_res[0] == 0:
+                svi = json.loads(svi_res[1])
+                used = int(svi["bytes_used"] / 1024)
+                if svi["bytes_quota"] == "infinite":
+                    total = int(volume_pools[svi["data_pool"]] / 1024) + used
+                else:
+                    total = int(svi["bytes_quota"] / 1024)
+                perc = int(used / total)
+                if "group_name" in params:
+                    volume_full_name = params["vol_name"] + "." + params["group_name"] + "." + subvolume["name"]
+                else:
+                    volume_full_name = params["vol_name"] + "._nogroup." + subvolume["name"]
+                print(svi["path"] + " cephfs " + str(total) + " " + str(used) + " " + str(total-used) + " " + str(perc) + "% " + volume_full_name)
+
 def main() -> int:
     ceph_config, ceph_client = _load_plugin_config(os.environ["MK_CONFDIR"])
 
@@ -68,25 +101,20 @@ def main() -> int:
             volume_pools = {}
             for pool in volume_info["pools"]["data"]:
                 volume_pools[pool["name"]] = pool["avail"]
+            list_subvolumes(
+                cluster,
+                volume_pools,
+                { "vol_name": volume["name"] },
+            )
             svgs_res = cluster.command_mon("fs subvolumegroup ls", { "vol_name": volume["name"] })
             if svgs_res[0] == 0:
                 svgs = json.loads(svgs_res[1])
                 for subvolumegroup in svgs:
-                    svs_res = cluster.command_mon("fs subvolume ls", { "vol_name": volume["name"], "group_name": subvolumegroup["name"] })
-                    if svs_res[0] == 0:
-                        svs = json.loads(svs_res[1])
-                        for subvolume in svs:
-                            svi_res = cluster.command_mon("fs subvolume info", { "vol_name": volume["name"], "sub_name": subvolume["name"], "group_name": subvolumegroup["name"] })
-                            if svi_res[0] == 0:
-                                svi = json.loads(svi_res[1])
-                                used = int(svi["bytes_used"] / 1024)
-                                if svi["bytes_quota"] == "infinite":
-                                    total = int(volume_pools[svi["data_pool"]] / 1024) + used
-                                else:
-                                    total = int(svi["bytes_quota"] / 1024)
-                                perc = int(used / total)
-                                volume_full_name = volume["name"] + "." + subvolumegroup["name"] + "." + subvolume["name"]
-                                print(svi["path"] + " cephfs " + str(total) + " " + str(used) + " " + str(total-used) + " " + str(perc) + "% " + volume_full_name)
+                    list_subvolumes(
+                        cluster,
+                        volume_pools,
+                        { "vol_name": volume["name"], "group_name": subvolumegroup["name"] }
+                    )
 
 if __name__ == "__main__":
     sys.exit(main())
