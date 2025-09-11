@@ -21,6 +21,8 @@ import os
 import os.path
 import sys
 import rados
+import socket
+from pprint import pprint
 
 class RadosCMD(rados.Rados):  # type: ignore[misc]
     def command_mon(self, cmd, params=None):
@@ -83,17 +85,31 @@ def list_subvolumes(cluster, volume_pools, params):
                 print(svi["path"] + " cephfs " + str(total) + " " + str(used) + " " + str(total-used) + " " + str(perc) + "% " + volume_full_name)
 
 def main() -> int:
+    print("<<<df_v2>>>")
+
     ceph_config, ceph_client = _load_plugin_config(os.environ["MK_CONFDIR"])
 
     cluster = RadosCMD(conffile=ceph_config, name=ceph_client)
     cluster.connect()
 
-    print("<<<df_v2>>>")
+    hostname = socket.gethostname().split(".", 1)[0]
 
-    res = cluster.command_mon("fs volume ls")
-    if res[0] == 0:
-        volumes = json.loads(res[1])
+    local_volumes = set()
+
+    dump_res = cluster.command_mon("fs dump")
+    if dump_res[0] == 0:
+        dump = json.loads(dump_res[1])
+        for fs in dump.get("filesystems", []):
+            for data in fs["mdsmap"]["info"].values():
+                if hostname in data["name"]:
+                    local_volumes.add(fs["mdsmap"]["fs_name"])
+
+    volumes_res = cluster.command_mon("fs volume ls")
+    if volumes_res[0] == 0:
+        volumes = json.loads(volumes_res[1])
         for volume in volumes:
+            if volume["name"] not in local_volumes:
+                continue
             volume_info = { "pools": { "data": [] } }
             vi_res = cluster.command_mon("fs volume info", { "vol_name": volume["name"] })
             if vi_res[0] == 0:
