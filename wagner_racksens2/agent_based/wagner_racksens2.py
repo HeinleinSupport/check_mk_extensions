@@ -202,18 +202,19 @@ def check_wagner_racksens2_detector(item, params, section) -> CheckResult:
                 yield Result(state=State.CRIT, summary="Fire Alarm")
             yield from check_levels(
                 vals['smoke'],
-                levels_upper=("fixed", params.get('smoke_levels')),
+                levels_upper=params.get('smoke_levels'),
                 metric_name="smoke_perc",
                 label="Smoke detected",
                 render_func=render.percent,
             )
             levels_lower = params.get('chamber_levels')
             if isinstance(levels_lower, tuple):
-                warn, crit = levels_lower
-                levels_lower = ("fixed", (-warn, -crit))
+                if isinstance(levels_lower[1], tuple):
+                    warn, crit = levels_lower[1]
+                    levels_lower = ("fixed", (-warn, -crit))
             yield from check_levels(
                 vals['chamber'],
-                levels_upper=("fixed", params.get('chamber_levels')),
+                levels_upper=params.get('chamber_levels'),
                 levels_lower=levels_lower,
                 metric_name="chamber_perc",
                 label="Chamber Deviation",
@@ -227,8 +228,8 @@ check_plugin_wagner_racksens2_detector = CheckPlugin(
     discovery_function=discover_wagner_racksens2_detector,
     check_function=check_wagner_racksens2_detector,
     check_default_parameters={
-        "smoke_levels": (3, 5),
-        "chamber_levels": (10, 20),
+        "smoke_levels": ("fixed", (3, 5)),
+        "chamber_levels": ("fixed", (10, 20)),
     },
     check_ruleset_name="wagner_racksens2_detector",
 )

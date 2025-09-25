@@ -1,0 +1,24 @@
+{'author': 'Robert Sander <r.sander@heinlein-support.de>',
+ 'description': 'These SNMP checks are for Wagner Group Racksens2 devices.\n'
+                '\n'
+                'Checks are available for\n'
+                '- Air Flow\n'
+                '- Alarms\n'
+                '- Smoke\n'
+                '- Temperature\n',
+ 'download_url': 'https://github.com/HeinleinSupport/check_mk_extensions/',
+ 'files': {'cmk_addons_plugins': ['wagner_racksens2/agent_based/wagner_racksens2.py',
+                                  'wagner_racksens2/checkman/wagner_racksens2_airflow',
+                                  'wagner_racksens2/checkman/wagner_racksens2_alarm',
+                                  'wagner_racksens2/checkman/wagner_racksens2_detector',
+                                  'wagner_racksens2/checkman/wagner_racksens2_info',
+                                  'wagner_racksens2/checkman/wagner_racksens2_temp',
+                                  'wagner_racksens2/graphing/wagner_racksens2.py',
+                                  'wagner_racksens2/rulesets/wagner_racksens2.py'],
+           'mibs': ['RACKSENS2.MIB', 'RACKSENS2_PSW.MIB']},
+ 'name': 'wagner_racksens2',
+ 'title': 'Wagner Racksens2',
+ 'version': '3.0.2',
+ 'version.min_required': '2.3.0b1',
+ 'version.packaged': '2.4.0p10',
+ 'version.usable_until': None}
