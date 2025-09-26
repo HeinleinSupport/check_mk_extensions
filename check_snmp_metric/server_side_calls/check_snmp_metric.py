@@ -56,8 +56,7 @@ def check_snmp_metric_arguments(params, host_config: HostConfig) -> Iterator[Act
         args = _creds_to_args(params['creds'])
     else:
         config_cache = config.get_config_cache()
-        ipconfig = host_config.primary_ip_config()
-        snmp_config = config_cache.make_snmp_config(host_config.name, ipconfig.address(), SourceType.HOST)
+        snmp_config = config_cache.make_snmp_config(host_config.name, host_config.primary_ip_config.address, SourceType.HOST, backend_override=None)
         args = _creds_to_args(snmp_config.credentials)
 
     if "timeout" in params:

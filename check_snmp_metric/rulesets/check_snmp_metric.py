@@ -38,10 +38,11 @@ from cmk.rulesets.v1.form_specs.validators import (
     NumberInRange,
 )
 from cmk.rulesets.v1.rule_specs import ActiveCheck, Topic
+from cmk.gui.form_specs.private import LegacyValueSpec
+from cmk.gui.watolib.attributes import SNMPCredentials
 
 def _valuespec_active_checks_snmp_metric():
     return Dictionary(
-        ignored_elements = ["creds"],
         elements = {
             "description": DictElement(
                 required=True,
@@ -71,10 +72,12 @@ def _valuespec_active_checks_snmp_metric():
                     unit_symbol = "s",
                     prefill = DefaultValue(10),
                 )),
-            # ( "creds",
-            #   SNMPCredentials(
-            #       help = _("If not set, the SNMP credentials of the host will be used"),
-            #   )),
+            "creds": DictElement(
+                parameter_form=LegacyValueSpec.wrap(
+                    SNMPCredentials(
+                        help = "If not set, the SNMP credentials of the host will be used",
+                    )),
+                ),
             "oid": DictElement(
                 required = True,
                 parameter_form = String(

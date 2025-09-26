@@ -73,7 +73,7 @@ while args:
 res = exec_snmpget(snmpgetcmd)
 
 if res.returncode == 0:
-    oid, v = res.stdout.strip().split()
+    oid, v = res.stdout.strip().split(" ", 1)
     val = (float(v) / factor) + offset
     state = 0
     info = '%s is %0.2f %s' % (oid, val, unit)
