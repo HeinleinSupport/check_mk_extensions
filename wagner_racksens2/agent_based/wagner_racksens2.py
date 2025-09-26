@@ -207,14 +207,15 @@ def check_wagner_racksens2_detector(item, params, section) -> CheckResult:
                 label="Smoke detected",
                 render_func=render.percent,
             )
-            levels_lower = params.get('chamber_levels')
-            if isinstance(levels_lower, tuple):
-                if isinstance(levels_lower[1], tuple):
-                    warn, crit = levels_lower[1]
+            levels_upper = params.get('chamber_levels')
+            levels_lower = ("no_levels", None)
+            if isinstance(levels_upper, tuple):
+                if levels_upper[0] == "fixed":
+                    warn, crit = levels_upper[1]
                     levels_lower = ("fixed", (-warn, -crit))
             yield from check_levels(
                 vals['chamber'],
-                levels_upper=params.get('chamber_levels'),
+                levels_upper=levels_upper,
                 levels_lower=levels_lower,
                 metric_name="chamber_perc",
                 label="Chamber Deviation",
