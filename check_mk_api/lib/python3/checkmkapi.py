@@ -19,6 +19,7 @@ import json
 from ast import literal_eval # type: ignore
 from pprint import pprint # type: ignore
 from typing import Any, Dict, Tuple # type: ignore
+from pathlib import Path
 
 def _check_mk_url(url):
     """ adds trailing check_mk path component to URL """
@@ -31,8 +32,8 @@ def _check_mk_url(url):
 def _site_url():
     urldefault = None
     if os.environ.get('HOME', 'a') == os.environ.get('OMD_ROOT', 'b'):
-        import cmk.utils.site
-        siteconfig = cmk.utils.site.get_omd_config()
+        from cmk.ccc.site import get_omd_config
+        siteconfig = get_omd_config(Path(os.environ.get('OMD_ROOT'), ""))
         urldefault = 'http://%s:%s/%s' % (siteconfig['CONFIG_APACHE_TCP_ADDR'],
                                           siteconfig['CONFIG_APACHE_TCP_PORT'],
                                           os.environ['OMD_SITE'])
