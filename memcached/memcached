@@ -15,7 +15,7 @@
            'lib': ['python3/cmk/base/cee/plugins/bakery/memcached.py']},
  'name': 'memcached',
  'title': 'memcached',
- 'version': '6.0.3',
- 'version.min_required': '2.3.0b1',
- 'version.packaged': '2.3.0p33',
+ 'version': '6.1.0',
+ 'version.min_required': '2.4.0b1',
+ 'version.packaged': '2.4.0p10',
  'version.usable_until': None}
