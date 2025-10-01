@@ -1,0 +1,12 @@
+{'author': 'Robert Sander <r.sander@heinlein-support.de>',
+ 'description': 'This is a ruleset to be used with the Nagios plugin '
+                'check_snmp, which is already part of checkmk.\n',
+ 'download_url': 'https://github.com/HeinleinSupport/check_mk_extensions/tree/master/check_snmp',
+ 'files': {'cmk_addons_plugins': ['check_snmp/rulesets/check_snmp.py',
+                                  'check_snmp/server_side_calls/check_snmp.py']},
+ 'name': 'check_snmp',
+ 'title': 'Ruleset for check_snmp',
+ 'version': '1.0.0',
+ 'version.min_required': '2.4.0b1',
+ 'version.packaged': '2.4.0p10',
+ 'version.usable_until': None}
