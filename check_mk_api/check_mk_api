@@ -1,11 +1,11 @@
 {'author': 'Robert Sander <r.sander@heinlein-support.de>',
  'description': 'This is a Python 3 module for the Check_MK API (both '
                 'Multisite and REST).\n',
- 'download_url': 'https://github.com/HeinleinSupport/check_mk_extensions/tree/master/check_mk_api',
+ 'download_url': 'https://github.com/HeinleinSupport/check_mk_extensions/',
  'files': {'lib': ['python3/checkmkapi.py']},
  'name': 'check_mk_api',
  'title': 'Check_MK Python API',
- 'version': '6.0.0',
+ 'version': '6.1.0',
  'version.min_required': '2.4.0b1',
  'version.packaged': '2.4.0p10',
  'version.usable_until': None}

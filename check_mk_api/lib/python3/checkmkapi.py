@@ -6,7 +6,8 @@
 # Robert Sander <r.sander@heinlein-support.de>
 #
 
-# https://checkmk.com/cms_rest_api.html
+# https://docs.checkmk.com/latest/en/rest_api.html
+# 
 
 """API-Wrapper for the CheckMK 2.0 REST API and the Multisite API (Views)"""
 
@@ -20,6 +21,9 @@ from ast import literal_eval # type: ignore
 from pprint import pprint # type: ignore
 from typing import Any, Dict, Tuple # type: ignore
 from pathlib import Path
+from requests.auth import HTTPBasicAuth
+
+__version__ = "6.1.0"
 
 def _check_mk_url(url):
     """ adds trailing check_mk path component to URL """
@@ -73,6 +77,7 @@ class CMKRESTAPI():
         self._session = requests.session()
         self._session.headers['Authorization'] = f"Bearer {api_user} {api_secret}"
         self._session.headers['Accept'] = 'application/json'
+        self._session.headers['User-Agent'] = f'check_mk_api/{__version__}'
 
     def _check_response(self, resp):
         if resp.content:
@@ -1999,9 +2004,11 @@ class MultisiteAPI():
             api_user, api_secret = _site_creds(api_user)
         self._site_url = _check_mk_url(site_url)
 
-        self._api_creds = {
-            '_username': api_user,
-            '_secret': api_secret,
+        self._session = requests.session()
+        self._session.auth = HTTPBasicAuth(api_user, api_secret)
+        self._session.headers['User-Agent'] = f'check_mk_api/{__version__}'
+
+        self._base_params = {
             'request_format': 'python',
             'output_format': 'python',
             '_transid': '-1',
@@ -2010,9 +2017,9 @@ class MultisiteAPI():
     def _api_request(self, api_url, params, data=None):
         with warnings.catch_warnings():
             warnings.simplefilter('ignore')
-            params.update(self._api_creds)
+            params.update(self._base_params)
             if data:
-                resp = requests.post(
+                resp = self._session.post(
                     self._site_url + api_url,
                     verify=False,
                     params=params,
@@ -2020,7 +2027,7 @@ class MultisiteAPI():
                     allow_redirects=False,
                 )
             else:
-                resp = requests.get(
+                resp = self._session.get(
                     self._site_url + api_url,
                     verify=False,
                     params=params,
@@ -2032,10 +2039,10 @@ class MultisiteAPI():
                     return literal_eval(msg)
                 if resp.text.startswith('ERROR: '):
                     raise ValueError(resp.text[7:])
-                else:
-                    return literal_eval(resp.text)
-            else:
-                resp.raise_for_status()
+                return literal_eval(resp.text)
+            if resp.status_code == 302:
+                raise ValueError(f"Got redirection, maybe wrong credentials")
+            resp.raise_for_status()
 
     def view(self, view_name, **kwargs):
         """Fetches data from a Multisite view
@@ -2058,4 +2065,3 @@ class MultisiteAPI():
                 item[header[i]] = data[i]
             result.append(item)
         return result
-
