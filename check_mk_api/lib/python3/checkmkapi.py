@@ -2021,7 +2021,6 @@ class MultisiteAPI():
             if data:
                 resp = self._session.post(
                     self._site_url + api_url,
-                    verify=False,
                     params=params,
                     data='request=%s' % repr(data),
                     allow_redirects=False,
@@ -2029,7 +2028,6 @@ class MultisiteAPI():
             else:
                 resp = self._session.get(
                     self._site_url + api_url,
-                    verify=False,
                     params=params,
                     allow_redirects=False,
                 )
