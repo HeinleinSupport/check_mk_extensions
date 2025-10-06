@@ -1,0 +1,91 @@
+#!/bin/bash
+
+# (c) 2024 Heinlein Consulting GmbH
+#          Robert Sander <r.sander@heinlein-support.de>
+
+# This is free software;  you can redistribute it and/or modify it
+# under the  terms of the  GNU General Public License  as published by
+# the Free Software Foundation in version 2.  check_mk is  distributed
+# in the hope that it will be useful, but WITHOUT ANY WARRANTY;  with-
+# out even the implied warranty of  MERCHANTABILITY  or  FITNESS FOR A
+# PARTICULAR PURPOSE. See the  GNU General Public License for more de-
+# ails.  You should have  received  a copy of the  GNU  General Public
+# License along with GNU Make; see the file  COPYING.  If  not,  write
+# to the Free Software Foundation, Inc., 51 Franklin St,  Fifth Floor,
+# Boston, MA 02110-1301 USA.
+
+while getopts 'H:U:I' OPT; do
+  case $OPT in
+    H)  host=$OPTARG;;
+    U)  user=$OPTARG;;
+    I)  sshid=$OPTARG;;
+  esac
+done
+
+sshcmd="ssh $host -l $user"
+if [ -n "$sshid" ]; then
+    sshcmd+=" -i $sshid"
+fi
+
+function splitcomma () {
+    readarray -t $2 < <(awk -F',' '{ for( i=1; i<=NF; i++ ) print $i }' <<<"$1")
+    declare -p $2
+}
+
+echo "<<<uptime>>>"
+$sshcmd "cat /proc/uptime"
+# echo "24779041.55 1182085577.13"
+
+echo "<<<df>>>"
+$sshcmd "monhmc -r disk -n 0"
+# echo -e "Filesystem                    1K-blocks     Used Available Use% Mounted on\ndevtmpfs                       15757248        0  15757248   0% /dev\ntmpfs                          16677824       64  16677760   1% /dev/shm\ntmpfs                          16677824   363520  16314304   3% /run\ntmpfs                          16677824        0  16677824   0% /sys/fs/cgroup\n/dev/sda2                      16395220  7971100   7585672  52% /\n/dev/mapper/HMCDataVG-HomeLV   10218772   140216   9537884   2% /home\n/dev/mapper/HMCDataVG-DataLV  412642728 11707264 379947560   3% /data\n/dev/mapper/HMCDataVG-ExtraLV  20466256  3073484  16327812  16% /extra\n/dev/mapper/HMCDataVG-DumpLV  360123532  2692496 339064572   1% /dump\n/dev/sda3                       6114912  1187128   4613212  21% /var\n/dev/mapper/HMCDataVG-LogLV    20466256  4334980  15066316  23% /var/hsc/log\ntmpfs                           3335552        0   3335552   0% /run/user/601\ntmpfs                           3335552       64   3335488   1% /run/user/604\ntmpfs                           3335552        0   3335552   0% /run/user/600"
+
+echo "<<<kernel>>>"
+date +%s
+$sshcmd "cat /proc/vmstat /proc/stat"
+# echo -e "nr_free_pages 8417\nnr_zone_inactive_anon 300643\nnr_zone_active_anon 66057\nnr_zone_inactive_file 522\nnr_zone_active_file 5974\nnr_zone_unevictable 495\nnr_zone_write_pending 61\nnr_mlock 495\nnr_bounce 0\nnr_zspages 0\nnr_free_cma 777\nnuma_hit 22370690309\nnuma_miss 0\nnuma_foreign 0\nnuma_interleave 6725\nnuma_local 22370690309\nnuma_other 0\nnr_inactive_anon 300643\nnr_active_anon 66057\nnr_inactive_file 522\nnr_active_file 5974\nnr_unevictable 495\nnr_slab_reclaimable 5617\nnr_slab_unreclaimable 21391\nnr_isolated_anon 0\nnr_isolated_file 0\nworkingset_nodes 1300\nworkingset_refault_anon 19223\nworkingset_refault_file 6141829\nworkingset_activate_anon 495\nworkingset_activate_file 2471475\nworkingset_restore_anon 273\nworkingset_restore_file 1571984\nworkingset_nodereclaim 118752\nnr_anon_pages 357884\nnr_mapped 10285\nnr_file_pages 15565\nnr_dirty 61\nnr_writeback 0\nnr_writeback_temp 0\nnr_shmem 6640\nnr_shmem_hugepages 0\nnr_shmem_pmdmapped 0\nnr_file_hugepages 0\nnr_file_pmdmapped 0\nnr_anon_transparent_hugepages 258\nnr_vmscan_write 98899\nnr_vmscan_immediate_reclaim 47320\nnr_dirtied 185907653\nnr_written 172817407\nnr_kernel_misc_reclaimable 0\nnr_foll_pin_acquired 73438\nnr_foll_pin_released 73438\nnr_kernel_stack 51776\nnr_page_table_pages 823\nnr_swapcached 2196\nnr_dirty_threshold 4275\nnr_dirty_background_threshold 1068\npgpgin 523628116\npgpgout 4384783672\npswpin 19229\npswpout 98776\npgalloc_dma 0\npgalloc_dma32 0\npgalloc_normal 22409262578\npgalloc_movable 0\nallocstall_dma 0\nallocstall_dma32 0\nallocstall_normal 2841\nallocstall_movable 77557\npgskip_dma 0\npgskip_dma32 0\npgskip_normal 0\npgskip_movable 0\npgfree 22412062677\npgactivate 35134537\npgdeactivate 9552870\npglazyfree 0\npgfault 57495043714\npgmajfault 181898\npglazyfreed 0\npgrefill 10367202\npgsteal_kswapd 12879841\npgsteal_direct 926216\npgscan_kswapd 14529600\npgscan_direct 950845\npgscan_direct_throttle 0\npgscan_anon 945167\npgscan_file 14535278\npgsteal_anon 99654\npgsteal_file 13706403\nzone_reclaim_failed 0\npginodesteal 2943\nslabs_scanned 649962957\nkswapd_inodesteal 997921\nkswapd_low_wmark_hit_quickly 21198\nkswapd_high_wmark_hit_quickly 394\npageoutrun 37393\npgrotated 121494\ndrop_pagecache 0\ndrop_slab 0\noom_kill 0\nnuma_pte_updates 0\nnuma_huge_pte_updates 0\nnuma_hint_faults 0\nnuma_hint_faults_local 0\nnuma_pages_migrated 0\npgmigrate_success 2732877\npgmigrate_fail 102990\ncompact_migrate_scanned 98085127\ncompact_free_scanned 284489031\ncompact_isolated 5890270\ncompact_stall 146777\ncompact_fail 145290\ncompact_success 1487\ncompact_daemon_wake 34595\ncompact_daemon_migrate_scanned 7573063\ncompact_daemon_free_scanned 26635182\nhtlb_buddy_alloc_success 0\nhtlb_buddy_alloc_fail 0\nunevictable_pgs_culled 7026\nunevictable_pgs_scanned 0\nunevictable_pgs_rescued 1118\nunevictable_pgs_mlocked 2868\nunevictable_pgs_munlocked 1423\nunevictable_pgs_cleared 693\nunevictable_pgs_stranded 696\nthp_fault_alloc 6304\nthp_fault_fallback 1476\nthp_fault_fallback_charge 0\nthp_collapse_alloc 53397\nthp_collapse_alloc_failed 70809\nthp_file_alloc 0\nthp_file_fallback 0\nthp_file_fallback_charge 0\nthp_file_mapped 0\nthp_split_page 134\nthp_split_page_failed 0\nthp_deferred_split_page 53043\nthp_split_pmd 53043\nthp_zero_page_alloc 0\nthp_zero_page_alloc_failed 0\nthp_swpout 0\nthp_swpout_fallback 33\nballoon_inflate 0\nballoon_deflate 0\nballoon_migrate 0\nswap_ra 6322\nswap_ra_hit 3797\nnr_unstable 0\ncpu  356581364 24832 302972459 118129567629 73624532 0 961814 0 0 0\ncpu0 11992176 804 7886361 2452542839 3094536 0 46228 0 0 0\ncpu1 9633242 700 5890050 2457812027 2744257 0 46110 0 0 0\ncpu2 8647945 468 6684722 2458778681 2031659 0 27542 0 0 0\ncpu3 6681097 497 5686157 2462629076 1274870 0 26810 0 0 0\ncpu4 5452521 349 5005942 2465160245 791291 0 18487 0 0 0\ncpu5 5003304 172 5120298 2465668759 670711 0 22399 0 0 0\ncpu6 4526686 252 4717655 2466698566 577747 0 18289 0 0 0\ncpu7 4485700 409 4886144 2466603968 581231 0 22980 0 0 0\ncpu8 14675307 933 11773613 2445893747 3725522 0 42032 0 0 0\ncpu9 7387608 361 4173831 2461441927 2603598 0 32937 0 0 0\ncpu10 8717669 348 7088147 2458198890 2141740 0 22841 0 0 0\ncpu11 6737725 700 5972515 2462260141 1307958 0 19677 0 0 0\ncpu12 5765853 358 5370998 2464424154 863210 0 18584 0 0 0\ncpu13 5057554 423 4900656 2465906082 635984 0 16138 0 0 0\ncpu14 4715016 339 4854413 2466522061 470798 0 9219 0 0 0\ncpu15 4568102 293 4966940 2466606693 453969 0 11769 0 0 0\ncpu16 13518023 614 9482529 2449098194 3846037 0 48135 0 0 0\ncpu17 11382449 724 7963278 2453434158 3295534 0 42700 0 0 0\ncpu18 8731903 474 6497036 2458829219 2096082 0 30448 0 0 0\ncpu19 6670619 561 5545966 2462838726 1224776 0 23919 0 0 0\ncpu20 5736884 278 5293023 2464573494 813157 0 19635 0 0 0\ncpu21 4857936 162 4651225 2466070994 771103 0 18969 0 0 0\ncpu22 4219432 309 4277524 2467437117 576657 0 18854 0 0 0\ncpu23 4104474 194 4402440 2467492465 550337 0 17456 0 0 0\ncpu24 13326185 1046 9498907 2449301408 3850249 0 31712 0 0 0\ncpu25 11120957 824 7837301 2453842472 3303171 0 25435 0 0 0\ncpu26 8539481 451 6365298 2459219910 2042027 0 16679 0 0 0\ncpu27 6382555 478 5336459 2463432871 1153125 0 9531 0 0 0\ncpu28 5375244 647 4909571 2465408565 734516 0 7701 0 0 0\ncpu29 4851253 446 4853869 2466276885 526817 0 4460 0 0 0\ncpu30 4477667 502 4651333 2466887659 524797 0 6807 0 0 0\ncpu31 5367137 297 6078329 2464248721 711646 0 7906 0 0 0\ncpu32 13818776 733 10659956 2448152600 3391991 0 31502 0 0 0\ncpu33 11767848 749 9053818 2452335997 2973998 0 27331 0 0 0\ncpu34 9008630 709 7456771 2457743208 2006845 0 19769 0 0 0\ncpu35 7076387 532 6480022 2461691956 1105457 0 13574 0 0 0\ncpu36 6090695 449 6131702 2463554960 713117 0 11710 0 0 0\ncpu37 5402297 386 5834248 2464780720 523620 0 8112 0 0 0\ncpu38 5078047 733 5736146 2465304083 470928 0 8569 0 0 0\ncpu39 5074927 478 5982961 2465129586 445757 0 8522 0 0 0\ncpu40 15452754 1140 13088835 2443874896 3559636 0 31609 0 0 0\ncpu41 11660705 931 8929700 2452337605 3186190 0 23355 0 0 0\ncpu42 8782702 592 6878714 2458497790 2042873 0 15859 0 0 0\ncpu43 6455865 462 5525124 2463232654 1131874 0 8320 0 0 0\ncpu44 5277225 284 4887629 2465627745 698784 0 4930 0 0 0\ncpu45 4592703 349 4685043 2466710580 546056 0 6768 0 0 0\ncpu46 4264571 560 4505972 2467352314 480167 0 6482 0 0 0\ncpu47 4067528 332 4513288 2467700197 358103 0 3013 0 0 0\nintr 140610582170 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 1754451499 0 14 0 20 0 25956819 0 18 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 25881494 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 61435 63538 33572 0 0 0 244731 186917 143937 57052697 251644 180375 124199 120632 90429 81950 78000 137060 71606 128863 118949 128672 124619 232609 219207 148595 269736 238952 175964 132063 280012 179473 128225 206127 142340 87987 129274 117274 201119 194244 0 0 2 249263 248156 148177 0 0 0 0 1213836 239546 279640 286202 189391 0 349926 329503 1249717 810068 342496 1224525 905427 629994 469891 407695 599141 375072 331721 211873 505615 455228 437449 429062 396900 1334575 285812 326407 1408544 1046704 516291 1398046 1101458 661219 537594 464783 682541 577766 446360 477570 0 0 0 0 2 1424120 0 0 0 0 899495 1083020 92627173 383227 705047 605256 942160 775844 632166 1215834 1880998 1595704 2191034 1377963 1352891 1195161 1412283 1192989 2431206 1337346 1932808 2444263 1351896 1024148 888931 779113 1192840 1843982 13292395 911523 852959 1644499 1679504 9202496 1735124 1492537 1944102 2094971 1759190 2049782 0 0 0 0 0 0 1467345 734665 0 0 2444004 8690664 5165463 2165862 4122861 974356 3221796 2715980 2781448 1955202 1637020 1592561 1034921 1558831 1660106 8280329 3806473 3431896 8986800 5675785 2700488 12939631 8823729 5088656 4491637 3931887 2 11844886 9018885 4764298 5027138 4139248 4628385 4223192 5356598 8618943 0 5424936 3830900 3764825 0 0 0 0 0 0 0 0 114528699 3960379 3701375 0 0 34317 0 0 0 0 0 0 0 0 3525354 2126651 3996134 2420039 5306201 2160462 1390100 0 2 5525440 1116666 3464604 681998 581744 781375 1242615 1168955 0 1132552 455826 404492 674315 887985 312137 382408 563785 0 0 141339 260043 100931 111245 78607 251872 267057 58452 0 0\nctxt 49104366436\nbtime 1685466004\nprocesses 691979599\nprocs_running 1\nprocs_blocked 0\nsoftirq 113944868719 19941 1670742449 21473109 962782747 135072777 0 26354217 790075514 332 2964165233"
+
+echo "<<<mem>>>"
+$sshcmd "cat /proc/meminfo"
+# echo -e "MemTotal:       33355712 kB\nMemFree:          506496 kB\nMemAvailable:     639040 kB\nBuffers:          124224 kB\nCached:           760640 kB\nSwapCached:       140544 kB\nActive:          4616960 kB\nInactive:       19298496 kB\nActive(anon):    4227520 kB\nInactive(anon): 19241920 kB\nActive(file):     389440 kB\nInactive(file):    56576 kB\nUnevictable:       31680 kB\nMlocked:           31680 kB\nSwapTotal:       4194176 kB\nSwapFree:              0 kB\nDirty:              5184 kB\nWriteback:             0 kB\nAnonPages:      22904576 kB\nMapped:           659712 kB\nShmem:            424896 kB\nKReclaimable:     359616 kB\nSlab:            1727616 kB\nSReclaimable:     359616 kB\nSUnreclaim:      1368000 kB\nKernelStack:       51888 kB\nPageTables:        52672 kB\nNFS_Unstable:          0 kB\nBounce:                0 kB\nWritebackTmp:          0 kB\nCommitLimit:    20872000 kB\nCommitted_AS:   10241152 kB\nVmallocTotal:   541165879296 kB\nVmallocUsed:           0 kB\nVmallocChunk:          0 kB\nPercpu:            79872 kB\nHardwareCorrupted:     0 kB\nAnonHugePages:   4227072 kB\nShmemHugePages:        0 kB\nShmemPmdMapped:        0 kB\nFileHugePages:         0 kB\nFilePmdMapped:         0 kB\nCmaTotal:        1687552 kB\nCmaFree:           49856 kB\nHugePages_Total:       0\nHugePages_Free:        0\nHugePages_Rsvd:        0\nHugePages_Surp:        0\nHugepagesize:      16384 kB\nHugetlb:               0 kB"
+
+echo "<<<hmc_svcevents:sep(44)>>>"
+$sshcmd "lssvcevents -t hardware --filter status=open"
+# echo "problem_num=8,pmh_num=,eed_transmitted=false,refcode=E3D46FFF,status=Open,first_time=11/28/2023 09:07:39 UTC,last_time=11/28/2023 09:32:46 UTC,sys_name=PSi-HMC1-RRZ,sys_mtms=7063-CR1/130EDMA,enclosure_mtms=7063-CR1/130EDMA,firmware_fix=,"text=Remote support call failed, check the console event logs for details on the specific failure.",created_time=11/28/2023 09:07:39 UTC,reporting_name=PSi-HMC1-RRZ,reporting_mtms=7063-CR1/130EDMA,failing_mtms=7063-CR1/130EDMA,analyzing_hmc=PSi-HMC1-RRZ,event_time=11/28/2023 09:07:39 UTC,"files=iqyymrge.log/Consolidated system platform log/8.zip,iqyvpd.dat/Configuration information associated with the HMC/8.zip,actzuict.dat/Tasks performed/8.zip,iqyvpdc.dat/Configuration information associated with the HMC/8.zip,hmcdump.dat/HMC repository dump data/8.zip,evt_processor.log/Event processor log/8.zip,problems.xml/XML version of the problems opened on the HMC for the HMC and the server/8.zip,refcode.dat/list of reference codes associated with the hmc/8.zip,iqyylog.log/HMC firmware log information/additional8.zip,hmc.eed/HMC code level obtained from 'lshmc -V' and connection information obtained from 'lssysconn -r all'/8.zip,acuppd.pa.tgz/Output of different operating system commands/8.zip,taskRecorder0.trm/Task recorderfile/8.zip",approval_state=approved,callhome_intended=false,duplicate_count=2,event_severity=,analyzing_mtms=7063-CR1/130EDMA,ref_code_extn=0000FC98,sys_refcode=E3D46FFF,"fru_details=""fru_part_num=HMCLIC:fru_serial_num=:fru_location_code=:fru_replaced_date=0:fru_class=CLASS_SYMBOLIC_PROCEDURE:fru_replacement_group=M:fru_ccin=:fru_logic_ctrl_mtms=7063-CR1/130EDMA, mtms=7063-CR1/130EDMA:fru_power_ctrl_mtms=7063-CR1/130EDMA, mtms=7063-CR1/130EDMA:fru_description=""","vr_files=8.zip/19947250,additional8.zip/38170989",src_extensions=,notification_status=,notification_type=,problem_uuid=94aa60b0-8dcd-11ee-bf98-afd4d96fcf9f,comments=,"service_history=""""""service_history_time=11/28/2023 09:07:45 UTC""""/service_history_text=Problem detected/""""service_history_time=11/28/2023 09:07:45 UTC""""/service_history_text=Customer notified""",parts_replaced=,fix_description=,platform_log_id=,sub_system_id=,symptom_string=9100 SRCE3D46FFF,customer_description=,failing_console_mtms=7063-CR1/130EDMA,partition_id=,partition_name=,partition_hostname=,partition_os_type=,system_log_id=,clickable_ref_code=en_US/help/topic/p9eai/E3D46FFF.htm"
+
+$sshcmd "lssyscfg -r sys -F name,type_model,serial_num,ipaddr,state,sys_time" | while read line; do
+# echo -e "PS980-NFRZ01-SN7823A58,9080-M9S,7823A58,172.31.0.41,Operating,$(date)\nPS980-RRZ01-SN7823A48,9080-M9S,7823A48,172.31.0.38,Operating,$(date)" | while read line; do
+    eval $(splitcomma "$line" "lpar_info")
+
+    lpar_name=${lpar_info[0]}
+    lpar_type=${lpar_info[1]}
+    lpar_serial=${lpar_info[2]}
+    lpar_ip=${lpar_info[3]}
+    lpar_state=${lpar_info[4]}
+    lpar_systime=${lpar_info[5]}
+
+    echo "<<<<$lpar_name>>>>"
+
+    echo "<<<systemtime>>>"
+    echo $(date +%s -d "$lpar_systime") $(date +%s)
+
+    echo "<<<lpar_info>>>"
+    echo "type $lpar_type"
+    echo "serial $lpar_serial"
+    echo "ip $lpar_ip"
+    echo "state $lpar_state"
+
+    echo "<<<lpar_item:sep(44)>>>"
+    $sshcmd "lssyscfg -r lpar -m $lpar_name -F name,lpar_id,state,os_version,logical_serial_num,rmc_ipaddr"
+    # echo -e "N15_GIO,15,Running,OS/400 V7R4M0 48 8,7823A58F,\nN14_ZOPR01,14,Running,OS/400 V7R4M0 48 8,7823A58E,\nN13_TEST02,13,Running,OS/400 V7R4M0 48 8,7823A58D,\nN12_TEST01,12,Running,OS/400 V7R4M0 48 8,7823A58C,\nN11_INT02,11,Running,OS/400 V7R4M0 48 8,7823A58B,\nN10_DB01,10,Running,OS/400 V7R4M0 48 8,7823A58A,\nN09_INT01,9,Running,OS/400 V7R4M0 48 8,7823A589,\nN08_SAP,8,Running,OS/400 V7R4M0 48 8,7823A588,\nN07_POLEN,7,Running,OS/400 V7R4M0 48 8,7823A587,\nN06_DOMINO,6,Running,OS/400 V7R4M0 48 7,7823A586,\nN05_GCSD,5,Running,OS/400 V7R4M0 48 8,7823A585,\nN04_ONLINE,4,Running,OS/400 V7R4M0 48 8,7823A584,\nN03_CGHB,3,Running,OS/400 V7R4M0 48 8,7823A583,\nn1vio02,2,Not Activated,Unknown,7823A582,\nn1vio01,1,Not Activated,Unknown,7823A581,"
+    
+    ## echo "<<<lpar_cpu_mode_unit:sep(44)>>>"
+    ## $sshcmd "lshwres -r proc -m $lpar_name --level lpar -F lpar_id,curr_proc_mode,curr_proc_units"
+    ## echo -e "15,ded,null\n14,ded,null\n13,ded,null\n12,ded,null\n11,ded,null\n10,ded,null\n9,ded,null\n8,ded,null\n7,ded,null\n6,ded,null\n5,ded,null\n4,ded,null\n3,ded,null\n2,shared,1.0\n1,shared,1.0"
+
+    ## echo "<<<lpar_cpu_info:sep(44)>>>"
+    ## $sshcmd "lslparutil -m $lpar_name -r lpar -F lpar_id,time,capped_cycles,uncapped_cycles,entitled_cycles,idle_cycles,time_cycles -n 11"
+    ## echo "No results were found."
+
+    echo "<<<<>>>>"
+done

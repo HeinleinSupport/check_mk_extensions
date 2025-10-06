@@ -1,0 +1,18 @@
+{'author': 'Robert Sander <r.sander@heinlein-support.de>',
+ 'description': 'This special agent for IBM HMC uses SSH to run commands on '
+                'the system.\n'
+                '\n'
+                'A user and an SSH key pair has to be configured.\n'
+                '\n'
+                'The special agent generates piggyback data for the LPARs.\n',
+ 'download_url': 'https://github.com/HeinleinSupport/check_mk_extensions',
+ 'files': {'cmk_addons_plugins': ['agent_ibm_hmc/agent_based/ibm_hmc_lpar.py',
+                                  'agent_ibm_hmc/libexec/agent_ibm_hmc',
+                                  'agent_ibm_hmc/rulesets/ibm_hmc.py',
+                                  'agent_ibm_hmc/server_side_calls/agent_ibm_hmc']},
+ 'name': 'agent_ibm_hmc',
+ 'title': 'IBM HMC special agent',
+ 'version': '1.0.0',
+ 'version.min_required': '2.3.0b1',
+ 'version.packaged': '2.4.0p10',
+ 'version.usable_until': None}
