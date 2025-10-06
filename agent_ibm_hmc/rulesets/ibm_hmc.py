@@ -15,46 +15,41 @@
 # to the Free Software Foundation, Inc., 51 Franklin St,  Fifth Floor,
 # Boston, MA 02110-1301 USA.
 
-from cmk.gui.i18n import _
-from cmk.gui.plugins.wato.special_agents.common import RulespecGroupDatasourceProgramsHardware
-from cmk.gui.plugins.wato.utils import HostRulespec, rulespec_registry
-from cmk.gui.watolib.rulespecs import Rulespec
-from cmk.gui.valuespec import (
-    Dictionary,
-    TextAscii,
+from cmk.rulesets.v1 import (
+    Help,
+    Title,
 )
-
-def _factory_default_special_agents_ibm_hmc():
-    # No default, do not use setting if no rule matches
-    return Rulespec.FACTORY_DEFAULT_UNUSED
+from cmk.rulesets.v1.form_specs import (
+    DictElement,
+    Dictionary,
+    String,
+)
+from cmk.rulesets.v1.rule_specs import (
+    SpecialAgent,
+    Topic,
+)
 
 def _valuespec_special_agents_ibm_hmc() -> Dictionary:
     return Dictionary(
-        title = _(u'IBM HMC'),
-        help = _(u'This rule selects the IBM HMC agent. You can configure your connection settings here.'),
-        elements = [
-            ( 'username',
-              TextAscii(
-                  title = _('User name'),
-                  allow_empty = False,
-              )
-            ),
-            ( 'ssh_id',
-              TextAscii(
-                  title = _('SSH key file'),
-                  help = _('Enter the location of the SSH key file, usually ~/.ssh/id_rsa or similar'),
-                  allow_empty = False,
-              )
-            ),
-        ],
-        optional_keys = [ 'ssh_id' ],
+        title = Title(u'IBM HMC'),
+        help_text = Help('This rule selects the IBM HMC agent. You can configure your connection settings here.'),
+        elements = {
+            "username": DictElement(
+                required=True,
+                parameter_form=String(
+                    title=Title("User name")
+                )),
+            "ssh_id": DictElement(
+                parameter_form=String(
+                    title = Title('SSH key file'),
+                    help_text = Help('Enter the location of the SSH key file, usually ~/.ssh/id_rsa or similar'),
+              )),
+        },
     )
 
-rulespec_registry.register(
-    HostRulespec(
-        factory_default=_factory_default_special_agents_ibm_hmc(),
-        group=RulespecGroupDatasourceProgramsHardware,
-        name="special_agents:ibm_hmc",
-        valuespec=_valuespec_special_agents_ibm_hmc,
-    )
+rule_spec_special_agent_ibm_hmc = SpecialAgent(
+    name="ibm_hmc",
+    title=Title("IBM HMC"),
+    topic=Topic.SERVER_HARDWARE,
+    parameter_form=_valuespec_special_agents_ibm_hmc,
 )

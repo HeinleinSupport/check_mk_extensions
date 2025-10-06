@@ -9,7 +9,7 @@
  'files': {'cmk_addons_plugins': ['agent_ibm_hmc/agent_based/ibm_hmc_lpar.py',
                                   'agent_ibm_hmc/libexec/agent_ibm_hmc',
                                   'agent_ibm_hmc/rulesets/ibm_hmc.py',
-                                  'agent_ibm_hmc/server_side_calls/agent_ibm_hmc']},
+                                  'agent_ibm_hmc/server_side_calls/agent_ibm_hmc.py']},
  'name': 'agent_ibm_hmc',
  'title': 'IBM HMC special agent',
  'version': '1.0.0',

@@ -15,40 +15,26 @@
 # to the Free Software Foundation, Inc., 51 Franklin St,  Fifth Floor,
 # Boston, MA 02110-1301 USA.
 
-
-from .agent_based_api.v1.type_defs import (
+from cmk.agent_based.v2 import (
+    AgentSection,
+    CheckPlugin,
     CheckResult,
     DiscoveryResult,
-    HostLabelGenerator,
+    Result,
+    Service,
+    State,
 )
 
-from .agent_based_api.v1 import (
-    check_levels,
-    register,
-    render,
-    Metric,
-    Result,
-    State,
-    HostLabel,
-    Service,
-    )
+from datetime import datetime # pyright: ignore[reportShadowedImports]
 
-from datetime import datetime
-
-from cmk.utils import debug
-from pprint import pprint
 
 def parse_lpar_info(string_table):
     parsed = {}
-    if debug.enabled():
-        pprint(string_table)
     for key, value in string_table:
         parsed[key] = value
-    if debug.enabled():
-        pprint(parsed)
     return parsed
 
-register.agent_section(
+agent_section_lpar_info = AgentSection(
     name="lpar_info",
     parse_function=parse_lpar_info,
 )
@@ -66,21 +52,16 @@ def check_lpar_info(section) -> CheckResult:
     if section['state'] not in ['Operating']:
         yield Result(state=State.CRIT, summary='state: %s (!!)' % section['state'])
 
-register.check_plugin(
+check_plugin_lpar_info = CheckPlugin(
     name="lpar_info",
     service_name="LPAR info",
     sections=["lpar_info"],
     discovery_function=discover_lpar_info,
     check_function=check_lpar_info,
-    # check_default_parameters={
-    # },
-    # check_ruleset_name="lpar_info",
 )
 
 def parse_lpar_item(string_table):
     parsed = {}
-    if debug.enabled():
-        pprint(string_table)
     for name, lpar_id, state, os_version, logical_serial_num, rmc_ipaddr in string_table:
         parsed[name] = {
             'id': lpar_id,
@@ -89,11 +70,9 @@ def parse_lpar_item(string_table):
             'serial': logical_serial_num,
             'ip': rmc_ipaddr,
         }
-    if debug.enabled():
-        pprint(parsed)
     return parsed
 
-register.agent_section(
+agent_section_lpar_item = AgentSection(
     name="lpar_item",
     parse_function=parse_lpar_item,
 )
@@ -112,27 +91,20 @@ def check_lpar_item(item, section) -> CheckResult:
         if section[item]['state'] not in ['Running']:
             yield Result(state=State.CRIT, summary='state: %s (!!)' % section[item]['state'])
 
-register.check_plugin(
+check_plugin_lpar_item = CheckPlugin(
     name="lpar_item",
     service_name="LPAR item %s",
     sections=["lpar_item"],
     discovery_function=discover_lpar_item,
     check_function=check_lpar_item,
-    # check_default_parameters={
-    # },
-    # check_ruleset_name="lpar_item",
 )
 
 def parse_hmc_svcevents(string_table):
     parsed = []
-    if debug.enabled():
-        pprint(string_table)
     for line in string_table:
         data = {}
         key = None
         for elem in line:
-            if debug.enabled():
-                print(elem)
             if elem[0] != " " and "=" in elem:
                 splitted = elem.split("=", 1)
                 key = splitted[0]
@@ -146,11 +118,9 @@ def parse_hmc_svcevents(string_table):
             if key.endswith('_time'):
                 data[key] = datetime.strptime(value, '%m/%d/%Y %H:%M:%S %Z')
         parsed.append(data)
-    if debug.enabled():
-        pprint(parsed)
     return parsed
 
-register.agent_section(
+agent_section_hmc_svcevents = AgentSection(
     name="hmc_svcevents",
     parse_function=parse_hmc_svcevents,
 )
@@ -173,7 +143,7 @@ def check_hmc_svcevents(section) -> CheckResult:
                              event["text"],
                          ))                
 
-register.check_plugin(
+check_plugin_hmc_svcevents = CheckPlugin(
     name="hmc_svcevents",
     service_name="HMC Events",
     sections=["hmc_svcevents"],
