@@ -24,4 +24,4 @@ mkp files "$package" | while read file; do
 
 done
 
-cp -av $OMD_ROOT/var/check_mk/packages/"$package" .
+cp -av $OMD_ROOT/var/check_mk/packages/"$package" ./"$package".manifest
