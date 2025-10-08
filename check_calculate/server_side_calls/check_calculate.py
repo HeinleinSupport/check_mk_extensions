@@ -17,25 +17,34 @@
 # to the Free Software Foundation, Inc., 51 Franklin St,  Fifth Floor,
 # Boston, MA 02110-1301 USA.
 
-def check_calculate_arguments(params):
 
-    args = '-d "%s"' % params.get('description')
-    args += ' -l "%s"' % params.get('label')
-    args += ' -m "%s"' % params.get('metric')
-    args += ' -o "%s"' % params.get('levels_lower').__repr__()
-    args += ' -u "%s"' % params.get('levels_upper').__repr__()
-    args += ' -e "%s"' % params.get('expression').replace('\n', '')
+from collections.abc import Iterator # type: ignore
+from cmk.server_side_calls.v1 import (
+    ActiveCheckCommand,
+    ActiveCheckConfig,
+    HostConfig,
+    noop_parser,
+)
 
-    return args
+def check_calculate_arguments(params, host_config: HostConfig) -> Iterator[ActiveCheckCommand]:
+
+    args = ['-d', params.get('description')]
+    args += ['-l', params.get('label')]
+    args += ['-m', params.get('metric')]
+    args += ['-o', params.get('levels_lower').__repr__()]
+    args += ['-u', params.get('levels_upper').__repr__()]
+    args += ['-e', params.get('expression').replace('\n', '')]
+
+    yield ActiveCheckCommand(
+        service_description=check_calculate_description(params),
+        command_arguments=args,
+    )
 
 def check_calculate_description(params):
     return '%s' % params.get('description')
 
-# active_check_info['calculate'] = {
-#     "command_line"        : "check_calculate $ARG1$",
-#     "argument_function"   : check_calculate_arguments,
-#     "service_description" : check_calculate_description,
-#     "has_perfdata"        : True,
-# }
-
-
+active_check_check_calculate = ActiveCheckConfig(
+    name="calculate",
+    parameter_parser=noop_parser,
+    commands_function=check_calculate_arguments,
+)

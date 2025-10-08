@@ -37,15 +37,13 @@ import socket # type: ignore
 import json
 import math
 import argparse # type: ignore
-from cmk.base.plugins.agent_based.agent_based_api.v1 import (
+from cmk.agent_based.v2 import (
     check_levels,
     Result,
     Metric,
-    State,
 )
 from functools import reduce # type: ignore
 from ast import literal_eval # type: ignore
-from pprint import pprint # type: ignore
 
 home = os.environ.get('OMD_ROOT')
 if home:
@@ -182,13 +180,20 @@ def replace_metric_value(expr):
 try:
     value = replace_metric_value(literal_eval(args.expression))
 except Exception as e:
-    print('Unable to compute value: %s' % e)
+    print('Unable to compute value\n%s' % e)
     sys.exit(3)
+
+levels_upper = literal_eval(args.levelsupper)
+if not levels_upper:
+    levels_upper = ("no_levels", None)
+levels_lower = literal_eval(args.levelslower)
+if not levels_lower:
+    levels_lower = ("no_levels", None)
 
 for res in check_levels(
     value,
-    levels_upper=literal_eval(args.levelsupper),
-    levels_lower=literal_eval(args.levelslower),
+    levels_upper=levels_upper,
+    levels_lower=levels_lower,
     metric_name=args.metric,
     label=args.label,
 ):

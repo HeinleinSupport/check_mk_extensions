@@ -17,59 +17,86 @@
 # to the Free Software Foundation, Inc., 51 Franklin St,  Fifth Floor,
 # Boston, MA 02110-1301 USA.
 
-# from cmk.gui.i18n import _
-# from cmk.gui.valuespec import (
-#     Dictionary,
-#     Float,
-#     TextAscii,
-#     TextAreaUnicode,
-#     Tuple,
-# )
+from cmk.rulesets.v1 import (
+    Help,
+    Label,
+    Title,
+)
+from cmk.rulesets.v1.form_specs import (
+    BooleanChoice,
+    DefaultValue,
+    DictElement,
+    Dictionary,
+    Float,
+    Integer,
+    InputHint,
+    LevelDirection,
+    migrate_to_float_simple_levels,
+    MultilineText,
+    SingleChoice,
+    SingleChoiceElement,
+    SimpleLevels,
+    String,
+)
+from cmk.rulesets.v1.rule_specs import (
+    ActiveCheck,
+    AgentConfig,
+    CheckParameters,
+    DiscoveryParameters,
+    HostAndItemCondition,
+    Topic,
+)
 
-# from cmk.gui.plugins.wato import (
-#     rulespec_registry,
-#     HostRulespec,
-# )
 
-# from cmk.gui.plugins.wato.active_checks.common import (
-#     RulespecGroupIntegrateOtherServices,
-# )
-
-def _vs_levels(title):
-    return Tuple(
-        title=title,
-        elements = [
-            Float(title='Warning at'),
-            Float(title='Critical at'),
-        ])
+def _vs_levels(title, level_direction):
+    return SimpleLevels(
+        title=Title(title),
+        migrate=migrate_to_float_simple_levels,
+        form_spec_template=Float(),
+        level_direction=level_direction,
+        prefill_fixed_levels=InputHint((0.0, 0.0)),
+    )
 
 def _valuespec_active_checks_calculate():
     return Dictionary(
-        title = _("Calculate on Perfdata"),
-        elements = [
-            ('description',
-             TextAscii(title=_('Service description'))),
-            ('label',
-             TextAscii(title=_('Label for check output'))),
-            ('metric',
-             TextAscii(title=_('Metric name for calculated value'))),
-            ('levels_upper',
-             _vs_levels(title=_('Upper levels'))),
-            ('levels_lower',
-             _vs_levels(title=_('Lower levels'))),
-            ('expression',
-             TextAreaUnicode(
-                 title=_('Expression'),
-                 help=_('The expression used here is compatible with the expression from custom graphs.'),
-             )),
-        ],
-        optional_keys = [ 'levels_upper', 'levels_lower' ],
+        elements = {
+            'description': DictElement(
+                required=True,
+                parameter_form=String(
+                    title=Title('Service description'),
+                )),
+            'label': DictElement(
+                required=True,
+                parameter_form=String(
+                    title=Title('Label for check output'),
+                )),
+            'metric': DictElement(
+                required=True,
+                parameter_form=String(
+                    title=Title('Metric name for calculated value'),
+                )),
+            'levels_upper': DictElement(
+                parameter_form=_vs_levels(
+                    title='Upper levels',
+                    level_direction=LevelDirection.UPPER,
+                )),
+            'levels_lower': DictElement(
+                parameter_form=_vs_levels(
+                    title='Lower levels',
+                    level_direction=LevelDirection.LOWER,
+                )),
+            'expression': DictElement(
+                required=True,
+                parameter_form=MultilineText(
+                    title=Title('Expression'),
+                    help_text=Help('The expression used here is compatible with the expression from custom graphs.'),
+                )),
+        },
     )
 
-# rulespec_registry.register(
-#     HostRulespec(
-#         group=RulespecGroupIntegrateOtherServices,
-#         match_type="all",
-#         name="active_checks:calculate",
-#         valuespec=_valuespec_active_checks_calculate,
-#     ))
+rule_spec_check_calculate = ActiveCheck(
+    title = Title("Calculate on Perfdata"),
+    topic=Topic.GENERAL,
+    name="calculate",
+    parameter_form=_valuespec_active_checks_calculate,
+)
