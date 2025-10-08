@@ -17,23 +17,23 @@
 # to the Free Software Foundation, Inc., 51 Franklin St,  Fifth Floor,
 # Boston, MA 02110-1301 USA.
 
-from cmk.gui.i18n import _
-from cmk.gui.valuespec import (
-    Dictionary,
-    Float,
-    TextAscii,
-    TextAreaUnicode,
-    Tuple,
-)
+# from cmk.gui.i18n import _
+# from cmk.gui.valuespec import (
+#     Dictionary,
+#     Float,
+#     TextAscii,
+#     TextAreaUnicode,
+#     Tuple,
+# )
 
-from cmk.gui.plugins.wato import (
-    rulespec_registry,
-    HostRulespec,
-)
+# from cmk.gui.plugins.wato import (
+#     rulespec_registry,
+#     HostRulespec,
+# )
 
-from cmk.gui.plugins.wato.active_checks.common import (
-    RulespecGroupIntegrateOtherServices,
-)
+# from cmk.gui.plugins.wato.active_checks.common import (
+#     RulespecGroupIntegrateOtherServices,
+# )
 
 def _vs_levels(title):
     return Tuple(
@@ -66,11 +66,10 @@ def _valuespec_active_checks_calculate():
         optional_keys = [ 'levels_upper', 'levels_lower' ],
     )
 
-rulespec_registry.register(
-    HostRulespec(
-        group=RulespecGroupIntegrateOtherServices,
-        match_type="all",
-        name="active_checks:calculate",
-        valuespec=_valuespec_active_checks_calculate,
-    ))
-
+# rulespec_registry.register(
+#     HostRulespec(
+#         group=RulespecGroupIntegrateOtherServices,
+#         match_type="all",
+#         name="active_checks:calculate",
+#         valuespec=_valuespec_active_checks_calculate,
+#     ))

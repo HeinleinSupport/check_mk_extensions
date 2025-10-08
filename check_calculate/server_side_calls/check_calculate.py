@@ -31,11 +31,11 @@ def check_calculate_arguments(params):
 def check_calculate_description(params):
     return '%s' % params.get('description')
 
-active_check_info['calculate'] = {
-    "command_line"        : "check_calculate $ARG1$",
-    "argument_function"   : check_calculate_arguments,
-    "service_description" : check_calculate_description,
-    "has_perfdata"        : True,
-}
+# active_check_info['calculate'] = {
+#     "command_line"        : "check_calculate $ARG1$",
+#     "argument_function"   : check_calculate_arguments,
+#     "service_description" : check_calculate_description,
+#     "has_perfdata"        : True,
+# }
 
 

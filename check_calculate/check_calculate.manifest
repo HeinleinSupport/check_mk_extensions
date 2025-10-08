@@ -1,0 +1,19 @@
+{'author': 'Robert Sander <r.sander@heinlein-support.de>',
+ 'description': 'This Nagios plugin calculates on performance data of other '
+                'service checks.\n'
+                '\n'
+                'It is currently limited to the same site due to local '
+                'livestatus.\n'
+                '\n'
+                'The expression for the calculation has the format that is '
+                'used for custom graphs.\n',
+ 'download_url': 'https://github.com/HeinleinSupport/check_mk_extensions/',
+ 'files': {'cmk_addons_plugins': ['check_calculate/rulesets/check_calculate.py',
+                                  'check_calculate/server_side_calls/check_calculate.py'],
+           'lib': ['nagios/plugins/check_calculate']},
+ 'name': 'check_calculate',
+ 'title': 'Calculate on Perfdata',
+ 'version': '1.0.0',
+ 'version.min_required': '2.3.0b1',
+ 'version.packaged': '2.4.0p10',
+ 'version.usable_until': None}
