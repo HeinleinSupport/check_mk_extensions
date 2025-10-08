@@ -1,0 +1,15 @@
+{'author': 'Robert Sander <r.sander@heinlein-support.de>',
+ 'description': 'Dell OS10 switch checks for\n'
+                '\n'
+                'chassis temperature\n'
+                'card temperature\n'
+                'fantray state\n'
+                'fan state\n',
+ 'download_url': 'https://github.com/HeinleinSupport/check_mk_extensions/',
+ 'files': {'cmk_addons_plugins': ['dell_os10_chassis/agent_based/dell_os10_chassis.py']},
+ 'name': 'dell_os10_chassis',
+ 'title': 'Dell OS10 Chassis',
+ 'version': '2.0.0',
+ 'version.min_required': '2.3.0b1',
+ 'version.packaged': '2.4.0p10',
+ 'version.usable_until': None}

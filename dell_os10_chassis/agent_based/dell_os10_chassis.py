@@ -15,20 +15,21 @@
 # to the Free Software Foundation, Inc., 51 Franklin St,  Fifth Floor,
 # Boston, MA 02110-1301 USA.
 
-from .agent_based_api.v1 import (
-    check_levels,
-    register,
-    render,
-    startswith,
-    Metric,
+from cmk.agent_based.v2 import (
+    CheckPlugin,
+    CheckResult,
+    DiscoveryResult,
+    Service,
     OIDEnd,
     Result,
-    Service,
+    SimpleSNMPSection,
     SNMPTree,
     State,
+    StringTable,
+    startswith,
 )
 
-from .utils.temperature import (
+from cmk.plugins.lib.temperature import (
     check_temperature,
 )
 
@@ -51,9 +52,6 @@ _dell_os10_oper_status = {
     "8": { "state": State.CRIT, "desc": "failed" },
 }
 
-from cmk.utils import debug
-from pprint import pprint
-
 #   .--chassis-------------------------------------------------------------.
 #   |                        _                   _                         |
 #   |                    ___| |__   __ _ ___ ___(_)___                     |
@@ -66,7 +64,7 @@ from pprint import pprint
 #   '----------------------------------------------------------------------'
 #.
 
-def parse_dell_os10_chassis(string_table):
+def parse_dell_os10_chassis(string_table: StringTable):
     section = {}
 
     os10_chassis_type = {
@@ -112,11 +110,11 @@ def parse_dell_os10_chassis(string_table):
 
     return section
 
-def discover_dell_os10_chassis(section):
+def discover_dell_os10_chassis(section) -> DiscoveryResult:
     for idx in section:
         yield Service(item=idx)
 
-def check_dell_os10_chassis(item, params, section):
+def check_dell_os10_chassis(item: str, params, section) -> CheckResult:
     if item in section:
         data = section[item]
 
@@ -125,7 +123,7 @@ def check_dell_os10_chassis(item, params, section):
         yield from check_temperature(data['temp'],
                                      params)
 
-register.snmp_section(
+snmp_section_dell_os10_chassis = SimpleSNMPSection(
     name="dell_os10_chassis",
     parse_function=parse_dell_os10_chassis,
     fetch=SNMPTree(
@@ -135,7 +133,7 @@ register.snmp_section(
     detect=startswith(".1.3.6.1.2.1.1.2.0", ".1.3.6.1.4.1.674.11000.5000.100.2"),
 )
 
-register.check_plugin(
+check_plugin_dell_os10_chassis = CheckPlugin(
     name="dell_os10_chassis",
     sections=["dell_os10_chassis"],
     service_name="Dell OS10 %s",
@@ -157,7 +155,7 @@ register.check_plugin(
 #   '----------------------------------------------------------------------'
 #.
 
-def parse_dell_os10_card(string_table):
+def parse_dell_os10_card(string_table: StringTable):
     section = {}
 
     os10_card_type = {
@@ -216,11 +214,11 @@ def parse_dell_os10_card(string_table):
 
     return section
 
-def discover_dell_os10_card(section):
+def discover_dell_os10_card(section) -> DiscoveryResult:
     for idx in section:
         yield Service(item=idx)
 
-def check_dell_os10_card(item, params, section):
+def check_dell_os10_card(item: str, params, section) -> CheckResult:
     if item in section:
         data = section[item]
 
@@ -231,7 +229,7 @@ def check_dell_os10_card(item, params, section):
         yield from check_temperature(data['temp'],
                                      params)
 
-register.snmp_section(
+snmp_section_dell_os10_card = SimpleSNMPSection(
     name="dell_os10_card",
     parse_function=parse_dell_os10_card,
     fetch=SNMPTree(
@@ -241,7 +239,7 @@ register.snmp_section(
     detect=startswith(".1.3.6.1.2.1.1.2.0", ".1.3.6.1.4.1.674.11000.5000.100.2"),
 )
 
-register.check_plugin(
+check_plugin_dell_os10_card = CheckPlugin(
     name="dell_os10_card",
     sections=["dell_os10_card"],
     service_name="Dell OS10 %s",
@@ -263,7 +261,7 @@ register.check_plugin(
 #   '----------------------------------------------------------------------'
 #.
 
-def parse_dell_os10_powersupply(string_table):
+def parse_dell_os10_powersupply(string_table: StringTable):
     section = {}
 
     dell_os10_powersupply_type = {
@@ -282,11 +280,11 @@ def parse_dell_os10_powersupply(string_table):
     
     return section
 
-def discover_dell_os10_powersupply(section):
+def discover_dell_os10_powersupply(section) -> DiscoveryResult:
     for idx in section:
         yield Service(item=idx)
 
-def check_dell_os10_powersupply(item, section):
+def check_dell_os10_powersupply(item: str, section) -> CheckResult:
     if item in section:
         data = section[item]
 
@@ -295,7 +293,7 @@ def check_dell_os10_powersupply(item, section):
         yield Result(state=data["state"]["state"],
                      summary="State: %s" % data["state"]["desc"])
 
-register.snmp_section(
+snmp_section_dell_os10_powersupply = SimpleSNMPSection(
     name="dell_os10_powersupply",
     parse_function=parse_dell_os10_powersupply,
     fetch=SNMPTree(
@@ -305,7 +303,7 @@ register.snmp_section(
     detect=startswith(".1.3.6.1.2.1.1.2.0", ".1.3.6.1.4.1.674.11000.5000.100.2.1"),
 )
 
-register.check_plugin(
+check_plugin_dell_os10_powersupply = CheckPlugin(
     name="dell_os10_powersupply",
     sections=["dell_os10_powersupply"],
     service_name="Dell OS10 %s",
@@ -325,7 +323,7 @@ register.check_plugin(
 #   '----------------------------------------------------------------------'
 #.
 
-def parse_dell_os10_fantray(string_table):
+def parse_dell_os10_fantray(string_table: StringTable):
     section = {}
 
     for line in string_table:
@@ -337,11 +335,11 @@ def parse_dell_os10_fantray(string_table):
     
     return section
 
-def discover_dell_os10_fantray(section):
+def discover_dell_os10_fantray(section) -> DiscoveryResult:
     for idx in section:
         yield Service(item=idx)
 
-def check_dell_os10_fantray(item, section):
+def check_dell_os10_fantray(item: str, section) -> CheckResult:
     if item in section:
         data = section[item]
 
@@ -350,7 +348,7 @@ def check_dell_os10_fantray(item, section):
         yield Result(state=data["state"]["state"],
                      summary="State: %s" % data["state"]["desc"])
 
-register.snmp_section(
+snmp_section_dell_os10_fantray = SimpleSNMPSection(
     name="dell_os10_fantray",
     parse_function=parse_dell_os10_fantray,
     fetch=SNMPTree(
@@ -360,7 +358,7 @@ register.snmp_section(
     detect=startswith(".1.3.6.1.2.1.1.2.0", ".1.3.6.1.4.1.674.11000.5000.100.2.1"),
 )
 
-register.check_plugin(
+check_plugin_dell_os10_fantray = CheckPlugin(
     name="dell_os10_fantray",
     sections=["dell_os10_fantray"],
     service_name="Dell OS10 %s",
@@ -380,7 +378,7 @@ register.check_plugin(
 #   '----------------------------------------------------------------------'
 #.
 
-def parse_dell_os10_fan(string_table):
+def parse_dell_os10_fan(string_table: StringTable):
     section = {}
 
     fan_entity = {
@@ -401,18 +399,18 @@ def parse_dell_os10_fan(string_table):
     
     return section
 
-def discover_dell_os10_fan(section):
+def discover_dell_os10_fan(section) -> DiscoveryResult:
     for idx in section:
         yield Service(item=idx)
 
-def check_dell_os10_fan(item, section):
+def check_dell_os10_fan(item: str, section) -> CheckResult:
     if item in section:
         data = section[item]
 
         yield Result(state=data["state"]["state"],
                      summary="State: %s" % data["state"]["desc"])
 
-register.snmp_section(
+snmp_section_dell_os10_fan = SimpleSNMPSection(
     name="dell_os10_fan",
     parse_function=parse_dell_os10_fan,
     fetch=SNMPTree(
@@ -422,7 +420,7 @@ register.snmp_section(
     detect=startswith(".1.3.6.1.2.1.1.2.0", ".1.3.6.1.4.1.674.11000.5000.100.2.1"),
 )
 
-register.check_plugin(
+check_plugin_dell_os10_fan = CheckPlugin(
     name="dell_os10_fan",
     sections=["dell_os10_fan"],
     service_name="Dell OS10 %s",
