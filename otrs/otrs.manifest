@@ -13,5 +13,5 @@
  'title': 'OTRS Queue Size',
  'version': '7.0.0',
  'version.min_required': '2.3.0b1',
- 'version.packaged': '2.3.0p34',
+ 'version.packaged': '2.3.0p36',
  'version.usable_until': None}
