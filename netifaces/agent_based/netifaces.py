@@ -81,13 +81,13 @@ def check_netifaces_rbl(item, params, section) -> CheckResult:
                     for level, levelres in levels.items():
                         for rbl in params.get(level, []):
                             ptr = "%s.%s." % (dns.reversename.from_address(addr) - _reverse_domain[family], rbl)
-                            value = _get_cached_result(value_store, ptr, time.time(), 600)
+                            value = _get_cached_result(value_store, rbl, time.time(), 600)
                             if not value:
                                 try:
                                     value = (0, socket.gethostbyname(ptr))
                                 except socket.gaierror as er:
                                     value = (er.args[0], er.args[1])
-                                _set_cached_result(value_store, ptr, time.time(), value)
+                                _set_cached_result(value_store, rbl, time.time(), value)
                             if value[0] < 0:
                                 if value[0] in [ socket.EAI_AGAIN, socket.EAI_NONAME ] :
                                     yield Result(state=State.OK,
@@ -140,13 +140,13 @@ def check_netifaces_senderscore(item, params, section) -> CheckResult:
                     yield Result(state=State.OK,
                                  summary="bound on %s" % iface)
                     ptr = "%s.%s." % (dns.reversename.from_address(addr) - _reverse_domain[family], rbl)
-                    value = _get_cached_result(value_store, ptr, time.time(), 600)
+                    value = _get_cached_result(value_store, rbl, time.time(), 43200)
                     if not value:
                         try:
                             value = (0, socket.gethostbyname(ptr))
                         except socket.gaierror as er:
                             value = (er.args[0], er.args[1])
-                        _set_cached_result(value_store, ptr, time.time(), value)
+                        _set_cached_result(value_store, rbl, time.time(), value)
                     if value[0] < 0:
                         if value[0] in [ socket.EAI_AGAIN, socket.EAI_NONAME ]:
                             yield Result(state=State.OK,
