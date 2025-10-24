@@ -1,0 +1,10 @@
+{'author': 'Robert Sander <r.sander@heinlein-support.de>',
+ 'description': 'Checks if winbind has a working connection to the AD.\n',
+ 'download_url': 'https://github.com/HeinleinSupport/check_mk_extensions',
+ 'files': {'agents': ['custom/winbind/lib/local/wbinfo']},
+ 'name': 'winbind',
+ 'title': 'Winbind Check',
+ 'version': '0.1.0',
+ 'version.min_required': '2.0.0b1',
+ 'version.packaged': '2.4.0p12',
+ 'version.usable_until': None}

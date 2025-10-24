@@ -1,0 +1,12 @@
+#!/bin/bash
+
+if [ -x /usr/bin/wbinfo ]; then
+  output=$(/usr/bin/waitmax 10 /usr/bin/wbinfo -t)
+  ret=$?
+  if [ $ret -eq 1 ]; then
+    ret=2
+  fi
+
+  echo $ret wbinfo - $output
+
+fi
