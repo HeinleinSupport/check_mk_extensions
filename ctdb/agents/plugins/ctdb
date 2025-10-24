@@ -1,0 +1,6 @@
+#!/bin/bash
+
+if [ -x /usr/bin/ctdb ]; then
+  echo "<<<ctdb:sep(124)>>>"
+  /usr/bin/ctdb status -X -T 5
+fi
