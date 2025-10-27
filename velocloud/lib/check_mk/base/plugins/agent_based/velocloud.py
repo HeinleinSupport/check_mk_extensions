@@ -232,7 +232,7 @@ def parse_velocloud_link(string_table: StringTable):
             'rx_latency': float(rxlatency) / 1000.0,
             'if_out_errors': int(txlost),
             'if_in_errors': int(rxlost),
-            'raw_state': int(vpnstate),
+            'raw_state': int(vpnstate) if vpnstate.isdigit() else "",
             'state': _velocloud_map_vpn_state.get(vpnstate, (State.UNKNOWN, 'Unknown')),
             'if_out_unicast': int(txpackets),
             'if_in_unicast': int(rxpackets),
@@ -292,7 +292,7 @@ def check_velocloud_link(item, params, section) -> CheckResult:
             yield Result(state=State.OK,
                          summary='State is %s' % data['state'][1])
         for key, value in data.items():
-            if key in [ 'name', 'raw_state', 'state' ]:
+            if key in [ 'name', 'raw_state', 'state', "rx_latency", "tx_latency" ]:
                 continue
             if key.endswith('jitter') or key.endswith('latency'):
                 yield Metric(key, value)
@@ -300,11 +300,28 @@ def check_velocloud_link(item, params, section) -> CheckResult:
                 rate = get_rate(vs, 'velocloud_link.%s.%s' % (item, key), now, value)
                 yield Metric(key, rate)
 
+        yield from check_levels(
+            data['rx_latency'],
+            metric_name='rx_latency',
+            levels_upper=params.get('rx_latency'),
+            label='RX Latency',
+            render_func=lambda v: "%.3f ms" % v,
+        )
+
+        yield from check_levels(
+            data['tx_latency'],
+            metric_name='tx_latency',
+            levels_upper=params.get('tx_latency'),
+            label='TX Latency',
+            render_func=lambda v: "%.3f ms" % v,
+        )
+
 register.check_plugin(
     name='velocloud_link',
     service_name="VeloCloud Link %s",
     discovery_function=discover_velocloud_link,
     check_function=check_velocloud_link,
+    check_ruleset_name="velocloud_link",
     check_default_parameters={
         'raw_state': 0,
     },
