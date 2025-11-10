@@ -1,0 +1,11 @@
+{'author': 'Robert Sander <r.sander@heinlein-support.de>',
+ 'description': 'This script automatically creates user notification rules '
+                'that enable or disable notifications based on a schedule.\n',
+ 'download_url': 'http://www.heinlein-support.de/',
+ 'files': {'bin': ['oncall.py']},
+ 'name': 'oncall',
+ 'title': 'On Call Automation',
+ 'version': '5.0.0',
+ 'version.min_required': '2.4.0b1',
+ 'version.packaged': '2.4.0p14',
+ 'version.usable_until': None}
