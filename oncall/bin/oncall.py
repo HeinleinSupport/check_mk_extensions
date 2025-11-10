@@ -29,7 +29,7 @@ import requests
 import json
 import warnings
 import cmk.utils.paths
-import cmk.ccc.store
+import cmk.utils.store
 from cmk.gui.watolib.activate_changes import update_config_generation
 from copy import deepcopy
 
@@ -44,8 +44,8 @@ def _check_mk_url(url):
 def _site_url():
     urldefault = None
     if os.environ.get('HOME', 'a') == os.environ.get('OMD_ROOT', 'b'):
-        import cmk.ccc.site
-        siteconfig = cmk.ccc.site.get_omd_config(cmk.utils.paths.omd_root)
+        import cmk.utils.site
+        siteconfig = cmk.utils.site.get_omd_config()
         urldefault = 'http://%s:%s/%s' % (siteconfig['CONFIG_APACHE_TCP_ADDR'],
                                           siteconfig['CONFIG_APACHE_TCP_PORT'],
                                           os.environ['OMD_SITE'])
@@ -120,7 +120,7 @@ if args.csvurl and args.apikey:
 # Read list of noticication plugins
 # where recipients are limited to the oncall_group
 #
-for rule in cmk.ccc.store.load_from_mk_file(notification_rules_filename, "notification_rules", []):
+for rule in cmk.utils.store.load_from_mk_file(notification_rules_filename, "notification_rules", []):
     if rule['allow_disable'] and 'contact_match_groups' in rule and oncall_group in rule['contact_match_groups']:
         notify_plugins.add(rule['notify_plugin'][0])
 
@@ -130,7 +130,7 @@ if args.debug:
 #
 # Read list of contacts
 #
-contacts = cmk.ccc.store.load_from_mk_file(contacts_filename, 'contacts', {}, lock=True)
+contacts = cmk.utils.store.load_from_mk_file(contacts_filename, 'contacts', {}, lock=True)
 contacts_old = deepcopy(contacts)
 
 if args.debug:
@@ -223,7 +223,7 @@ if args.debug:
     print("changes = %s" % changes)
 
 if not changes:
-    cmk.ccc.store.release_lock(contacts_filename)
+    cmk.utils.store.release_lock(contacts_filename)
 else:
     def gen_id():
         try:
@@ -238,8 +238,8 @@ else:
     #
     # Write contacts
     #
-    cmk.ccc.store.save_to_mk_file(contacts_filename, 'contacts', contacts)
-    cmk.ccc.store.release_lock(contacts_filename)
+    cmk.utils.store.save_to_mk_file(contacts_filename, 'contacts', contacts)
+    cmk.utils.store.release_lock(contacts_filename)
     update_config_generation()
 
     #
@@ -263,7 +263,7 @@ else:
         site = changes_file.split('/')[-1][20:-3]
         if site != os.environ.get('OMD_SITE'):
             try:
-                cmk.ccc.store.acquire_lock(changes_file)
+                cmk.utils.store.acquire_lock(changes_file)
                 with open(changes_file, 'a+') as f:
                     f.write(repr(change_spec)+'\0')
                     f.flush()
@@ -272,7 +272,7 @@ else:
             except Exception as e:
                 raise 'Cannot write file "%s": %s' % (changes_file, e)
             finally:
-                cmk.ccc.store.release_lock(changes_file)
+                cmk.utils.store.release_lock(changes_file)
                 if args.debug:
                     print(f'wrote {changes_file}')
             sites.append(site)
