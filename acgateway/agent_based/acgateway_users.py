@@ -16,24 +16,22 @@
 # to the Free Software Foundation, Inc., 51 Franklin St,  Fifth Floor,
 # Boston, MA 02110-1301 USA.
 
-from cmk.base.plugins.agent_based.agent_based_api.v1 import (
+from cmk.agent_based.v2 import (
     all_of,
+    CheckPlugin,
+    CheckResult,
     contains,
-    register,
+    DiscoveryResult,
     Metric,
     Result,
     Service,
+    SimpleSNMPSection,
     SNMPTree,
     State,
 )
 
 
-from cmk.utils import debug
-from pprint import pprint #type: ignore
-
 def parse_acgateway_users(string_table):
-    if debug.enabled():
-        pprint(string_table)
     section = None
     if len(string_table) == 1:
         for tx_trans, rx_trans, users in string_table:
@@ -42,11 +40,9 @@ def parse_acgateway_users(string_table):
                 'rx_trans': int(rx_trans),
                 'users': int(users),
             }
-    if debug.enabled():
-        pprint(section)
     return section
 
-register.snmp_section(
+snmp_section_acgateway_users = SimpleSNMPSection(
     name="acgateway_users",
     detect=all_of(
         contains(".1.3.6.1.2.1.1.2.0", ".1.3.6.1.4.1.5003.8.1.1"),
@@ -62,10 +58,10 @@ register.snmp_section(
         ]),
 )
 
-def discover_acgateway_users(section):
+def discover_acgateway_users(section) -> DiscoveryResult:
     yield Service()
 
-def check_acgateway_users(section):
+def check_acgateway_users(section) -> CheckResult:
     yield Result(state=State.OK,
                  summary="Transactions RX: %d/s" % section['rx_trans'])
     yield Metric('rx_trans', section['rx_trans'])
@@ -76,7 +72,7 @@ def check_acgateway_users(section):
                  summary="Registered Users: %d" % section['users'])
     yield Metric('num_user', section['users'])
 
-register.check_plugin(
+check_plugin_acgateway_users = CheckPlugin(
     name="acgateway_users",
     service_name="SBC Users",
     discovery_function=discover_acgateway_users,

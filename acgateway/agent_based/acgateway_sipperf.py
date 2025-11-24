@@ -16,15 +16,18 @@
 # to the Free Software Foundation, Inc., 51 Franklin St,  Fifth Floor,
 # Boston, MA 02110-1301 USA.
 
-from cmk.base.plugins.agent_based.agent_based_api.v1 import (
+from cmk.agent_based.v2 import (
     all_of,
+    CheckPlugin,
+    CheckResult,
     contains,
+    DiscoveryResult,
     get_rate,
     get_value_store,
-    register,
     Metric,
     Result,
     Service,
+    SNMPSection,
     SNMPTree,
     State,
 )
@@ -34,7 +37,7 @@ import time
 def parse_acgateway_sipperf(string_table):
     return string_table
 
-register.snmp_section(
+snmp_section_acgateway_sipperf = SNMPSection(
     name="acgateway_sipperf",
     detect=all_of(
         contains(".1.3.6.1.2.1.1.2.0", ".1.3.6.1.4.1.5003.8.1.1"),
@@ -73,11 +76,11 @@ register.snmp_section(
     ],
 )
 
-def discover_acgateway_sipperf(section):
+def discover_acgateway_sipperf(section) -> DiscoveryResult:
     if len(section) == 2 and len(section[0]) == 1 and len(section[1]) == 1:
         yield Service()
 
-def check_acgateway_sipperf(section):
+def check_acgateway_sipperf(section) -> CheckResult:
     sipperf_info = {
         0:  ("sip_calls_attempted", "Number of Attempted SIP/H323 calls"),
         1:  ("sip_calls_established", "Number of established (connected and voice activated) SIP/H323 calls"),
@@ -117,7 +120,7 @@ def check_acgateway_sipperf(section):
                              notice="IP2Tel %s: %0.1f/s" % (sipperf_info[key][1], rate))
                 yield Metric('ip2tel_%s' % sipperf_info[key][0], rate)
 
-register.check_plugin(
+check_plugin_acgateway_sipperf = CheckPlugin(
     name="acgateway_sipperf",
     service_name="SIP Performance",
     discovery_function=discover_acgateway_sipperf,

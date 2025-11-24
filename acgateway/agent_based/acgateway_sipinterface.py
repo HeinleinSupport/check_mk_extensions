@@ -16,15 +16,16 @@
 # to the Free Software Foundation, Inc., 51 Franklin St,  Fifth Floor,
 # Boston, MA 02110-1301 USA.
 
-from .agent_based_api.v1 import (
+from cmk.agent_based.v2 import (
     all_of,
+    CheckPlugin,
+    CheckResult,
     contains,
-    register,
-    render,
-    Metric,
+    DiscoveryResult,
     OIDEnd,
     Result,
     Service,
+    SNMPSection,
     SNMPTree,
     State,
 )
@@ -98,7 +99,7 @@ def parse_acgateway_sipinterface(string_table):
                         })
     return section
 
-register.snmp_section(
+snmp_section_acgateway_sipinterface = SNMPSection(
     name="acgateway_sipinterface",
     detect=all_of(
         contains(".1.3.6.1.2.1.1.2.0", ".1.3.6.1.4.1.5003.8.1.1"),
@@ -151,7 +152,7 @@ register.snmp_section(
     ],
 )
 
-def discover_acgateway_sipinterface(section):
+def discover_acgateway_sipinterface(section) -> DiscoveryResult:
     for item, data in section.items():
         yield Service(item=item,
                       parameters={
@@ -160,7 +161,7 @@ def discover_acgateway_sipinterface(section):
                           'devrowstatus': data.get('devrowstatus'),
                       })
 
-def check_acgateway_sipinterface(item, params, section):
+def check_acgateway_sipinterface(item, params, section) -> CheckResult:
     if item in section:
         data = section[item]
         yield Result(state=State.OK,
@@ -189,7 +190,7 @@ def check_acgateway_sipinterface(item, params, section):
                 yield Result(state=State.CRIT,
                              summary='%s is %s' % (param, data.get(param)))
 
-register.check_plugin(
+check_plugin_acgateway_sipinterface = CheckPlugin(
     name="acgateway_sipinterface",
     service_name="SIP Interface %s",
     discovery_function=discover_acgateway_sipinterface,

@@ -16,15 +16,15 @@
 # to the Free Software Foundation, Inc., 51 Franklin St,  Fifth Floor,
 # Boston, MA 02110-1301 USA.
 
-from .agent_based_api.v1 import (
+from cmk.agent_based.v2 import (
     all_of,
+    CheckPlugin,
+    CheckResult,
     contains,
-    register,
-    render,
-    Metric,
-    OIDEnd,
+    DiscoveryResult,
     Result,
     Service,
+    SimpleSNMPSection,
     SNMPTree,
     State,
 )
@@ -54,7 +54,7 @@ def parse_acgateway_ipgroup(string_table):
         }
     return section
 
-register.snmp_section(
+snmp_section_acgateway_ipgroup = SimpleSNMPSection(
     name="acgateway_ipgroup",
     detect=all_of(
         contains(".1.3.6.1.2.1.1.2.0", ".1.3.6.1.4.1.5003.8.1.1"),
@@ -72,11 +72,11 @@ register.snmp_section(
         ]),
 )
 
-def discover_acgateway_ipgroup(section):
+def discover_acgateway_ipgroup(section) -> DiscoveryResult:
     for item, data in section.items():
         yield Service(item=item, parameters={'ipgroupstatus': data.get('ipgroupstatus')})
 
-def check_acgateway_ipgroup(item, params, section):
+def check_acgateway_ipgroup(item, params, section) -> CheckResult:
     if item in section:
         data = section[item]
         yield Result(state=State.OK,
@@ -89,7 +89,7 @@ def check_acgateway_ipgroup(item, params, section):
                 yield Result(state=State.CRIT,
                              summary='%s is %s' % (param, data.get(param)))
 
-register.check_plugin(
+check_plugin_acgateway_ipgroup = CheckPlugin(
     name="acgateway_ipgroup",
     service_name="IP Group %s",
     discovery_function=discover_acgateway_ipgroup,

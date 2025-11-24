@@ -16,17 +16,19 @@
 # to the Free Software Foundation, Inc., 51 Franklin St,  Fifth Floor,
 # Boston, MA 02110-1301 USA.
 
-from .agent_based_api.v1 import (
+from cmk.agent_based.v2 import (
     all_of,
+    CheckPlugin,
+    CheckResult,
     contains,
+    DiscoveryResult,
     get_rate,
     get_value_store,
-    register,
     render,
     Metric,
-    OIDEnd,
     Result,
     Service,
+    SimpleSNMPSection,
     SNMPTree,
     State,
 )
@@ -45,7 +47,7 @@ def parse_acgateway_calls(string_table):
             }
     return section
 
-register.snmp_section(
+snmp_section_acgateway_calls = SimpleSNMPSection(
     name="acgateway_calls",
     detect=all_of(
         contains(".1.3.6.1.2.1.1.2.0", ".1.3.6.1.4.1.5003.8.1.1"),
@@ -62,10 +64,10 @@ register.snmp_section(
         ]),
 )
 
-def discover_acgateway_calls(section):
+def discover_acgateway_calls(section) -> DiscoveryResult:
     yield Service()
 
-def check_acgateway_calls(section):
+def check_acgateway_calls(section) -> CheckResult:
     vs = get_value_store()
     now = time.time()
     yield Result(state=State.OK,
@@ -82,7 +84,7 @@ def check_acgateway_calls(section):
                  summary="Average Call Duration: %s" % render.timespan(section['acd']))
     yield Metric('average_call_duration', section['acd'])
 
-register.check_plugin(
+check_plugin_acgateway_calls = CheckPlugin(
     name="acgateway_calls",
     service_name="SBC Calls",
     discovery_function=discover_acgateway_calls,

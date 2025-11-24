@@ -16,14 +16,17 @@
 # to the Free Software Foundation, Inc., 51 Franklin St,  Fifth Floor,
 # Boston, MA 02110-1301 USA.
 
-from cmk.base.plugins.agent_based.agent_based_api.v1 import (
+from cmk.agent_based.v2 import (
     all_of,
+    CheckPlugin,
+    CheckResult,
     contains,
-    register,
+    DiscoveryResult,
     render,
     Metric,
     Result,
     Service,
+    SNMPSection,
     SNMPTree,
     State,
 )
@@ -75,7 +78,7 @@ def parse_acgateway_alarms(string_table):
         })
     return section
     
-register.snmp_section(
+snmp_section_acgateway_alarms = SNMPSection(
     name="acgateway_alarms",
     detect=all_of(
         contains(".1.3.6.1.2.1.1.2.0", ".1.3.6.1.4.1.5003.8.1.1"),
@@ -102,10 +105,10 @@ register.snmp_section(
         ],
 )
 
-def discover_acgateway_alarms(section):
+def discover_acgateway_alarms(section) -> DiscoveryResult:
     yield Service()
 
-def check_acgateway_alarms(section):
+def check_acgateway_alarms(section) -> CheckResult:
     if len(section['alarms']) == 0:
         yield Result(state=State.OK,
                      summary="No active alarms present")
@@ -126,7 +129,7 @@ def check_acgateway_alarms(section):
                  summary="%d alarms archived" % section['archived'])
     yield Metric('archived_alarms', section['archived'])
 
-register.check_plugin(
+check_plugin_acgateway_alarms = CheckPlugin(
     name="acgateway_alarms",
     service_name="SIP Alarms",
     discovery_function=discover_acgateway_alarms,

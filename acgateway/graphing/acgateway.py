@@ -17,102 +17,42 @@
 # to the Free Software Foundation, Inc., 51 Franklin St,  Fifth Floor,
 # Boston, MA 02110-1301 USA.
 
-_acgateway_sipperf_info = {
-        0:  ("sip_calls_attempted", "Number of Attempted SIP/H323 calls"),
-        1:  ("sip_calls_established", "Number of established (connected and voice activated) SIP/H323 calls"),
-        2:  ("sip_destination_busy", "Number of Destination Busy SIP/H323 calls"),
-        3:  ("sip_no_answer", "Number of No Answer SIP/H323 calls"),
-        4:  ("sip_no_route", "Number of No Route SIP/H323 calls. Most likely to be due to wrong number"),
-        5:  ("sip_no_capability", "Number of No capability match between peers on SIP/H323 calls"),
-        6:  ("sip_failed", "Number of failed SIP/H323 calls"),
-        7:  ("sip_fax_attempted", "Number of Attempted SIP/H323 fax calls"),
-        8:  ("sip_fax_success", "Number of SIP/H323 fax success calls"),
-        9:  ("sip_total_duration", "total duration of SIP/H323 calls"),
-}
+from cmk.graphing.v1 import Title, graphs, metrics
 
-_acgateway_call_metrics = []
-_acgateway_total_metrics = []
+UNIT_COUNTER = metrics.Unit(metrics.DecimalNotation(''), metrics.StrictPrecision(2))
+UNIT_PERCENTAGE = metrics.Unit(metrics.DecimalNotation('%'))
+UNIT_PER_SECOND = metrics.Unit(metrics.DecimalNotation('/s'))
+UNIT_TIME = metrics.Unit(metrics.TimeNotation())
 
-for idx, prefix in enumerate([ 'tel2ip', 'ip2tel' ]):
-    switch = ''
-    if idx % 2:
-        switch = '-'
-    for key, info in _acgateway_sipperf_info.items():
-        metric_name = '%s_%s' % (prefix, info[0])
-        if key == 9:
-            metric_info[metric_name] = {
-                'title' : "%s %s" % ( prefix,_(info[1])),
-                'unit'  : 's',
-                'color' : indexed_color(idx*10 + key, 20),
-                }
-            _acgateway_total_metrics.append( ( metric_name, '%sline' % switch, "%s %s" % ( prefix, _(info[1]) ) ) )
-        else:
-            metric_info[metric_name] = {
-                'title' : "%s %s" % ( prefix,_(info[1])),
-                'unit'  : '1/s',
-                'color' : indexed_color(idx*10 + key, 20),
-                }
-            _acgateway_call_metrics.append( ( metric_name, '%sline' % switch, "%s %s" % ( prefix, _(info[1]) ) ) )
+metric_active_alarms = metrics.Metric(name='active_alarms', title=Title("Active Alarms"), unit=UNIT_COUNTER, color=metrics.Color.YELLOW,)
+metric_active_calls = metrics.Metric(name='active_calls', title=Title("Active Calls"), unit=UNIT_COUNTER, color=metrics.Color.CYAN,)
+metric_archived_alarms = metrics.Metric(name='archived_alarms', title=Title("Archived Alarms"), unit=UNIT_COUNTER, color=metrics.Color.DARK_YELLOW,)
+metric_average_call_duration = metrics.Metric(name='average_call_duration', title=Title("Average Call Duration"), unit=UNIT_TIME, color=metrics.Color.CYAN,)
+metric_average_success_ratio = metrics.Metric(name='average_success_ratio', title=Title("Average Success Ratio"), unit=UNIT_PERCENTAGE, color=metrics.Color.CYAN,)
+metric_calls_per_sec = metrics.Metric(name='calls_per_sec', title=Title("Calls per Second"), unit=UNIT_PER_SECOND, color=metrics.Color.CYAN,)
+metric_ip2tel_sip_calls_attempted = metrics.Metric(name='ip2tel_sip_calls_attempted', title=Title("ip2tel Number of Attempted SIP/H323 calls"), unit=UNIT_PER_SECOND, color=metrics.Color.CYAN,)
+metric_ip2tel_sip_calls_established = metrics.Metric(name='ip2tel_sip_calls_established', title=Title("ip2tel Number of established (connected and voice activated) SIP/H323 calls"), unit=UNIT_PER_SECOND, color=metrics.Color.DARK_BLUE,)
+metric_ip2tel_sip_destination_busy = metrics.Metric(name='ip2tel_sip_destination_busy', title=Title("ip2tel Number of Destination Busy SIP/H323 calls"), unit=UNIT_PER_SECOND, color=metrics.Color.LIGHT_ORANGE,)
+metric_ip2tel_sip_failed = metrics.Metric(name='ip2tel_sip_failed', title=Title("ip2tel Number of failed SIP/H323 calls"), unit=UNIT_PER_SECOND, color=metrics.Color.ORANGE,)
+metric_ip2tel_sip_fax_attempted = metrics.Metric(name='ip2tel_sip_fax_attempted', title=Title("ip2tel Number of Attempted SIP/H323 fax calls"), unit=UNIT_PER_SECOND, color=metrics.Color.YELLOW,)
+metric_ip2tel_sip_fax_success = metrics.Metric(name='ip2tel_sip_fax_success', title=Title("ip2tel Number of SIP/H323 fax success calls"), unit=UNIT_PER_SECOND, color=metrics.Color.BLUE,)
+metric_ip2tel_sip_no_answer = metrics.Metric(name='ip2tel_sip_no_answer', title=Title("ip2tel Number of No Answer SIP/H323 calls"), unit=UNIT_PER_SECOND, color=metrics.Color.DARK_YELLOW,)
+metric_ip2tel_sip_no_capability = metrics.Metric(name='ip2tel_sip_no_capability', title=Title("ip2tel Number of No capability match between peers on SIP/H323 calls"), unit=UNIT_PER_SECOND, color=metrics.Color.DARK_PURPLE,)
+metric_ip2tel_sip_no_route = metrics.Metric(name='ip2tel_sip_no_route', title=Title("ip2tel Number of No Route SIP/H323 calls. Most likely to be due to wrong number"), unit=UNIT_PER_SECOND, color=metrics.Color.DARK_BLUE,)
+metric_ip2tel_sip_total_duration = metrics.Metric(name='ip2tel_sip_total_duration', title=Title("ip2tel total duration of SIP/H323 calls"), unit=UNIT_TIME, color=metrics.Color.DARK_PURPLE,)
+metric_rx_trans = metrics.Metric(name='rx_trans', title=Title("RX Transactions per Second"), unit=UNIT_PER_SECOND, color=metrics.Color.DARK_PURPLE,)
+metric_tel2ip_sip_calls_attempted = metrics.Metric(name='tel2ip_sip_calls_attempted', title=Title("tel2ip Number of Attempted SIP/H323 calls"), unit=UNIT_PER_SECOND, color=metrics.Color.DARK_PURPLE,)
+metric_tel2ip_sip_calls_established = metrics.Metric(name='tel2ip_sip_calls_established', title=Title("tel2ip Number of established (connected and voice activated) SIP/H323 calls"), unit=UNIT_PER_SECOND, color=metrics.Color.YELLOW,)
+metric_tel2ip_sip_destination_busy = metrics.Metric(name='tel2ip_sip_destination_busy', title=Title("tel2ip Number of Destination Busy SIP/H323 calls"), unit=UNIT_PER_SECOND, color=metrics.Color.CYAN,)
+metric_tel2ip_sip_failed = metrics.Metric(name='tel2ip_sip_failed', title=Title("tel2ip Number of failed SIP/H323 calls"), unit=UNIT_PER_SECOND, color=metrics.Color.CYAN,)
+metric_tel2ip_sip_fax_attempted = metrics.Metric(name='tel2ip_sip_fax_attempted', title=Title("tel2ip Number of Attempted SIP/H323 fax calls"), unit=UNIT_PER_SECOND, color=metrics.Color.LIGHT_BLUE,)
+metric_tel2ip_sip_fax_success = metrics.Metric(name='tel2ip_sip_fax_success', title=Title("tel2ip Number of SIP/H323 fax success calls"), unit=UNIT_PER_SECOND, color=metrics.Color.DARK_PINK,)
+metric_tel2ip_sip_no_answer = metrics.Metric(name='tel2ip_sip_no_answer', title=Title("tel2ip Number of No Answer SIP/H323 calls"), unit=UNIT_PER_SECOND, color=metrics.Color.BLUE,)
+metric_tel2ip_sip_no_capability = metrics.Metric(name='tel2ip_sip_no_capability', title=Title("tel2ip Number of No capability match between peers on SIP/H323 calls"), unit=UNIT_PER_SECOND, color=metrics.Color.DARK_YELLOW,)
+metric_tel2ip_sip_no_route = metrics.Metric(name='tel2ip_sip_no_route', title=Title("tel2ip Number of No Route SIP/H323 calls. Most likely to be due to wrong number"), unit=UNIT_PER_SECOND, color=metrics.Color.PINK,)
+metric_tel2ip_sip_total_duration = metrics.Metric(name='tel2ip_sip_total_duration', title=Title("tel2ip total duration of SIP/H323 calls"), unit=UNIT_TIME, color=metrics.Color.YELLOW,)
+metric_tx_trans = metrics.Metric(name='tx_trans', title=Title("TX Transactions per Second"), unit=UNIT_PER_SECOND, color=metrics.Color.PURPLE,)
 
-metric_info['active_alarms'] = {
-    "title": _('Active Alarms'),
-    "unit": "count",
-    "color": "21/a",
-}
-
-metric_info['archived_alarms'] = {
-    "title": _('Archived Alarms'),
-    "unit": "count",
-    "color": "21/b",
-}
-
-metric_info['active_calls'] = {
-    "title": _("Active Calls"),
-    "unit": "count",
-    "color": "31/a",
-}
-
-metric_info['calls_per_sec'] = {
-    "title": _("Calls per Second"),
-    "unit": "1/s",
-    "color": "32/a",
-}
-
-metric_info['average_success_ratio'] = {
-    "title": _("Average Success Ratio"),
-    "unit": "%",
-    "color": "33/a",
-}
-
-metric_info['average_call_duration'] = {
-    "title": _("Average Call Duration"),
-    "unit": "s",
-    "color": "34/a",
-}
-
-metric_info['rx_trans'] = {
-    "title": _("RX Transactions per Second"),
-    "unit": "1/s",
-    "color": "11/a",
-}
-
-metric_info['tx_trans'] = {
-    "title": _("TX Transactions per Second"),
-    "unit": "1/s",
-    "color": "11/b",
-}
-
-graph_info['sip_statistics'] = {
-    'title'  : _('SIP Statistics'),
-    'metrics': _acgateway_call_metrics,
-}
-
-graph_info['sip_totals'] = {
-    'title'  : _('SIP Totals'),
-    'metrics': _acgateway_total_metrics,
-}
-
-graph_info['transactions'] = {
-    'title': _('Transactions per Second'),
-    'metrics': [ ('rx_trans', 'area' ), ('tx_trans', '-area' ) ],
-}
+graph_sip_statistics = graphs.Bidirectional(name='sip_statistics', title=Title("SIP Statistics"), lower=graphs.Graph(name='sip_statistics_lower', title=Title("SIP Statistics"), simple_lines=['ip2tel_sip_calls_attempted', 'ip2tel_sip_calls_established', 'ip2tel_sip_destination_busy', 'ip2tel_sip_no_answer', 'ip2tel_sip_no_route', 'ip2tel_sip_no_capability', 'ip2tel_sip_failed', 'ip2tel_sip_fax_attempted', 'ip2tel_sip_fax_success',],), upper=graphs.Graph(name='sip_statistics_upper', title=Title("SIP Statistics"), simple_lines=['tel2ip_sip_calls_attempted', 'tel2ip_sip_calls_established', 'tel2ip_sip_destination_busy', 'tel2ip_sip_no_answer', 'tel2ip_sip_no_route', 'tel2ip_sip_no_capability', 'tel2ip_sip_failed', 'tel2ip_sip_fax_attempted', 'tel2ip_sip_fax_success',],),)
+graph_sip_totals = graphs.Bidirectional(name='sip_totals', title=Title("SIP Totals"), lower=graphs.Graph(name='sip_totals_lower', title=Title("SIP Totals"), simple_lines=['ip2tel_sip_total_duration'],), upper=graphs.Graph(name='sip_totals_upper', title=Title("SIP Totals"), simple_lines=['tel2ip_sip_total_duration'],),)
+graph_transactions = graphs.Bidirectional(name='transactions', title=Title("Transactions per Second"), lower=graphs.Graph(name='transactions_lower', title=Title("Transactions per Second"), compound_lines=['tx_trans'],), upper=graphs.Graph(name='transactions_upper', title=Title("Transactions per Second"), compound_lines=['rx_trans'],),)
