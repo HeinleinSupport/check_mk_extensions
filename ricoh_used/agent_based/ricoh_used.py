@@ -1,6 +1,11 @@
 #!/usr/bin/env python3
 # -*- encoding: utf-8; py-indent-offset: 4 -*-
 
+#
+# (c) 2025 Heinlein Support GmbH
+#          Robert Sander <r.sander@heinlein-support.de>
+#
+
 # This is free software;  you can redistribute it and/or modify it
 # under the  terms of the  GNU General Public License  as published by
 # the Free Software Foundation in version 2.  check_mk is  distributed
@@ -12,19 +17,17 @@
 # to the Free Software Foundation, Inc., 51 Franklin St,  Fifth Floor,
 # Boston, MA 02110-1301 USA.
 
-from .agent_based_api.v1 import (
+from cmk.agent_based.v2 import (
+    CheckPlugin,
+    CheckResult,
+    DiscoveryResult,
     contains,
-    register,
     Metric,
     Result,
     Service,
+    SimpleSNMPSection,
     SNMPTree,
     State,
-)
-from .agent_based_api.v1.type_defs import (
-    CheckResult,
-    DiscoveryResult,
-    StringTable,
 )
 
 def parse_printer_used_ricoh(string_table):
@@ -44,7 +47,7 @@ def parse_printer_used_ricoh(string_table):
         'Cartridge Use Number: Yellow',
     ]
     section = {}
-    for line in string_table[0]:
+    for line in string_table:
         if line[3] in counter:
             name = line[3].lower()
             color = "other"
@@ -90,19 +93,17 @@ def check_printer_used_ricoh(item, section) -> CheckResult:
                                              data['unit'] ))
         yield Metric(data['metric_name'], data['value'])
 
-register.snmp_section(
+snmp_section_printer_used_ricoh = SimpleSNMPSection(
     name="printer_used_ricoh",
     parse_function=parse_printer_used_ricoh,
-    fetch=[
-        SNMPTree(
-            base=".1.3.6.1.4.1.367.3.2.1.2.19.5.1",
-            oids=[ "2", "3", "4", "5", "6", "7", "8", "9" ],
-        ),
-    ],
+    fetch=SNMPTree(
+        base=".1.3.6.1.4.1.367.3.2.1.2.19.5.1",
+        oids=[ "2", "3", "4", "5", "6", "7", "8", "9" ],
+    ),
     detect=contains(".1.3.6.1.2.1.1.2.0", ".1.3.6.1.4.1.367.1.1"),
 )
 
-register.check_plugin(
+check_plugin_printer_used_ricoh = CheckPlugin(
     name="printer_used_ricoh",
     sections=["printer_used_ricoh"],
     service_name="Ricoh %s",
