@@ -20,7 +20,6 @@
 import cmk.base.config as config
 from cmk.checkengine.fetcher import SourceType
 from functools import reduce # pyright: ignore[reportShadowedImports]
-import shlex # pyright: ignore[reportShadowedImports]
 
 from collections.abc import Iterator # pyright: ignore[reportShadowedImports]
 from cmk.server_side_calls.v1 import (
@@ -95,18 +94,18 @@ def check_snmp_arguments(params, host_config: HostConfig) -> Iterator[ActiveChec
             warn.append(None)
             crit.append(None)
     if oids:
-        args += ["-m", "ALL", "-o", ",".join(map(shlex.quote, oids))]
+        args += ["-m", "ALL", "-o", ",".join(oids)]
     args += _list_to_args('-w', warn)
     args += _list_to_args('-c', crit)
 
     if 'match' in params:
         mode, value = params['match']
         if mode == 'string':
-            args += ["-s", shlex.quote(value)]
+            args += ["-s", value]
         if mode == 'ereg':
-            args += ["-r", shlex.quote(value)]
+            args += ["-r", value]
         if mode == 'eregi':
-            args += ["-R", shlex.quote(value)]
+            args += ["-R", value]
 
     if 'invert' in params:
         args += ['--invert-search']
