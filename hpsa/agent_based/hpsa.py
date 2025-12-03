@@ -20,17 +20,14 @@ from typing import Any # type: ignore
 
 from cmk.agent_based.v2 import (
     AgentSection,
-    check_levels,
     CheckPlugin,
     CheckResult,
     DiscoveryResult,
-    render,
     Result,
     Service,
     State,
     StringTable,
 )
-
 
 Section = Mapping[str, Any]
 
@@ -128,8 +125,11 @@ def check_hpsa_physicaldrive(item: str, section: Section) -> CheckResult:
         state = State.OK
         if data['info'][3] != 'OK':
             state = State.CRIT
+        array = ""
+        if 'array' in data:
+            array = ", Array " + data['array']
         yield Result(state=state,
-                     summary=(' '.join(data['info'])) + ", Array " + data['array'])
+                     summary=(' '.join(data['info'])) + array)
 
 check_plugin_hpsa_physicaldrive = CheckPlugin(
     name="hpsa_physicaldrive",
