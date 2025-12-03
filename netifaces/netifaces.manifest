@@ -14,5 +14,5 @@
  'title': 'Network Interface Address checks',
  'version': '8.2.1',
  'version.min_required': '2.3.0b1',
- 'version.packaged': '2.3.0p40',
+ 'version.packaged': '2.4.0p14',
  'version.usable_until': None}

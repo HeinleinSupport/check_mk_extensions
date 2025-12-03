@@ -140,7 +140,7 @@ def check_netifaces_senderscore(item, params, section) -> CheckResult:
                     yield Result(state=State.OK,
                                  summary="bound on %s" % iface)
                     ptr = "%s.%s." % (dns.reversename.from_address(addr) - _reverse_domain[family], rbl)
-                    value = _get_cached_result(value_store, rbl, time.time(), 86400)
+                    value = _get_cached_result(value_store, rbl, time.time(), 3600)
                     if not value:
                         try:
                             value = (0, socket.gethostbyname(ptr))
