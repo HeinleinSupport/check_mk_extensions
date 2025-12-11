@@ -124,6 +124,12 @@ def check_sslcertificates(item: str, params, section: SSLCertificatesSection) ->
 
         yield Result(state=State.OK, summary="Subject: %s" % data['subj'])
 
+        if data.get('issuer'):
+            yield Result(
+                state=State.OK,
+                notice="Issuer: %s" % data["issuer"],
+            )
+
         if data.get('template'):
             yield Result(state=State.OK, summary="Template: %s" % data['template'])
 
