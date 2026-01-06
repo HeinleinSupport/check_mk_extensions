@@ -22,106 +22,137 @@ from cmk.rulesets.v1 import (
 )
 from cmk.rulesets.v1.form_specs import (
     BooleanChoice,
+    DataSize,
     DefaultValue,
     DictElement,
     Dictionary,
+    IECMagnitude,
     Integer,
     InputHint,
     LevelDirection,
-    List,
-    migrate_to_lower_float_levels,
     migrate_to_password,
+    migrate_to_upper_float_levels,
     Password,
+    Percentage,
     SimpleLevels,
     String,
     TimeMagnitude,
     TimeSpan,
-    validators,
 )
 from cmk.rulesets.v1.rule_specs import (
     AgentConfig,
     CheckParameters,
-    DiscoveryParameters,
-    HostAndItemCondition,
     HostCondition,
     Topic,
 )
 
-def _migrate_from_tuple(value):
-    if isinstance(value, tuple):
-        return {
-            "after": value[0],
-            "reason": value[1],
-        }
-    return value
+# 'CacheHitRatio': { 'lower': ("fixed", (60, 40)) },
+# 'CacheKeyCount': { 'upper': ("fixed", (90000, 100000)) },
+# 'CacheSize': { 'lower': ("fixed", (10737418240, 0)), 'upper': ("fixed", (32212254720, 42949672960)) },
+# 'MedianKeyProcessTimeMillis': { 'upper': ("fixed", (10, 1000000)) },
 
-# 'CacheHitRatio': { 'lower': (60, 40) },
-# 'CacheKeyCount': { 'upper': (90000, 100000) },
-# 'CacheSize': { 'lower': (10737418240, 0), 'upper': (32212254720, 42949672960) },
-# 'MedianKeyProcessTimeMillis': { 'upper': (10, 100000) },
+def _parameter_valuespec_ox_imageconverter_cache():
+    return Dictionary(
+        title = Title('OX ImageConverter Cache'),
+        elements = {
+            'CacheHitRatio': DictElement(
+                parameter_form=Dictionary(
+                    title = Title('Cache Hit Ratio'),
+                    elements = {
+                        'lower': DictElement(
+                            required=True,
+                            parameter_form=SimpleLevels(
+                                form_spec_template=Percentage(),
+                                title=Title("Lower Levels"),
+                                level_direction=LevelDirection.LOWER,
+                                prefill_fixed_levels=InputHint(value=(60.0, 40.0)),
+                        )),
+                    },
+            )),
+            'CacheKeyCount': DictElement(
+                parameter_form=Dictionary(
+                    title = Title('Cache Key Count'),
+                    elements = {
+                        'upper': DictElement(
+                            required=True,
+                            parameter_form=SimpleLevels(
+                                form_spec_template=Integer(
+                                    unit_symbol="keys",
+                                ),
+                                title=Title("Upper Levels"),
+                                level_direction=LevelDirection.UPPER,
+                                prefill_fixed_levels=InputHint(value=(90000, 100000)),
+                            )),
+                    },
+            )),
+            'CacheSize': DictElement(
+                parameter_form=Dictionary(
+                    title = Title('Cache Size'),
+                    elements = {
+                        'lower': DictElement(
+                            required=True,
+                            parameter_form=SimpleLevels(
+                                form_spec_template=DataSize(
+                                    displayed_magnitudes=[
+                                        IECMagnitude.BYTE,
+                                        IECMagnitude.KIBI,
+                                        IECMagnitude.MEBI,
+                                        IECMagnitude.GIBI,
+                                    ],
+                                ),
+                                title=Title("Lower Levels"),
+                                level_direction=LevelDirection.LOWER,
+                                prefill_fixed_levels=InputHint(value=(10737418240, 0)),
+                            )),
+                        'upper': DictElement(
+                            required=True,
+                            parameter_form=SimpleLevels(
+                                form_spec_template=DataSize(
+                                    displayed_magnitudes=[
+                                        IECMagnitude.BYTE,
+                                        IECMagnitude.KIBI,
+                                        IECMagnitude.MEBI,
+                                        IECMagnitude.GIBI,
+                                    ],
+                                ),
+                                title=Title("Upper Levels"),
+                                level_direction=LevelDirection.UPPER,
+                                prefill_fixed_levels=InputHint(value=(32212254720, 42949672960)),
+                            )),
+                    },
+            )),
+            'MedianKeyProcessTimeMillis': DictElement(
+                parameter_form=Dictionary(
+                    title = Title('Median Key Processing Time'),
+                    elements = {
+                        'upper': DictElement(
+                            required=True,
+                            parameter_form=SimpleLevels(
+                                migrate=migrate_to_upper_float_levels,
+                                form_spec_template=TimeSpan(
+                                    displayed_magnitudes=[
+                                        TimeMagnitude.SECOND,
+                                        TimeMagnitude.MINUTE,
+                                        TimeMagnitude.HOUR,
+                                        TimeMagnitude.DAY,
+                                    ],
+                                ),
+                                title=Title("Upper Levels"),
+                                level_direction=LevelDirection.UPPER,
+                                prefill_fixed_levels=InputHint(value=(10.0, 1000000.0)),
+                            )),
+                    },
+            )),
+        },
+    )
 
-# def _parameter_valuespec_ox_imageconverter_cache():
-#     return Dictionary(
-#         title = _('TITLE'),
-#         elements = [
-#             ( 'CacheHitRatio',
-#               Dictionary(
-#                   title = _('Cache Hit Ratio'),
-#                   elements = [
-#                       ('lower',
-#                        SimpleLevels(Float, title=_("Lower Levels"), default_levels = (60.0, 40.0), unit = "%")),
-#                   ],
-#                   optional_keys = [],
-#             )),
-#             ( 'CacheKeyCount',
-#               Dictionary(
-#                   title = _('Cache Key Count'),
-#                   elements = [
-#                       ('upper',
-#                        SimpleLevels(Integer, title=_("Upper Levels"), default_levels = (90000, 100000), unit = "keys")),
-#                   ],
-#                   optional_keys = [],
-#             )),
-#             ( 'CacheSize',
-#               Dictionary(
-#                   title = _('Cache Size'),
-#                   elements = [
-#                       ('lower',
-#                        SimpleLevels(Filesize, title=_("Lower Levels"), default_levels = (10737418240, 0) )),
-#                       ('upper',
-#                        SimpleLevels(Filesize, title=_("Upper Levels"), default_levels = (32212254720, 42949672960) )),
-#                   ],
-#                   optional_keys = [],
-#             )),
-#             ( 'MedianKeyProcessTimeMillis',
-#               Dictionary(
-#                   title = _('Median Key Processing Time'),
-#                   elements = [
-#                       ('upper',
-#                        SimpleLevels(Integer, title=_("Upper Levels"), default_levels = (10, 1000000), unit = "s")),
-#                   ],
-#                   optional_keys = [],
-#             )),
-#         ],
-#         ignored_keys = ["upsname", "model"],
-#     )
-
-# rulespec_registry.register(
-#     CheckParameterRulespecWithoutItem(
-#         check_group_name="ox_imageconverter_cache",
-#         group=RulespecGroupCheckParametersApplications,
-#         match_type="dict",
-#         parameter_valuespec=_parameter_valuespec_ox_imageconverter_cache,
-#         title=lambda: _("Open-Xchange ImageConverter Cache"),
-#     ))
-
-# rule_spec_ox_imageconverter_cache = CheckParameters(
-#     name="ox_imageconverter_cache",
-#     topic=Topic.APPLICATIONS,
-#     parameter_form=_parameter_valuespec_ox_imageconverter_cache,
-#     title=Title("Open-Xchange ImageConverter Cache"),
-#     condition=HostCondition(),
-# )
+rule_spec_ox_imageconverter_cache = CheckParameters(
+    name="ox_imageconverter_cache",
+    topic=Topic.APPLICATIONS,
+    parameter_form=_parameter_valuespec_ox_imageconverter_cache,
+    title=Title("Open-Xchange ImageConverter Cache"),
+    condition=HostCondition(),
+)
 
 def _migrate_from_alternative_to_dict(param):
     print(f"vorher: {param}")

@@ -19,7 +19,7 @@ from cmk.graphing.v1 import Title, graphs, metrics
 
 UNIT_BYTES = metrics.Unit(metrics.IECNotation('B'))
 UNIT_NUMBER = metrics.Unit(metrics.DecimalNotation(''))
-REQUESTS_PER_SECOND = metrics.Unit(metrics.DecimalNotation('1/s'))
+REQUESTS_PER_SECOND = metrics.Unit(metrics.DecimalNotation('/s'))
 
 metric_cache_key_count = metrics.Metric(
     name='cache_key_count',
@@ -64,12 +64,12 @@ metric_requests_noncached_images = metrics.Metric(
     color=metrics.Color.PINK,
 )
 
-# graph_ox_imageconverter_cache_requests = graphs.Graph(
-#     name='ox_imageconverter_cache_requests',
-#     title=Title("Cache Requests"),
-#     simple_lines=[
-#         'requests_per_sec',
-#         'requests_noncached_images',
-#         'requests_cached_images',
-#     ],
-# )
+graph_ox_imageconverter_cache_requests = graphs.Graph(
+    name='ox_imageconverter_cache_requests',
+    title=Title("Cache Requests"),
+    simple_lines=[
+        'requests_per_sec',
+        'requests_noncached_images',
+        'requests_cached_images',
+    ],
+)

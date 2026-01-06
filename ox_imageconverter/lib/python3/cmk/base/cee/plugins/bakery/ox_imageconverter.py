@@ -40,6 +40,8 @@ def _get_password(v):
     return None
 
 def get_ox_imageconverter_files(conf: Dict[str, Any]) -> FileGenerator:
+    if isinstance(conf, bool):
+        conf = {"deploy": conf}
     if conf.get("deploy"):
         yield Plugin(
             base_os=OS.LINUX,

@@ -105,9 +105,9 @@ check_plugin_ox_imageconverter_cache = CheckPlugin(
     check_function=check_ox_imageconverter_cache,
     check_ruleset_name="ox_imageconverter_cache",
     check_default_parameters={
-        'CacheHitRatio': { 'lower': ("fixed", (60, 40)) },
+        'CacheHitRatio': { 'lower': ("fixed", (60.0, 40.0)) },
         'CacheKeyCount': { 'upper': ("fixed", (90000, 100000)) },
         'CacheSize': { 'lower': ("fixed", (10737418240, 0)), 'upper': ("fixed", (32212254720, 42949672960)) },
-        'MedianKeyProcessTimeMillis': { 'upper': ("fixed", (10, 1000000)) },
+        'MedianKeyProcessTimeMillis': { 'upper': ("fixed", (10.0, 1000000.0)) },
     },
 )
