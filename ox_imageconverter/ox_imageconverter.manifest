@@ -12,5 +12,5 @@
  'title': 'Open-Xchange ImageConverter',
  'version': '1.0.0',
  'version.min_required': '2.3.0b1',
- 'version.packaged': '2.3.0p34',
+ 'version.packaged': '2.4.0p10',
  'version.usable_until': None}
