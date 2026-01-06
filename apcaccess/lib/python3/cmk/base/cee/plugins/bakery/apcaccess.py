@@ -26,8 +26,8 @@ from cmk.base.plugins.bakery.bakery_api.v1 import (
 )
 
 def get_apcaccess_files(conf: Dict[str, Any]) -> FileGenerator:
-    if isinstance(conf, bool) and conf:
-        conf = {"deploy": True}
+    if isinstance(conf, bool):
+        conf = {"deploy": conf}
     if conf.get("deploy"):
         yield Plugin(base_os=OS.LINUX,
                     source=Path("apcaccess"))
