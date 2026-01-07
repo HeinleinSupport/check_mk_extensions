@@ -1,54 +1,72 @@
 #!/usr/bin/env python3
 # -*- encoding: utf-8; py-indent-offset: 4 -*-
 
-try:
-    from cmk.gui.i18n import _
-    from cmk.gui.plugins.wato import (
-        HostRulespec,
-        rulespec_registry,
+# (c) Heinlein Consulting GmbH
+#     Robert Sander <r.sander@heinlein-support.de>
+
+# This is free software;  you can redistribute it and/or modify it
+# under the  terms of the  GNU General Public License  as published by
+# the Free Software Foundation in version 2. This file is  distributed
+# in the hope that it will be useful, but WITHOUT ANY WARRANTY;  with-
+# out even the implied warranty of  MERCHANTABILITY  or  FITNESS FOR A
+# PARTICULAR PURPOSE. See the  GNU General Public License for more de-
+# ails.  You should have  received  a copy of the  GNU  General Public
+# License along with GNU Make; see the file  COPYING.  If  not,  write
+# to the Free Software Foundation, Inc., 51 Franklin St,  Fifth Floor,
+# Boston, MA 02110-1301 USA.
+
+from cmk.rulesets.v1 import (
+    Help,
+    Label,
+    Title,
+)
+from cmk.rulesets.v1.form_specs import (
+    BooleanChoice,
+    DefaultValue,
+    DictElement,
+    Dictionary,
+    TimeMagnitude,
+    TimeSpan,
+)
+from cmk.rulesets.v1.rule_specs import (
+    AgentConfig,
+    Topic,
+)
+
+def _migrate_from_bool_to_dict(param):
+    if isinstance(param, bool):
+        param = {"deploy": param}
+    if not param:
+        param = {"deploy": False}
+    if not "deploy" in param:
+        param["deploy"] = True
+    return param
+
+def _valuespec_agent_config_heinlein_inventory():
+    return Dictionary(
+        elements={
+            "deploy": DictElement(
+                required=True,
+                parameter_form=BooleanChoice(
+                    label=Label("Deploy the Heinlein HW/SW-Inventory plugin"),
+                    prefill=DefaultValue(True),
+                )),
+            "interval": DictElement(
+                parameter_form = TimeSpan(
+                    title = Title("Run asynchronously"),
+                    label = Label("Interval for collecting data"),
+                    migrate = float,
+                    prefill = DefaultValue(14400.0),
+                    displayed_magnitudes = [TimeMagnitude.HOUR, TimeMagnitude.MINUTE],
+            )),
+        },
+        migrate=_migrate_from_bool_to_dict,
     )
-    from cmk.gui.cee.plugins.wato.agent_bakery.rulespecs.utils import RulespecGroupMonitoringAgentsAgentPlugins
-    from cmk.gui.valuespec import (
-        Age,
-        Alternative,
-        Dictionary,
-        FixedValue,
-    )
 
-    def _valuespec_agent_config_heinlein_inventory():
-        return Alternative(
-            title = _("Hardware/Software-Inventory (Heinlein)"),
-            help = _("If you activate this option, the agent plugin <tt>heinlein_inventory</tt> will be deployed on "
-                     "linux hosts. It gathers information about installed hardware and software and makes the "
-                     "information available in Multisite and for exporting to third-party software. <b>Note:</b> "
-                     "in order to actually use the inventory for a host you also need to enable it in "
-                     "the ruleset <a href='wato.py?varname=active_checks%3Acmk_inv&folder=&mode=edit_ruleset'>"
-                     "Hardware/Software-Inventory / Do hardware/software Inventory</a>.<br />It does not collect route info."),
-            style = "dropdown",
-            elements = [
-                Dictionary(
-                    title = _("Deploy the Heinlein HW/SW-Inventory plugin"),
-                    elements = [
-                         ( "interval",
-                            Age(
-                                title = _("Interval for collecting data"),
-                         )),
-                    ],
-                ),
-                FixedValue(None, title = _("Do not deploy the Heinlein HW/SW-Inventory plugin"), totext = _("(disabled)") ),
-            ],
-            default_value = {
-                "interval" : 14400,
-            }
-        )
-
-    rulespec_registry.register(
-         HostRulespec(
-             group=RulespecGroupMonitoringAgentsAgentPlugins,
-             name="agent_config:heinlein_inventory",
-             valuespec=_valuespec_agent_config_heinlein_inventory,
-         ))
-
-except ModuleNotFoundError:
-    # RAW edition
-    pass
+rule_spec_heinlein_inventory_bakery = AgentConfig(
+    name="heinlein_inventory",
+    title=Title("Hardware/Software-Inventory (Heinlein)"),
+    help_text=Help("This will deploy the agent plugin <tt>heinlein_inventory</tt>."),
+    topic=Topic.APPLICATIONS,
+    parameter_form=_valuespec_agent_config_heinlein_inventory,
+)
