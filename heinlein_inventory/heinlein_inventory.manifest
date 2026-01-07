@@ -1,0 +1,12 @@
+{'author': 'Robert Sander <r.sander@heinlein-support.de>',
+ 'description': 'This is mk_inventory.linux without the "ip r" section.\n',
+ 'download_url': 'https://github.com/HeinleinSupport/check_mk_extensions/tree/master/heinlein_inventory',
+ 'files': {'agents': ['plugins/heinlein_inventory'],
+           'cmk_addons_plugins': ['heinlein_inventory/rulesets/heinlein_inventory_cee.py'],
+           'lib': ['python3/cmk/base/cee/plugins/bakery/heinlein_inventory.py']},
+ 'name': 'heinlein_inventory',
+ 'title': 'Heinlein Inventory Agent Plugin',
+ 'version': '3.0.0',
+ 'version.min_required': '2.3.0b1',
+ 'version.packaged': '2.4.0p16',
+ 'version.usable_until': None}
