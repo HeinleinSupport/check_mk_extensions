@@ -1,0 +1,12 @@
+{'author': 'Robert Sander <r.sander@heinlein-support.de>',
+ 'description': 'Send SMS notifications via ConiuGo SMS gateway and its HTTP '
+                'API\n',
+ 'download_url': 'https://github.com/HeinleinSupport/check_mk_extensions',
+ 'files': {'cmk_addons_plugins': ['coniugo/rulesets/coniugo.py'],
+           'notifications': ['coniugo']},
+ 'name': 'coniugo',
+ 'title': 'SMS notifications via ConiuGo SMS gateway HTTP API',
+ 'version': '1.0.0',
+ 'version.min_required': '2.3.0b1',
+ 'version.packaged': '2.4.0p16',
+ 'version.usable_until': None}
