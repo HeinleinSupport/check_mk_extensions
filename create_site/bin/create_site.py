@@ -16,6 +16,8 @@ import requests
 import paramiko
 import ipaddress # type: ignore
 import json
+import string
+import secrets
 
 
 def url_to_site(url):
@@ -34,7 +36,11 @@ def execute_ssh_command(sshclient, command):
         pprint(stdout)
         pprint(error)
     return stdout
-    
+
+def generate_password(length=32):
+    characters = string.ascii_letters + string.digits
+    password = ''.join(secrets.choice(characters) for _ in range(length))
+    return password
 
 parser = argparse.ArgumentParser()
 parser.add_argument('-s', '--url', help='URL to central Check_MK site')
@@ -58,9 +64,13 @@ if args.debug:
 monshort = args.MONSERVER.split(".")[0]
 
 # Connection to local API
-wato = checkmkapi.CMKRESTAPI(args.url, args.username, args.password)
+central_wato = checkmkapi.CMKRESTAPI(args.url, args.username, args.password)
 
-version_info, etag = wato.version()
+# Connection to remote API
+remote_url = f"https://{args.MONSERVER}/{args.SITENAME}/"
+remote_wato = checkmkapi.CMKRESTAPI(remote_url, "cmkadmin", args.CMKPASSWD)
+
+version_info, etag = central_wato.version()
 this_site = version_info["site"]
 
 # Create SSH connection
@@ -72,11 +82,11 @@ except paramiko.ssh_exception.SSHException:
 sshclient = paramiko.SSHClient()
 sshclient.set_missing_host_key_policy(paramiko.AutoAddPolicy())
 sshclient.connect(hostname=args.MONIP, username="root", pkey=sshkey)
-    
+
 if args.verbose:
     print(f"Creating {args.SITENAME} on {args.MONSERVER}")
 print("".join(execute_ssh_command(sshclient, f"omd create --admin-password {args.CMKPASSWD} {args.SITENAME}")))
-    
+
 if args.verbose:
     print(f"Enabling Livestatus via TCP on {args.SITENAME}")
 print("".join(execute_ssh_command(sshclient, f"omd config {args.SITENAME} set LIVESTATUS_TCP on")))
@@ -86,12 +96,8 @@ if args.verbose:
 port = int(("".join(execute_ssh_command(sshclient, f"omd config {args.SITENAME} show LIVESTATUS_TCP_PORT"))).strip())
 if args.debug:
     pprint(port)
-    
-if args.verbose:
-    print(f"Getting automation secret from {args.SITENAME}")
-automation_secret = "".join(execute_ssh_command(sshclient, f"cat /omd/sites/{args.SITENAME}/var/check_mk/web/automation/automation.secret"))
-if args.debug:
-    pprint(automation_secret)
+
+automation_secret = generate_password()
 
 config_files = {
     "LDAP connections": "etc/check_mk/multisite.d/wato/user_connections.mk",
@@ -113,11 +119,11 @@ for desc, filename in config_files.items():
     res = execute_ssh_command(sshclient, f"chmod 0660 /omd/sites/{args.SITENAME}/{filename}")
     if args.debug:
         pprint(res)
-    
+
 if args.verbose:
     print(f"Starting site {args.SITENAME} on {args.MONSERVER}")
 print("".join(execute_ssh_command(sshclient, f"omd start {args.SITENAME}")))
-    
+
 monip = ipaddress.ip_address(args.MONIP)
 socket_type = {4: "tcp", 6: "tcp6"}[monip.version]
 
@@ -125,15 +131,15 @@ if args.FOLDER[0] not in ["/", "~"]:
     args.FOLDER = "/" + args.FOLDER
 
 try:
-    wato.get_host(monshort)
+    central_wato.get_host(monshort)
     if args.debug:
         print(f"Host {monshort} already exists")
 except requests.exceptions.HTTPError as er:
     if er.response.status_code == 404:
         if args.verbose:
             print(f"Creating host {args.MONSERVER} on {this_site}")
-        wato.add_host(monshort, args.FOLDER, {"ipaddress": str(monip)})
-        wato.activate()
+        central_wato.add_host(monshort, args.FOLDER, {"ipaddress": str(monip)})
+        central_wato.activate()
 
 if args.verbose:
     print(f"Creating config for distributed monitoring")
@@ -156,7 +162,7 @@ site_config = {
             },
             "connect_timeout": 3,
             "persistent_connection": True,
-            "url_prefix": f"https://{args.MONSERVER}/{args.SITENAME}/",
+            "url_prefix": remote_url,
             "status_host": {
                 "status_host_set": "enabled",
                 "site": this_site,
@@ -171,9 +177,16 @@ site_config = {
 }
 if args.debug:
     print(json.dumps(site_config))
-wato.create_site_connection(site_config)
+central_wato.create_site_connection(site_config)
+
+if args.verbose:
+    print(f"Creating automation account on {args.SITENAME}")
+remote_wato.create_user("automation", "Automation Account", {"auth_option": {"auth_type": "automation", "secret": automation_secret }, "roles": ["admin"],})
+if args.debug:
+    print("Activating changes on remote site")
+remote_wato.activate()
 
 if args.verbose:
     print(f"Creating password store entry for {args.SITENAME}")
-wato.create_password(f"site_{args.SITENAME}", f"Site {args.SITEALIAS} API secret", automation_secret)
-wato.activate()
+central_wato.create_password(f"site_{args.SITENAME}", f"Site {args.SITEALIAS} API secret", automation_secret)
+central_wato.activate()
