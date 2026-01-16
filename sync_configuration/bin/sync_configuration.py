@@ -205,6 +205,7 @@ def sync_tag_groups(site_id, site_data, changes):
                     tag_group_data.get('topic'),
                     tag_group_data.get('help'),
                     tag_group_data.get('tags'),
+                    True,
                 )
                 changes = True
             del site_tag_groups[tag_group]
@@ -365,6 +366,7 @@ def sync_roles(site_id, site_data, changes):
             if alias or based_on or perms:
                 if args.verbose:
                     print(f"Updating role {role_id} on {site_id}")
+
                 site_data["wato"].edit_role(
                     role_id,
                     new_alias=alias,
@@ -398,6 +400,7 @@ parser.add_argument('-s', '--url', help='URL to central Check_MK site')
 parser.add_argument('-u', '--username', help='name of the automation user')
 parser.add_argument('-p', '--password', help='secret of the automation user')
 parser.add_argument('-t', '--sync', help='Sync Tag', required=True)
+parser.add_argument('-f', '--force', help='Force Foreign Changes when activating changes on remote sites', action='store_true', required=False)
 parser.add_argument('-v', '--verbose', action='store_true', required=False)
 parser.add_argument('-D', '--debug', action='store_true', required=False)
 
@@ -501,4 +504,4 @@ for site_id, site_data in sites.items():
     if changes:
         if args.verbose:
             print(f'activating changes on {site_id}')
-        site_data['wato'].activate()
+        site_data['wato'].activate(force_foreign_changes=args.force)
