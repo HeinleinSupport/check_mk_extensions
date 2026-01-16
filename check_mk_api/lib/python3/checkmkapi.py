@@ -545,6 +545,15 @@ class CMKRESTAPI():
                             return d, e
                         r.raise_for_status()
         resp.raise_for_status()
+    
+    def pending_changes(self):
+        data, etag, resp = self._get_url(
+            "/domain-types/activation_run/collections/pending_changes"
+        )
+        if resp.status_code == 200:
+            return data, etag
+        resp.raise_for_status()
+
 
 #   .--Agent---------------------------------------------------------------.
 #   |                        _                    _                        |
