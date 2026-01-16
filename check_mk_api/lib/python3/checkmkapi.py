@@ -515,7 +515,7 @@ class CMKRESTAPI():
             code = resp.status_code
         return data, etag, resp
 
-    def activate(self, sites=[]):
+    def activate(self, sites=[], force_foreign_changes=False):
         """Activates pending changes
 
         Args:
@@ -526,7 +526,7 @@ class CMKRESTAPI():
         """
         # sleep for 2s to let API settle down
         time.sleep(2)
-        postdata = { 'redirect': False, 'sites': sites, 'force_foreign_changes': False }
+        postdata = { 'redirect': False, 'sites': sites, 'force_foreign_changes': force_foreign_changes }
         data, etag, resp = self._post_url(
             "domain-types/activation_run/actions/activate-changes/invoke",
             etag='*',
@@ -1342,7 +1342,7 @@ class CMKRESTAPI():
             ok_code=204,
         )
 
-    def edit_host_tag_group(self, name, etag, title = None, topic = None, help = None, tags = []):
+    def edit_host_tag_group(self, name, etag, title = None, topic = None, help = None, tags = [], repair = False):
         """Update a host tag group
 
         Args:
@@ -1357,7 +1357,7 @@ class CMKRESTAPI():
             host tag group
             etag
         """
-        params = {}
+        params = {'repair': repair}
         if title:
             params['title'] = title
         if topic:
