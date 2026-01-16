@@ -1292,7 +1292,7 @@ class CMKRESTAPI():
             (taggroup, etag)
         """
         params={
-            'ident': name,
+            'id': name,
             'title': title,
             'tags': tags,
         }

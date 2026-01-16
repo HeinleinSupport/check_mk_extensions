@@ -5,7 +5,7 @@
  'files': {'lib': ['python3/checkmkapi.py']},
  'name': 'check_mk_api',
  'title': 'Check_MK Python API',
- 'version': '6.3.0',
+ 'version': '6.3.1',
  'version.min_required': '2.4.0b1',
- 'version.packaged': '2.4.0p16',
+ 'version.packaged': '2.4.0p19',
  'version.usable_until': None}

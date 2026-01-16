@@ -78,7 +78,7 @@ Args:<br>
 Returns:<br>
 &nbsp;&nbsp;&nbsp;&nbsp;(data,&nbsp;etag):&nbsp;usually&nbsp;empty</span></dd></dl>
 
-<dl><dt><a name="CMKRESTAPI-activate"><strong>activate</strong></a>(self, sites=[])</dt><dd><span class="code">Activates&nbsp;pending&nbsp;changes<br>
+<dl><dt><a name="CMKRESTAPI-activate"><strong>activate</strong></a>(self, sites=[], force_foreign_changes=False)</dt><dd><span class="code">Activates&nbsp;pending&nbsp;changes<br>
 &nbsp;<br>
 Args:<br>
 &nbsp;&nbsp;&nbsp;&nbsp;sites:&nbsp;On&nbsp;which&nbsp;sites&nbsp;the&nbsp;configuration&nbsp;shall&nbsp;be&nbsp;activated.&nbsp;An&nbsp;empty&nbsp;list&nbsp;means&nbsp;all&nbsp;sites&nbsp;which&nbsp;have&nbsp;pending&nbsp;changes.<br>
@@ -413,7 +413,7 @@ Args:<br>
 Returns:<br>
 &nbsp;&nbsp;&nbsp;&nbsp;(host&nbsp;group,&nbsp;etag)</span></dd></dl>
 
-<dl><dt><a name="CMKRESTAPI-edit_host_tag_group"><strong>edit_host_tag_group</strong></a>(self, name, etag, title=None, topic=None, help=None, tags=[])</dt><dd><span class="code">Update&nbsp;a&nbsp;host&nbsp;tag&nbsp;group<br>
+<dl><dt><a name="CMKRESTAPI-edit_host_tag_group"><strong>edit_host_tag_group</strong></a>(self, name, etag, title=None, topic=None, help=None, tags=[], repair=False)</dt><dd><span class="code">Update&nbsp;a&nbsp;host&nbsp;tag&nbsp;group<br>
 &nbsp;<br>
 Args:<br>
 &nbsp;&nbsp;&nbsp;&nbsp;name:&nbsp;name&nbsp;of&nbsp;the&nbsp;host&nbsp;tag&nbsp;group<br>
@@ -688,6 +688,8 @@ Returns:<br>
 &nbsp;&nbsp;&nbsp;&nbsp;etag:&nbsp;current&nbsp;etag&nbsp;value</span></dd></dl>
 
 <dl><dt><a name="CMKRESTAPI-move_rule"><strong>move_rule</strong></a>(self, rule_id, etag, position, folder=None, neighbor_id=None)</dt></dl>
+
+<dl><dt><a name="CMKRESTAPI-pending_changes"><strong>pending_changes</strong></a>(self)</dt></dl>
 
 <dl><dt><a name="CMKRESTAPI-revoke_downtime"><strong>revoke_downtime</strong></a>(self, hostname, services=None)</dt><dd><span class="code">Revokes&nbsp;scheduled&nbsp;downtime<br>
 &nbsp;<br>
