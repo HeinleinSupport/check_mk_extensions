@@ -38,8 +38,12 @@ Section = Mapping[str, Any]
 
 def parse_rspamd(string_table: StringTable) -> Section:
     import json
+    import re
     try:
-        return json.loads(" ".join([item for sublist in string_table for item in sublist]))
+        raw = " ".join([item for sublist in string_table for item in sublist])
+        # rspamd kann nan/inf Werte ausgeben, die kein gültiges JSON sind
+        raw = re.sub(r'\b(nan|inf)\b', 'null', raw)
+        return json.loads(raw)
     except ValueError:
         return {}
 
