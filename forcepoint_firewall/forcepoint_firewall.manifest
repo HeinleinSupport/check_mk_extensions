@@ -1,0 +1,17 @@
+{'author': 'Robert Sander <r.sander@heinlein-support.de>',
+ 'description': 'SNMP checks for Forcepoint Firewalls. Current checks:\n'
+                '\n'
+                '- Temperatures\n'
+                '- PSUs\n'
+                '- Fans\n'
+                '- Voltages\n'
+                '- Cluster State\n',
+ 'download_url': 'https://github.com/HeinleinSupport/check_mk_extensions',
+ 'files': {'cmk_addons_plugins': ['forcepoint_firewall/agent_based/forcepoint_firewall_hw.py'],
+           'mibs': ['FORCEPOINT-NGFW-ENGINE-MIB']},
+ 'name': 'forcepoint_firewall',
+ 'title': 'Forcepoint Firewall SNMP checks',
+ 'version': '0.4.0',
+ 'version.min_required': '2.3.0b1',
+ 'version.packaged': '2.4.0p16',
+ 'version.usable_until': None}
