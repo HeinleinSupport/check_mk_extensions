@@ -16,23 +16,28 @@
 # to the Free Software Foundation, Inc., 51 Franklin St,  Fifth Floor,
 # Boston, MA 02110-1301 USA.
 
-from .agent_based_api.v1 import (
+from collections.abc import Mapping # type: ignore
+from typing import Any # type: ignore
+
+from cmk.agent_based.v2 import (
+    AgentSection,
+    CheckPlugin,
+    CheckResult,
     contains,
+    DiscoveryResult,
     get_value_store,
-    register,
-    render,
     HostLabel,
+    HostLabelGenerator,
     Result,
+    RuleSetType,
     Service,
+    SimpleSNMPSection,
     SNMPTree,
     State,
+    StringTable,
 )
-from .agent_based_api.v1.type_defs import (
-    CheckResult,
-    DiscoveryResult,
-    HostLabelGenerator,
-)
-from .utils.temperature import (
+
+from cmk.plugins.lib.temperature import (
     TempParamDict,
     check_temperature,
 )
@@ -87,7 +92,7 @@ def parse_forcepoint_firewall_temperature(string_table):
         }
     return section
 
-register.snmp_section(
+snmp_section_forcepoint_firewall_temperature = SimpleSNMPSection(
     name="forcepoint_firewall_temperature",
     detect=contains(".1.3.6.1.2.1.1.2.0", ".1.3.6.1.4.1.47565.1.1"),
     parse_function=parse_forcepoint_firewall_temperature,
@@ -115,7 +120,7 @@ def check_forcepoint_firewall_temperature(item: str, params: TempParamDict, sect
         )
         yield from _check_component_status(section[item]['status'])
 
-register.check_plugin(
+check_plugin_forcepoint_firewall_temperature = CheckPlugin(
     name='forcepoint_firewall_temperature',
     service_name="Temperature %s",
     discovery_function=discover_forcepoint_firewall_temperature,
@@ -145,7 +150,7 @@ def parse_forcepoint_firewall_psu(string_table):
         }
     return section
 
-register.snmp_section(
+snmp_section_forcepoint_firewall_psu = SimpleSNMPSection(
     name="forcepoint_firewall_psu",
     detect=contains(".1.3.6.1.2.1.1.2.0", ".1.3.6.1.4.1.47565.1.1"),
     parse_function=parse_forcepoint_firewall_psu,
@@ -166,7 +171,7 @@ def check_forcepoint_firewall_psu(item: str, section) -> CheckResult:
     if item in section:
         yield from _check_component_status(section[item]['status'])
 
-register.check_plugin(
+check_plugin_forcepoint_firewall_psu = CheckPlugin(
     name='forcepoint_firewall_psu',
     service_name="PSU %s",
     discovery_function=discover_forcepoint_firewall_psu,
@@ -195,7 +200,7 @@ def parse_forcepoint_firewall_fan(string_table):
         }
     return section
 
-register.snmp_section(
+snmp_section_forcepoint_firewall_fan = SimpleSNMPSection(
     name="forcepoint_firewall_fan",
     detect=contains(".1.3.6.1.2.1.1.2.0", ".1.3.6.1.4.1.47565.1.1"),
     parse_function=parse_forcepoint_firewall_fan,
@@ -218,7 +223,7 @@ def check_forcepoint_firewall_fan(item: str, params, section) -> CheckResult:
         yield from check_fan(section[item]['rpm'], params)
         yield from _check_component_status(section[item]['status'])
 
-register.check_plugin(
+check_plugin_forcepoint_firewall_fan = CheckPlugin(
     name='forcepoint_firewall_fan',
     service_name="Fan %s",
     discovery_function=discover_forcepoint_firewall_fan,
@@ -252,7 +257,7 @@ def parse_forcepoint_firewall_voltage(string_table):
         }
     return section
 
-register.snmp_section(
+snmp_section_forcepoint_firewall_voltage = SimpleSNMPSection(
     name="forcepoint_firewall_voltage",
     detect=contains(".1.3.6.1.2.1.1.2.0", ".1.3.6.1.4.1.47565.1.1"),
     parse_function=parse_forcepoint_firewall_voltage,
@@ -274,7 +279,7 @@ def check_forcepoint_firewall_voltage(item: str, params, section) -> CheckResult
     if item in section:
         yield from check_elphase(item, params, section)
 
-register.check_plugin(
+check_plugin_forcepoint_firewall_voltage = CheckPlugin(
     name='forcepoint_firewall_voltage',
     service_name="Voltage %s",
     discovery_function=discover_forcepoint_firewall_voltage,
@@ -315,7 +320,7 @@ def host_label_forcepoint_firewall_cluster_status(section) -> HostLabelGenerator
         yield HostLabel('forcepoint/clusterid', str(section['Cluster ID']))
         yield HostLabel('forcepoint/model', section['Appliance Model'])
 
-register.snmp_section(
+snmp_section_forcepoint_firewall_cluster_status = SimpleSNMPSection(
     name="forcepoint_firewall_cluster_status",
     detect=contains(".1.3.6.1.2.1.1.2.0", ".1.3.6.1.4.1.47565.1.1"),
     parse_function=parse_forcepoint_firewall_cluster_status,
@@ -344,7 +349,7 @@ def check_forcepoint_firewall_cluster_status(section) -> CheckResult:
         else:
             yield Result(state=State.OK, summary='%s: %s' % ( key, value))
     
-register.check_plugin(
+check_plugin_forcepoint_firewall_cluster_status = CheckPlugin(
     name='forcepoint_firewall_cluster_status',
     service_name="ForcePoint Cluster Status",
     discovery_function=discover_forcepoint_firewall_cluster_status,
