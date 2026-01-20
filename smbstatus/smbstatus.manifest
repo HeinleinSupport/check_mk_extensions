@@ -1,0 +1,13 @@
+{'author': 'Robert Sander <r.sander@heinlein-support.de>',
+ 'description': 'Local Check script that calls smbstatus to report on '
+                'connections and share usage.\n'
+                '\n'
+                'Can handle CTDB clusters.\n',
+ 'download_url': 'https://github.com/HeinleinSupport/check_mk_extensions/',
+ 'files': {'agents': ['custom/smbstatus/lib/local/smbstatus']},
+ 'name': 'smbstatus',
+ 'title': 'smbstatus Local Check',
+ 'version': '0.1.0',
+ 'version.min_required': '2.0.0b1',
+ 'version.packaged': '2.4.0p16',
+ 'version.usable_until': None}

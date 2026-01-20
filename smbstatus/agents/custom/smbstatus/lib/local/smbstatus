@@ -1,0 +1,38 @@
+#!/bin/bash
+
+if ! which smbstatus > /dev/null; then
+    exit
+fi
+
+if which ctdb > /dev/null; then
+
+  nodeid=$(ctdb status | grep "THIS NODE" | cut -f 1 -d " " | cut -f 2 -d ":")
+
+  grepconn="^$nodeid:"
+  grepshar=" $nodeid:"
+else
+  grepconn="."
+  grepshar="."
+fi
+
+connections=$( smbstatus -p | tail -n +5 | grep "$grepconn" | wc -l )
+
+echo "P \"Samba Connections\" connections=$connections"
+
+echo -n "P \"Samba Shares\" "
+shares=$(
+first=0
+smbstatus -S | tail -n +4 | head -n -1 | grep "$grepshar" | cut -f 1 -d " " | sort | uniq -c | while read count share; do
+    if [ $first -gt 0 ]; then
+        echo -n "|"
+    fi
+    echo -n "share_$share=$count"
+    first+=1
+done
+)
+
+if [ -z "$shares" ]; then
+    echo "- No shares open"
+else
+    echo $shares
+fi
