@@ -188,10 +188,17 @@ def inventory_janitza_umg_freq(section) -> DiscoveryResult:
 
 def check_janitza_umg_freq(item, params, section) -> CheckResult:
     if "Frequency" in section:
+        if "levels_lower" in params:
+            params_levels_lower = params["levels_lower"]
+            if isinstance(params["levels_lower"], tuple):
+                if isinstance(params["levels_lower"][0], int):
+                    params_levels_lower = ("fixed", params["levels_lower"])
+        else:
+            params_levels_lower = None
         yield from check_levels(
             value=float(section["Frequency"]) / 100.0,
             metric_name="in_freq",
-            levels_lower=params["levels_lower"],
+            levels_lower=params_levels_lower,
             render_func=render.frequency,
             label="Frequency",
         )
@@ -202,9 +209,7 @@ check_plugin_janitza_umg_freq = CheckPlugin(
     service_name = "Freqency %s",
     discovery_function = inventory_janitza_umg_freq,
     check_function = check_janitza_umg_freq,
-    check_default_parameters = {
-        "levels_lower": ("fixed", (0, 0)),
-    },
+    check_default_parameters = {},
     check_ruleset_name = "efreq",
 )
 
