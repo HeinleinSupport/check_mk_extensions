@@ -15,6 +15,7 @@ from cmk.agent_based.v2 import (
     Service,
     SNMPSection,
     SNMPTree,
+    StringTable,
 )
 
 from cmk.plugins.lib.elphase import check_elphase
@@ -29,7 +30,7 @@ janitza_umg_device_map = {
 }
 
 
-def parse_janitza_umg(string_table):
+def parse_janitza_umg(string_table: StringTable):
     if not string_table[0] or not string_table[0][0]:
         return None
 
@@ -104,7 +105,7 @@ def parse_janitza_umg(string_table):
 
     misc = flatten(string_table[info_offsets["misc"]])
     result["Frequency"] = int(misc[0])
-    # temperature not present in UMG508 and UMG604
+    # temperature not present in UMG508, UMG512 and UMG604
     if len(misc) > 1:
         result["Temperature"] = list(map(int, misc[1:]))
     else:
@@ -161,9 +162,11 @@ snmp_section_janitza_umg = SNMPSection(
 )
 
 
-def inventory_janitza_umg_inphase(parsed) -> DiscoveryResult:
-    for item in parsed:
+def inventory_janitza_umg_inphase(section) -> DiscoveryResult:
+    for item in section:
         if item.startswith("Phase"):
+            yield Service(item=item)
+        if item == "Total":
             yield Service(item=item)
 
 check_plugin_janitza_umg = CheckPlugin(
@@ -178,15 +181,15 @@ check_plugin_janitza_umg = CheckPlugin(
 )
 
 
-def inventory_janitza_umg_freq(parsed) -> DiscoveryResult:
+def inventory_janitza_umg_freq(section) -> DiscoveryResult:
     # info[0] is frequency, info[1] is first temperature reading, info[2] is second.
-    if "Frequency" in parsed:
+    if "Frequency" in section:
         yield Service(item="1")
 
-def check_janitza_umg_freq(item, params, parsed) -> CheckResult:
-    if "Frequency" in parsed:
+def check_janitza_umg_freq(item, params, section) -> CheckResult:
+    if "Frequency" in section:
         yield from check_levels(
-            value=float(parsed["Frequency"]) / 100.0,
+            value=float(section["Frequency"]) / 100.0,
             metric_name="in_freq",
             levels_lower=params["levels_lower"],
             render_func=render.frequency,
@@ -206,18 +209,18 @@ check_plugin_janitza_umg_freq = CheckPlugin(
 )
 
 
-def inventory_janitza_umg_temp(parsed) -> DiscoveryResult:
+def inventory_janitza_umg_temp(section) -> DiscoveryResult:
     ctr = 1
-    for temp in parsed["Temperature"]:
+    for temp in section["Temperature"]:
         if temp != -1000:
             yield Service(item=str(ctr))
         ctr += 1
 
-def check_janitza_umg_temp(item, params, parsed) -> CheckResult:
+def check_janitza_umg_temp(item, params, section) -> CheckResult:
     idx = int(item) - 1
-    if len(parsed["Temperature"]) > idx:
+    if len(section["Temperature"]) > idx:
         yield from check_temperature(
-            reading=float(parsed["Temperature"][idx]) / 10.0,
+            reading=float(section["Temperature"][idx]) / 10.0,
             params=params,
             unique_name="janitza_umg_%s" % item,
         )
