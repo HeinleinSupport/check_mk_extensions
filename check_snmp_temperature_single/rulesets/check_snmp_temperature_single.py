@@ -17,87 +17,93 @@
 # to the Free Software Foundation, Inc., 51 Franklin St,  Fifth Floor,
 # Boston, MA 02110-1301 USA.
 
-from cmk.gui.i18n import _
-from cmk.gui.valuespec import (
+from cmk.rulesets.v1 import Help, Title
+from cmk.rulesets.v1.form_specs import (
+    DefaultValue,
+    DictElement,
     Dictionary,
+    InputHint,
     Integer,
-    TextAscii,
-    Tuple,
+    LevelDirection,
+    LevelsType,
+    migrate_to_integer_simple_levels,
+    SimpleLevels,
+    String,
 )
-
-from cmk.gui.plugins.wato import (
-    rulespec_registry,
-    HostRulespec,
-    SNMPCredentials,
+from cmk.rulesets.v1.form_specs.validators import (
+    LengthInRange,
+    Message,
+    MatchRegex,
+    NumberInRange,
 )
-
-from cmk.gui.plugins.wato.active_checks.common import (
-    RulespecGroupIntegrateOtherServices,
-)
+from cmk.rulesets.v1.rule_specs import ActiveCheck, Topic
+from cmk.gui.form_specs.private import LegacyValueSpec
+from cmk.gui.watolib.attributes import SNMPCredentials
 
 def _valuespec_active_checks_snmp_temperature_single():
     return Dictionary(
-        title = _("Check single Temperature via SNMP"),
-        help = _("Checks a single Temperature on one SNMP OID."),
-        elements = [
-            ( "description",
-              TextAscii(
-                  title = _("Service Description"),
-                  help = _("Must be unique for every host. Defaults to command that is executed."),
-                  size = 30,
-              )),
-            ( "hostname",
-              TextAscii(
-                  title = _("DNS Hostname or IP address"),
-                  default_value = "$HOSTADDRESS$",
-                  allow_empty = False,
-                  help = _("You can specify a hostname or IP address different from IP address "
-                           "of the host as configured in your host properties."),
-              )),
-            ( 'port',
-              Integer(
-                  title = _("SNMP Port"),
-                  help = _("Default is 161."),
-                  minvalue = 1,
-                  maxvalue = 65535,
-                  default_value = 161,
-              )),
-            ( "timeout",
-              Integer(
-                  title = _("Seconds before connection times out"),
-                  unit = _("sec"),
-                  default_value = 10,
-              )),
-            ( "creds",
-              SNMPCredentials(
-              )),
-            ( "oid",
-              TextAscii(
-                  title = _("OID to query"),
-              )),
-            ( "levels_upper",
-              Tuple(
-                  title = _("Upper levels on Temperature"),
-                  elements = [
-                      Integer(title=_("Warning at"), unit='°C'),
-                      Integer(title=_("Critical at"), unit='°C'),
-                  ],
-              )),
-            ( "factor",
-              Integer(
-                  title = _("Factor"),
-                  help = _("What factor is used by the SNMP agent to express the temperature. A factor of 10 means to agent shows 330 when the temperature is 33 °C."),
-                  default_value = 10,
-              )),
-        ],
-        optional_keys = [ 'hostname', 'port', 'timeout', 'creds', 'factor' ],
+        elements = {
+            "description": DictElement(
+                required=True,
+                parameter_form=String(
+                    title=Title("Service Description"),
+                    help_text=Help("Must be unique for every host. Defaults to command that is executed."),
+                    field_size=30,
+                )),
+            "hostname": DictElement(
+                parameter_form=String(
+                    title=Title("DNS Hostname or IP address"),
+                    help_text=Help("You can specify a hostname or IP address different from IP address of the host as configured in your host properties."),
+                    prefill=InputHint("$HOSTADDRESS$"),
+                    custom_validate=[LengthInRange(min_value=1)],
+                )),
+            'port': DictElement(
+                parameter_form=Integer(
+                    title=Title("SNMP Port"),
+                    help_text=Help("Default is 161."),
+                    prefill=DefaultValue(161),
+                    custom_validate=[NumberInRange(min_value=1, max_value=65535)],
+                )),
+            "timeout": DictElement(
+                parameter_form=Integer(
+                    title=Title("Seconds before connection times out"),
+                    unit_symbol="sec",
+                    prefill=InputHint(10),
+                )),
+            "creds": DictElement(
+                parameter_form=LegacyValueSpec.wrap(SNMPCredentials(
+                    help = "If not set, the SNMP credentials of the host will be used",
+                ))),
+            "oid": DictElement(
+                required=True,
+                parameter_form=String(
+                    title=Title("OID to query"),
+                    custom_validate=[MatchRegex(regex="(\.\d+)+", error_msg=Message("Please input a valid OID"))]
+                )),
+            "levels_upper": DictElement(
+                parameter_form=SimpleLevels(
+                    title=Title("Upper levels on Temperature"),
+                    migrate=migrate_to_integer_simple_levels,
+                    form_spec_template=Integer(
+                        unit_symbol="°C",
+                    ),
+                    prefill_levels_type=DefaultValue(LevelsType.NONE),
+                    prefill_fixed_levels=InputHint((0, 0)),
+                    level_direction=LevelDirection.UPPER,
+                )),
+            "factor": DictElement(
+                parameter_form=Integer(
+                    title=Title("Factor"),
+                    help_text=Help("What factor is used by the SNMP agent to express the temperature. A factor of 10 means to agent shows 330 when the temperature is 33 °C."),
+                    prefill=InputHint(10),
+                )),
+        },
     )
 
-rulespec_registry.register(
-    HostRulespec(
-        group=RulespecGroupIntegrateOtherServices,
-        match_type="all",
-        name="active_checks:snmp_temperature_single",
-        valuespec=_valuespec_active_checks_snmp_temperature_single,
-    ))
-
+rule_spec_check_snmp_temperature_single = ActiveCheck(
+    title = Title("Check single Temperature via SNMP"),
+    help_text = Help("Checks a single Temperature on one SNMP OID."),
+    topic=Topic.ENVIRONMENTAL,
+    name="snmp_temperature_single",
+    parameter_form=_valuespec_active_checks_snmp_temperature_single,
+)

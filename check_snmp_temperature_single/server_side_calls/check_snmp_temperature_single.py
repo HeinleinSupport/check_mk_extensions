@@ -17,58 +17,72 @@
 # to the Free Software Foundation, Inc., 51 Franklin St,  Fifth Floor,
 # Boston, MA 02110-1301 USA.
 
-import shlex
-from cmk.base.check_api import host_name
 import cmk.base.config as config
 from cmk.checkengine.fetcher import SourceType
 
+from collections.abc import Iterator # type: ignore
+from cmk.server_side_calls.v1 import (
+    ActiveCheckCommand,
+    ActiveCheckConfig,
+    HostConfig,
+    noop_parser,
+    replace_macros,
+)
+
 def _creds_to_args(creds):
-    args = ''
+    args = []
     if isinstance(creds, str):
-        args += ' --v2c -C %s' % shlex.quote(creds)
+        args += ['--v2c', '-C', creds]
     elif isinstance(creds, tuple):
         if creds[0] == 'noAuthNoPriv':
-            args += ' -l %s' % shlex.quote(creds[1])
+            args += ['-l', creds[1]]
         if creds[0] == 'authNoPriv':
-            args += ' -L "%s",' % creds[1]
-            args += ' -l %s' % shlex.quote(creds[2])
-            args += ' -x %s' % shlex.quote(creds[3])
+            args += ['-L', creds[1]]
+            args += ['-l', creds[2]]
+            args += ['-x', creds[3]]
         if creds[0] == 'authPriv':
-            args += ' -L "%s","%s"' % (creds[1], creds[4])
-            args += ' -l %s' % shlex.quote(creds[2])
-            args += ' -x %s' % shlex.quote(creds[3])
-            args += ' -X %s' % shlex.quote(creds[5])
+            args += ['-L', '"%s","%s"' % (creds[1], creds[4])]
+            args += ['-l', creds[2]]
+            args += ['-x', creds[3]]
+            args += ['-X', creds[5]]
     return args
 
-def check_snmp_temperature_single_arguments(params):
-    if 'hostname' in params:
-        args = "-H %s" % shlex.quote(params['hostname'])
-    else:
-        args = "-H $HOSTADDRESS$"
-
+def check_snmp_temperature_single_arguments(params, host_config: HostConfig) -> Iterator[ActiveCheckCommand]:
     if 'creds' in params:
-        args += _creds_to_args(params['creds'])
+        args = _creds_to_args(params['creds'])
     else:
         config_cache = config.get_config_cache()
-        ipaddress = config.lookup_ip_address(config_cache, host_name())
-        snmp_config = config_cache.make_snmp_config(host_name(), ipaddress, SourceType.HOST)
-        args += _creds_to_args(snmp_config.credentials)
+        snmp_config = config_cache.make_snmp_config(host_config.name, host_config.primary_ip_config.address, SourceType.HOST, backend_override=None)
+        args = _creds_to_args(snmp_config.credentials)
+
+    if 'hostname' in params:
+        hostname = params['hostname']
+    else:
+        hostname = "$HOSTADDRESS$"
+    hostname = replace_macros(hostname, host_config.macros)
+
+    args += ['-H', hostname]
 
     if "port" in params:
-        args += " -P %d" % params["port"]
+        args += ["-P", str(params["port"])]
         
     if "timeout" in params:
-        args += ' -t %d' % params["timeout"]
+        args += ['-t', str(params["timeout"])]
 
-    args += ' -n temp -d %s -a temp -f' % shlex.quote(params["oid"])
+    args += ['-n', 'temp', '-d', params["oid"], '-a', 'temp', '-f']
 
     if "levels_upper" in params:
-        args += ' -w %d -c %d' % params["levels_upper"]
+        mode, levels = params["levels_upper"]
+        if mode == "fixed":
+            args += ['-w', str(levels[0]), '-c', str(levels[1])]
 
     if "factor" in params:
-        args += ' -i %dC' % params['factor']
+        args += ['-i', '%dC' % params['factor']]
 
-    return args
+    yield ActiveCheckCommand(
+        service_description=check_snmp_temperature_single_description(params),
+        command_arguments=args,
+    )
 
 def check_snmp_temperature_single_description(params):
     if 'description' in params:
@@ -76,11 +90,8 @@ def check_snmp_temperature_single_description(params):
     
     return "Temperature %s" % params['oid']
 
-active_check_info['snmp_temperature_single'] = {
-    "command_line"        : "check_snmp_temperature.pl $ARG1$",
-    "argument_function"   : check_snmp_temperature_single_arguments,
-    "service_description" : check_snmp_temperature_single_description,
-    "has_perfdata"        : True,
-}
-
-
+active_check_snmp_temperature_single = ActiveCheckConfig(
+    name="snmp_temperature_single",
+    parameter_parser=noop_parser,
+    commands_function=check_snmp_temperature_single_arguments,
+)

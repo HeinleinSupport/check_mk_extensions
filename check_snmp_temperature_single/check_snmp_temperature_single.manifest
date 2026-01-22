@@ -10,10 +10,10 @@
  'download_url': 'https://github.com/HienleinSupport/check_mk_extensions/',
  'files': {'cmk_addons_plugins': ['check_snmp_temperature_single/rulesets/check_snmp_temperature_single.py',
                                   'check_snmp_temperature_single/server_side_calls/check_snmp_temperature_single.py'],
-           'lib': ['nagios/plugins/check_snmp_temperature.pl']},
+           'lib': ['nagios/plugins/check_snmp_temperature_single']},
  'name': 'check_snmp_temperature_single',
  'title': 'Check SNMP single Temperature',
  'version': '1.0.0',
- 'version.min_required': '2.3.0b1',
+ 'version.min_required': '2.4.0b1',
  'version.packaged': '2.4.0p19',
  'version.usable_until': None}
