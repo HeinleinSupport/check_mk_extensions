@@ -4,14 +4,23 @@
 # conditions defined in the file COPYING, which is part of this source code package.
 
 
-from cmk.base.check_api import check_levels, LegacyCheckDefinition
-from cmk.base.check_legacy_includes.elphase import check_elphase
-from cmk.base.check_legacy_includes.temperature import check_temperature
-from cmk.base.config import check_info
+from cmk.agent_based.v2 import (
+    any_of,
+    check_levels,
+    CheckPlugin,
+    CheckResult,
+    equals,
+    DiscoveryResult,
+    render,
+    Service,
+    SNMPSection,
+    SNMPTree,
+)
 
-from cmk.agent_based.v2 import any_of, equals, render, SNMPTree
+from cmk.plugins.lib.elphase import check_elphase
+from cmk.plugins.lib.temperature import check_temperature
 
-# 508 and 604 have the same mib
+# 508, 512 and 604 have the same mib
 janitza_umg_device_map = {
     ".1.3.6.1.4.1.34278.8.6": "96",
     ".1.3.6.1.4.1.34278.10.1": "604",
@@ -20,7 +29,7 @@ janitza_umg_device_map = {
 }
 
 
-def parse_janitza_umg_inphase(string_table):
+def parse_janitza_umg(string_table):
     if not string_table[0] or not string_table[0][0]:
         return None
 
@@ -102,21 +111,16 @@ def parse_janitza_umg_inphase(string_table):
         result["Temperature"] = []
     return result
 
-
-def inventory_janitza_umg_inphase(parsed):
-    for item in parsed:
-        if item.startswith("Phase"):
-            yield item, {}
-
-
-check_info["janitza_umg"] = LegacyCheckDefinition(
-    detect=any_of(
+snmp_section_janitza_umg = SNMPSection(
+    name = "janitza_umg",
+    parse_function = parse_janitza_umg,
+    detect = any_of(
         equals(".1.3.6.1.2.1.1.2.0", ".1.3.6.1.4.1.34278.8.6"),
         equals(".1.3.6.1.2.1.1.2.0", ".1.3.6.1.4.1.34278.10.1"),
         equals(".1.3.6.1.2.1.1.2.0", ".1.3.6.1.4.1.34278.10.4"),
         equals(".1.3.6.1.2.1.1.2.0", ".1.3.6.1.4.1.34278.10.5"),
     ),
-    fetch=[
+    fetch = [
         SNMPTree(
             base=".1.3.6.1.2.1.1.2",
             oids=["0"],
@@ -154,66 +158,77 @@ check_info["janitza_umg"] = LegacyCheckDefinition(
             oids=["8"],
         ),
     ],
-    parse_function=parse_janitza_umg_inphase,
-    service_name="Input %s",
-    discovery_function=inventory_janitza_umg_inphase,
-    check_function=check_elphase,
-    check_ruleset_name="el_inphase",
-    check_default_parameters={},
 )
 
 
-def inventory_janitza_umg_freq(parsed):
+def inventory_janitza_umg_inphase(parsed) -> DiscoveryResult:
+    for item in parsed:
+        if item.startswith("Phase"):
+            yield Service(item=item)
+
+check_plugin_janitza_umg = CheckPlugin(
+    name = "janitza_umg",
+    sections = ["janitza_umg"],
+    service_name = "Input %s",
+    discovery_function = inventory_janitza_umg_inphase,
+    check_function = check_elphase,
+    check_default_parameters = {
+    },
+    check_ruleset_name = "el_inphase",
+)
+
+
+def inventory_janitza_umg_freq(parsed) -> DiscoveryResult:
     # info[0] is frequency, info[1] is first temperature reading, info[2] is second.
     if "Frequency" in parsed:
-        yield "1", {}  # why?? :-(
+        yield Service(item="1")
 
+def check_janitza_umg_freq(item, params, parsed) -> CheckResult:
+    if "Frequency" in parsed:
+        yield from check_levels(
+            value=float(parsed["Frequency"]) / 100.0,
+            metric_name="in_freq",
+            levels_lower=params["levels_lower"],
+            render_func=render.frequency,
+            label="Frequency",
+        )
 
-def check_janitza_umg_freq(item, params, parsed):
-    if "Frequency" not in parsed:
-        return None
-
-    return check_levels(
-        float(parsed["Frequency"]) / 100.0,
-        "in_freq",
-        (None, None) + params["levels_lower"],
-        human_readable_func=render.frequency,
-        infoname="Frequency",
-    )
-
-
-check_info["janitza_umg.freq"] = LegacyCheckDefinition(
-    service_name="Frequency %s",
-    sections=["janitza_umg"],
-    discovery_function=inventory_janitza_umg_freq,
-    check_function=check_janitza_umg_freq,
-    check_ruleset_name="efreq",
-    check_default_parameters={"levels_lower": (0, 0)},
+check_plugin_janitza_umg_freq = CheckPlugin(
+    name = "janitza_umg_freq",
+    sections = ["janitza_umg"],
+    service_name = "Freqency %s",
+    discovery_function = inventory_janitza_umg_freq,
+    check_function = check_janitza_umg_freq,
+    check_default_parameters = {
+        "levels_lower": ("fixed", (0, 0)),
+    },
+    check_ruleset_name = "efreq",
 )
 
 
-def inventory_janitza_umg_temp(parsed):
+def inventory_janitza_umg_temp(parsed) -> DiscoveryResult:
     ctr = 1
     for temp in parsed["Temperature"]:
         if temp != -1000:
-            yield str(ctr), {}
+            yield Service(item=str(ctr))
         ctr += 1
 
-
-def check_janitza_umg_temp(item, params, parsed):
+def check_janitza_umg_temp(item, params, parsed) -> CheckResult:
     idx = int(item) - 1
     if len(parsed["Temperature"]) > idx:
-        return check_temperature(
-            float(parsed["Temperature"][idx]) / 10.0, params, "janitza_umg_%s" % item
+        yield from check_temperature(
+            reading=float(parsed["Temperature"][idx]) / 10.0,
+            params=params,
+            unique_name="janitza_umg_%s" % item,
         )
-    return None
 
-
-check_info["janitza_umg.temp"] = LegacyCheckDefinition(
-    service_name="Temperature External %s",
-    sections=["janitza_umg"],
-    discovery_function=inventory_janitza_umg_temp,
-    check_function=check_janitza_umg_temp,
-    check_ruleset_name="temperature",
-    check_default_parameters={},
+check_plugin_janitza_umg_temp = CheckPlugin(
+    name = "janitza_umg_temp",
+    sections = ["janitza_umg"],
+    service_name = "Temperature External %s",
+    discovery_function = inventory_janitza_umg_temp,
+    check_function = check_janitza_umg_temp,
+    check_default_parameters = {
+    },
+    check_ruleset_name = "temperature",
 )
