@@ -1,0 +1,14 @@
+{'author': 'Robert Sander <r.sander@heinlein-support.de>',
+ 'description': 'This agent plugin uses "ipmi-sel" (preferred) or "ipmitool '
+                'sel list" to fetch the IPMI System Events and outputs a '
+                'logwatch compatible agent data section.\n',
+ 'download_url': 'https://github.com/HeinleinSupport/check_mk_extensions/',
+ 'files': {'agents': ['plugins/ipmisel'],
+           'cmk_addons_plugins': ['ipmisel/rulesets/ipmisel.py'],
+           'lib': ['check_mk/base/cee/plugins/bakery/ipmisel.py']},
+ 'name': 'ipmisel',
+ 'title': 'IPMI System Event Log',
+ 'version': '1.0.0',
+ 'version.min_required': '2.3.0b1',
+ 'version.packaged': '2.4.0p19',
+ 'version.usable_until': None}

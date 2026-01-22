@@ -1,0 +1,104 @@
+#!/usr/bin/env python3
+
+import os
+from shutil import which
+import subprocess
+import sys
+import re
+from datetime import datetime
+from pathlib import Path
+
+state_map = {
+    'Critical': 'C',
+    'Warning': 'W',
+    'Nominal': 'O',
+}
+
+MK_VARDIR = os.getenv("LOGWATCH_DIR") or os.getenv("MK_VARDIR") or os.getenv("MK_STATEDIR") or "."
+
+def parse_output(cmd, dateformat, namecol, statecol, eventcol):
+    r = subprocess.run(cmd, capture_output=True)
+    if r.returncode == 0:
+        data = {}
+
+        for row in r.stdout.decode().split('\n'):
+            columns = list(map(lambda x: x.strip(), row.split('|')))
+            if columns[0] == 'ID' or not columns[0]:
+                continue
+            try:
+                eventtime = datetime.strptime('%s %s' % (columns[1], columns[2]), dateformat)
+                data[columns[0]] = {
+                    'time': eventtime,
+                    'name': columns[namecol],
+                    'state': columns[statecol],
+                    'event': columns[eventcol],
+                }
+            except ValueError:
+                pass
+        return data
+    else:
+        raise
+
+def get_status_filename():
+    """
+    Side effect:
+    - Depend on ENV var.
+
+    Determine the name of the state file dependent on ENV variable and config:
+    $REMOTE set, no cluster set or no ip match -> logwatch.state.<formatted-REMOTE>
+    $REMOTE set, cluster set and ip match      -> logwatch.state.<cluster-name>
+    $REMOTE not set and a tty                  -> logwatch.state.local
+    $REMOTE not set and not a tty              -> logwatch.state
+
+    $REMOTE is determined by the check_mk_agent and varies dependent on how the
+    check_mk_agent is accessed:
+    - telnet ($REMOTE_HOST): $REMOTE is in IPv6 notation. IPv4 is extended to IPv6
+                             notation e.g. ::ffff:127.0.0.1
+    - ssh ($SSH_CLIENT): $REMOTE is either in IPv4 or IPv6 notation dependent on the
+                         IP family of the remote host.
+
+    <formatted-REMOTE> is REMOTE with colons (:) replaced with underscores (_) for
+    IPv6 address, is to IPv6 notation extended address with colons (:) replaced with
+    underscores (_) for IPv4 address or is plain $REMOTE in case it does not match
+    an IPv4 or IPv6 address.
+    """
+
+    filebase = "ipmisel.state"
+
+    remote = os.getenv("REMOTE", os.getenv("REMOTE_ADDR"))
+    if not remote:
+        status_filename = filebase + (".local" if sys.stdout.isatty() else "")
+        return os.path.join(MK_VARDIR, status_filename)
+    remote_hostname = remote.replace(":", "_")
+
+    return os.path.join(MK_VARDIR, "%s.%s" % (filebase, remote_hostname))
+
+def statefile_datetime():
+    statefile = get_status_filename()
+
+    try:
+        mtime = os.path.getmtime(statefile)
+    except FileNotFoundError:
+        mtime = 0
+
+    Path(statefile).touch()
+        
+    return datetime.fromtimestamp(mtime)
+
+if __name__ == '__main__':
+    ipmisel = which("ipmi-sel")
+    ipmitool = which("ipmitool")
+    last_time = statefile_datetime()
+
+    if ipmisel:
+        data = parse_output([ipmisel, '--output-event-state', '--utc-to-localtime'], '%b-%d-%Y %H:%M:%S', 3, 5, 6)
+    elif ipmitool:
+        data = parse_output([ipmitool, 'sel', 'list'], '%m/%d/%Y %H:%M:%S', 3, 5, 4)
+    else:
+        sys.exit(0)
+
+    print('<<<logwatch>>>')
+    print('[[[IPMI System Events]]]')
+    for id, data in data.items():
+        if data['time'] > last_time:
+            print("%s %s %s: %s" % (state_map.get(data['state'], 'W'), data['time'].isoformat(sep=' '), data['name'], data['event']))
