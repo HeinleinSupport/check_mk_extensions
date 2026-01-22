@@ -1,0 +1,10 @@
+{'author': 'Robert Sander <r.sander@heinlein-support.de>',
+ 'description': 'Patch of janitza_umg to include model 512.\n',
+ 'download_url': 'https://github.com/HeinleinSupport/check_mk_extensions',
+ 'files': {'cmk_plugins': ['janitza_umg_patch_512/agent_based/janitza_umg.py']},
+ 'name': 'janitza_umg_patch_512',
+ 'title': 'Janitza UMG512 Patch',
+ 'version': '1.0.0',
+ 'version.min_required': '2.3.0b1',
+ 'version.packaged': '2.4.0p19',
+ 'version.usable_until': None}
