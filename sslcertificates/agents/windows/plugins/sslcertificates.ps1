@@ -60,11 +60,14 @@ foreach ($CertLocation in $CertLocations) {
     [array]::Reverse($issuer)
     $issuer = $issuer -join ','
 
+    # Retrieve SANs from the certificate's raw data
+    $rawSANs = $cert.Extensions.where({Where-Object{$_.oid.value -eq '2.5.29.17'}})
+
     $data = [ordered]@{
       starts = (New-TimeSpan -Start $UnixEpoch -End $cert.NotBefore).TotalSeconds ;
       expires = (New-TimeSpan -Start $UnixEpoch -End $cert.NotAfter).TotalSeconds ;
       subj = $subject ;
-      subjAltName = $cert.DnsNameList ;
+      subjAltName = $rawSANs ;
       thumb = $cert.Thumbprint ;
       issuer = $issuer ;
       algosign = $cert.SignatureAlgorithm.FriendlyName ;
