@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 # -*- encoding: utf-8; py-indent-offset: 4 -*-
 # Cachet Alert
 
@@ -51,12 +51,12 @@ def get_open_incidents():
     for state in [ CACHET_STATUS_INVESTIGATING, CACHET_STATUS_IDENTIFIED ]:
         try:
             res = json.loads(incident_api.get(component_id=cachet_component_id, status=state))
-        except cachet.client.requests.HTTPError, er:
-            print er
+        except cachet.client.requests.HTTPError as er:
+            print(er)
             sys.exit(2)
         if debug:
             pprint(res)
-        incidents.extend(filter(lambda x: not x.get('is_resolved', False) and x.get('name', '').startswith(incident_prefix), res['data']))
+        incidents.extend([x for x in res['data'] if not x.get('is_resolved', False) and x.get('name', '').startswith(incident_prefix)])
     return incidents
 
 def create_incident(incident_status, component_status):
@@ -68,8 +68,8 @@ def create_incident(incident_status, component_status):
                                            component_id=cachet_component_id,
                                            component_status=component_status,
                                            notify=cachet_notify_subscribers))
-    except cachet.client.requests.HTTPError, er:
-        print er
+    except cachet.client.requests.HTTPError as er:
+        print(er)
         sys.exit(2)
     if debug:
         pprint(res)
@@ -80,16 +80,16 @@ def update_incident(incident, incident_status, component_status):
         res = json.loads(incident_api.put(id=incident['id'],
                                           status=incident_status,
                                           component_status=component_status))
-    except cachet.client.requests.HTTPError, er:
-        print er
+    except cachet.client.requests.HTTPError as er:
+        print(er)
         sys.exit(2)
     if debug:
         pprint(res)
     try:
         res = json.loads(component_api.put(id=incident['component_id'],
                                            status=component_status))
-    except cachet.client.requests.HTTPError, er:
-        print er
+    except cachet.client.requests.HTTPError as er:
+        print(er)
         sys.exit(2)
     if debug:
         pprint(res)
@@ -118,11 +118,11 @@ if istat and cstat:
     if debug:
         pprint(incidents)
     if not incidents:
-        print '%s %s: creating incident' % (service_status, service_status_type)
+        print('%s %s: creating incident' % (service_status, service_status_type))
         incident = create_incident(istat, cstat)
-        print '%s %s: created incident %s' % (service_status, service_status_type, incident['id'])
+        print('%s %s: created incident %s' % (service_status, service_status_type, incident['id']))
     else:
         for incident in incidents:
-            print '%s %s: updating incident %s' % (service_status, service_status_type, incident['id'])
+            print('%s %s: updating incident %s' % (service_status, service_status_type, incident['id']))
             update_incident(incident, istat, cstat)
-            print '%s %s: updated incident %s' % (service_status, service_status_type, incident['id'])
+            print('%s %s: updated incident %s' % (service_status, service_status_type, incident['id']))
