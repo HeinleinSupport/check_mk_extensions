@@ -123,6 +123,9 @@ def check_sslcertificates(item: str, params, section: SSLCertificatesSection) ->
         ignored = False
 
         yield Result(state=State.OK, summary="Subject: %s" % data['subj'])
+        if 'subjAltName' in data and isinstance(data['subjAltName'], list):
+            for san in data['subjAltName']:
+                yield Result(state=State.OK, notice="SubjectAltName: %s" % san)
 
         if data.get('issuer'):
             yield Result(

@@ -64,6 +64,7 @@ foreach ($CertLocation in $CertLocations) {
       starts = (New-TimeSpan -Start $UnixEpoch -End $cert.NotBefore).TotalSeconds ;
       expires = (New-TimeSpan -Start $UnixEpoch -End $cert.NotAfter).TotalSeconds ;
       subj = $subject ;
+      subjAltName = $cert.DnsNameList ;
       thumb = $cert.Thumbprint ;
       issuer = $issuer ;
       algosign = $cert.SignatureAlgorithm.FriendlyName ;
