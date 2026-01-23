@@ -9,7 +9,7 @@
                 'JSON data in agent data section\n'
                 '\n'
                 'Is now able to ignore certificates with a short lifetime\n',
- 'download_url': 'https://github.com/HeinleinSupport/check_mk_extensions/tree/master/sslcertificates',
+ 'download_url': 'https://github.com/HeinleinSupport/check_mk_extensions/',
  'files': {'agents': ['plugins/sslcertificates',
                       'windows/plugins/sslcertificates.ps1'],
            'cmk_addons_plugins': ['sslcertificates/agent_based/sslcertificates.py',
@@ -17,7 +17,7 @@
            'lib': ['python3/cmk/base/cee/plugins/bakery/sslcertificates.py']},
  'name': 'sslcertificates',
  'title': 'SSL-Certificates',
- 'version': '9.3.0',
+ 'version': '9.4.0',
  'version.min_required': '2.3.0b1',
- 'version.packaged': '2.4.0p16',
+ 'version.packaged': '2.4.0p19',
  'version.usable_until': None}
