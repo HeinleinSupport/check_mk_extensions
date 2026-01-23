@@ -51,8 +51,8 @@ $CertLocations = "Cert:\LocalMachine\My", "Cert:\CurrentUser\My"
 
 foreach ($CertLocation in $CertLocations) {
   foreach ($cert in Get-ChildItem -Recurse $CertLocation) {
-    If ($cert.DnsNameList) {$subject = $cert.DnsNameList}
-    ElseIf ($cert.Subject) {$subject = $cert.Subject}
+    If ($cert.DnsNameList -and @($cert.DnsNameList).Count -gt 0) {$subject = $cert.DnsNameList -join ','}
+    ElseIf ($cert.Subject -and $cert.Subject.Trim() -ne "") {$subject = $cert.Subject}
     Else {$subject = $cert.Thumbprint}
 
     # Reverse issuer, so it starts with e.g. C=US to match the output of the Linux agent.
@@ -63,7 +63,7 @@ foreach ($CertLocation in $CertLocations) {
     $data = [ordered]@{
       starts = (New-TimeSpan -Start $UnixEpoch -End $cert.NotBefore).TotalSeconds ;
       expires = (New-TimeSpan -Start $UnixEpoch -End $cert.NotAfter).TotalSeconds ;
-      subj = $subject.Unicode ;
+      subj = $subject ;
       thumb = $cert.Thumbprint ;
       issuer = $issuer ;
       algosign = $cert.SignatureAlgorithm.FriendlyName ;
@@ -73,3 +73,4 @@ foreach ($CertLocation in $CertLocations) {
     $data | ConvertTo-Json -Compress
   }
 }
+
