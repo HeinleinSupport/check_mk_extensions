@@ -15,19 +15,17 @@
 # to the Free Software Foundation, Inc., 51 Franklin St,  Fifth Floor,
 # Boston, MA 02110-1301 USA.
 
-from .agent_based_api.v1 import (
+from cmk.agent_based.v2 import (
     any_of,
+    CheckPlugin,
+    CheckResult,
     contains,
-    register,
+    DiscoveryResult,
     Result,
     Service,
+    SNMPSection,
     SNMPTree,
     State,
-)
-
-from .agent_based_api.v1.type_defs import (
-    CheckResult,
-    DiscoveryResult,
 )
 
 from cmk.plugins.lib.elphase import check_elphase
@@ -90,10 +88,10 @@ def parse_vertiv_geist_pdu(string_table):
             'output_load': int(load),
             'energy': int(energy),
         }
-            
+
     return section
 
-register.snmp_section(
+snmp_section_vertiv_geist_pdu = SNMPSection(
     name="vertiv_geist_pdu",
     parse_function=parse_vertiv_geist_pdu,
     fetch=[
@@ -182,7 +180,7 @@ def check_vertiv_geist_pdu_thd_temp(item, params, section) -> CheckResult:
                                      params,
         )
 
-register.check_plugin(
+check_plugin_vertiv_geist_pdu_thd_temp = CheckPlugin(
     name="vertiv_geist_pdu_thd_temp",
     sections=['vertiv_geist_pdu'],
     service_name="Temperature %s",
@@ -215,7 +213,7 @@ def check_vertiv_geist_pdu_thd_hum(item, params, section) -> CheckResult:
             params
         )
 
-register.check_plugin(
+check_plugin_vertiv_geist_pdu_thd_hum = CheckPlugin(
     name="vertiv_geist_pdu_thd_hum",
     sections=['vertiv_geist_pdu'],
     service_name="Humidity %s",
@@ -248,7 +246,7 @@ def check_vertiv_geist_pdu_thd_dew(item, params, section) -> CheckResult:
                                      params,
                                      )
 
-register.check_plugin(
+check_plugin_vertiv_geist_pdu_thd_dewpoint = CheckPlugin(
     name="vertiv_geist_pdu_thd_dewpoint",
     sections=['vertiv_geist_pdu'],
     service_name="Dewpoint %s",
@@ -287,7 +285,7 @@ def check_vertiv_geist_pdu_a2d_door(item, params, section) -> CheckResult:
         else:
             yield Result(state=State.CRIT, summary="%d: %s" % (data['value'], data['label_analog']))
 
-register.check_plugin(
+check_plugin_vertiv_geist_pdu_a2d_door = CheckPlugin(
     name="vertiv_geist_pdu_a2d_door",
     sections=['vertiv_geist_pdu'],
     service_name="A2D Door %s",
@@ -322,7 +320,7 @@ def check_vertiv_geist_pdu_main(item, params, section) -> CheckResult:
         )
         yield from check_elphase(item, params, section['main'])
 
-register.check_plugin(
+check_plugin_vertiv_geist_pdu_pdu_main = CheckPlugin(
     name="vertiv_geist_pdu_pdu_main",
     sections=['vertiv_geist_pdu'],
     service_name="PDU Main %s",
@@ -358,7 +356,7 @@ def check_vertiv_geist_pdu_phase(item, params, section) -> CheckResult:
     if item in section['phase']:
         yield from check_elphase(item, params, section['phase'])
 
-register.check_plugin(
+check_plugin_vertiv_geist_pdu_pdu_phase = CheckPlugin(
     name="vertiv_geist_pdu_pdu_phase",
     sections=['vertiv_geist_pdu'],
     service_name="PDU Phase %s",

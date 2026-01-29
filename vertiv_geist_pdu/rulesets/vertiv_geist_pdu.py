@@ -1,47 +1,45 @@
 #!/usr/bin/env python3
 # -*- encoding: utf-8; py-indent-offset: 4 -*-
 
-from cmk.gui.i18n import _
-from cmk.gui.valuespec import (
-    Dictionary,
-    DropdownChoice,
-    Integer,
-    TextInput,
-    Tuple,
-)
+# (c) 2023 Heinlein Support GmbH
+#          Robert Sander <r.sander@heinlein-support.de>
 
-from cmk.gui.plugins.wato import (
-    rulespec_registry,
-    CheckParameterRulespecWithItem,
-    RulespecGroupCheckParametersEnvironment,
-)
+# This is free software;  you can redistribute it and/or modify it
+# under the  terms of the  GNU General Public License  as published by
+# the Free Software Foundation in version 2.  check_mk is  distributed
+# in the hope that it will be useful, but WITHOUT ANY WARRANTY;  with-
+# out even the implied warranty of  MERCHANTABILITY  or  FITNESS FOR A
+# PARTICULAR PURPOSE. See the  GNU General Public License for more de-
+# tails. You should have  received  a copy of the  GNU  General Public
+# License along with GNU Make; see the file  COPYING.  If  not,  write
+# to the Free Software Foundation, Inc., 51 Franklin St,  Fifth Floor,
+# Boston, MA 02110-1301 USA.
 
-def _parameter_valuespec_vertiv_geist_pdu_a2d_binary():
-    return Dictionary(
-        title = _("State Mapping"),
-        help = _("Mapping of value to check state."),
-        elements = [
-            ( 'ok',
-              DropdownChoice(
-                  title = _("OK is"),
-                  choices = [
-                      ( 0, "0" ),
-                      ( 1, "1" ),
-                  ],
-            )),
-        ],
-        required_keys = [ "ok" ],
+from cmk.rulesets.v1 import Title, Help
+from cmk.rulesets.v1.form_specs import DefaultValue, DictElement, Dictionary, Integer
+from cmk.rulesets.v1.rule_specs import CheckParameters, HostAndItemCondition, Topic
+from cmk.rulesets.v1.form_specs.validators import NumberInRange
+
+def _parameter_form():
+        return Dictionary(
+        title = Title("State Mapping"),
+        help_text = Help("Mapping of value to check state."),
+        elements = {
+            "ok": DictElement(
+                required=True,
+                parameter_form=Integer(
+                    title=Title("OK is"),
+                    prefill=DefaultValue(0),
+                    custom_validate=[NumberInRange(min_value=0, max_value=1)],
+                )
+            ),
+            },
     )
 
-rulespec_registry.register(
-    CheckParameterRulespecWithItem(
-        check_group_name="vertiv_geist_pdu_a2d_binary",
-        group=RulespecGroupCheckParametersEnvironment,
-        match_type="first",
-        parameter_valuespec=_parameter_valuespec_vertiv_geist_pdu_a2d_binary,
-        title=lambda: _("Vertiv Geist PDU binary sensors"),
-        item_spec=lambda: TextInput(
-            title=_("Sensor Label"),
-            help=_("The label of the sensor as configured in the device."),
-        ),
-    ))
+rule_spec_vertiv_geist_pdu_a2d_binary = CheckParameters(
+    name = "vertiv_geist_pdu_a2d_binary",
+    title = Title("Vertiv Geist PDU binary sensors"),
+    topic = Topic.ENVIRONMENTAL,
+    parameter_form = _parameter_form,
+    condition = HostAndItemCondition(item_title=Title("Sensor Label")),
+)
