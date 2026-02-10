@@ -6,7 +6,7 @@
            'mibs': ['KENTIXDEVICES']},
  'name': 'kentix_devices',
  'title': 'Kentix Devices',
- 'version': '4.0.1',
+ 'version': '4.1.0',
  'version.min_required': '2.3.0b1',
- 'version.packaged': '2.3.0p34',
+ 'version.packaged': '2.4.0p19',
  'version.usable_until': None}

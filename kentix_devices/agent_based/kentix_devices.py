@@ -127,6 +127,8 @@ snmp_section_kentix_devices = SNMPSection(
                 "7",      # sensorZone
                 "8",      # sensorCommunication
                 "9",      # sensorBatteryLevel (only used for battery sensors)
+                "10",     # sensorMacAddress
+                "11",     # sensorDescription
             ] ),
         SNMPTree(
             base=".1.3.6.1.4.1.37954.5.2.2.1",
@@ -184,8 +186,9 @@ snmp_section_kentix_devices = SNMPSection(
 #                                    ] ),
         ],
     detect=any_of(
-        contains(".1.3.6.1.2.1.1.2.0", ".1.3.6.1.4.1.37954.5"),
         contains(".1.3.6.1.2.1.1.1.0", "kentix"),
+        contains(".1.3.6.1.2.1.1.1.0", "Kentix"),
+        contains(".1.3.6.1.2.1.1.2.0", ".1.3.6.1.4.1.37954.5"),
     ),
 )
 
@@ -546,13 +549,15 @@ check_plugin_kentix_devices_zone = CheckPlugin(
 #   |                                                                      |
 #   '----------------------------------------------------------------------'
 
-def battery_supported(devicetype):
+def battery_supported(sensordata):
+    devicetype = int(sensordata["type"])
+    batterystatus = sensordata['info'][8].isdigit()
     battery_devicetypes = [28, 26]
-    return devicetype in battery_devicetypes
+    return devicetype in battery_devicetypes and batterystatus
 
 def discover_kentix_devices_battery(section: Section) -> DiscoveryResult:
     for sensoritem, sensordata in section['sensors'].items():
-        if battery_supported(int(sensordata['type'])):
+        if battery_supported(sensordata):
             yield Service(
                 item=sensoritem
             )
