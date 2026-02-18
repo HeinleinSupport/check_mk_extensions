@@ -84,7 +84,6 @@ agent_section_sslcertificates = AgentSection(
     parse_function=parse_sslcertificates,
 )
 
-
 def discover_sslcertificates(params, section: SSLCertificatesSection) -> DiscoveryResult:
     def cleanup_label(value):
         if isinstance(value, str):
@@ -109,11 +108,20 @@ def discover_sslcertificates(params, section: SSLCertificatesSection) -> Discove
             val = data.get(key)
             if val:
                 sl.append(ServiceLabel(label, cleanup_label(val)))
-        yield Service(item=name, labels=sl)
+        if params.get("use_subject"):
+            yield Service(item=data['subj'], labels=sl, parameters={"use_subject": True})
+        else:
+            yield Service(item=name, labels=sl)
 
 def check_sslcertificates(item: str, params, section: SSLCertificatesSection) -> CheckResult:
     warnalgos = params.get('warnalgo', [])
     ignore = params.get('ignore', None)
+
+    if params.get('use_subject'):
+        for tmpitem, data in section.items():
+            if data['subj'] == item:
+                item = tmpitem
+                break
     
     if item in section:
         data = section[item]
@@ -122,7 +130,14 @@ def check_sslcertificates(item: str, params, section: SSLCertificatesSection) ->
         secondsremaining = data['expires'] - now
         ignored = False
 
-        yield Result(state=State.OK, summary="Subject: %s" % data['subj'])
+        if params.get("use_subject"):
+            if "file" in data:
+                yield Result(state=State.OK, summary="Location: %s" % data['file'])
+            if "thumb" in data:
+                yield Result(state=State.OK, summary="Thumbprint: %s" % data['thumb'])
+        else:
+            yield Result(state=State.OK, summary="Subject: %s" % data['subj'])
+
         if 'subjAltName' in data and isinstance(data['subjAltName'], list):
             for san in data['subjAltName']:
                 yield Result(state=State.OK, notice="SubjectAltName: %s" % san)

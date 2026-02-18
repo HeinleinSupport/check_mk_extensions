@@ -106,6 +106,7 @@ def _parameter_valuespec_sslcertificates() -> Dictionary:
                     }
                 )),
         },
+        ignored_elements=["use_subject"],
     )
 
 rule_spec_sslcertificates = CheckParameters(
@@ -131,6 +132,12 @@ def _valuespec_sslcertificates_inventory() -> Dictionary:
                     prefill=InputHint(864000.0),
                     migrate=float,
                     help_text=Help("Certificates with a lifetime less than this value will not be discovered."),
+            )),
+            'use_subject': DictElement(
+                parameter_form=BooleanChoice(
+                    title=Title("Service Name from certificate subject"),
+                    help_text=Help("Use certificate subject for the service name instead of thumbprint or filename."),
+                    label=Label("Use certificate subject."),
             )),
         },
     )
