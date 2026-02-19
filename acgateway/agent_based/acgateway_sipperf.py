@@ -17,7 +17,6 @@
 # Boston, MA 02110-1301 USA.
 
 from cmk.agent_based.v2 import (
-    all_of,
     CheckPlugin,
     CheckResult,
     contains,
@@ -38,16 +37,12 @@ def parse_acgateway_sipperf(string_table):
     return string_table
 
 snmp_section_acgateway_sipperf = SNMPSection(
-    name="acgateway_sipperf",
-    detect=all_of(
-        contains(".1.3.6.1.2.1.1.2.0", ".1.3.6.1.4.1.5003.8.1.1"),
-        contains(".1.3.6.1.2.1.1.1.0", "SW Version: 7.20A"),
-    ),
-    parse_function=parse_acgateway_sipperf,
-    fetch=[
+    name = "acgateway_sipperf",
+    parse_function = parse_acgateway_sipperf,
+    fetch = [
         SNMPTree(
-            base='.1.3.6.1.4.1.5003.10.3.1.1.1',
-            oids=[
+            base = '.1.3.6.1.4.1.5003.10.3.1.1.1',
+            oids = [
                 '1.0',  # AcPerfH323SIPGateway::acPerfTel2IPAttemptedCalls
                 '2.0',  # AcPerfH323SIPGateway::acPerfTel2IPEstablishedCalls
                 '3.0',  # AcPerfH323SIPGateway::acPerfTel2IPBusyCalls
@@ -58,10 +53,11 @@ snmp_section_acgateway_sipperf = SNMPSection(
                 '8.0',  # AcPerfH323SIPGateway::acPerfTel2IPFaxAttemptedCalls
                 '9.0',  # AcPerfH323SIPGateway::acPerfTel2IPFaxSuccessCalls
                 '10.0', # AcPerfH323SIPGateway::acPerfTel2IPTotalDuration
-            ]),
+            ],
+        ),
         SNMPTree(
-            base='.1.3.6.1.4.1.5003.10.3.1.1.2',
-            oids=[
+            base = '.1.3.6.1.4.1.5003.10.3.1.1.2',
+            oids = [
                 '1.0',  # AcPerfH323SIPGateway::acPerfIP2TelAttemptedCalls
                 '2.0',  # AcPerfH323SIPGateway::acPerfIP2TelEstablishedCalls
                 '3.0',  # AcPerfH323SIPGateway::acPerfIP2TelBusyCalls
@@ -72,8 +68,10 @@ snmp_section_acgateway_sipperf = SNMPSection(
                 '8.0',  # AcPerfH323SIPGateway::acPerfIP2TelFaxAttemptedCalls
                 '9.0',  # AcPerfH323SIPGateway::acPerfIP2TelFaxSuccessCalls
                 '10.0', # AcPerfH323SIPGateway::acPerfIP2TelTotalDuration
-            ]),
+            ],
+        ),
     ],
+    detect = contains(".1.3.6.1.2.1.1.2.0", ".1.3.6.1.4.1.5003.8.1.1"),
 )
 
 def discover_acgateway_sipperf(section) -> DiscoveryResult:
@@ -97,7 +95,6 @@ def check_acgateway_sipperf(section) -> CheckResult:
         vs = get_value_store()
         this_time = time.time()
         # Tel2IP
-        this_time = time.time()
         for key, value in enumerate(section[0][0]):
             if key == 9:
                 yield Result(state=State.OK,
@@ -121,8 +118,8 @@ def check_acgateway_sipperf(section) -> CheckResult:
                 yield Metric('ip2tel_%s' % sipperf_info[key][0], rate)
 
 check_plugin_acgateway_sipperf = CheckPlugin(
-    name="acgateway_sipperf",
-    service_name="SIP Performance",
-    discovery_function=discover_acgateway_sipperf,
-    check_function=check_acgateway_sipperf,
+    name = "acgateway_sipperf",
+    service_name = "SIP Performance",
+    discovery_function = discover_acgateway_sipperf,
+    check_function = check_acgateway_sipperf,
 )

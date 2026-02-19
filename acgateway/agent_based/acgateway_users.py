@@ -43,19 +43,17 @@ def parse_acgateway_users(string_table):
     return section
 
 snmp_section_acgateway_users = SimpleSNMPSection(
-    name="acgateway_users",
-    detect=all_of(
-        contains(".1.3.6.1.2.1.1.2.0", ".1.3.6.1.4.1.5003.8.1.1"),
-        contains(".1.3.6.1.2.1.1.1.0", "SW Version: 7.20A"),
-    ),
-    parse_function=parse_acgateway_users,
-    fetch=SNMPTree(
-        base='.1.3.6.1.4.1.5003.10.8.2',
-        oids=[
+    name = "acgateway_users",
+    parse_function = parse_acgateway_users,
+    fetch = SNMPTree(
+        base = ".1.3.6.1.4.1.5003.10.8.2",
+        oids = [
             "52.41.1.3.0.0", # AC-PM-Control-MIB::acPMSIPActiveSIPTransactionsPerSecondVal.tx.0
             "52.41.1.3.1.0", # AC-PM-Control-MIB::acPMSIPActiveSIPTransactionsPerSecondVal.rx.0
             "54.46.1.2.0",   # AC-PM-Control-MIB::acPMSBCRegisteredUsersVal.0
-        ]),
+        ],
+    ),
+    detect = contains(".1.3.6.1.2.1.1.2.0", ".1.3.6.1.4.1.5003.8.1.1"),
 )
 
 def discover_acgateway_users(section) -> DiscoveryResult:
@@ -73,8 +71,8 @@ def check_acgateway_users(section) -> CheckResult:
     yield Metric('num_user', section['users'])
 
 check_plugin_acgateway_users = CheckPlugin(
-    name="acgateway_users",
-    service_name="SBC Users",
-    discovery_function=discover_acgateway_users,
-    check_function=check_acgateway_users,
+    name = "acgateway_users",
+    service_name = "SBC Users",
+    discovery_function = discover_acgateway_users,
+    check_function = check_acgateway_users,
 )

@@ -17,7 +17,6 @@
 # Boston, MA 02110-1301 USA.
 
 from cmk.agent_based.v2 import (
-    all_of,
     CheckPlugin,
     CheckResult,
     contains,
@@ -48,20 +47,18 @@ def parse_acgateway_calls(string_table):
     return section
 
 snmp_section_acgateway_calls = SimpleSNMPSection(
-    name="acgateway_calls",
-    detect=all_of(
-        contains(".1.3.6.1.2.1.1.2.0", ".1.3.6.1.4.1.5003.8.1.1"),
-        contains(".1.3.6.1.2.1.1.1.0", "SW Version: 7.20A"),
-    ),
-    parse_function=parse_acgateway_calls,
-    fetch=SNMPTree(
-        base='.1.3.6.1.4.1.5003.10.8.2',
-        oids=[
+    name = "acgateway_calls",
+    parse_function = parse_acgateway_calls,
+    fetch = SNMPTree(
+        base = '.1.3.6.1.4.1.5003.10.8.2',
+        oids = [
             "52.43.1.2.0",   # AC-PM-Control-MIB::acPMSIPSBCEstablishedCallsVal.0
             "52.43.1.9.0",   # AC-PM-Control-MIB::acPMSIPSBCEstablishedCallsTotal.0
             "54.49.1.2.0",   # AC-PM-Control-MIB::acPMSBCAsrVal.0
             "54.52.1.2.0",   # AC-PM-Control-MIB::acPMSBCAcdVal.0
-        ]),
+        ],
+    ),
+    detect = contains(".1.3.6.1.2.1.1.2.0", ".1.3.6.1.4.1.5003.8.1.1"),
 )
 
 def discover_acgateway_calls(section) -> DiscoveryResult:
@@ -85,8 +82,8 @@ def check_acgateway_calls(section) -> CheckResult:
     yield Metric('average_call_duration', section['acd'])
 
 check_plugin_acgateway_calls = CheckPlugin(
-    name="acgateway_calls",
-    service_name="SBC Calls",
-    discovery_function=discover_acgateway_calls,
-    check_function=check_acgateway_calls,
+    name = "acgateway_calls",
+    service_name = "SBC Calls",
+    discovery_function = discover_acgateway_calls,
+    check_function = check_acgateway_calls,
 )

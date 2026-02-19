@@ -79,30 +79,29 @@ def parse_acgateway_alarms(string_table):
     return section
     
 snmp_section_acgateway_alarms = SNMPSection(
-    name="acgateway_alarms",
-    detect=all_of(
-        contains(".1.3.6.1.2.1.1.2.0", ".1.3.6.1.4.1.5003.8.1.1"),
-        contains(".1.3.6.1.2.1.1.1.0", "SW Version: 7.20A"),
-    ),
-    parse_function=parse_acgateway_alarms,
-    fetch=[
+    name = "acgateway_alarms",
+    parse_function = parse_acgateway_alarms,
+    fetch = [
         SNMPTree(
-            base=".1.3.6.1.4.1.5003.11.1.1.1.1",
-            oids=[
-                '1', # AcAlarm::acActiveAlarmSequenceNumber
-                '2', # AcAlarm::acActiveAlarmSysuptime
-                '4', # AcAlarm::acActiveAlarmDateAndTime
-                '5', # AcAlarm::acActiveAlarmName
-                '6', # AcAlarm::acActiveAlarmTextualDescription
-                '7', # AcAlarm::acActiveAlarmSource
-                '8', # AcAlarm::acActiveAlarmSeverity
-            ]),
+            base = ".1.3.6.1.4.1.5003.11.1.1.1.1",
+            oids = [
+                "1", # AcAlarm::acActiveAlarmSequenceNumber
+                "2", # AcAlarm::acActiveAlarmSysuptime
+                "4", # AcAlarm::acActiveAlarmDateAndTime
+                "5", # AcAlarm::acActiveAlarmName
+                "6", # AcAlarm::acActiveAlarmTextualDescription
+                "7", # AcAlarm::acActiveAlarmSource
+                "8", # AcAlarm::acActiveAlarmSeverity
+            ],
+        ),
         SNMPTree(
-            base=".1.3.6.1.4.1.5003.11.1.2.1.1",
-            oids=[
-                '1', # AcAlarm::acAlarmHistorySequenceNumber
-            ]),
-        ],
+            base = ".1.3.6.1.4.1.5003.11.1.2.1.1",
+            oids = [
+                "1", # AcAlarm::acAlarmHistorySequenceNumber
+            ],
+        ),
+    ],
+    detect = contains(".1.3.6.1.2.1.1.2.0", ".1.3.6.1.4.1.5003.8.1.1"),
 )
 
 def discover_acgateway_alarms(section) -> DiscoveryResult:
@@ -130,8 +129,8 @@ def check_acgateway_alarms(section) -> CheckResult:
     yield Metric('archived_alarms', section['archived'])
 
 check_plugin_acgateway_alarms = CheckPlugin(
-    name="acgateway_alarms",
-    service_name="SIP Alarms",
-    discovery_function=discover_acgateway_alarms,
-    check_function=check_acgateway_alarms,
+    name = "acgateway_alarms",
+    service_name = "SIP Alarms",
+    discovery_function = discover_acgateway_alarms,
+    check_function = check_acgateway_alarms,
 )

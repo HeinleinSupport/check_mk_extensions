@@ -17,7 +17,6 @@
 # Boston, MA 02110-1301 USA.
 
 from cmk.agent_based.v2 import (
-    all_of,
     CheckPlugin,
     CheckResult,
     contains,
@@ -55,21 +54,19 @@ def parse_acgateway_ipgroup(string_table):
     return section
 
 snmp_section_acgateway_ipgroup = SimpleSNMPSection(
-    name="acgateway_ipgroup",
-    detect=all_of(
-        contains(".1.3.6.1.2.1.1.2.0", ".1.3.6.1.4.1.5003.8.1.1"),
-        contains(".1.3.6.1.2.1.1.1.0", "SW Version: 7.20A"),
+    name = "acgateway_ipgroup",
+    parse_function = parse_acgateway_ipgroup,
+    fetch = SNMPTree(
+        base = ".1.3.6.1.4.1.5003.9.10.3.1.1.23.21.1",
+        oids = [
+            "1",  # 0  AcGateway::ipGroupIndex
+            "2",  # 1  AcGateway::ipGroupRowStatus
+            "5",  # 2  AcGateway::ipGroupType
+            "6",  # 3  AcGateway::ipGroupDescription
+            "31", # 4  AcGateway::ipGroupName
+        ],
     ),
-    parse_function=parse_acgateway_ipgroup,
-    fetch=SNMPTree(
-        base='.1.3.6.1.4.1.5003.9.10.3.1.1.23.21.1',
-        oids=[
-            '1',  # 0  AcGateway::ipGroupIndex
-            '2',  # 1  AcGateway::ipGroupRowStatus
-            '5',  # 2  AcGateway::ipGroupType
-            '6',  # 3  AcGateway::ipGroupDescription
-            '31', # 4  AcGateway::ipGroupName
-        ]),
+    detect = contains(".1.3.6.1.2.1.1.2.0", ".1.3.6.1.4.1.5003.8.1.1"),
 )
 
 def discover_acgateway_ipgroup(section) -> DiscoveryResult:
@@ -89,10 +86,10 @@ def check_acgateway_ipgroup(item, params, section) -> CheckResult:
                 yield Result(state=State.CRIT,
                              summary='%s is %s' % (param, data.get(param)))
 
-check_plugin_acgateway_ipgroup = CheckPlugin(
-    name="acgateway_ipgroup",
-    service_name="IP Group %s",
-    discovery_function=discover_acgateway_ipgroup,
-    check_function=check_acgateway_ipgroup,
-    check_default_parameters={},
+check_plugin_acgatgeway_ipgroup = CheckPlugin(
+    name = "acgateway_ipgroup",
+    service_name = "IP Group %s",
+    discovery_function = discover_acgateway_ipgroup,
+    check_function = check_acgateway_ipgroup,
+    check_default_parameters = {},
 )
