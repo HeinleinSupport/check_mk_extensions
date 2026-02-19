@@ -69,7 +69,7 @@ foreach ($CertLocation in $CertLocations) {
       subj = $subject ;
       subjAltName = $rawSANs ;
       thumb = $cert.Thumbprint ;
-      issuer = $issuer ;
+      issuer = [System.Text.Encoding]::UTF8.GetString([System.Text.Encoding]::Default.GetBytes($issuer)) ;
       algosign = $cert.SignatureAlgorithm.FriendlyName ;
       template = Get-CertificateTemplateName($cert) ;
     }
