@@ -35,12 +35,9 @@ from cmk.rulesets.v1.rule_specs import (
 )
 
 def _migrate_password(model):
-    print(f"migrating password: {model}")
     if isinstance(model, str):
         model = ("password", model)
-        print(f"intermediate password: {model}")
     model = migrate_to_password(model)
-    print(f"migrated password: {model}")
     return model
 
 def _valuespec_jira_heinlein() -> Dictionary:

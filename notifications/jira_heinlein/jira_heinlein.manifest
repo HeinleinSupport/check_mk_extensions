@@ -1,0 +1,12 @@
+{'author': 'Robert Sander <r.sander@heinlein-support.de>',
+ 'description': 'Create a JIRA ticket upon PROBLEM notification\n'
+                'Close the JIRA ticket upon RECOVERY notification\n',
+ 'download_url': 'https://github.com/HeinleinSupport/check_mk_extensions/',
+ 'files': {'cmk_addons_plugins': ['jira_heinlein/rulesets/jira_heinlein.py'],
+           'notifications': ['jira_heinlein']},
+ 'name': 'jira_heinlein',
+ 'title': 'JIRA Notifications (Heinlein)',
+ 'version': '0.10.4',
+ 'version.min_required': '2.3.0p34',
+ 'version.packaged': '2.4.0p19',
+ 'version.usable_until': None}
