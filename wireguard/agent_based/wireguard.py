@@ -30,9 +30,7 @@ from cmk.agent_based.v2 import (
     Metric,
     render,
     Result,
-    RuleSetType,
     Service,
-    ServiceLabel,
     State,
     StringTable,
 )
@@ -121,7 +119,7 @@ def check_wireguard(item: str, params, section: Section) -> CheckResult:
             for peer, data in peers.items():
                 if data["latest-handshake"] > 0:
                     since = now - data["latest-handshake"]
-                    if timeout[0] == "fixed_levels" and (since < timeout[1][0] or since < timeout[1][1]):
+                    if timeout[0] == "fixed" and (since < timeout[1][0] or since < timeout[1][1]):
                         activepeers += 1
                     if timeout[0] == "no_levels":
                         activepeers += 1
