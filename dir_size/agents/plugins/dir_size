@@ -27,5 +27,5 @@ globfiles() (
 
 if [ -e "$MK_CONFDIR/dir_size.cfg" ]; then
     echo '<<<dir_size>>>'
-    grep -v -e ^# -e ^$ $MK_CONFDIR/dir_size.cfg | tr '\n' '\0' | globfiles | xargs -0 du -s
+    grep -v -e '^#' -e '^$' $MK_CONFDIR/dir_size.cfg | tr '\n' '\0' | globfiles | xargs -0 -n 1 du -s
 fi
