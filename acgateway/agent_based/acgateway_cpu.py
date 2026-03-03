@@ -23,7 +23,6 @@ from cmk.agent_based.v2 import (
     DiscoveryResult,
     get_value_store,
     OIDEnd,
-    render,
     Service,
     SimpleSNMPSection,
     SNMPTree,
