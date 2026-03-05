@@ -17,72 +17,119 @@
 # Boston, MA 02110-1301 USA.
 
 
-from cmk.gui.i18n import _
-
-from cmk.gui.plugins.metrics import (
-    check_metrics,
-    metric_info,
-    graph_info,
+from cmk.graphing.v1 import Title, graphs
+from cmk.graphing.v1.metrics import (
+    Color,
+    DecimalNotation,
+    IECNotation,
+    Metric,
+    StrictPrecision,
+    TimeNotation,
+    Unit,
 )
 
-metric_info['tx_jitter'] = {
-    'title' : _('TX Jitter'),
-    'unit'  : 's',
-    'color' : '31/a',
-}
+UNIT_METERS_PER_SECOND = Unit(IECNotation("m/s"))
+UNIT_TIME = Unit(TimeNotation())
+UNIT_PERCENT = Unit(DecimalNotation("%"), StrictPrecision(2))
+UNIT_NUMBER = Unit(DecimalNotation(''))
+UNIT_COUNT = Unit(DecimalNotation(""), StrictPrecision(0))
+UNIT_COUNTER = Unit(DecimalNotation(''), StrictPrecision(2))
 
-metric_info['rx_jitter'] = {
-    'title' : _('RX Jitter'),
-    'unit'  : 's',
-    'color' : '31/b',
-}
+metric_tx_jitter = Metric(
+    name="tx_jitter",
+    title=Title("TX Jitter"),
+    unit=UNIT_TIME,
+    color=Color.LIGHT_BLUE,
+)
 
-metric_info['tx_latency'] = {
-    'title' : _('TX Latency'),
-    'unit'  : 's',
-    'color' : '41/a',
-}
+metric_rx_jitter = Metric(
+    name="rx_jitter",
+    title=Title("RX Jitter"),
+    unit=UNIT_TIME,
+    color=Color.LIGHT_GREEN,
+)
 
-metric_info['rx_latency'] = {
-    'title' : _('RX Latency'),
-    'unit'  : 's',
-    'color' : '41/b',
-}
+metric_tx_latency = Metric(
+    name="tx_latency",
+    title=Title("TX Latency"),
+    unit=UNIT_TIME,
+    color=Color.BLUE,
+)
 
-metric_info['arp_entries'] = {
-    'title' : _('ARP Entries'),
-    'unit'  : 'count',
-    'color' : '24/a',
-}
+metric_rx_latency = Metric(
+    name="rx_latency",
+    title=Title("RX Latency"),
+    unit=UNIT_TIME,
+    color=Color.GREEN,
+)
 
-graph_info['if_errors'] = {
-    'title': _('Errors'),
-    'metrics': [
-        ('if_in_errors', 'line'),
-        ('if_out_errors', '-line'),
-    ],
-}
+metric_arp_entries = Metric(
+    name="arp_entries",
+    title=Title("ARP Entries"),
+    unit=UNIT_COUNT,
+    color=Color.CYAN,
+)
 
-graph_info['jitter'] = {
-    'title': _('Jitter'),
-    'metrics': [
-        ('rx_jitter', 'line'),
-        ('tx_jitter', '-line'),
-    ],
-}
+graph_if_errors = graphs.Bidirectional(
+    name='graph_if_errors',
+    title=Title('Errors'),
+    upper=graphs.Graph(
+        name="if_errors_in",
+        title=Title("In Errors"),
+        simple_lines=["if_in_errors"],
+        conflicting=["if_in_discards", "indisc"],
+    ),
+    lower=graphs.Graph(
+        name="if_errors_out",
+        title=Title("Out Errors"),
+        simple_lines=["if_out_errors"],
+        conflicting=["if_out_discards", "outdisc"],
+    ),
+)
 
-graph_info['latency'] = {
-    'title': _('Latency'),
-    'metrics': [
-        ('rx_latency', 'line'),
-        ('tx_latency', '-line'),
-    ],
-}
+graph_jitter = graphs.Bidirectional(
+    name='graph_jitter',
+    title=Title('Jitter'),
+    upper=graphs.Graph(
+        name="rx_jitter",
+        title=Title("Jitter In"),
+        simple_lines=["rx_jitter"],
+    ),
+    lower=graphs.Graph(
+        name="tx_jitter",
+        title=Title("Jitter Out"),
+        simple_lines=["tx_jitter"],
+    ),
+)
 
-graph_info['unicast_packets'] = {
-    'title': _('Unicast Packets'),
-    'metrics': [
-        ('if_in_unicast', 'line'),
-        ('if_out_unicast', '-line'),
-    ],
-}
+graph_latency = graphs.Bidirectional(
+    name='graph_latency',
+    title=Title('Latency'),
+    upper=graphs.Graph(
+        name="rx_latency",
+        title=Title("Latency In"),
+        simple_lines=["rx_latency"],
+    ),
+    lower=graphs.Graph(
+        name="tx_latency",
+        title=Title("Latency Out"),
+        simple_lines=["tx_latency"],
+    ),
+)
+
+graph_unicast_packets = graphs.Bidirectional(
+    name='graph_unicast_packets',
+    title=Title('Unicast Packets'),
+    upper=graphs.Graph(
+        name="if_in_unicast",
+        title=Title("Unicast Packets In"),
+        simple_lines=["if_in_unicast"],
+        conflicting=["if_in_mcast", "inmcast"],
+    ),
+    lower=graphs.Graph(
+        name="if_out_unicast",
+        title=Title("Unicast Packets Out"),
+        simple_lines=["if_out_unicast"],
+        conflicting=["if_out_mcast", "outmcast"],
+    ),
+)

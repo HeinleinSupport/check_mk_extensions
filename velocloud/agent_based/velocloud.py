@@ -1,5 +1,8 @@
 #!/usr/bin/env python3
 # -*- encoding: utf-8; py-indent-offset: 4 -*-
+
+# (c) 2021 Heinlein Consulting GmbH
+#          Robetr Sander <r.sander@heinlein-support.de>
 #
 # This is free software;  you can redistribute it and/or modify it
 # under the  terms of the  GNU General Public License  as published by
@@ -12,28 +15,27 @@
 # to the Free Software Foundation, Inc., 51 Franklin St,  Fifth Floor,
 # Boston, MA 02110-1301 USA.
 
-from .agent_based_api.v1 import (
+import time
+from cmk.agent_based.v2 import (
     all_of,
     any_of,
+    CheckPlugin,
+    CheckResult,
     check_levels,
     contains,
+    DiscoveryResult,
     equals,
     get_rate,
     get_value_store,
-    register,
     Metric,
-    OIDEnd,
+    render,
     Result,
     Service,
+    SimpleSNMPSection,
     SNMPTree,
     State,
-)
-from .agent_based_api.v1.type_defs import (
-    CheckResult,
-    DiscoveryResult,
     StringTable,
 )
-import time
 
 def _render_integer(value):
     return "%d" % value
@@ -54,7 +56,7 @@ def parse_velocloud_pathnum(string_table: StringTable):
         return { 'pathnum': int(string_table[0][0]) }
     return None
 
-register.snmp_section(
+snmp_section_velocloud_pathnum = SimpleSNMPSection(
     name="velocloud_pathnum",
     detect=any_of(
         equals(".1.3.6.1.2.1.1.2.0", ".1.3.6.1.4.1.45346.1.1"),
@@ -78,18 +80,19 @@ def check_velocloud_pathnum(params, section) -> CheckResult:
         section.get('pathnum'),
         metric_name='active_vpn_tunnels',
         levels_upper=params.get('levels_upper'),
+        levels_lower=params.get("levels_lower"),
         render_func=_render_integer,
         label='Active Paths',
     )
 
-register.check_plugin(
+check_plugin_velocloud_pathnum = CheckPlugin(
     name='velocloud_pathnum',
     service_name="VeloCloud Paths",
     discovery_function=discover_velocloud_pathnum,
     check_function=check_velocloud_pathnum,
     check_ruleset_name="velocloud_pathnum",
     check_default_parameters={
-        'levels_upper': (23, 25),
+        'levels_upper': ("fixed", (23, 25)),
     },
 )
 
@@ -130,7 +133,7 @@ def parse_velocloud_hastate(string_table: StringTable):
         return section
     return None
 
-register.snmp_section(
+snmp_section_velocloud_hastate = SimpleSNMPSection(
     name="velocloud_hastate",
     detect=any_of(
         equals(".1.3.6.1.2.1.1.2.0", ".1.3.6.1.4.1.45346.1.1"),
@@ -187,7 +190,7 @@ def check_velocloud_hastate(params, section) -> CheckResult:
                              summary='LAN: active node has %d links but standby node has %d links' % (section['lan_active'], section['lan_standby']))
 
 
-register.check_plugin(
+check_plugin_velocloud_hastate = CheckPlugin(
     name='velocloud_hastate',
     service_name="VeloCloud HA",
     discovery_function=discover_velocloud_hastate,
@@ -221,27 +224,43 @@ _velocloud_map_vpn_state = {
 
 def parse_velocloud_link(string_table: StringTable):
     section = {}
-    for name, intf, txjitter, rxjitter, txlatency, rxlatency, txlost, rxlost, vpnstate, txpackets, rxpackets, txbytes, rxbytes in string_table:
+    for name, intf, linkstate, \
+        txjitter, rxjitter, txlatency, rxlatency, txlost, rxlost, \
+        txjittergauge, rxjittergauge, txlatencygauge, rxlatencygauge, txlostgauge, rxlostgauge, \
+        txpackets, rxpackets, txbytes, rxbytes in string_table:
         if intf in section:
             raise '%s is duplicate' % intf
         section[intf] = {
             'name': name,
-            'tx_jitter': float(txjitter) / 1000.0,
-            'rx_jitter': float(rxjitter) / 1000.0,
-            'tx_latency': float(txlatency) / 1000.0,
-            'rx_latency': float(rxlatency) / 1000.0,
-            'if_out_errors': int(txlost),
-            'if_in_errors': int(rxlost),
-            'raw_state': int(vpnstate) if vpnstate.isdigit() else "",
-            'state': _velocloud_map_vpn_state.get(vpnstate, (State.UNKNOWN, 'Unknown')),
             'if_out_unicast': int(txpackets),
             'if_in_unicast': int(rxpackets),
             'if_out_bps': int(txbytes),
             'if_in_bps': int(rxbytes),
         }
+        try:
+            # new OIDs
+            section[intf]['tx_jitter'] = float(txjittergauge) / 1000.0
+            section[intf]['rx_jitter'] = float(rxjittergauge) / 1000.0
+            section[intf]['tx_latency'] = float(txlatencygauge) / 1000.0
+            section[intf]['rx_latency'] = float(rxlatencygauge) / 1000.0
+            section[intf]['if_out_errors'] = int(txlostgauge)
+            section[intf]['if_in_errors'] = int(rxlostgauge)
+        except ValueError:
+            # old OIDs
+            section[intf]['tx_jitter'] = float(txjitter) / 1000.0
+            section[intf]['rx_jitter'] = float(rxjitter) / 1000.0
+            section[intf]['tx_latency'] = float(txlatency) / 1000.0
+            section[intf]['rx_latency'] = float(rxlatency) / 1000.0
+            section[intf]['if_out_errors'] = int(txlost)
+            section[intf]['if_in_errors'] = int(rxlost)
+
+        if linkstate.isdigit():
+            section[intf]['raw_state'] = int(linkstate)
+            section[intf]['state'] = _velocloud_map_vpn_state.get(linkstate, (State.UNKNOWN, 'Unknown'))
+
     return section
 
-register.snmp_section(
+snmp_section_velocloud_link = SimpleSNMPSection(
     name="velocloud_link",
     detect=any_of(
         equals(".1.3.6.1.2.1.1.2.0", ".1.3.6.1.4.1.45346.1.1"),
@@ -256,13 +275,19 @@ register.snmp_section(
         oids=[
             "3",  # vceLinkName
             "33", # vceLinkItf
+            "34", # vceLinkState
             "20", # vceLinkTxJitter
             "21", # vceLinkRxJitter
             "22", # vceLinkTxLatency
             "23", # vceLinkRxLatency
             "24", # vceLinkTxLostPkt
             "25", # vceLinkRxLostPkt
-            "26", # vceLinkVpnState
+            "43", # vceLinkTxJitterGauge
+            "44", # vceLinkRxJitterGauge
+            "45", # vceLinkTxLatencyGauge
+            "46", # vceLinkRxLatencyGauge
+            "47", # vceLinkTxLostPktGauge
+            "48", # vceLinkRxLostPktGauge
             "36", # vceLinkTotTxPkts
             "37", # vceLinkTotRxPkts
             "38", # vceLinkTotTxbytes
@@ -273,10 +298,13 @@ register.snmp_section(
 
 def discover_velocloud_link(section) -> DiscoveryResult:
     for intf, data in section.items():
-        yield Service(
-            item=intf,
-            parameters={'raw_state': data['raw_state']}
-        )
+        if "raw_state" in data:
+            yield Service(
+                item=intf,
+                parameters={'raw_state': data['raw_state']}
+            )
+        else:
+            yield Service(item=intf)
 
 def check_velocloud_link(item, params, section) -> CheckResult:
     if item in section:
@@ -285,12 +313,13 @@ def check_velocloud_link(item, params, section) -> CheckResult:
         now = time.time()
         yield Result(state=State.OK,
                      summary=data['name'])
-        if data['raw_state'] != params.get('raw_state'):
-            yield Result(state=State.WARN,
-                         summary='State has changed from %s to %s' % (_velocloud_map_vpn_state.get(params.get('state'), (3, 'Unknown'))[1], data['state'][1]))
-        else:
-            yield Result(state=State.OK,
+        if "raw_state" in data and "state" in data:
+            yield Result(state=data["state"][0],
                          summary='State is %s' % data['state'][1])
+            if data['raw_state'] != params.get('raw_state'):
+                yield Result(state=State.WARN,
+                             summary='State has changed from %s' % (_velocloud_map_vpn_state.get(params.get('raw_state'),
+                                                                                                            (3, 'Unknown'))[1]))
         for key, value in data.items():
             if key in [ 'name', 'raw_state', 'state', "rx_latency", "tx_latency" ]:
                 continue
@@ -305,7 +334,7 @@ def check_velocloud_link(item, params, section) -> CheckResult:
             metric_name='rx_latency',
             levels_upper=params.get('rx_latency'),
             label='RX Latency',
-            render_func=lambda v: "%.3f ms" % v,
+            render_func=render.timespan,
         )
 
         yield from check_levels(
@@ -313,18 +342,16 @@ def check_velocloud_link(item, params, section) -> CheckResult:
             metric_name='tx_latency',
             levels_upper=params.get('tx_latency'),
             label='TX Latency',
-            render_func=lambda v: "%.3f ms" % v,
+            render_func=render.timespan,
         )
 
-register.check_plugin(
+check_plugin_velocloud_link = CheckPlugin(
     name='velocloud_link',
     service_name="VeloCloud Link %s",
     discovery_function=discover_velocloud_link,
     check_function=check_velocloud_link,
     check_ruleset_name="velocloud_link",
-    check_default_parameters={
-        'raw_state': 0,
-    },
+    check_default_parameters={},
 )
 
 #   .--arp-----------------------------------------------------------------.
@@ -343,7 +370,7 @@ def parse_velocloud_arp(string_table: StringTable):
         return { 'arp': int(string_table[0][0]) }
     return None
 
-register.snmp_section(
+snmp_section_velocloud_arp = SimpleSNMPSection(
     name="velocloud_arp",
     detect=any_of(
         equals(".1.3.6.1.2.1.1.2.0", ".1.3.6.1.4.1.45346.1.1"),
@@ -369,7 +396,7 @@ def check_velocloud_arp(section) -> CheckResult:
                  summary="%d ARP entries" % section['arp'])
     yield Metric( 'arp_entries', section['arp'] )
 
-register.check_plugin(
+check_plugin_velocloud_arp = CheckPlugin(
     name='velocloud_arp',
     service_name="VeloCloud ARP",
     discovery_function=discover_velocloud_arp,
