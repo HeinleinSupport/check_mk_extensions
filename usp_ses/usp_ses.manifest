@@ -1,0 +1,15 @@
+{'author': 'Robert Sander <r.sander@heinlein-support.de>',
+ 'description': 'USP SES vHost plugin.\n'
+                '\n'
+                'Extended and migrated to CheckMK 2.4 by WAGNER AG.\n',
+ 'download_url': 'https://github.com/ellr/checkmk_usp_ses/releases',
+ 'files': {'cmk_addons_plugins': ['usp_ses/agent_based/usp_ses.py',
+                                  'usp_ses/graphing/usp_ses_metrics.py',
+                                  'usp_ses/graphing/usp_ses_perfometer.py',
+                                  'usp_ses/rulesets/usp_ses_check_parameters.py']},
+ 'name': 'usp_ses',
+ 'title': 'Agent based plugin for USP SES',
+ 'version': '3.0.1',
+ 'version.min_required': '2.3.0b1',
+ 'version.packaged': '2.4.0p19',
+ 'version.usable_until': None}
