@@ -1,0 +1,17 @@
+{'author': 'Robert Sander <r.sander@heinlein-support.de>',
+ 'description': 'This check receives data from the agent plugin '
+                'msexch_database_size.ps1 and shows the size of the '
+                'databases.\n',
+ 'download_url': 'https://github.com/HeinleinSupport/check_mk_extensions/tree/master/msexch_database_size',
+ 'files': {'agents': ['windows/plugins/msexch_database_size.ps1'],
+           'cmk_addons_plugins': ['msexch_database_size/agent_based/msexch_database_size.py',
+                                  'msexch_database_size/checkman/msexch_database_size',
+                                  'msexch_database_size/rulesets/msexch_database_size.py',
+                                  'msexch_database_size/rulesets/msexch_database_size_bakery.py'],
+           'lib': ['python3/cmk/base/cee/plugins/bakery/msexch_database_size.py']},
+ 'name': 'msexch_database_size',
+ 'title': 'MS Exchange Database Size',
+ 'version': '2.0.2',
+ 'version.min_required': '2.4.0p1',
+ 'version.packaged': 'cmk-mkp-tool 1.0.0',
+ 'version.usable_until': None}

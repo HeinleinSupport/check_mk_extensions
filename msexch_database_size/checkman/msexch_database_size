@@ -1,13 +1,17 @@
 title: MS Exchange: Size of mailbox databases
 agents: windows
-author: Robert Sander <r.sander@heinlein-support.de>
+catalog: app/exchange
 license: GPL
-catalog: app/Microsoft Exchange
 distribution: heinlein
 description:
  This check receives data from the agent plugin msexch_database_size.ps1
  and shows the size of the databases.
 
-inventory:
- One check for each mailbox database will be created.
+ Thresholds can be configured for the total database size and the
+ percentage of available new mailbox space within the database.
 
+item:
+ The name of the mailbox database.
+
+discovery:
+ One check for each mailbox database will be created.

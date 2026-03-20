@@ -16,13 +16,20 @@
 # Boston, MA 02110-1301 USA.
 
 from pathlib import Path
-from typing import Any, Dict
+from typing import Any
 
 from .bakery_api.v1 import FileGenerator, OS, Plugin, register
 
-def get_msexch_database_size_files(conf: Dict[str, Any]) -> FileGenerator:
-    yield Plugin(base_os=OS.WINDOWS,
-                 source=Path("msexch_database_size.ps1"))
+
+def get_msexch_database_size_files(conf: dict[str, Any]) -> FileGenerator:
+    # Legacy conf was True/None, new conf is {"deploy": "deploy"|"do_not_deploy"}
+    if isinstance(conf, dict):
+        if conf.get("deploy") != "deploy":
+            return
+    elif not conf:
+        return
+    yield Plugin(base_os=OS.WINDOWS, source=Path("msexch_database_size.ps1"))
+
 
 register.bakery_plugin(
     name="msexch_database_size",
