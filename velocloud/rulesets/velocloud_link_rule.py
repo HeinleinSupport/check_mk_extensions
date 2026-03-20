@@ -19,8 +19,11 @@ from cmk.rulesets.v1 import (
     Title,
 )
 from cmk.rulesets.v1.form_specs import (
+    CascadingSingleChoice,
+    CascadingSingleChoiceElement,
     DictElement,
     Dictionary,
+    FixedValue,
     InputHint,
     LevelDirection,
     migrate_to_float_simple_levels,
@@ -34,8 +37,58 @@ from cmk.rulesets.v1.rule_specs import (
     Topic,
 )
 
+# Map display names to state keys used in agent_based
+_LINK_STATES = [
+    ("1", "Initial"),
+    ("2", "Dead"),
+    ("3", "Unusable"),
+    ("4", "Quiet"),
+    ("5", "Standby"),
+    ("6", "Unstable"),
+    ("7", "Stable"),
+    ("8", "Unknown"),
+]
+
+_STATE_CHOICES = [
+    CascadingSingleChoiceElement(
+        name="ok",
+        title=Title("OK"),
+        parameter_form=FixedValue(value="ok"),
+    ),
+    CascadingSingleChoiceElement(
+        name="warn",
+        title=Title("WARN"),
+        parameter_form=FixedValue(value="warn"),
+    ),
+    CascadingSingleChoiceElement(
+        name="crit",
+        title=Title("CRIT"),
+        parameter_form=FixedValue(value="crit"),
+    ),
+    CascadingSingleChoiceElement(
+        name="unknown",
+        title=Title("UNKNOWN"),
+        parameter_form=FixedValue(value="unknown"),
+    ),
+]
+
+
+def _state_mapping_elements() -> dict:
+    """Build DictElements for each VPN link state."""
+    elements = {}
+    for state_id, state_name in _LINK_STATES:
+        elements[f"vpn_state_{state_id}"] = DictElement(
+            parameter_form=CascadingSingleChoice(
+                title=Title(f"State: {state_name}"),
+                elements=_STATE_CHOICES,
+            ),
+            required=False,
+        )
+    return elements
+
 
 def _parameter_valuespec_velocloud_link():
+    state_elements = _state_mapping_elements()
     return Dictionary(
         title=Title("Levels for Link parameters"),
         ignored_elements=["raw_state"],
@@ -60,6 +113,7 @@ def _parameter_valuespec_velocloud_link():
                     ),
                     prefill_fixed_levels=InputHint(value=(0.02, 0.05)),
                 )),
+            **state_elements,
         },
     )
 

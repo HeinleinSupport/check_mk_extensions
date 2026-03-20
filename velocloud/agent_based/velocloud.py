@@ -212,7 +212,7 @@ check_plugin_velocloud_hastate = CheckPlugin(
 #   '----------------------------------------------------------------------'
 
 _velocloud_map_vpn_state = {
-    '1': (State.WARN, 'Initial'),
+    '1': (State.OK, 'Initial'),
     '2': (State.CRIT, 'Dead'),
     '3': (State.CRIT, 'Unusable'),
     '4': (State.WARN, 'Quiet'),
@@ -314,7 +314,17 @@ def check_velocloud_link(item, params, section) -> CheckResult:
         yield Result(state=State.OK,
                      summary=data['name'])
         if "raw_state" in data and "state" in data:
-            yield Result(state=data["state"][0],
+            # Allow ruleset to override the default state mapping
+            _param_state_key = f"vpn_state_{data['raw_state']}"
+            _param_state_override = params.get(_param_state_key)
+            if _param_state_override is not None:
+                # CascadingSingleChoice returns a tuple (name, value)
+                _override_name = _param_state_override[0] if isinstance(_param_state_override, tuple) else _param_state_override
+                _state_map = {"ok": State.OK, "warn": State.WARN, "crit": State.CRIT, "unknown": State.UNKNOWN}
+                _effective_state = _state_map.get(_override_name, data["state"][0])
+            else:
+                _effective_state = data["state"][0]
+            yield Result(state=_effective_state,
                          summary='State is %s' % data['state'][1])
             if data['raw_state'] != params.get('raw_state'):
                 yield Result(state=State.WARN,
