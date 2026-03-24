@@ -14,7 +14,7 @@
                    'nagios/plugins/check_snmp_temperature.pl']},
  'name': 'check_snmp_temperature_single',
  'title': 'Check SNMP single Temperature',
- 'version': '1.0.1',
+ 'version': '1.0.2',
  'version.min_required': '2.4.0b1',
  'version.packaged': '2.4.0p19',
  'version.usable_until': None}
