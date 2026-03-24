@@ -78,7 +78,7 @@ def _valuespec_active_checks_snmp_temperature_single():
                 required=True,
                 parameter_form=String(
                     title=Title("OID to query"),
-                    custom_validate=[MatchRegex(regex="(\.\d+)+", error_msg=Message("Please input a valid OID"))]
+                    custom_validate=[MatchRegex(regex=r"(\.\d+)+", error_msg=Message("Please input a valid OID"))]
                 )),
             "levels_upper": DictElement(
                 parameter_form=SimpleLevels(
