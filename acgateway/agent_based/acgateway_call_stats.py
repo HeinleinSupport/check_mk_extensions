@@ -61,10 +61,10 @@ snmp_section_acgateway_call_stats = SimpleSNMPSection(
     fetch = SNMPTree(
         base=".1.3.6.1.4.1.5003.15.3.1.1.1",
         oids=[
-            "1.0",  # acKpiSbcCallStatsCurrentGlobalAverageCallDuration
-            "2.0",  # acKpiSbcCallStatsCurrentGlobalActiveCallsIn
-            "3.0",  # acKpiSbcCallStatsCurrentGlobalActiveCallsOut
-            "43.0", # acKpiSbcCallStatsCurrentGlobalActiveSessions
+            "1.0",  # AC-KPI-MIB::acKpiSbcCallStatsCurrentGlobalAverageCallDuration
+            "2.0",  # AC-KPI-MIB::acKpiSbcCallStatsCurrentGlobalActiveCallsIn
+            "3.0",  # AC-KPI-MIB::acKpiSbcCallStatsCurrentGlobalActiveCallsOut
+            "43.0", # AC-KPI-MIB::acKpiSbcCallStatsCurrentGlobalActiveSessions
         ]
     ),
     detect = contains(".1.3.6.1.2.1.1.2.0", ".1.3.6.1.4.1.5003.8.1.1"),

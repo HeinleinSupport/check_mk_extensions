@@ -49,12 +49,12 @@ snmp_section_acgateway_license_stats = SimpleSNMPSection(
     fetch = SNMPTree(
         base = ".1.3.6.1.4.1.5003.15.2.1.1.1",
         oids = [
-            "1.0", # SIP Rec
-            "2.0", # Transcoding
-            "3.0", # SBC Media
-            "4.0", # SBC Signaling
-            "5.0", # FEU
-            "6.0", # Web RTC
+            "1.0", # AC-KPI-MIB::acKpiLicenseStatsCurrentGlobalLicenseSipRecUsage
+            "2.0", # AC-KPI-MIB::acKpiLicenseStatsCurrentGlobalLicenseTranscodingUsage
+            "3.0", # AC-KPI-MIB::acKpiLicenseStatsCurrentGlobalLicenseSbcMediaUsage
+            "4.0", # AC-KPI-MIB::acKpiLicenseStatsCurrentGlobalLicenseSbcSignalingUsage
+            "5.0", # AC-KPI-MIB::acKpiLicenseStatsCurrentGlobalLicenseFeuUsage
+            "6.0", # AC-KPI-MIB::acKpiLicenseStatsCurrentGlobalLicenseWebRTCUsage
         ],
     ),
     detect = contains(".1.3.6.1.2.1.1.2.0", ".1.3.6.1.4.1.5003.8.1.1"),

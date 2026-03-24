@@ -45,7 +45,7 @@ snmp_section_acgateway_cpus = SimpleSNMPSection(
         base = ".1.3.6.1.4.1.5003.15.2.4.1.2.1.1",
         oids = [
             OIDEnd(),
-            "2",
+            "2",       # AC-KPI-MIB::acKpiCpuStatsCurrentCpuCpuUtilization
         ],
     ),
     detect = contains(".1.3.6.1.2.1.1.2.0", ".1.3.6.1.4.1.5003.8.1.1"),
