@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 # SMS via aspsms.com
 # -*- encoding: utf-8; py-indent-offset: 4 -*-
 
@@ -20,11 +20,12 @@ import requests
 import json
 import os
 import sys
-    
+from cmk.notification_plugins import utils
+
 api_url = "https://json.aspsms.com/SendSimpleTextSMS"
 
 def main():
-    context = dict([ (var[7:], value.decode("utf-8"))
+    context = dict([ (var[7:], value)
                       for (var, value) in os.environ.items()
                       if var.startswith("NOTIFY_")])
 
@@ -32,9 +33,14 @@ def main():
         sys.stderr.write("Contact's pager address is empty, not sending anything.\n")
         return 0
 
-    text    = get_text(context)
+    text = get_text(context)
 
-    api_password = context["PARAMETER_API_PASSWORD"]
+    api_password = context.get("PARAMETER_API_PASSWORD")
+    if context.get("PARAMETER_API_PASSWORD_1") == "cmk_postprocessed":
+        if context["PARAMETER_API_PASSWORD_2"] == "stored_password":
+            api_password = utils.retrieve_from_passwordstore("store " + context["PARAMETER_API_PASSWORD_3_1"])
+        if context["PARAMETER_API_PASSWORD_2"] == "explicit_password":
+            api_password = context["PARAMETER_API_PASSWORD_3_2"]
     user_key = context["PARAMETER_USER_KEY"]
     originator = context.get("PARAMETER_ORIGINATOR")
 
@@ -84,11 +90,12 @@ def get_text(context):
     return message
 
 def send_sms(user_key, api_password, originator, text, context):
-    data = { 'UserName': user_key,
-             'Password': api_password,
-             'Recipients': [ context['CONTACTPAGER'].replace(" ", "") ],
-             'MessageText': text
-            }
+    data = {
+        'UserName': user_key,
+        'Password': api_password,
+        'Recipients': [ context['CONTACTPAGER'].replace(" ", "") ],
+        'MessageText': text
+    }
     if originator:
         data['Originator'] = originator
 
