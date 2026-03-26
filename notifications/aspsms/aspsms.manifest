@@ -6,10 +6,11 @@
                 'api password for the configuration of this notification '
                 'method.\n',
  'download_url': 'https://github.com/HeinleinSupport/check_mk_extensions/',
- 'files': {'notifications': ['aspsms'], 'web': ['plugins/wato/aspsms.py']},
+ 'files': {'cmk_addons_plugins': ['aspsms/rulesets/aspsms.py'],
+           'notifications': ['aspsms']},
  'name': 'aspsms',
  'title': 'SMS Notification Plugin for ASPSMS.com',
- 'version': '1.2.1',
- 'version.min_required': '1.2.8',
- 'version.packaged': '2.3.0p34',
+ 'version': '2.0.0',
+ 'version.min_required': '2.3.0b1',
+ 'version.packaged': '2.4.0p19',
  'version.usable_until': None}
