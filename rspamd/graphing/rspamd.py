@@ -21,6 +21,7 @@
 from cmk.graphing.v1 import Title, graphs, metrics
 
 UNIT_PER_SECOND = metrics.Unit(metrics.DecimalNotation('/s'))
+UNIT_PERCENTAGE = metrics.Unit(metrics.DecimalNotation('%'))
 
 metric_rspamd_scanned_rate = metrics.Metric(
     name='rspamd_scanned_rate',
