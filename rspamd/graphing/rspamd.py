@@ -108,3 +108,27 @@ graph_rspamd_actions = graphs.Graph(
     ],
     simple_lines=['rspamd_scanned_rate'],
 )
+
+graph_rspamd_percentage = graphs.Graph(
+    name="rspamd_spam_percentage",
+    title=Title("SPAM in Relation to Total"),
+    simple_lines=[metrics.Fraction(
+            title=Title("SPAM Percentage"),
+            unit=UNIT_PERCENTAGE,
+            color=metrics.Color.RED,
+            dividend=metrics.Product(
+                title=Title("SPAM times one hundred"),
+                unit=UNIT_PERCENTAGE,
+                color=metrics.Color.RED,
+                factors=[
+                    "rspamd_spam_count_rate",
+                    metrics.Constant(
+                        title=Title("One hundred"),
+                        unit=UNIT_PERCENTAGE,
+                        color=metrics.Color.RED,
+                        value=100.0,
+                    )
+            ]),
+            divisor="rspamd_scanned_rate",
+    )],
+)
