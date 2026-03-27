@@ -38,13 +38,13 @@ metric_avg_request_time = Metric(
 metric_active_users = Metric(
     name="active_users",
     title=Title("Active users"),
-    unit=DecimalNotation(),
+    unit=DecimalNotation("users"),
     color=Color.LIGHT_RED,
 )
 
 metric_client_connections = Metric(
     name="client_connections",
     title=Title("Client connections"),
-    unit=DecimalNotation(),
+    unit=DecimalNotation("connections"),
     color=Color.ORANGE,
 )
