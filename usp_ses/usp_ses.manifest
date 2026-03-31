@@ -9,7 +9,7 @@
                                   'usp_ses/rulesets/usp_ses_check_parameters.py']},
  'name': 'usp_ses',
  'title': 'Agent based plugin for USP SES',
- 'version': '3.0.2',
+ 'version': '3.0.3',
  'version.min_required': '2.3.0b1',
  'version.packaged': '2.4.0p24',
  'version.usable_until': None}

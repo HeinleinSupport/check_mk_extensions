@@ -25,26 +25,27 @@ from cmk.graphing.v1.metrics import (
     DecimalNotation,
     Metric,
     SINotation,
+    Unit,
 )
 
 
 metric_avg_request_time = Metric(
     name="avg_request_time",
     title=Title("Average request time"),
-    unit=SINotation(symbol="s"),
+    unit=Unit(SINotation("s")),
     color=Color.DARK_GRAY,
 )
 
 metric_active_users = Metric(
     name="active_users",
     title=Title("Active users"),
-    unit=DecimalNotation("users"),
+    unit=Unit(DecimalNotation("users")),
     color=Color.LIGHT_RED,
 )
 
 metric_client_connections = Metric(
     name="client_connections",
     title=Title("Client connections"),
-    unit=DecimalNotation("connections"),
+    unit=Unit(DecimalNotation("connections")),
     color=Color.ORANGE,
 )
