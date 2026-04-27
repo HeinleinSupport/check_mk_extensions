@@ -165,6 +165,10 @@ def discovery_apcaccess_elphase(params, section: Section) -> DiscoveryResult:
                 yield Service(item=instance)
 
 def check_apcaccess_elphase(item, params, section) -> CheckResult:
+    if 'upsname' in params:
+        item = params['upsname']
+    elif 'model' in params:
+        item = params['model']
     if item in section and "elphase" in section[item]:
         yield from elphase.check_elphase(item, params, {item: section[item]["elphase"]})
 
