@@ -137,7 +137,7 @@ def check_xspct_db(item: str, section: Section) -> CheckResult:
 
 check_plugin_xspct_db = CheckPlugin(
     name="xspct_db",
-    service_name="XSPC DB %s",
+    service_name="XSPCT DB %s",
     sections=["xspct_db"],
     discovery_function=discovery_xspct_db,
     check_function=check_xspct_db,
