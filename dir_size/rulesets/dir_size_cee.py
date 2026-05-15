@@ -80,12 +80,13 @@ def _valuespec_agent_config_dir_size():
                 required=True,
                 parameter_form=List(
                     title=Title("Directories to compute size for"),
+                    help_text=Help("Linux paths have to start with a slash, Windows paths with a drive letter."),
                     editable_order=False,
                     element_template=String(
                         field_size=FieldSize.LARGE,
                         custom_validate=[
                             validators.MatchRegex(
-                                regex = r"^[A-Z]:(\\[^\\]+)+\\?$|^/?([^/]+/)+$",
+                                regex = r"^[A-Z]:(\\[^\\]+)+\\?$|^(/[^/]+)+/?$",
                                 error_msg = Message("Must be a Linux path beginning with / or a Windows path beginning with a drive letter."),
                             ),
                         ],

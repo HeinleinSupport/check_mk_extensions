@@ -14,7 +14,7 @@
            'lib': ['python3/cmk/base/cee/plugins/bakery/dir_size.py']},
  'name': 'dir_size',
  'title': 'Directory size Monitor',
- 'version': '6.2.0',
+ 'version': '6.2.1',
  'version.min_required': '2.3.0b1',
- 'version.packaged': '2.4.0p19',
+ 'version.packaged': '2.5.0p1',
  'version.usable_until': None}
