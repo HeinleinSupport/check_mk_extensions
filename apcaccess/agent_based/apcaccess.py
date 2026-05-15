@@ -36,14 +36,15 @@ from cmk.agent_based.v2 import (
     StringTable,
 )
 
-from cmk.plugins.lib.ups import (
+from cmk.plugins.ups.lib import (
     Battery,
     check_ups_capacity,
+    UpsParameters,
 )
 
 Section = Mapping[str, Any]
 
-def convert_value(time: str) -> int:
+def convert_value(time: str) -> int | None:
     factor = {
         "Minutes": 60.0,
         "Hours": 3600.0,
@@ -71,7 +72,7 @@ def parse_apcaccess(string_table: StringTable) -> Section:
             seconds_on_bat=tonbat,
             seconds_left=convert_value(data.get("TIMELEFT")),
             percent_charged=convert_value(data.get("BCHARGE")),
-            on_battery=(tonbat > 0),
+            on_battery=(tonbat is not None and tonbat > 0),
         )
         elphase = {}
         for key, metric in {"OUTPUTV": "voltage", "LOADPCT": "output_load"}.items():
@@ -117,10 +118,10 @@ def check_apcaccess(item: str, params, section: Section) -> CheckResult:
                              summary="%s: %s" % (attr, data[attr]))
         if not found:
             yield Result(state=State.UNKNOWN, summary='Unkown UPS / no data')
-        params_capacity = {
-            "capacity": (0, 0),
-            "battime": (0, 0),
-        }
+        params_capacity = UpsParameters(
+            capacity=(0, 0),
+            battime=(0, 0),
+        )
         for key in params_capacity.keys():
             if key in params:
                 if params[key][0] == "fixed_levels":
@@ -166,7 +167,7 @@ def discovery_apcaccess_elphase(params, section: Section) -> DiscoveryResult:
 
 def check_apcaccess_elphase(item, params, section) -> CheckResult:
     if item in section and "elphase" in section[item]:
-        yield from elphase.check_elphase(item, params, {item: section[item]["elphase"]})
+        yield from elphase.check_elphase(params, elphase.ElPhase.from_dict(section[item]["elphase"]))
 
 check_plugin_apcaccess_elphase = CheckPlugin(
     name="apcaccess_elphase",

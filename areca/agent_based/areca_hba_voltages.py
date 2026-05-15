@@ -73,7 +73,7 @@ from cmk.agent_based.v2 import (
     State,
     startswith,
 )
-from cmk.plugins.lib.elphase import check_elphase
+from cmk.plugins.lib.elphase import check_elphase, ElPhase, ReadingState, ReadingWithState
 
 
 def parse_areca_hba_voltages(string_table):
@@ -108,11 +108,9 @@ def check_areca_hba_voltages(item, params, section) -> CheckResult:
             if voltage < section[item]["rated_lower"] or voltage > section[item]["rated_upper"]:
                 voltage = (voltage, (1, "Voltage is out of range (%.1f V - %.1f V)" % (section[item]["rated_lower"], section[item]["rated_upper"])))
         data = {
-            item: {
-                "voltage": voltage,
-            }
+            "voltage": voltage,
         }
-        yield from check_elphase(item, params, data)
+        yield from check_elphase(params, ElPhase.from_dict(data))
 
 snmp_section_areca_hba_voltages = SimpleSNMPSection(
     name="areca_hba_voltages",

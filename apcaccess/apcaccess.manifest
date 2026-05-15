@@ -1,6 +1,6 @@
 {'author': 'Robert Sander <r.sander@heinlein-support.de>',
  'description': 'Check APC UPS via "apcaccess status"\n',
- 'download_url': 'https://github.com/HeinleinSupport/check_mk_extensions/tree/master/apcaccess',
+ 'download_url': 'https://github.com/HeinleinSupport/check_mk_extensions/',
  'files': {'agents': ['plugins/apcaccess', 'windows/plugins/apcaccess.bat'],
            'cmk_addons_plugins': ['apcaccess/agent_based/apcaccess.py',
                                   'apcaccess/graphing/apcaccess.py',
@@ -8,7 +8,7 @@
            'lib': ['python3/cmk/base/cee/plugins/bakery/apcaccess.py']},
  'name': 'apcaccess',
  'title': 'APC Status via apcaccess',
- 'version': '6.2.1',
- 'version.min_required': '2.3.0b1',
- 'version.packaged': '2.4.0p16',
+ 'version': '7.0.0',
+ 'version.min_required': '2.5.0b1',
+ 'version.packaged': '2.5.0p1',
  'version.usable_until': None}

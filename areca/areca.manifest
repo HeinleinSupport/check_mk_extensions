@@ -1,0 +1,27 @@
+{'author': 'Robert Sander <r.sander@heinlein-support.de>',
+ 'description': 'This collection of checks will monitor all core pieces of '
+                'Areca raid HBAs using their SNMP management interface.\n'
+                '\n'
+                'status:\n'
+                'currently recognizes the hardware sensors like voltage. Disks '
+                'with their enclosure slots, Raidsets and Volumesets are also '
+                'recognized and alerts are done if something is out of the '
+                'ordinary. Fan and BBU monitoring cannot trigger alerts / '
+                "check since I don't have the hardware to test. I'm testing "
+                'against an AR-1680ix-20, which has no fan and no BBU. Disk '
+                'and Volume set failure is detected and % rebuilt is '
+                'calculated. Need testers.\n',
+ 'download_url': 'https://github.com/HeinleinSupport/check_mk_extensions',
+ 'files': {'cmk_addons_plugins': ['areca/agent_based/areca_hba_fans.py',
+                                  'areca/agent_based/areca_hba_ldisks.py',
+                                  'areca/agent_based/areca_hba_pdisks.py',
+                                  'areca/agent_based/areca_hba_raidsets.py',
+                                  'areca/agent_based/areca_hba_temp.py',
+                                  'areca/agent_based/areca_hba_voltages.py'],
+           'mibs': ['ARECA-SNMP-MIB']},
+ 'name': 'areca',
+ 'title': 'Areca RAID HBAs',
+ 'version': '3.0.0',
+ 'version.min_required': '2.5.0b1',
+ 'version.packaged': '2.5.0p1',
+ 'version.usable_until': None}

@@ -62,7 +62,7 @@ class PanSZG5Temp:
     th_lower: tuple[float, float]
     th_upper: tuple[float, float]
 
-def parse_panduit_smartzone_g5_temp(info: StringTable) -> Mapping[str, PanSZG5Temp]:
+def parse_panduit_smartzone_g5_temp(string_table: StringTable) -> Mapping[str, PanSZG5Temp] | None:
     map_dev_status = {
         "1": (State.OK, "good"),
         "2": (State.WARN, "lower warning"),
@@ -77,11 +77,11 @@ def parse_panduit_smartzone_g5_temp(info: StringTable) -> Mapping[str, PanSZG5Te
     }
     
     unit = {}
-    for pdu, scale in info[1]:
+    for pdu, scale in string_table[1]:
         unit[pdu] = map_unit.get(scale, "c")
         
     section = {}
-    for id, name, status, value, th_status, th_lower_warn, th_lower_crit, th_upper_warn, th_upper_crit in info[0]:
+    for id, name, status, value, th_status, th_lower_warn, th_lower_crit, th_upper_warn, th_upper_crit in string_table[0]:
         pdu = id.split(".")[0]
         section[id] = PanSZG5Temp(
             name=name,
@@ -141,7 +141,7 @@ def check_panduit_smartzone_g5_temp(item, params, section: Mapping[str, PanSZG5T
                 reading=data.value,
                 params=params,
                 dev_unit=data.unit,
-                dev_status=data.th_status[0],
+                dev_status=data.th_status[0].value,
                 dev_status_name=data.th_status[1],
                 dev_levels=data.th_upper,
                 dev_levels_lower=data.th_lower,
@@ -386,7 +386,7 @@ check_plugin_panduit_smartzone_g5_humidity = CheckPlugin(
 #   '----------------------------------------------------------------------'
 #.
 
-def parse_panduit_smartzone_g5_input(info: StringTable) -> elphase.Section:
+def parse_panduit_smartzone_g5_input(info: StringTable):
     map_dev_status = {
         "1": (State.OK, "good"),
         "2": (State.WARN, "lower warning"),
@@ -479,7 +479,7 @@ snmp_section_panduit_smartzone_g5_input = SimpleSNMPSection(
     ]),
 )
 
-def discover_panduit_smartzone_g5_input(section: elphase.Section) -> DiscoveryResult:
+def discover_panduit_smartzone_g5_input(section) -> DiscoveryResult:
     for id, data in section.items():
         yield Service(item=id)
             
@@ -506,7 +506,7 @@ check_plugin_panduit_smartzone_g5_input = CheckPlugin(
 #   '----------------------------------------------------------------------'
 #.
 
-def parse_panduit_smartzone_g5_output(info: StringTable) -> elphase.Section:
+def parse_panduit_smartzone_g5_output(info: StringTable):
     map_dev_status = {
         "1": (State.OK, "good"),
         "2": (State.WARN, "lower warning"),
@@ -578,12 +578,12 @@ snmp_section_panduit_smartzone_g5_output = SimpleSNMPSection(
     ]),
 )
 
-def discover_panduit_smartzone_g5_output(section: elphase.Section) -> DiscoveryResult:
+def discover_panduit_smartzone_g5_output(section) -> DiscoveryResult:
     for id, data in section.items():
         if data["x-type"] > 0:
             yield Service(item=id)
 
-def check_panduit_smartzone_g5_output(item, params, section: elphase.Section) -> DiscoveryResult:
+def check_panduit_smartzone_g5_output(item: str, params, section) -> CheckResult:
     if item in section:
         data = section[item]
         yield Result(
@@ -595,7 +595,7 @@ def check_panduit_smartzone_g5_output(item, params, section: elphase.Section) ->
                 state=State.CRIT,
                 summary="Breaker is off",
             )
-        yield from elphase.check_elphase(item, params, section)
+        yield from elphase.check_elphase(params, elphase.ElPhase.from_dict(section[item]))
             
 check_plugin_panduit_smartzone_g5_output = CheckPlugin(
     name="panduit_smartzone_g5_output",
@@ -620,7 +620,7 @@ check_plugin_panduit_smartzone_g5_output = CheckPlugin(
 #   '----------------------------------------------------------------------'
 #.
 
-def parse_panduit_smartzone_g5_outlet(info: StringTable) -> elphase.Section:
+def parse_panduit_smartzone_g5_outlet(info: StringTable):
     map_dev_status = {
         "1": (State.OK, "good"),
         "2": (State.WARN, "lower warning"),
@@ -704,11 +704,11 @@ snmp_section_panduit_smartzone_g5_outlet = SimpleSNMPSection(
     ]),
 )
 
-def discover_panduit_smartzone_g5_outlet(section: elphase.Section) -> DiscoveryResult:
+def discover_panduit_smartzone_g5_outlet(section) -> DiscoveryResult:
     for id, data in section.items():
         yield Service(item=id)
 
-def check_panduit_smartzone_g5_outlet(item, params, section: elphase.Section) -> DiscoveryResult:
+def check_panduit_smartzone_g5_outlet(item: str, params, section) -> CheckResult:
     if item in section:
         data = section[item]
         yield Result(
@@ -719,7 +719,7 @@ def check_panduit_smartzone_g5_outlet(item, params, section: elphase.Section) ->
             state=State.OK,
             summary=data["x-description"],
         )
-        yield from elphase.check_elphase(item, params, section)
+        yield from elphase.check_elphase(params, elphase.ElPhase.from_dict(section[item]))
 
 check_plugin_panduit_smartzone_g5_outlet = CheckPlugin(
     name="panduit_smartzone_g5_outlet",

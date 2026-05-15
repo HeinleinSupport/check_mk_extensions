@@ -42,7 +42,7 @@ from cmk.plugins.lib.temperature import (
     check_temperature,
 )
 from cmk.plugins.lib.fan import check_fan
-from cmk.plugins.lib.elphase import check_elphase
+from cmk.plugins.lib.elphase import check_elphase, ElPhase
 
 _map_component_status = {
     -1: (State.UNKNOWN, "not present"),
@@ -67,7 +67,7 @@ _map_node_oper_status = {
 }
 
 def _check_component_status(device_status):
-    status = _map_component_status.get(device_status, (3, 'Unknown status: %d' % device_status))
+    status = _map_component_status.get(device_status, (State.UNKNOWN, 'Unknown status: %d' % device_status))
     yield Result(state=status[0], summary="Device state is %s" % status[1])
 
 
@@ -277,7 +277,7 @@ def discover_forcepoint_firewall_voltage(section) -> DiscoveryResult:
 
 def check_forcepoint_firewall_voltage(item: str, params, section) -> CheckResult:
     if item in section:
-        yield from check_elphase(item, params, section)
+        yield from check_elphase(params, ElPhase.from_dict(section[item]))
 
 check_plugin_forcepoint_firewall_voltage = CheckPlugin(
     name='forcepoint_firewall_voltage',

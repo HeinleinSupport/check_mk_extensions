@@ -28,7 +28,7 @@ from cmk.agent_based.v2 import (
     State,
 )
 
-from cmk.plugins.lib.elphase import check_elphase
+from cmk.plugins.lib.elphase import check_elphase, ElPhase, ReadingWithState
 from cmk.plugins.lib.temperature import check_temperature
 from cmk.plugins.lib.humidity import check_humidity
 
@@ -318,7 +318,7 @@ def check_vertiv_geist_pdu_main(item, params, section) -> CheckResult:
             state=State.OK,
             summary="Serial: %s" % data['serial']
         )
-        yield from check_elphase(item, params, section['main'])
+        yield from check_elphase(params, ElPhase.from_dict(data))
 
 check_plugin_vertiv_geist_pdu_pdu_main = CheckPlugin(
     name="vertiv_geist_pdu_pdu_main",
@@ -354,7 +354,7 @@ def discover_vertiv_geist_pdu_phase(section) -> DiscoveryResult:
 
 def check_vertiv_geist_pdu_phase(item, params, section) -> CheckResult:
     if item in section['phase']:
-        yield from check_elphase(item, params, section['phase'])
+        yield from check_elphase(params, ElPhase.from_dict(section['phase'][item]))
 
 check_plugin_vertiv_geist_pdu_pdu_phase = CheckPlugin(
     name="vertiv_geist_pdu_pdu_phase",
