@@ -20,6 +20,7 @@
 from cmk.rulesets.v1 import (
     Help,
     Label,
+    Message,
     Title,
 )
 from cmk.rulesets.v1.form_specs import (
@@ -27,6 +28,7 @@ from cmk.rulesets.v1.form_specs import (
     DefaultValue,
     DictElement,
     Dictionary,
+    FieldSize,
     List,
     String,
     TimeMagnitude,
@@ -61,6 +63,9 @@ def _migrate_from_alternative_to_dict(param):
         param["deploy"] = True
     return param
 
+def _migrate_to_float(x) -> float:
+    return float(x)
+
 def _valuespec_agent_config_dir_size():
     return Dictionary(
         migrate=_migrate_from_alternative_to_dict,
@@ -70,32 +75,30 @@ def _valuespec_agent_config_dir_size():
                 parameter_form=BooleanChoice(
                     label=Label("Deploy plugin for dir_size"),
                     prefill=DefaultValue(True),
-                ),
-            ),
+                )),
             "directories": DictElement(
                 required=True,
                 parameter_form=List(
                     title=Title("Directories to compute size for"),
                     editable_order=False,
                     element_template=String(
-                        field_size=80,
+                        field_size=FieldSize.LARGE,
                         custom_validate=[
                             validators.MatchRegex(
                                 regex = r"^[A-Z]:(\\[^\\]+)+\\?$|^/?([^/]+/)+$",
-                                error_msg = "Must be a Linux path beginning with <tt>/</tt> or a Windows path beginning with a drive letter.",
+                                error_msg = Message("Must be a Linux path beginning with / or a Windows path beginning with a drive letter."),
                             ),
                         ],
                     )
-                )
-            ),
+                )),
             "interval": DictElement(
                 parameter_form = TimeSpan(
                     title = Title("Run asynchronously"),
                     label = Label("Interval for collecting data"),
-                    migrate = float,
+                    migrate = _migrate_to_float,
                     prefill = DefaultValue(300.0),
                     displayed_magnitudes = [TimeMagnitude.HOUR, TimeMagnitude.MINUTE],
-            )),
+                )),
         },
     )
 
