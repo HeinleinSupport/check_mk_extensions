@@ -482,13 +482,17 @@ snmp_section_panduit_smartzone_g5_input = SimpleSNMPSection(
 def discover_panduit_smartzone_g5_input(section) -> DiscoveryResult:
     for id, data in section.items():
         yield Service(item=id)
+
+def check_panduit_smartzone_g5_input(item, params, section) -> CheckResult:
+    if item in section:
+        yield from elphase.check_elphase(params, elphase.ElPhase.from_dict(section[item]))
             
 check_plugin_panduit_smartzone_g5_input = CheckPlugin(
     name="panduit_smartzone_g5_input",
     sections=["panduit_smartzone_g5_input"],
     service_name="Phase Input %s",
     discovery_function=discover_panduit_smartzone_g5_input,
-    check_function=elphase.check_elphase,
+    check_function=check_panduit_smartzone_g5_input,
     check_default_parameters={},
     check_ruleset_name="el_inphase",
 )

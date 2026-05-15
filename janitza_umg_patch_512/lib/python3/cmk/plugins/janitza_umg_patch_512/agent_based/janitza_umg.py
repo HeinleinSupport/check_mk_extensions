@@ -18,7 +18,7 @@ from cmk.agent_based.v2 import (
     StringTable,
 )
 
-from cmk.plugins.lib.elphase import check_elphase
+from cmk.plugins.lib.elphase import check_elphase, ElPhase
 from cmk.plugins.lib.temperature import check_temperature
 
 # 508, 512 and 604 have the same mib
@@ -169,12 +169,16 @@ def inventory_janitza_umg_inphase(section) -> DiscoveryResult:
         if item == "Total":
             yield Service(item=item)
 
+def check_janitza_umg_inphase(item, params, section) -> CheckResult:
+    if item in section:
+        yield from check_elphase(params, ElPhase.from_dict(section[item]))
+
 check_plugin_janitza_umg = CheckPlugin(
     name = "janitza_umg",
     sections = ["janitza_umg"],
     service_name = "Input %s",
     discovery_function = inventory_janitza_umg_inphase,
-    check_function = check_elphase,
+    check_function = check_janitza_umg_inphase,
     check_default_parameters = {
     },
     check_ruleset_name = "el_inphase",
