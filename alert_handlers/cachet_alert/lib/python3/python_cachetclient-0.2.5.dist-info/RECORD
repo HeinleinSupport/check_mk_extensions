@@ -1,8 +1,8 @@
 cachetclient/__init__.py,sha256=47DEQpj8HBSa-_TImW-5JCeuQeRkm5NMpJWZG3hSuFU,0
-cachetclient/__pycache__/__init__.cpython-312.pyc,,
-cachetclient/__pycache__/cachet.cpython-312.pyc,,
-cachetclient/__pycache__/client.cpython-312.pyc,,
-cachetclient/__pycache__/exceptions.cpython-312.pyc,,
+cachetclient/__pycache__/__init__.cpython-313.pyc,,
+cachetclient/__pycache__/cachet.cpython-313.pyc,,
+cachetclient/__pycache__/client.cpython-313.pyc,,
+cachetclient/__pycache__/exceptions.cpython-313.pyc,,
 cachetclient/cachet.py,sha256=LD7tTWj1OQ4WOkam5uffOHS2oPvVE7vtPPrS_iAPjiw,10040
 cachetclient/client.py,sha256=GuTRYYfhO1ihvupTKyJU5skRYP4gw_Pbq7OAhPdmRzA,3467
 cachetclient/exceptions.py,sha256=svo8Gm7rf1npRFDqxgfzCCC-UHhs2ug7o5TRjKLkgSM,836
@@ -10,6 +10,6 @@ python_cachetclient-0.2.5.dist-info/INSTALLER,sha256=zuuue4knoyJ-UwPPXg8fezS7VCr
 python_cachetclient-0.2.5.dist-info/METADATA,sha256=VnbV5BmFodF8jdyKQ8ChR7q2ehop9YSju-IrGBabHhE,2163
 python_cachetclient-0.2.5.dist-info/RECORD,,
 python_cachetclient-0.2.5.dist-info/REQUESTED,sha256=47DEQpj8HBSa-_TImW-5JCeuQeRkm5NMpJWZG3hSuFU,0
-python_cachetclient-0.2.5.dist-info/WHEEL,sha256=Q6xS052dXadQWXcEVKSI037R6NoyqhUlJ5BcYz2iMP4,110
+python_cachetclient-0.2.5.dist-info/WHEEL,sha256=TdQ5LtNwLuxTCjgxN51AgdU5w-KkB9ttmLbzjTH02pg,109
 python_cachetclient-0.2.5.dist-info/licenses/LICENSE,sha256=z8d0m5b2O9McPEK1xHG_dWgUBT6EfBDz6wA0F7xSPTA,11358
 python_cachetclient-0.2.5.dist-info/top_level.txt,sha256=xQg9CtXB_sTLGP4WCKam0hp9C9PKCylf9tcKBt2pY7E,13

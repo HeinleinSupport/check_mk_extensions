@@ -15,8 +15,9 @@
 # to the Free Software Foundation, Inc., 51 Franklin St,  Fifth Floor,
 # Boston, MA 02110-1301 USA.
 
-from cmk.gui.valuespec import HTTPUrl, TextInput, Checkbox
-from cmk.gui.cee.plugins.wato.alert_handling import register_alert_handler_parameters
+from cmk.gui.i18n import _
+from cmk.gui.valuespec import HTTPUrl, TextInput, Checkbox, Dictionary
+from cmk.gui.nonfree.pro.alert_handling import register_alert_handler_parameters
 
 register_alert_handler_parameters("cachet_alert", Dictionary(
     optional_keys = ['incident_prefix', 'incident_visible'],
