@@ -11,28 +11,34 @@ ecityruf_attr = 'CONTACT_ECITYRUF'
 from cmk.notification_plugins import utils
 from cmk.notification_plugins import mail
 from cmk.notification_plugins import asciimail
+from cmk.utils.mail import (
+    MailString,
+    send_mail_sendmail,
+    set_mail_headers,
+)
 from email.mime.text import MIMEText
 from email.utils import formatdate
 import sys
-import dns.resolver
+import dns.resolver, dns.rdatatype
 
 def main():
     # gather all options from env
     context = utils.collect_context()
     content_txt = asciimail.construct_content(context)
     if ecityruf_attr in context:
-        mailto = context[ecityruf_attr] + "@" + ecityruf_domain
+        mailto = MailString(context[ecityruf_attr] + "@" + ecityruf_domain)
     else:
         sys.stdout.write("Cannot send e*CityRuf: no ecityruf attribute\n")
         sys.exit(2)
-    subject = context['SUBJECT']
+    subject = MailString(context['SUBJECT'])
 
     # get MX, AAAA and A records and use it as SMTP_SMARTHOSTS
     host_index = 1
     mx = {}
-    context['PARAMETER_SMTP_PORT'] = 25
+    context['PARAMETER_SMTP_PORT'] = "25"
     try:
-        for record in dns.resolver.query(ecityruf_domain, 'MX'):
+        sys.stderr.write(f"Getting MX reocrd for {ecityruf_domain}\n")
+        for record in dns.resolver.resolve(qname=ecityruf_domain, rdtype=dns.rdatatype.MX):
             if record.preference not in mx:
                 mx[record.preference] = []
             mx[record.preference].append(record.exchange.to_text())
@@ -45,28 +51,32 @@ def main():
     if host_index == 1:
         # no MX records found
         try:
-            for record in dns.resolver.query(ecityruf_domain, 'AAAA'):
+            sys.stderr.write(f"Getting AAAA record for {ecityruf_domain}\n")
+            for record in dns.resolver.resolve(qname=ecityruf_domain, rdtype=dns.rdatatype.AAAA):
                 context['PARAMETER_SMTP_SMARTHOSTS_%d' % host_index] = record.address
                 host_index += 1
         except dns.resolver.NoAnswer:
             pass
         try:
-            for record in dns.resolver.query(ecityruf_domain, 'A'):
+            sys.stderr.write(f"Getting A record for {ecityruf_domain}\n")
+            for record in dns.resolver.resolve(qname=ecityruf_domain, rdtype=dns.rdatatype.A):
                 context['PARAMETER_SMTP_SMARTHOSTS_%d' % host_index] = record.address
                 host_index += 1
         except dns.resolver.NoAnswer:
             pass
 
     # Create the mail and send it
-    from_address = context.get("PARAMETER_FROM")
-    reply_to = context.get("PARAMETER_REPLY_TO")
-    m = utils.set_mail_headers(mailto, subject, from_address, reply_to,
-                               MIMEText(content_txt, 'plain', _charset='utf-8'))
+    from_address = MailString(context.get("PARAMETER_FROM_ADDRESS", ""))
+    reply_to = MailString(context.get("PARAMETER_REPLY_TO", ""))
+    m = set_mail_headers(mailto, subject, from_address, reply_to,
+                         MIMEText(content_txt, 'plain', _charset='utf-8'))
     m['Date'] = formatdate(localtime=True)
+    sys.stderr.write(f"Trying to send mail via SMTP mailto={mailto} context={context}\n")
     res = mail.send_mail_smtp(m, mailto, from_address, context)
     if res > 0:
         try:
-            sys.exit(utils.send_mail_sendmail(m, mailto, from_address))
+            sys.stderr.write(f"Trying to send mail via sendmail mailto={mailto} from_address={from_address}\n")
+            sys.exit(send_mail_sendmail(m, mailto, from_address))
         except Exception as e:
             sys.stderr.write("Unhandled exception: %s\n" % e)
             # unhandled exception, don't retry this...
