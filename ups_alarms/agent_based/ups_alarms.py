@@ -60,7 +60,7 @@ from cmk.agent_based.v2 import (
     SNMPSection,
     State,
 )
-from cmk.plugins.lib.ups import DETECT_UPS_GENERIC
+from cmk.plugins.ups.lib import DETECT_UPS_GENERIC
 
 def parse_snmp_uptime(ticks):
     if len(ticks) < 3:

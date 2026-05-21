@@ -20,7 +20,7 @@ from cmk.agent_based.v2 import (
     SNMPTree,
     State,
 )
-from cmk.plugins.lib.ups import DETECT_UPS_GENERIC
+from cmk.plugins.ups.lib import DETECT_UPS_GENERIC
 
 def parse_ups_out_source(string_table):
     if string_table:
