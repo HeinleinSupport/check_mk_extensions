@@ -17,7 +17,7 @@
 # to the Free Software Foundation, Inc., 51 Franklin St,  Fifth Floor,
 # Boston, MA 02110-1301 USA.
 
-import cmk.base.config as config
+from cmk.base import config
 from cmk.checkengine.fetcher import SourceType
 
 from collections.abc import Iterator # type: ignore
@@ -28,6 +28,7 @@ from cmk.server_side_calls.v1 import (
     noop_parser,
     replace_macros,
 )
+from cmk.ccc.hostaddress import HostAddress, HostName
 
 def _creds_to_args(creds):
     args = []
@@ -51,8 +52,15 @@ def check_snmp_temperature_single_arguments(params, host_config: HostConfig) -> 
     if 'creds' in params:
         args = _creds_to_args(params['creds'])
     else:
-        config_cache = config.get_config_cache()
-        snmp_config = config_cache.make_snmp_config(host_config.name, host_config.primary_ip_config.address, SourceType.HOST, backend_override=None)
+        loading_result = config.load(
+            discovery_rulesets=(), get_builtin_host_labels=lambda x: {}
+        )
+        config_cache = loading_result.config_cache
+        ip_lookup_config = config_cache.ip_lookup_config()
+        host_name = HostName(host_config.name)
+        ip_family = ip_lookup_config.default_address_family(host_name)
+        ip_address = HostAddress(host_config.primary_ip_config.address)
+        snmp_config = config_cache.make_snmp_config(host_name, ip_family, ip_address, SourceType.HOST, backend_override=None)
         args = _creds_to_args(snmp_config.credentials)
 
     if 'hostname' in params:

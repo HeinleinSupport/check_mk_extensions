@@ -17,11 +17,12 @@
 # to the Free Software Foundation, Inc., 51 Franklin St,  Fifth Floor,
 # Boston, MA 02110-1301 USA.
 
-from cmk.rulesets.v1 import Help, Title
+from cmk.rulesets.v1 import Help, Title, Message
 from cmk.rulesets.v1.form_specs import (
     DefaultValue,
     DictElement,
     Dictionary,
+    FieldSize,
     InputHint,
     Integer,
     LevelDirection,
@@ -32,12 +33,11 @@ from cmk.rulesets.v1.form_specs import (
 )
 from cmk.rulesets.v1.form_specs.validators import (
     LengthInRange,
-    Message,
     MatchRegex,
     NumberInRange,
 )
 from cmk.rulesets.v1.rule_specs import ActiveCheck, Topic
-from cmk.gui.form_specs.private import LegacyValueSpec
+from cmk.gui.form_specs.unstable import LegacyValueSpec
 from cmk.gui.watolib.attributes import SNMPCredentials
 
 def _valuespec_active_checks_snmp_temperature_single():
@@ -48,7 +48,7 @@ def _valuespec_active_checks_snmp_temperature_single():
                 parameter_form=String(
                     title=Title("Service Description"),
                     help_text=Help("Must be unique for every host. Defaults to command that is executed."),
-                    field_size=30,
+                    field_size=FieldSize.MEDIUM,
                 )),
             "hostname": DictElement(
                 parameter_form=String(
