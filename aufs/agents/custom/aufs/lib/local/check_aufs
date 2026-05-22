@@ -20,5 +20,5 @@ awk '/aufs/ { print $2;}' < /proc/mounts | sort -u | while read dir; do
     if [ -z "$msg" ]; then
         msg="Overlay filesystem OK"
     fi
-    echo $res aufs_$(echo $dir | tr " " "_") - $msg $tmpfile
+    echo "$res \"aufs $(echo $dir)\" - $msg"
 done

@@ -1,0 +1,11 @@
+{'author': 'Robert Sander <r.sander@heinlein-support.de>',
+ 'description': 'The is a local check script for Linux that monitors aufs, an '
+                'overlay filesystem.\n',
+ 'download_url': 'https://github.com/HeinleinSupport/check_mk_extensions/',
+ 'files': {'agents': ['custom/aufs/lib/local/check_aufs']},
+ 'name': 'aufs',
+ 'title': 'Local Check for aufs (Linux)',
+ 'version': '5.0.0',
+ 'version.min_required': '2.0.0b1',
+ 'version.packaged': '2.5.0p3',
+ 'version.usable_until': None}
