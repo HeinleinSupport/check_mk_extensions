@@ -200,7 +200,7 @@ def sync_tag_groups(site_id, site_data, changes):
                     print(f'Updating tag group {tag_group} on {site_id}')
                 site_data['wato'].edit_host_tag_group(
                     tag_group,
-                    '"*"',  # override etag
+                    '*',  # override etag
                     tag_group_data.get('title'),
                     tag_group_data.get('topic'),
                     tag_group_data.get('help'),
@@ -263,7 +263,7 @@ def sync_rules(site_id, site_data, changes):
                         pprint(rule_data['ext'].get('conditions', {}))
                     site_data['wato'].edit_rule(
                         site_rules[rule_ident]['id'],
-                        '"*"',
+                        '*', # override etag
                         rule_data['ext'].get('value_raw', ''),
                         rule_data['ext'].get('conditions', {}),
                         properties,
@@ -295,7 +295,7 @@ def sync_rules(site_id, site_data, changes):
                     print(f'moving rule "{central_rules[ruleset][rule_ident]["title"]}" ({site_rules[rule_ident]["id"]}) after "{central_rules[ruleset][relation["after"]]["title"]}" ({site_rules[relation["after"]]["id"]}) in {ruleset} on {site_id}')
                 site_data['wato'].move_rule(
                     site_rules[rule_ident]['id'],
-                    '"*"',
+                    '*', # override etag
                     'after_specific_rule',
                     neighbor_id=site_rules[relation['after']]['id'],
                 )
@@ -311,13 +311,16 @@ def sync_rules(site_id, site_data, changes):
 
 def sync_passwords(site_id, site_data, changes):
     site_passwords = get_passwords(site_data['wato'], args.sync)
+    if args.debug:
+        print(f"Site {site_id} passwords:")
+        pprint(site_passwords)
     for pw_id, pw_ext in central_passwords.items():
         if pw_id in site_passwords:
             if args.verbose:
                 print(f'Updating password {pw_id} on {site_id}')
             site_data["wato"].edit_password(
                 pw_id,
-                '"*"',
+                '*', # override etag
                 title=pw_ext["title"],
                 comment=pw_ext["comment"],
                 documentation_url=pw_ext["documentation_url"],
