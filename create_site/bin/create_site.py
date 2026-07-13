@@ -176,7 +176,17 @@ site_config = {
             "disable_in_status_gui": False,
         },
         "configuration_connection": {
+            "direct_login_to_web_gui_allowed": True,
+            "disable_remote_configuration": False,
             "enable_replication": False,
+            "ignore_tls_errors": False,
+            "is_trusted": False,
+            "message_broker_port": 0,
+            "replicate_event_console": False,
+            "replicate_extensions": False,
+            "user_sync": {
+                "sync_with_ldap_connections": "disabled",
+            },
         },
     }
 }

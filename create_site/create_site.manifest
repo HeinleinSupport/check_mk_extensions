@@ -4,7 +4,7 @@
  'files': {'bin': ['create_site.py']},
  'name': 'create_site',
  'title': 'Create Site',
- 'version': '0.7.0',
+ 'version': '0.8.0',
  'version.min_required': '2.4.0b1',
- 'version.packaged': '2.4.0p19',
+ 'version.packaged': 'cmk-mkp-tool 3.0.0',
  'version.usable_until': None}
