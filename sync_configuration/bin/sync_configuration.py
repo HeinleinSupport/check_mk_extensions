@@ -36,7 +36,7 @@ def get_aux_tags(wato: checkmkapi.CMKRESTAPI, sync_tag: str) -> Mapping[str, Any
     return aux_tags
 
 
-def get_tag_groups(wato, sync_tag):
+def get_tag_groups(wato: checkmkapi.CMKRESTAPI, sync_tag: str) -> Mapping[str, Any]:
     tag_groups = {}
     if args.verbose:
         print(f'getting tag groups from {url_to_site(wato._api_url)}')
@@ -50,7 +50,7 @@ def get_tag_groups(wato, sync_tag):
     return tag_groups
 
 
-def get_rulesets(wato):
+def get_rulesets(wato: checkmkapi.CMKRESTAPI):
     rulesets = set()
     if args.verbose:
         print(f'getting rulesets from {url_to_site(wato._api_url)}')
@@ -62,7 +62,7 @@ def get_rulesets(wato):
     return rulesets
 
 
-def get_rules(wato, ruleset, sync_tag, central = True):
+def get_rules(wato: checkmkapi.CMKRESTAPI, ruleset, sync_tag, central = True):
     rules = {}
     sort_order = {}
     if args.verbose:
@@ -107,7 +107,7 @@ def get_rules(wato, ruleset, sync_tag, central = True):
     return rules, rule_relations
 
 
-def get_notification_rules(wato, sync_tag, central = True):
+def get_notification_rules(wato: checkmkapi.CMKRESTAPI, sync_tag, central = True):
     rules = {}
     if args.verbose:
         print(f'getting notification rules from {url_to_site(wato._api_url)}')
@@ -116,7 +116,7 @@ def get_notification_rules(wato, sync_tag, central = True):
         pprint(result)
 
 
-def get_passwords(wato, sync_tag):
+def get_passwords(wato: checkmkapi.CMKRESTAPI, sync_tag: str):
     passwords = {}
     if args.verbose:
         print(f'getting passwords from {url_to_site(wato._api_url)}')
@@ -133,7 +133,7 @@ def get_passwords(wato, sync_tag):
     return passwords
 
 
-def get_roles(wato, sync_tag):
+def get_roles(wato: checkmkapi.CMKRESTAPI, sync_tag: str):
     roles = {}
     builtin_roles = {}
     if args.verbose:
