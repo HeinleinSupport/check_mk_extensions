@@ -46,6 +46,7 @@ parser = argparse.ArgumentParser()
 parser.add_argument('-s', '--url', help='URL to central Check_MK site')
 parser.add_argument('-u', '--username', help='name of the automation user')
 parser.add_argument('-p', '--password', help='secret of the automation user')
+parser.add_argument('-n', '--insecure', help='do not verify SSL certificates', action='store_true', required=False)
 parser.add_argument('-v', '--verbose', action='store_true', required=False)
 parser.add_argument('-D', '--debug', action='store_true', required=False)
 parser.add_argument('-k', '--key', required=True)
@@ -61,14 +62,18 @@ args = parser.parse_args()
 if args.debug:
     pprint(args)
 
+verify_ssl = True
+if args.insecure:
+    verify_ssl = False
+
 monshort = args.MONSERVER.split(".")[0]
 
 # Connection to local API
-central_wato = checkmkapi.CMKRESTAPI(args.url, args.username, args.password)
+central_wato = checkmkapi.CMKRESTAPI(args.url, args.username, args.password, verify_ssl)
 
 # Connection to remote API
 remote_url = f"https://{args.MONSERVER}/{args.SITENAME}/"
-remote_wato = checkmkapi.CMKRESTAPI(remote_url, "cmkadmin", args.CMKPASSWD)
+remote_wato = checkmkapi.CMKRESTAPI(remote_url, "cmkadmin", args.CMKPASSWD, verify_ssl)
 
 version_info, etag = central_wato.version()
 this_site = version_info["site"]
