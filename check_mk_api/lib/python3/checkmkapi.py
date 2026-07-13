@@ -58,7 +58,7 @@ def _site_creds(username=None):
     return username, password
 
 class CMKRESTAPI():
-    def __init__(self, site_url=None, api_user=None, api_secret=None):
+    def __init__(self, site_url=None, api_user=None, api_secret=None, verify_ssl=True):
         """Initialize a REST-API instance. URL, User and Secret can be automatically taken from local site if running as site user.
 
         Args:
@@ -75,6 +75,7 @@ class CMKRESTAPI():
             api_user, api_secret = _site_creds(api_user)
         self._api_url = '%sapi/1.0' % _check_mk_url(site_url)
         self._session = requests.session()
+        self._session.verify = verify_ssl
         self._session.headers['Authorization'] = f"Bearer {api_user} {api_secret}"
         self._session.headers['Accept'] = 'application/json'
         self._session.headers['User-Agent'] = f'check_mk_api/{__version__}'
