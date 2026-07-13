@@ -480,6 +480,10 @@ central_tag_groups = get_tag_groups(central_wato, args.sync)
 
 central_passwords = get_passwords(central_wato, args.sync)
 
+if args.debug:
+    print(f"Central site passwords:")
+    pprint(central_passwords)
+
 central_roles = get_roles(central_wato, args.sync)
 
 if args.debug:
