@@ -404,6 +404,7 @@ parser.add_argument('-u', '--username', help='name of the automation user')
 parser.add_argument('-p', '--password', help='secret of the automation user')
 parser.add_argument('-t', '--sync', help='Sync Tag', required=True)
 parser.add_argument('-f', '--force', help='Force Foreign Changes when activating changes on remote sites', action='store_true', required=False)
+parser.add_argument('-n', '--insecure', help='do not verify SSL certificates', action='store_true', required=False)
 parser.add_argument('-v', '--verbose', action='store_true', required=False)
 parser.add_argument('-D', '--debug', action='store_true', required=False)
 
@@ -412,12 +413,16 @@ args = parser.parse_args()
 if args.debug:
     pprint(args)
 
+verify_ssl = True
+if args.insecure:
+    verify_ssl = False
+
 regex_rule_title_id = re.compile(f'.*\\[{args.sync}-([^]]+)\\].*')
 regex_rule_title = re.compile(f'(.*)\\[{args.sync}\\](.*)')
 
 sites = {}
 
-central_wato = checkmkapi.CMKRESTAPI(args.url, args.username, args.password)
+central_wato = checkmkapi.CMKRESTAPI(site_url=args.url, api_user=args.username, api_secret=args.password, verify_ssl=verify_ssl)
 
 if args.verbose:
     print(f'getting sites from {url_to_site(central_wato._api_url)}')
@@ -458,9 +463,10 @@ for site_id in sites:
         continue
 
     sites[site_id]['wato'] = checkmkapi.CMKRESTAPI(
-        sites[site_id]['url'],
-        'automation',
-        pw
+        site_url=sites[site_id]['url'],
+        api_user='automation',
+        api_secret=pw,
+        verify_ssl=verify_ssl,
     )
 for site in remove_sites:
     del sites[site_id]
