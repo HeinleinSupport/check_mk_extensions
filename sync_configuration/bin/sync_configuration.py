@@ -325,7 +325,7 @@ def sync_passwords(site_id, site_data, changes):
                 comment=pw_ext["comment"],
                 documentation_url=pw_ext["documentation_url"],
                 password=pw_ext["password"],
-                editable_by=pw_ext["editable_by"],
+                editable_by=pw_ext.get("editable_by"),
                 shared=pw_ext["shared"],
             )
             del site_passwords[pw_id]
@@ -339,7 +339,7 @@ def sync_passwords(site_id, site_data, changes):
                 pw_ext["password"],
                 comment=pw_ext["comment"],
                 documentation_url=pw_ext["documentation_url"],
-                editable_by=pw_ext["editable_by"],
+                editable_by=pw_ext.get("editable_by"),
                 shared=pw_ext["shared"],
             )
             changes=True
