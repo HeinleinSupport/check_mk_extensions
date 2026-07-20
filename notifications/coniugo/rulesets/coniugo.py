@@ -22,6 +22,7 @@ from cmk.rulesets.v1 import (
 from cmk.rulesets.v1.form_specs import (
     DictElement,
     Dictionary,
+    FieldSize,
     Integer,
     InputHint,
     migrate_to_password,
@@ -48,7 +49,7 @@ def _valuespec_coniugo() -> Dictionary:
                 parameter_form=String(
                     title = Title("Login"),
                     help_text = Help("Configure the login name here"),
-                    field_size = 40,
+                    field_size = FieldSize.MEDIUM,
                 )),
             "api_password": DictElement(
                 parameter_form=Password(
@@ -60,7 +61,7 @@ def _valuespec_coniugo() -> Dictionary:
                 parameter_form=String(
                     title = Title("URL of SMS gateway"),
                     help_text = Help("Set the URL of your SMS gateway in the form of http://IP:PORT"),
-                    field_size = 60,
+                    field_size = FieldSize.LARGE,
                     prefill=InputHint(
                         "https://host.domain.tld:port"
                     ),
