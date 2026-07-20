@@ -66,7 +66,7 @@ def _parameter_valuespec_ox_runtimestats():
 
 rule_spec_ox_runtimestats = CheckParameters(
     name="open_xchange",
-    topic=Topic.ENVIRONMENTAL,
+    topic=Topic.APPLICATIONS,
     parameter_form=_parameter_valuespec_ox_runtimestats,
     title=Title("Open-XChange Attributes"),
     help_text=Help("Thresholds for Open-XChange attributes"),

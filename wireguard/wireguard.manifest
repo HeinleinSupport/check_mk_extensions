@@ -3,7 +3,7 @@
                 '\n'
                 'creates a service check for every wireguard interface and for '
                 'every peer.\n',
- 'download_url': 'https://github.com/HeinleinSupport/check_mk_extensions/tree/master/wireguard',
+ 'download_url': 'https://github.com/HeinleinSupport/check_mk_extensions/',
  'files': {'agents': ['plugins/wireguard'],
            'cmk_addons_plugins': ['wireguard/agent_based/wireguard.py',
                                   'wireguard/graphing/wireguard.py',
@@ -12,7 +12,7 @@
            'lib': ['python3/cmk/base/cee/plugins/bakery/wireguard.py']},
  'name': 'wireguard',
  'title': 'WireGuard VPN',
- 'version': '2.0.1',
+ 'version': '2.0.2',
  'version.min_required': '2.3.0b1',
- 'version.packaged': '2.4.0p22',
+ 'version.packaged': '2.5.0p3',
  'version.usable_until': None}

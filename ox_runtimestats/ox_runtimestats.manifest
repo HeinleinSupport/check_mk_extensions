@@ -1,7 +1,7 @@
 {'author': 'Robert Sander <r.sander@heinlein-support.de>',
  'description': 'Open-Xchange runtime statistics collected with '
                 '/opt/open-xchange/sbin/showruntimestats\n',
- 'download_url': 'https://github.com/HeinleinSupport/check_mk_extensions/tree/master/ox',
+ 'download_url': 'https://github.com/HeinleinSupport/check_mk_extensions/',
  'files': {'agents': ['plugins/ox_runtimestats'],
            'cmk_addons_plugins': ['ox_runtimestats/agent_based/ox_runtimestats.py',
                                   'ox_runtimestats/rulesets/ox_runtimestats.py',
@@ -9,7 +9,7 @@
            'lib': ['python3/cmk/base/cee/plugins/bakery/ox_runtimestats.py']},
  'name': 'ox_runtimestats',
  'title': 'Open-Xchange runtime statistics',
- 'version': '7.0.0',
+ 'version': '7.0.1',
  'version.min_required': '2.3.0b1',
- 'version.packaged': '2.3.0p34',
+ 'version.packaged': '2.5.0p3',
  'version.usable_until': None}

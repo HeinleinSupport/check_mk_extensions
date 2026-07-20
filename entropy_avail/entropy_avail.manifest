@@ -1,6 +1,6 @@
 {'author': 'Robert Sander <r.sander@heinlein-support.de>',
  'description': 'Checks the available entropy\n',
- 'download_url': 'https://github.com/HeinleinSupport/check_mk_extensions/tree/master/entropy_avail',
+ 'download_url': 'https://github.com/HeinleinSupport/check_mk_extensions/',
  'files': {'agents': ['plugins/entropy_avail'],
            'cmk_addons_plugins': ['entropy_avail/agent_based/entropy_avail.py',
                                   'entropy_avail/checkman/entropy_avail',
@@ -9,7 +9,7 @@
            'lib': ['python3/cmk/base/cee/plugins/bakery/entropy_avail.py']},
  'name': 'entropy_avail',
  'title': 'Available Entropy Check',
- 'version': '6.0.0',
+ 'version': '6.0.1',
  'version.min_required': '2.3.0b1',
- 'version.packaged': '2.3.0p33',
+ 'version.packaged': '2.5.0p3',
  'version.usable_until': None}

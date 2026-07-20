@@ -1,0 +1,13 @@
+{'author': 'Robert Sander <r.sander@heinlein-support.de>',
+ 'description': 'Syncs data from multisite views to host tags\n'
+                '\n'
+                'Needs the CheckMK-API module from '
+                'https://github.com/HeinleinSupport/check_mk_extensions/tree/master/check_mk_api\n',
+ 'download_url': 'https://github.com/HeinleinSupport/check_mk_extensions/',
+ 'files': {'bin': ['data2tag.py']},
+ 'name': 'data2tag',
+ 'title': 'Data to Tag',
+ 'version': '1.4.3',
+ 'version.min_required': '2.0.0b1',
+ 'version.packaged': '2.5.0p3',
+ 'version.usable_until': None}

@@ -1,0 +1,11 @@
+{'author': 'Robert Sander <r.sander@heinlein-support.de>',
+ 'description': 'This Python script exports a view to a CSV file via Multisite '
+                'API\n',
+ 'download_url': 'https://github.com/HeinleinSupport/check_mk_extensions/',
+ 'files': {'bin': ['export_view.py']},
+ 'name': 'export_view',
+ 'title': 'Export View to CSV',
+ 'version': '1.0.1',
+ 'version.min_required': '2.0.0b1',
+ 'version.packaged': '2.5.0p3',
+ 'version.usable_until': None}

@@ -1,0 +1,11 @@
+{'author': 'Robert Sander <r.sander@heinlein-support.de>',
+ 'description': 'This is a collection of rules for the Event Console to handle '
+                'Windows Eventlog messages.\n',
+ 'download_url': 'https://github.com/HeinleinSupport/check_mk_extensions/',
+ 'files': {'ec_rule_packs': ['windows.mk']},
+ 'name': 'ec_windows_pack',
+ 'title': 'Event Console: Windows Eventlog Rules',
+ 'version': '0.1.1',
+ 'version.min_required': '2.0.0b1',
+ 'version.packaged': '2.5.0p3',
+ 'version.usable_until': None}

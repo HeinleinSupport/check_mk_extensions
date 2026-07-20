@@ -1,0 +1,11 @@
+{'author': 'Robert Sander <r.sander@heinlein-support.de>',
+ 'description': 'This is a local check that monitors if a default route for '
+                'IPv4 and IPv6 is set on a Linux host.\n',
+ 'download_url': 'https://github.com/HeinleinSupport/check_mk_extensions/',
+ 'files': {'agents': ['custom/defaultroute/lib/local/defaultroute']},
+ 'name': 'defaultroute',
+ 'title': 'Default Route Check (Linux)',
+ 'version': '0.1.1',
+ 'version.min_required': '1.5.0',
+ 'version.packaged': '2.5.0p3',
+ 'version.usable_until': None}

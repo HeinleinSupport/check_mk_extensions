@@ -1,0 +1,13 @@
+{'author': 'Robert Sander <r.sander@heinlein-support.de>',
+ 'description': 'Sets Host Labels according to view data\n'
+                '\n'
+                'Needs the CheckMK-API module from '
+                'https://github.com/HeinleinSupport/check_mk_extensions/tree/master/check_mk_api\n',
+ 'download_url': 'https://github.com/HeinleinSupport/check_mk_extensions/',
+ 'files': {'bin': ['data2label.py']},
+ 'name': 'data2label',
+ 'title': 'Data to Label',
+ 'version': '2.3.2',
+ 'version.min_required': '2.2.0b1',
+ 'version.packaged': '2.5.0p3',
+ 'version.usable_until': None}

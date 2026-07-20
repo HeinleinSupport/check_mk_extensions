@@ -1,0 +1,13 @@
+{'author': 'Robert Sander <r.sander@heinlein-support.de>',
+ 'description': 'Local Check for checking the model type of the virtual NIC '
+                'hardware.\n'
+                '\n'
+                'Gives a WARNING if not virtual hardware.\n',
+ 'download_url': 'https://github.com/HeinleinSupport/check_mk_extensions/',
+ 'files': {'agents': ['custom/ifacehw/lib/local/ifacehw']},
+ 'name': 'ifacehw',
+ 'title': 'Check Network Interface virtual Hardware',
+ 'version': '1.2.1',
+ 'version.min_required': '1.5.0b1',
+ 'version.packaged': '2.5.0p3',
+ 'version.usable_until': None}

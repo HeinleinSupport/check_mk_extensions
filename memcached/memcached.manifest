@@ -6,7 +6,7 @@
                 'bakery integration.\n'
                 '\n'
                 'Now reworked to support counters.\n',
- 'download_url': 'https://github.com/HeinleinSupport/check_mk_extensions/tree/master/memcached',
+ 'download_url': 'https://github.com/HeinleinSupport/check_mk_extensions/',
  'files': {'agents': ['plugins/memcached.py', 'plugins/memcached_2.py'],
            'cmk_addons_plugins': ['memcached/agent_based/memcached.py',
                                   'memcached/graphing/memcached.py',
@@ -15,7 +15,7 @@
            'lib': ['python3/cmk/base/cee/plugins/bakery/memcached.py']},
  'name': 'memcached',
  'title': 'memcached',
- 'version': '6.1.0',
+ 'version': '6.1.1',
  'version.min_required': '2.4.0b1',
- 'version.packaged': '2.4.0p10',
+ 'version.packaged': '2.5.0p3',
  'version.usable_until': None}
