@@ -5,10 +5,11 @@
                 'have the HTTP API unlocked by the service.\n'
                 'Uses the new Web-API since August 1st, 2020.\n',
  'download_url': 'https://github.com/HeinleinSupport/check_mk_extensions/',
- 'files': {'notifications': ['ecallch'], 'web': ['plugins/wato/ecallch.py']},
+ 'files': {'cmk_addons_plugins': ['ecallch/rulesets/ecallch.py'],
+           'notifications': ['ecallch']},
  'name': 'ecallch',
  'title': 'SMS Notification Plugin for ecall.ch',
- 'version': '2.1.1',
- 'version.min_required': '1.2.8',
- 'version.packaged': '2.3.0p34',
+ 'version': '3.0.0',
+ 'version.min_required': '2.5.0b1',
+ 'version.packaged': '2.5.0p3',
  'version.usable_until': None}

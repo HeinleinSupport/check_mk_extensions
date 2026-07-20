@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 # SMS via ecall.ch
 # -*- encoding: utf-8; py-indent-offset: 4 -*-
 
@@ -17,17 +17,14 @@
 # Boston, MA 02110-1301 USA.
 
 import requests
-import json
-import os
 import sys
 import xml.etree.ElementTree as ET
+from cmk.notification_plugins import utils
 
 api_url = "https://url.ecall.ch/api/sms"
 
 def main():
-    context = dict([ (var[7:], value.decode("utf-8"))
-                      for (var, value) in os.environ.items()
-                      if var.startswith("NOTIFY_")])
+    context = utils.collect_context()
 
     if not context.get('CONTACTPAGER'):
         sys.stderr.write("Contact's pager address is empty, not sending anything.\n")
@@ -36,7 +33,12 @@ def main():
     text    = get_text(context)
 
     username = context["PARAMETER_USERNAME"]
-    password = context["PARAMETER_PASSWORD"]
+    password = context.get("PARAMETER_PASSWORD")
+    if context.get("PARAMETER_PASSWORD_1") == "cmk_postprocessed":
+        if context["PARAMETER_PASSWORD_2"] == "stored_password":
+            password = utils.retrieve_from_passwordstore("store " + context["PARAMETER_PASSWORD_3_1"])
+        if context["PARAMETER_PASSWORD_2"] == "explicit_password":
+            password = context["PARAMETER_PASSWORD_3_2"]
 
     return send_sms(username, password, text, context)
 
@@ -98,9 +100,11 @@ def send_sms(username, password, text, context):
     else:
         root = ET.fromstring('<empty />')
 
-    responsedata = { 'AdditionalInfo': None,
-                     'ResultCode': None,
-                     'ResultText': None, }
+    responsedata = {
+        'AdditionalInfo': None,
+        'ResultCode': None,
+        'ResultText': "",
+    }
 
     if root.tag == '{http://schemas.datacontract.org/2004/07/eCallHttp.Models}Result':
         for child in root:
