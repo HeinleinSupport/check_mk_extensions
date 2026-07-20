@@ -18,6 +18,7 @@ mkp files "$package" | while read file; do
   lfile=${file#$OMD_ROOT/local/lib/python3/cmk_addons/plugins/$package}
   lfile=${lfile#$OMD_ROOT/local/share/check_mk}
   lfile=${lfile#$OMD_ROOT/local}
+  lfile=${lfile#$OMD_ROOT}
   ldir=.$(dirname "$lfile")
   mkdir -pv "$ldir"
   cp -av "$file" "$ldir"
