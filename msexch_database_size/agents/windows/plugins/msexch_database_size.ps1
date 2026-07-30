@@ -5,4 +5,4 @@ try{ (Add-PSSnapin Microsoft.Exchange.Management.PowerShell.E2010 -ErrorAction:S
 catch{exit}
 
 Write-Host '<<<msexch_database_size:sep(59)>>>'
-Get-MailboxDatabase -Status | select Name,DatabaseSize,AvailableNewMailboxSpace | ConvertTo-CSV -NoTypeInformation -Delimiter ";"
+Get-MailboxDatabase -Status -Server $env:COMPUTERNAME | Where-Object {$_.Mounted -eq $true -and $_.Server.Name -eq $env:COMPUTERNAME} | select Name,DatabaseSize,AvailableNewMailboxSpace | ConvertTo-CSV -NoTypeInformation -Delimiter ";"
