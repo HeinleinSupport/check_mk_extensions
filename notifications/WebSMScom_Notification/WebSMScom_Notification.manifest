@@ -1,0 +1,14 @@
+{'author': 'Robert Sander',
+ 'description': 'Notification Script für SMS- und Sprachnachrichten über '
+                'WebSMS.com \n'
+                '\n'
+                'Creates logfile in $OMD_ROOT/var/log/websmscom.log\n',
+ 'download_url': 'https://www.heinlein-support.de/',
+ 'files': {'cmk_addons_plugins': ['WebSMScom_Notification/rulesets/WebSMScom.py'],
+           'notifications': ['WebSMScom']},
+ 'name': 'WebSMScom_Notification',
+ 'title': 'WebSMS.com Notification Script',
+ 'version': '2.2.0',
+ 'version.min_required': '2.3.0b1',
+ 'version.packaged': '2.3.0p34',
+ 'version.usable_until': None}
