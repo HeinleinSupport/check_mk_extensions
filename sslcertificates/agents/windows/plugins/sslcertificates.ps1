@@ -50,7 +50,7 @@ $UnixEpoch = (Get-Date -Date "01/01/1970") ;
 $CertLocations = "Cert:\LocalMachine\My", "Cert:\CurrentUser\My"
 
 foreach ($CertLocation in $CertLocations) {
-  foreach ($cert in Get-ChildItem -Recurse $CertLocation) {
+  foreach ($cert in Get-ChildItem -Recurse $CertLocation | sort -Property NotAfter -Descending) {
     If ($cert.DnsNameList -and @($cert.DnsNameList).Count -gt 0) {$subject = $cert.DnsNameList -join ','}
     ElseIf ($cert.Subject -and $cert.Subject.Trim() -ne "") {$subject = $cert.Subject}
     Else {$subject = $cert.Thumbprint}
