@@ -77,7 +77,7 @@ def parse_sslcertificates(string_table: StringTable) -> SSLCertificatesSection:
             section[name]['algosign'] = algosign
             section[name]['subj'] = subject
             section[name]['issuer_hash'] = issuer_hash
-    return section
+    return dict(sorted(section.items(), key=lambda item: item[1]['expires'], reverse=True))
 
 agent_section_sslcertificates = AgentSection(
     name="sslcertificates",
