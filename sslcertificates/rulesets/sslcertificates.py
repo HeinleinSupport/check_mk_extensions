@@ -183,13 +183,13 @@ def _valuespec_agent_config_sslcertificates():
             "directories": DictElement(
                 parameter_form = List(
                     title = Title("Directories or filename patterns to look into for SSL certificate files"),
-                    help_text = Help("Enter path patterns that will be searched for certificate files. Only works on Linux. On Windows the agent plugin looks into the cert store."),
+                    help_text = Help("Enter path patterns that will be searched for certificate files. Only works on Linux. On Windows the agent plugin looks into the cert store. Different cert store locations can be specified"),
                     element_template = String(
                         field_size=80,
                         custom_validate=[
                             validators.MatchRegex(
-                                regex = r"^/\S+$",
-                                error_msg = "Directory paths must begin with <tt>/</tt> and must not contain spaces.",
+                                regex = r"^(/\S+$|Cert:.+)",
+                                error_msg = "On Linux directory paths must begin with <tt>/</tt> and must not contain spaces. On Windows cert store locations must begin with <tt>Cert:</tt>",
                             ),
                         ],
                     ),

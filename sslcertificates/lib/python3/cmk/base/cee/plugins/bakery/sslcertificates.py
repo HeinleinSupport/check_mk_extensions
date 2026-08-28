@@ -39,6 +39,10 @@ def get_sslcertificates_files(conf: Dict[str, Any]) -> FileGenerator:
                             lines=['CERT_DIRS="%s"' % " ".join(conf['directories'])],
                             target=Path("sslcertificates"),
                             include_header=True)
+            yield PluginConfig(base_os=OS.WINDOWS,
+                            lines=['$CertLocations = %s' % ", ".join(map( lambda directory: f'"{ directory }"', conf['directories']))]
+                            target=Path("sslcertificates_cfg.ps1"),
+                            include_header=True)
 
 register.bakery_plugin(
     name="sslcertificates",

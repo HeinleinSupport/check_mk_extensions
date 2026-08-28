@@ -49,7 +49,20 @@ $UnixEpoch = (Get-Date -Date "01/01/1970") ;
 
 $CertLocations = "Cert:\LocalMachine\My", "Cert:\CurrentUser\My"
 
+$MkConfDir = $env:MK_CONFDIR
+if (!$MkConfDir) {
+  $MkConfDir = "%PROGRAMDATA%\checkmk\agent\config"
+}
+
+$ConfigFile = "${MkConfDir}\sslcertificates_cfg.ps1"
+if (Test-Path -Path $ConfigFile) {
+  . $ConfigFile
+}
+
 foreach ($CertLocation in $CertLocations) {
+  if (-Not (Test-Path -Path $CertLocation)) {
+    continue
+  }
   foreach ($cert in Get-ChildItem -Recurse $CertLocation) {
     If ($cert.DnsNameList -and @($cert.DnsNameList).Count -gt 0) {$subject = $cert.DnsNameList -join ','}
     ElseIf ($cert.Subject -and $cert.Subject.Trim() -ne "") {$subject = $cert.Subject}
