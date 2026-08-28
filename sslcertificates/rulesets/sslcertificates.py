@@ -19,6 +19,7 @@
 from cmk.rulesets.v1 import (
     Help,
     Label,
+    Message,
     Title,
 )
 from cmk.rulesets.v1.form_specs import (
@@ -26,11 +27,13 @@ from cmk.rulesets.v1.form_specs import (
     DefaultValue,
     DictElement,
     Dictionary,
+    FieldSize,
     Integer,
     InputHint,
     LevelDirection,
     List,
     migrate_to_lower_float_levels,
+    migrate_to_float_simple_levels,
     SimpleLevels,
     String,
     TimeMagnitude,
@@ -53,6 +56,9 @@ def _migrate_from_tuple(value):
         }
     return value
 
+def _float(model: object) -> float:
+    return float(str(model))
+
 def _default_values(param):
     if "warnalgo" not in param:
         param["warnalgo"] = ['md5WithRSAEncryption', 'sha1WithRSAEncryption']
@@ -66,7 +72,7 @@ def _parameter_valuespec_sslcertificates() -> Dictionary:
                 parameter_form=SimpleLevels(
                     title = Title('Certificate Age'),
                     help_text = Help("Days until expiry of certificate"),
-                    migrate = lambda model: migrate_to_lower_float_levels(model, scale=86400.0),
+                    migrate = lambda model: migrate_to_float_simple_levels(model, scale=86400.0),
                     level_direction = LevelDirection.LOWER,
                     form_spec_template = TimeSpan(
                         displayed_magnitudes=[TimeMagnitude.DAY, TimeMagnitude.HOUR],
@@ -101,12 +107,12 @@ def _parameter_valuespec_sslcertificates() -> Dictionary:
                             parameter_form=String(
                                 title = Title("Reason"),
                                 custom_validate = [validators.LengthInRange(min_value=10)],
-                                field_size = 72,
+                                field_size = FieldSize.LARGE,
                             )),
                     }
                 )),
         },
-        ignored_elements=["use_subject"],
+        ignored_elements=( "use_subject", ),
     )
 
 rule_spec_sslcertificates = CheckParameters(
@@ -130,7 +136,7 @@ def _valuespec_sslcertificates_inventory() -> Dictionary:
                     title=Title("Minimal lifetime of certificate"),
                     displayed_magnitudes=[TimeMagnitude.DAY, TimeMagnitude.HOUR],
                     prefill=InputHint(864000.0),
-                    migrate=float,
+                    migrate=_float,
                     help_text=Help("Certificates with a lifetime less than this value will not be discovered."),
             )),
             'use_subject': DictElement(
@@ -176,7 +182,7 @@ def _valuespec_agent_config_sslcertificates():
                 parameter_form = TimeSpan(
                     title = Title("Run asynchronously"),
                     label = Label("Interval for collecting data"),
-                    migrate = float,
+                    migrate = _float,
                     prefill = DefaultValue(3600.0),
                     displayed_magnitudes = [TimeMagnitude.HOUR, TimeMagnitude.MINUTE],
             )),
@@ -185,11 +191,11 @@ def _valuespec_agent_config_sslcertificates():
                     title = Title("Directories or filename patterns to look into for SSL certificate files"),
                     help_text = Help("Enter path patterns that will be searched for certificate files. Only works on Linux. On Windows the agent plugin looks into the cert store. Different cert store locations can be specified"),
                     element_template = String(
-                        field_size=80,
+                        field_size=FieldSize.LARGE,
                         custom_validate=[
                             validators.MatchRegex(
                                 regex = r"^(/\S+$|Cert:.+)",
-                                error_msg = "On Linux directory paths must begin with <tt>/</tt> and must not contain spaces. On Windows cert store locations must begin with <tt>Cert:</tt>",
+                                error_msg = Message("On Linux directory paths must begin with <tt>/</tt> and must not contain spaces. On Windows cert store locations must begin with <tt>Cert:</tt>"),
                             ),
                         ],
                     ),

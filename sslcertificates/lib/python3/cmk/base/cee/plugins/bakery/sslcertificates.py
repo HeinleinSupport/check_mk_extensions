@@ -28,21 +28,29 @@ from cmk.base.plugins.bakery.bakery_api.v1 import (
 
 def get_sslcertificates_files(conf: Dict[str, Any]) -> FileGenerator:
     if conf.get("deploy"):
-        yield Plugin(base_os=OS.LINUX,
-                    source=Path("sslcertificates"),
-                    interval=int(conf.get("interval", 0)))
-        yield Plugin(base_os=OS.WINDOWS,
-                    source=Path("sslcertificates.ps1"),
-                    interval=int(conf.get("interval", 0)))
+        yield Plugin(
+            base_os=OS.LINUX,
+            source=Path("sslcertificates"),
+            interval=int(conf.get("interval", 0)),
+        )
+        yield Plugin(
+            base_os=OS.WINDOWS,
+            source=Path("sslcertificates.ps1"),
+            interval=int(conf.get("interval", 0)),
+        )
         if 'directories' in conf:
-            yield PluginConfig(base_os=OS.LINUX,
-                            lines=['CERT_DIRS="%s"' % " ".join(conf['directories'])],
-                            target=Path("sslcertificates"),
-                            include_header=True)
-            yield PluginConfig(base_os=OS.WINDOWS,
-                            lines=['$CertLocations = %s' % ", ".join(map( lambda directory: f'"{ directory }"', conf['directories']))]
-                            target=Path("sslcertificates_cfg.ps1"),
-                            include_header=True)
+            yield PluginConfig(
+                base_os=OS.LINUX,
+                lines=['CERT_DIRS="%s"' % " ".join(conf['directories'])],
+                target=Path("sslcertificates"),
+                include_header=True,
+            )
+            yield PluginConfig(
+                base_os=OS.WINDOWS,
+                lines=['$CertLocations = %s' % ", ".join(map( lambda directory: f'"{ directory }"', conf['directories']))],
+                target=Path("sslcertificates_cfg.ps1"),
+                include_header=True,
+            )
 
 register.bakery_plugin(
     name="sslcertificates",
