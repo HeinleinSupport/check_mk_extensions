@@ -41,13 +41,30 @@ def get_sslcertificates_files(conf: Dict[str, Any]) -> FileGenerator:
         if 'directories' in conf:
             yield PluginConfig(
                 base_os=OS.LINUX,
-                lines=['CERT_DIRS="%s"' % " ".join(conf['directories'])],
+                lines=[
+                    'CERT_DIRS="%s"' % " ".join(
+                        filter(
+                            lambda dir: dir.startswith("/"),
+                            conf['directories']
+                        )
+                    )
+                ],
                 target=Path("sslcertificates"),
                 include_header=True,
             )
             yield PluginConfig(
                 base_os=OS.WINDOWS,
-                lines=['$CertLocations = %s' % ", ".join(map( lambda directory: f'"{ directory }"', conf['directories']))],
+                lines=[
+                    '$CertLocations = %s' % ", ".join(
+                        map(
+                            lambda directory: f'"{ directory }"',
+                            filter(
+                                lambda dir: dir.startswith("Cert:"),
+                                conf['directories']
+                            )
+                        )
+                    )
+                ],
                 target=Path("sslcertificates_cfg.ps1"),
                 include_header=True,
             )
