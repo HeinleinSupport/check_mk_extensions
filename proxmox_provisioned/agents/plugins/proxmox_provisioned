@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env python3
 
 # (c) 2020 Heinlein Support GmbH
 #          Robert Sander <r.sander@heinlein-support.de>
@@ -14,93 +14,112 @@
 # to the Free Software Foundation, Inc., 51 Franklin St,  Fifth Floor,
 # Boston, MA 02110-1301 USA.
 
-shopt -s lastpipe
+from shutil import which
+from psutil import disk_partitions, disk_usage
+from os import walk
+from os.path import join, isfile
+from socket import gethostname, getfqdn
+import subprocess
+import json
 
-addNumbers () {
-  local IFS='+'
-  printf "%s\n" "$(( $* ))"
-}
+from pprint import pprint
 
-provisionedSpace () {
-  # shellcheck disable=SC2046
-  addNumbers $( find "$1" -type f | while read -r image; do
-    qemu-img info "$image"
-  done | awk '/^virtual size: / { print substr($5, 2) }' )
-}
+def parse_output(cmd, parse_json=True):
+    r = subprocess.run(cmd, capture_output=True, check=True, text=True)
+    if parse_json:
+        return json.loads(r.stdout)
+    else:
+        return r.stdout
 
-handleDirStorage() {
-  local dir="$1" typ
-  local -i capacity total_used used prov total_cap
-  if [ -d "$dir/images" ]; then
-    df -T -B 1 "$dir" | tail -1 | read -r _ typ capacity total_used _
-    du -B 1 -s "$dir/images" | read -r used _
-    # shellcheck disable=SC2046
-    # prov=$(addNumbers $(ls --block-size=1 -l $dir/images/*/* 2> /dev/null | awk '{ print $5; }'))
-    prov="$(provisionedSpace "$dir/images")"
-    total_cap=$((capacity - total_used + used))
-    echo "[$dsname]"
-    echo "url $dir"
-    echo "accessible True"
-    echo "type $typ"
-    echo "capacity $total_cap"
-    echo "freeSpace $((total_cap - used))"
-    if [ "$prov" -gt 0 ]; then
-      echo "uncommitted $((prov - used))"
-    else
-      echo "uncommitted 0"
-    fi
-  fi
-}
+def get_filesystem_type(partitions, file):
+    for p in partitions:
+        if file.startswith(p.mountpoint):
+            return p.fstype
+    return None
 
-handleZfsStorage() {
-  pool="$1"
-  if ! command -V zfs > /dev/null; then
-    return
-  fi
-  free="$(zfs get -Hpo value available "$pool")"
-  used="$(zfs get -Hpo value used "$pool")"
-  # shellcheck disable=SC2046
-  prov="$(addNumbers $(zfs get -rHpo value volsize "$pool" | grep -vx -- -))"
-  echo "[$dsname]"
-  echo "url $pool"
-  echo "accessible True"
-  echo "type ZFS"
-  echo "capacity $((free + used))"
-  echo "freeSpace ${free}"
-  if [ "$prov" -gt 0 ]; then
-    echo "uncommitted $((prov - used))"
-  else
-    echo "uncommitted 0"
-  fi
-}
+def df(partitions, file):
+    capacity, used, free, percent = disk_usage(file)
 
-if [ -r /etc/pve/storage.cfg ]; then
-  echo '<<<esx_vsphere_datastores>>>'
-  while read -r key value; do
-    if [[ "$key $value" =~ ^([^[:space:]]+):[[:space:]]*(.*)$ ]]; then
-      dstype="${BASH_REMATCH[1]}"
-      dsname="${BASH_REMATCH[2]}"
-    elif [[ "$key" = "path" && ( "$dstype" = "dir" || "$dstype" = "nfs" ) ]]; then
-      handleDirStorage "$value"
-    elif [ "$key" = "pool" ] && [ "$dstype" = "zfspool" ]; then
-      handleZfsStorage "$value"
-    fi
-  done < /etc/pve/storage.cfg
-fi
+    typ = get_filesystem_type(partitions, file)
 
-pvesm=$(which pvesm)
-if [ -x $pvesm ]; then
-  echo '<<<esx_vsphere_datastores>>>'
-  $pvesm status | grep lvm | while read dsname typ status total_cap used avail perc; do
-    echo "[$dsname]"
-    if [ "$status" = "active" ]; then
-      echo "accessible True"
-    else
-      echo "accessible False"
-    fi
-    echo "type $typ"
-    echo "capacity $(( $total_cap * 1024 ))"
-    echo "freeSpace $(( $avail * 1024 ))"
-    echo "uncommitted 0"
-  done
-fi
+    return typ, capacity, used
+
+def du(directory):
+    du = which("du")
+    if not du:
+        raise RuntimeError("du not found")
+    size, _ = parse_output([du, "-B", "1", "-s", directory], False).split()
+    return int(size)
+
+def provisioned_space(directory):
+    prov = 0
+    qemuimg = which("qemu-img")
+    if not qemuimg:
+        return prov
+    for root, dirs, files in walk(directory):
+        for file in files:
+            path = join(root, file)
+            if isfile(path):
+                for line in parse_output([qemuimg, "info", path], False).split("\n"):
+                    if line.startswith("virtual size: "):
+                        prov += int(line.split("(")[1].split(" ")[0])
+    return prov
+
+def handle_dir_storage(partitions, path):
+    images = path + "/images"
+    typ, capacity, total_used = df(partitions, images)
+    used = du(images)
+    prov = provisioned_space(images)
+    total_cap = capacity - total_used + used
+    return typ, total_cap, used, prov
+
+def handle_zfs_storage(pool):
+    zfs = which("zfs")
+    if not zfs:
+        raise RuntimeError("zfs not found")
+    free = int(parse_output([zfs, "get", "-Hpo", "value", "available", pool], False))
+    used = int(parse_output([zfs, "get", "-Hpo", "value", "used", pool], False))
+    prov = sum(map(int, parse_output([zfs, "get", "-rHpo", "value", "volsize", pool], False).split("\n")[1:-1]))
+    return "ZFS", free + used, used, prov
+
+if __name__ == "__main__":
+    pvesh = which("pvesh")
+    if pvesh:
+        partitions = sorted(disk_partitions(True), key=lambda x: x.mountpoint, reverse=True)
+        hostname = gethostname().split(".", 1)[0]
+        fqdn = getfqdn()
+        print("<<<esx_vsphere_datastores>>>")
+        for storage_info in parse_output([pvesh, "get", "/storage", "--output-format=json"]):
+            nodes = storage_info.get("nodes", "").split(",")
+            if "images" in storage_info["content"] and ( hostname in nodes or fqdn in nodes):
+                typ, capacity, used, provisioned = None, 0, 0, 0
+                if storage_info["type"] in ["dir", "nfs", "cephfs"]:
+                    typ, capacity, used, provisioned = handle_dir_storage(partitions, storage_info["path"])
+                    url = storage_info["path"]
+                if storage_info["type"] == "zfspool":
+                    typ, capacity, used, provisioned = handle_zfs_storage(storage_info["pool"])
+                    url = storage_info["pool"]
+                if typ:
+                    print("[%s]" % storage_info["storage"])
+                    print("url %s" % url)
+                    print("accessible %s" % (storage_info.get("disable", 0) == 0) )
+                    print("type %s" % typ)
+                    print("capacity %d" % capacity)
+                    print("freeSpace %d" % (capacity - used))
+                    if provisioned > 0:
+                        print("uncommitted %d" % (provisioned - used))
+                    else:
+                        print("uncommitted 0")
+    pvesm = which("pvesm")
+    if pvesm:
+        print("<<<esx_vsphere_datastores>>>")
+        for line in parse_output([pvesm, "status"], False).split("\n")[1:-1]:
+            dsname, typ, status, total_cap, used, avail, perc = line.split()
+            if typ == "lvm":
+                print(f"[{dsname}]")
+                print("accessible %s" % (status == "active") )
+                print("type %s" % typ)
+                print("capacity %d" % (int(total_cap) * 1024))
+                print("freeSpace %d" % (int(avail) * 1024))
+                print("uncommitted 0")
+
