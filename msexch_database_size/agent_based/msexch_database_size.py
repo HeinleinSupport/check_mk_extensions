@@ -94,6 +94,7 @@ def check_msexch_database_size(item: str, params: dict, section: dict) -> CheckR
             levels_upper=migrated["availSpace"],
             render_func=lambda v: f"{avail_size_str} ({render.percent(v)})",
             label="Available New Mailbox Space",
+            boundaries=(0.0, 100.0),
         )
 
 
