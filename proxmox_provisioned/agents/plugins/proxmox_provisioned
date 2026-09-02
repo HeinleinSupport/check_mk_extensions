@@ -83,6 +83,7 @@ def handle_zfs_storage(pool):
     return "ZFS", free + used, used, prov
 
 if __name__ == "__main__":
+    lvmthin = {}
     pvesh = which("pvesh")
     if pvesh:
         partitions = sorted(disk_partitions(True), key=lambda x: x.mountpoint, reverse=True)
@@ -95,6 +96,8 @@ if __name__ == "__main__":
                 nodes = []
             if "images" in storage_info["content"].split(",") and ( not nodes or hostname in nodes or fqdn in nodes ):
                 typ, capacity, used, provisioned = None, 0, 0, 0
+                if storage_info["type"] == "lvmthin":
+                    lvmthin[storage_info["storage"]] = storage_info
                 try:
                     if storage_info["type"] in ["dir", "nfs", "cephfs"]:
                         typ, capacity, used, provisioned = handle_dir_storage(partitions, storage_info["path"])
@@ -118,6 +121,7 @@ if __name__ == "__main__":
     pvesm = which("pvesm")
     if pvesm:
         print("<<<esx_vsphere_datastores>>>")
+        lvs = which("lvs")
         for line in parse_output([pvesm, "status"], False).split("\n")[1:-1]:
             dsname, typ, status, total_cap, used, avail, perc = line.split()
             if typ == "lvm":
@@ -127,3 +131,15 @@ if __name__ == "__main__":
                 print("capacity %d" % (int(total_cap) * 1024))
                 print("freeSpace %d" % (int(avail) * 1024))
                 print("uncommitted 0")
+            if typ == "lvmthin" and dsname in lvmthin:
+                lvsize = 0
+                for report in parse_output([lvs, "--units", "b", "--nosuffix", "--reportformat", "json", lvmthin[dsname]["vgname"]]).get("report", []):
+                    for lvinfo in report.get("lv", []):
+                        if lvinfo.get("pool_lv") == lvmthin[dsname].get("thinpool"):
+                            lvsize += int(lvinfo["lv_size"])
+                print(f"[{dsname}]")
+                print("accessible %s" % (status == "active") )
+                print("type %s" % typ)
+                print("capacity %d" % (int(total_cap) * 1024))
+                print("freeSpace %d" % (int(avail) * 1024))
+                print("uncommitted %d" % (lvsize - int(used) * 1024))

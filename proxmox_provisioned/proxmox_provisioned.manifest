@@ -14,7 +14,7 @@
            'lib': ['python3/cmk/base/cee/plugins/bakery/proxmox_provisioned.py']},
  'name': 'proxmox_provisioned',
  'title': 'Proxmox Provisioned Storage Space',
- 'version': '2.1.1',
+ 'version': '2.2.0',
  'version.min_required': '2.3.0b1',
  'version.packaged': '2.5.0p9',
  'version.usable_until': None}
