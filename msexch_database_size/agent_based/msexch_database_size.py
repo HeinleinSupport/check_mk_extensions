@@ -110,7 +110,7 @@ check_plugin_msexch_database_size = CheckPlugin(
     discovery_function=discover_msexch_database_size,
     check_function=check_msexch_database_size,
     check_default_parameters={
-        "size": None,
+        "size": ("no_levels", None),
         "availSpace": ("fixed", (20.0, 40.0)),
     },
     check_ruleset_name="msexch_database_size",
