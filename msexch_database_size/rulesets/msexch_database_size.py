@@ -19,11 +19,12 @@ def _migrate(params: object) -> dict:
     """Migrate legacy parameter formats."""
     if not isinstance(params, dict):
         # Very old format: just a size tuple
-        return {"size": ("fixed", params) if params else None}
+        return {"size": ("fixed", params) if params else ("no_levels", None)}
     migrated = dict(params)
     for key in ("size", "availSpace"):
         value = migrated.get(key)
         if value is None:
+            migrated[key] = ("no_levels", None)
             continue
         if isinstance(value, tuple) and len(value) == 2 and not isinstance(value[0], str):
             # Legacy format: (warn, crit) -> ("fixed", (warn, crit))
