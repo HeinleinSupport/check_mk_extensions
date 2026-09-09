@@ -52,10 +52,14 @@ def check_snmp_temperature_single_arguments(params, host_config: HostConfig) -> 
     if 'creds' in params:
         args = _creds_to_args(params['creds'])
     else:
-        loading_result = config.load(
-            discovery_rulesets=(), get_builtin_host_labels=lambda x: {}
-        )
-        config_cache = loading_result.config_cache
+        # Reuse the ConfigCache of the running compile. config.load() would rebuild every
+        # ruleset global and invalidate the id()-keyed RulesetOptimizer cache of the caller.
+        try:
+            config_cache = config.access_globally_cached_config_cache()
+        except KeyError:  # no compile running (standalone invocation): load once
+            config_cache = config.load(
+                discovery_rulesets=(), get_builtin_host_labels=lambda x: {}
+            ).config_cache
         ip_lookup_config = config_cache.ip_lookup_config()
         host_name = HostName(host_config.name)
         ip_family = ip_lookup_config.default_address_family(host_name)
