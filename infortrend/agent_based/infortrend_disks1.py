@@ -100,7 +100,9 @@ def rename_dups(l):
     return l
 
 def parse_infortrend_disks1(string_table: StringTable) -> StringTable | None:
-    return rename_dups(string_table) or None
+    # Slot 0 is the enclosure itself (SES device), not a disk.
+    disks = [line for line in string_table if line[0] and int(line[0]) != 0]
+    return rename_dups(disks) or None
 
 snmp_section_infortrend_disks1 = SimpleSNMPSection(
     name="infortrend_disks1",
